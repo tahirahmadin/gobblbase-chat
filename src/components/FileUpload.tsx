@@ -1,14 +1,12 @@
 import React from "react";
 import { Upload, FileText, Globe, HelpCircle, Book } from "lucide-react";
-import { uploadFile } from "../actions/serverActions";
 import Playground from "./Playground";
 import mammoth from "mammoth";
-import { WebPDFLoader } from "@langchain/community/document_loaders/web/pdf";
-import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 
-// Configure PDF.js worker
-GlobalWorkerOptions.workerSrc =
-  "/node_modules/pdfjs-dist/build/pdf.worker.min.js";
+// Set the PDF worker source
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+
 
 interface SourceTab {
   id: string;
@@ -23,6 +21,8 @@ export default function FileUpload() {
   >("idle");
   const [message, setMessage] = React.useState("");
   const [activeTab, setActiveTab] = React.useState("files");
+  const [processingProgress, setProcessingProgress] = React.useState(0);
+  const [extractedText, setExtractedText] = React.useState<string | null>(null);
 
   const tabs: SourceTab[] = [
     { id: "files", name: "Files", icon: <FileText className="h-5 w-5" /> },
@@ -36,59 +36,82 @@ export default function FileUpload() {
       setFile(e.target.files[0]);
       setStatus("idle");
       setMessage("");
+      setProcessingProgress(0);
+      setExtractedText(null);
     }
   };
 
-  const extractTextFromFile = async (file: File): Promise<string> => {
+  const extractTextFromFile = async (file: File): Promise<string | null> => {
     try {
+      setProcessingProgress(5);
+
       if (file.type === "application/pdf") {
+        // Use PDF.js for PDF extraction
+        setProcessingProgress(30);
+        console.log("Attempting to extract PDF text using pdfjs-dist...");
+
         const arrayBuffer = await file.arrayBuffer();
-        const pdf = await getDocument({ data: arrayBuffer }).promise;
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+        const pdf = await loadingTask.promise;
         let textContent = "";
 
+        // Loop over all pages in the PDF
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
-          const text = await page.getTextContent();
-          textContent +=
-            text.items.map((item: any) => item.str).join(" ") + "\n";
-        }
+          const content = await page.getTextContent();
+          // Concatenate all text items from the page
+          const pageText = content.items.map((item: any) => item.str).join(" ");
+          textContent += pageText + "\n";
 
-        if (!textContent.trim()) {
-          throw new Error("No text content could be extracted from the PDF.");
+          // Update progress based on current page
+          setProcessingProgress(Math.floor(30 + (i / pdf.numPages) * 70));
         }
-        return textContent;
+        setProcessingProgress(100);
+        return textContent.trim();
       } else if (
         file.type ===
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
         file.type === "application/msword"
       ) {
+        // Use mammoth for Word documents
         const arrayBuffer = await file.arrayBuffer();
+        setProcessingProgress(30);
         const result = await mammoth.extractRawText({ arrayBuffer });
+        setProcessingProgress(90);
+
+        console.log(
+          "Word document text extracted (first 500 chars):",
+          result.value.slice(0, 500)
+        );
+        console.log("Total extracted text length:", result.value.length);
 
         if (!result.value.trim()) {
-          throw new Error(
-            "No text content could be extracted from the document."
-          );
+          console.warn("No text content could be extracted from the document.");
+          return null;
         }
         return result.value;
       } else if (file.type === "text/plain") {
+        // Plain text file extraction
         const text = await file.text();
+        setProcessingProgress(90);
+
+        console.log("Text file content (first 500 chars):", text.slice(0, 500));
+        console.log("Total text length:", text.length);
 
         if (!text.trim()) {
-          throw new Error("The text file is empty.");
+          console.warn("The text file is empty.");
+          return null;
         }
         return text;
       } else {
-        throw new Error(
-          "Unsupported file type. Please upload a PDF, DOC/DOCX, or TXT file."
-        );
+        console.warn("Unsupported file type, proceeding without text extraction.");
+        return null;
       }
     } catch (error) {
-      throw new Error(
-        `Failed to extract text: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+      console.error("Text extraction error:", error);
+      return null;
+    } finally {
+      setProcessingProgress(100);
     }
   };
 
@@ -96,24 +119,40 @@ export default function FileUpload() {
     if (!file) return;
 
     try {
-      console.log("file", file);
-      extractTextFromFile(file);
       setStatus("uploading");
-
-      // if (response.success) {
-      //   setStatus('success');
-      //   setMessage(response.message);
-      // } else {
-      //   throw new Error(response.message);
-      // }
+      setProcessingProgress(0);
+      console.log("Processing file:", file.name, "Type:", file.type);
+      
+      // Extract text if possible
+      const text = await extractTextFromFile(file);
+      setExtractedText(text);
+      
+      if (text) {
+        console.log("Text extraction successful");
+        console.log("-------- EXTRACTED TEXT (FULL) --------");
+        console.log(text);
+        console.log("-------- END OF EXTRACTED TEXT --------");
+      } else {
+        console.log("No text was extracted from this file");
+      }
+      
+      // Proceed to Playground regardless of extraction result
+      setStatus("success");
     } catch (error) {
+      console.error("Upload error:", error);
       setStatus("error");
-      setMessage(error instanceof Error ? error.message : "Upload failed");
+      setMessage("An error occurred during file processing. Please try again.");
     }
   };
 
   if (status === "success") {
-    return <Playground fileName={file?.name || ""} />;
+    return (
+      <Playground 
+        fileName={file?.name || ""} 
+        fileType={file?.type || ""} 
+        extractedText={extractedText || ""} 
+      />
+    );
   }
 
   return (
@@ -182,13 +221,41 @@ export default function FileUpload() {
                   <p className="text-sm text-gray-500">
                     Selected file: {file.name}
                   </p>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Text extraction results will be logged to the browser console (F12 or right-click &gt; Inspect &gt; Console)
+                  </p>
                   <button
                     onClick={handleUpload}
                     disabled={status === "uploading"}
-                    className="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
-                    {status === "uploading" ? "Uploading..." : "Upload"}
+                    {status === "uploading" ? "Processing..." : "Upload File"}
                   </button>
+                </div>
+              )}
+
+              {status === "uploading" && (
+                <div className="mt-4">
+                  <div className="relative pt-1">
+                    <div className="flex mb-2 items-center justify-between">
+                      <div>
+                        <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-purple-600 bg-purple-200">
+                          Processing
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-xs font-semibold inline-block text-purple-600">
+                          {processingProgress}%
+                        </span>
+                      </div>
+                    </div>
+                    <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-purple-200">
+                      <div
+                        style={{ width: `${processingProgress}%` }}
+                        className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-purple-500 transition-all duration-300"
+                      ></div>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -197,11 +264,6 @@ export default function FileUpload() {
                   <p className="text-sm text-red-700">{message}</p>
                 </div>
               )}
-
-              <p className="text-xs text-gray-500 mt-8 text-center">
-                If you are uploading a PDF, make sure you can select/highlight
-                the text.
-              </p>
             </div>
           </div>
         </div>
