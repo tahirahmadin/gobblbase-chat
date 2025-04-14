@@ -12,10 +12,13 @@ export interface UploadResponse {
 }
 
 export interface CreateNewAgentResponse {
-  success: boolean;
-  message: string;
-  collectionName: string;
-  agentId: string;
+  error: boolean;
+  result: {
+    success: boolean;
+    message: string;
+    collectionName: string;
+    agentId: string;
+  };
 }
 
 export interface ChatMessage {

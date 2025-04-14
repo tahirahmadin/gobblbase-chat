@@ -85,22 +85,23 @@ export default function FileUpload({ onCancel }: FileUploadProps) {
         setExtractedText(textContent);
         const response = await createNewAgent(textContent, agentName, clientId);
 
-        if (response.success) {
+        if (!response.error) {
+          let output = response.result;
           const newAgent = {
             name: agentName,
-            collectionName: response.collectionName,
-            id: response.agentId,
+            collectionName: output.collectionName,
+            id: output.agentId,
           };
           addAgent(newAgent);
           setStatus("success");
           setMessage("Agent created successfully!");
           // Set the active agent ID to the newly created agent
-          setActiveAgentId(response.agentId);
+          setActiveAgentId(output.agentId);
           // Call onCancel to close the file upload view
           onCancel();
         } else {
           setStatus("error");
-          setMessage(response.message || "Failed to create agent");
+          setMessage("Failed to create agent");
         }
       };
 
