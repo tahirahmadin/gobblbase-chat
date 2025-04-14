@@ -1,5 +1,5 @@
 import React from "react";
-import { RefreshCw, Send } from "lucide-react";
+import { RefreshCw, Send, Save } from "lucide-react";
 import { ChatMessage } from "../types";
 import { queryDocument } from "../lib/serverActions";
 import OpenAI from "openai";
@@ -25,8 +25,11 @@ export default function Playground({ agentId }: PlaygroundProps) {
     },
   ]);
   const [status] = React.useState("Trained");
-  const [model] = React.useState("GPT-4o Mini");
-  const [temperature] = React.useState(0);
+  const [model, setModel] = React.useState("GPT-4o Mini");
+  const [temperature, setTemperature] = React.useState(0);
+  const [systemPrompt, setSystemPrompt] = React.useState(
+    "You are a helpful assistant that provides accurate and concise information."
+  );
   const [isLoading, setIsLoading] = React.useState(false);
 
   const handleSendMessage = async () => {
@@ -95,13 +98,19 @@ export default function Playground({ agentId }: PlaygroundProps) {
     }
   };
 
+  const handleSaveSettings = () => {
+    // Here you can implement saving settings to your backend
+    console.log("Saving settings:", { model, temperature, systemPrompt });
+    // Add your save logic here
+  };
+
   return (
     <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
       <div className="grid grid-cols-3 min-h-[600px]">
         {/* Left Panel */}
-        <div className="col-span-1 border-r border-gray-200 p-4">
+        <div className="col-span-1 border-r border-gray-200 p-4 bg-gray-50">
           <div className="space-y-6">
-            <div>
+            <div className="bg-white p-4 rounded-lg shadow-sm">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium text-gray-700">
                   Status:
@@ -117,31 +126,64 @@ export default function Playground({ agentId }: PlaygroundProps) {
               </div>
             </div>
 
-            <div>
+            <div className="bg-white p-4 rounded-lg shadow-sm">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium text-gray-700">Model</span>
                 <button className="text-gray-400 hover:text-gray-600">
                   <RefreshCw className="h-4 w-4" />
                 </button>
               </div>
-              <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-md">
-                <span className="text-sm text-gray-600">{model}</span>
-              </div>
+              <input
+                type="text"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
             </div>
 
-            <div>
+            <div className="bg-white p-4 rounded-lg shadow-sm">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium text-gray-700">
                   Temperature
                 </span>
                 <span className="text-sm text-gray-600">{temperature}</span>
               </div>
-              <div className="h-2 bg-gray-200 rounded-full">
-                <div className="h-full w-0 bg-blue-600 rounded-full"></div>
-              </div>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={temperature}
+                onChange={(e) => setTemperature(parseFloat(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
             </div>
 
-            <div>
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-gray-700">
+                  System Prompt
+                </span>
+              </div>
+              <textarea
+                value={systemPrompt}
+                onChange={(e) => setSystemPrompt(e.target.value)}
+                className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-32 resize-none"
+                placeholder="Enter system prompt..."
+              />
+            </div>
+
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <button
+                onClick={handleSaveSettings}
+                className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                <Save className="h-4 w-4" />
+                Save Settings
+              </button>
+            </div>
+
+            <div className="bg-white p-4 rounded-lg shadow-sm">
               <h3 className="text-sm font-medium text-gray-700 mb-2">
                 AI Actions
               </h3>
@@ -164,7 +206,7 @@ export default function Playground({ agentId }: PlaygroundProps) {
               </button>
             </div>
 
-            <div className="space-y-4 mb-4 max-h-[400px] overflow-y-auto">
+            <div className="space-y-4 mb-4 max-h-[550px] overflow-y-auto">
               {messages.map((msg) => (
                 <div
                   key={msg.id}
