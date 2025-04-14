@@ -1,5 +1,5 @@
-import React from 'react';
-import { Code, Share, Puzzle } from 'lucide-react';
+import React from "react";
+import { Code, Share, Puzzle } from "lucide-react";
 
 interface IntegrationTab {
   id: string;
@@ -8,13 +8,17 @@ interface IntegrationTab {
 }
 
 export default function Integration() {
-  const [activeTab, setActiveTab] = React.useState('embed');
-  const [selectedOption, setSelectedOption] = React.useState('iframe');
+  const [activeTab, setActiveTab] = React.useState("embed");
+  const [selectedOption, setSelectedOption] = React.useState("iframe");
 
   const tabs: IntegrationTab[] = [
-    { id: 'embed', name: 'Embed', icon: <Code className="h-5 w-5" /> },
-    { id: 'share', name: 'Share', icon: <Share className="h-5 w-5" /> },
-    { id: 'integrations', name: 'Integrations', icon: <Puzzle className="h-5 w-5" /> },
+    { id: "embed", name: "Embed", icon: <Code className="h-5 w-5" /> },
+    { id: "share", name: "Share", icon: <Share className="h-5 w-5" /> },
+    {
+      id: "integrations",
+      name: "Integrations",
+      icon: <Puzzle className="h-5 w-5" />,
+    },
   ];
 
   const iframeCode = `<iframe
@@ -36,12 +40,18 @@ export default function Integration() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`
                   flex items-center px-3 py-2 text-sm font-medium rounded-md w-full
-                  ${activeTab === tab.id
-                    ? 'text-purple-600 bg-purple-50'
-                    : 'text-gray-600 hover:bg-gray-50'}
+                  ${
+                    activeTab === tab.id
+                      ? "text-purple-600 bg-purple-50"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }
                 `}
               >
-                <span className={`mr-3 ${activeTab === tab.id ? 'text-purple-600' : 'text-gray-400'}`}>
+                <span
+                  className={`mr-3 ${
+                    activeTab === tab.id ? "text-purple-600" : "text-gray-400"
+                  }`}
+                >
                   {tab.icon}
                 </span>
                 {tab.name}
@@ -61,25 +71,27 @@ export default function Integration() {
               <div className="space-y-6">
                 {/* Embed options */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div 
+                  <div
                     className={`p-4 border rounded-lg cursor-pointer ${
-                      selectedOption === 'bubble' 
-                        ? 'border-purple-500 bg-purple-50' 
-                        : 'border-gray-200 hover:border-gray-300'
+                      selectedOption === "bubble"
+                        ? "border-purple-500 bg-purple-50"
+                        : "border-gray-200 hover:border-gray-300"
                     }`}
-                    onClick={() => setSelectedOption('bubble')}
+                    onClick={() => setSelectedOption("bubble")}
                   >
                     <div className="flex items-center space-x-2">
                       <input
                         type="radio"
-                        checked={selectedOption === 'bubble'}
-                        onChange={() => setSelectedOption('bubble')}
+                        checked={selectedOption === "bubble"}
+                        onChange={() => setSelectedOption("bubble")}
                         className="text-purple-600 focus:ring-purple-500"
                       />
                       <div>
                         <h3 className="font-medium">Embed a chat bubble</h3>
                         <div className="flex items-center space-x-2">
-                          <span className="text-sm text-gray-500">Recommended</span>
+                          <span className="text-sm text-gray-500">
+                            Recommended
+                          </span>
                           <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
                             Recommended
                           </span>
@@ -87,23 +99,24 @@ export default function Integration() {
                       </div>
                     </div>
                     <p className="mt-2 text-sm text-gray-500">
-                      Embed a chat bubble on your website. Allows you to use all the advanced features of the agent.
+                      Embed a chat bubble on your website. Allows you to use all
+                      the advanced features of the agent.
                     </p>
                   </div>
 
-                  <div 
+                  <div
                     className={`p-4 border rounded-lg cursor-pointer ${
-                      selectedOption === 'iframe' 
-                        ? 'border-purple-500 bg-purple-50' 
-                        : 'border-gray-200 hover:border-gray-300'
+                      selectedOption === "iframe"
+                        ? "border-purple-500 bg-purple-50"
+                        : "border-gray-200 hover:border-gray-300"
                     }`}
-                    onClick={() => setSelectedOption('iframe')}
+                    onClick={() => setSelectedOption("iframe")}
                   >
                     <div className="flex items-center space-x-2">
                       <input
                         type="radio"
-                        checked={selectedOption === 'iframe'}
-                        onChange={() => setSelectedOption('iframe')}
+                        checked={selectedOption === "iframe"}
+                        onChange={() => setSelectedOption("iframe")}
                         className="text-purple-600 focus:ring-purple-500"
                       />
                       <h3 className="font-medium">Embed the iframe directly</h3>
@@ -118,16 +131,22 @@ export default function Integration() {
                 <div className="mt-6">
                   <div className="bg-gray-50 rounded-lg p-4">
                     <div className="flex justify-between items-center mb-2">
-                      <h4 className="text-sm font-medium text-gray-700">www.chatbase.co</h4>
-                      <button 
+                      <h4 className="text-sm font-medium text-gray-700">
+                        www.gobbl.ai
+                      </h4>
+                      <button
                         className="text-sm text-gray-600 hover:text-gray-900 flex items-center space-x-1"
-                        onClick={() => navigator.clipboard.writeText(iframeCode)}
+                        onClick={() =>
+                          navigator.clipboard.writeText(iframeCode)
+                        }
                       >
                         <Code className="h-4 w-4" />
                         <span>Copy</span>
                       </button>
                     </div>
-                    <pre className="text-sm text-gray-600 whitespace-pre-wrap">{iframeCode}</pre>
+                    <pre className="text-sm text-gray-600 whitespace-pre-wrap">
+                      {iframeCode}
+                    </pre>
                   </div>
                 </div>
               </div>

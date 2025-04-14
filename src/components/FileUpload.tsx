@@ -1,12 +1,13 @@
 import React from "react";
-import { Upload, FileText, Globe, HelpCircle, Book } from "lucide-react";
-import Playground from "./Playground";
+import { Upload, FileText, Globe, HelpCircle, Book, X } from "lucide-react";
 import mammoth from "mammoth";
-import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
+import * as pdfjsLib from "pdfjs-dist";
+import { useUserStore } from "../store/useUserStore";
+import { toast } from "react-hot-toast";
+import { createNewAgent } from "../lib/serverActions";
 
 // Set the PDF worker source
-pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
-
+pdfjsLib.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
 
 interface SourceTab {
   id: string;
@@ -14,7 +15,11 @@ interface SourceTab {
   icon: React.ReactNode;
 }
 
-export default function FileUpload() {
+interface FileUploadProps {
+  onCancel: () => void;
+}
+
+export default function FileUpload({ onCancel }: FileUploadProps) {
   const [file, setFile] = React.useState<File | null>(null);
   const [status, setStatus] = React.useState<
     "idle" | "uploading" | "success" | "error"
@@ -23,6 +28,8 @@ export default function FileUpload() {
   const [activeTab, setActiveTab] = React.useState("files");
   const [processingProgress, setProcessingProgress] = React.useState(0);
   const [extractedText, setExtractedText] = React.useState<string | null>(null);
+  const [agentName, setAgentName] = React.useState("");
+  const { addAgent, setActiveAgentId, clientId } = useUserStore();
 
   const tabs: SourceTab[] = [
     { id: "files", name: "Files", icon: <FileText className="h-5 w-5" /> },
@@ -41,119 +48,69 @@ export default function FileUpload() {
     }
   };
 
-  const extractTextFromFile = async (file: File): Promise<string | null> => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!file || !agentName || !clientId) return;
+
+    setStatus("uploading");
+    setProcessingProgress(0);
+
     try {
-      setProcessingProgress(5);
-
-      if (file.type === "application/pdf") {
-        // Use PDF.js for PDF extraction
-        setProcessingProgress(30);
-        console.log("Attempting to extract PDF text using pdfjs-dist...");
-
-        const arrayBuffer = await file.arrayBuffer();
-        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-        const pdf = await loadingTask.promise;
+      const reader = new FileReader();
+      reader.onload = async (event) => {
         let textContent = "";
 
-        // Loop over all pages in the PDF
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const content = await page.getTextContent();
-          // Concatenate all text items from the page
-          const pageText = content.items.map((item: any) => item.str).join(" ");
-          textContent += pageText + "\n";
-
-          // Update progress based on current page
-          setProcessingProgress(Math.floor(30 + (i / pdf.numPages) * 70));
+        if (file.type === "application/pdf") {
+          const pdf = await pdfjsLib.getDocument(
+            event.target?.result as ArrayBuffer
+          ).promise;
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const text = await page.getTextContent();
+            textContent += text.items.map((item: any) => item.str).join(" ");
+          }
+        } else if (
+          file.type ===
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+          file.type === "application/msword"
+        ) {
+          const result = await mammoth.extractRawText({
+            arrayBuffer: event.target?.result as ArrayBuffer,
+          });
+          textContent = result.value;
+        } else if (file.type === "text/plain") {
+          textContent = event.target?.result as string;
         }
-        setProcessingProgress(100);
-        return textContent.trim();
-      } else if (
-        file.type ===
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-        file.type === "application/msword"
-      ) {
-        // Use mammoth for Word documents
-        const arrayBuffer = await file.arrayBuffer();
-        setProcessingProgress(30);
-        const result = await mammoth.extractRawText({ arrayBuffer });
-        setProcessingProgress(90);
 
-        console.log(
-          "Word document text extracted (first 500 chars):",
-          result.value.slice(0, 500)
-        );
-        console.log("Total extracted text length:", result.value.length);
+        setExtractedText(textContent);
+        const response = await createNewAgent(textContent, agentName, clientId);
 
-        if (!result.value.trim()) {
-          console.warn("No text content could be extracted from the document.");
-          return null;
+        if (response.success) {
+          const newAgent = {
+            name: agentName,
+            collectionName: response.collectionName,
+            id: response.agentId,
+          };
+          addAgent(newAgent);
+          setStatus("success");
+          setMessage("Agent created successfully!");
+          // Set the active agent ID to the newly created agent
+          setActiveAgentId(response.agentId);
+          // Call onCancel to close the file upload view
+          onCancel();
+        } else {
+          setStatus("error");
+          setMessage(response.message || "Failed to create agent");
         }
-        return result.value;
-      } else if (file.type === "text/plain") {
-        // Plain text file extraction
-        const text = await file.text();
-        setProcessingProgress(90);
+      };
 
-        console.log("Text file content (first 500 chars):", text.slice(0, 500));
-        console.log("Total text length:", text.length);
-
-        if (!text.trim()) {
-          console.warn("The text file is empty.");
-          return null;
-        }
-        return text;
-      } else {
-        console.warn("Unsupported file type, proceeding without text extraction.");
-        return null;
-      }
+      reader.readAsArrayBuffer(file);
     } catch (error) {
-      console.error("Text extraction error:", error);
-      return null;
-    } finally {
-      setProcessingProgress(100);
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!file) return;
-
-    try {
-      setStatus("uploading");
-      setProcessingProgress(0);
-      console.log("Processing file:", file.name, "Type:", file.type);
-      
-      // Extract text if possible
-      const text = await extractTextFromFile(file);
-      setExtractedText(text);
-      
-      if (text) {
-        console.log("Text extraction successful");
-        console.log("-------- EXTRACTED TEXT (FULL) --------");
-        console.log(text);
-        console.log("-------- END OF EXTRACTED TEXT --------");
-      } else {
-        console.log("No text was extracted from this file");
-      }
-      
-      // Proceed to Playground regardless of extraction result
-      setStatus("success");
-    } catch (error) {
-      console.error("Upload error:", error);
       setStatus("error");
-      setMessage("An error occurred during file processing. Please try again.");
+      setMessage("Error processing file");
+      console.error(error);
     }
   };
-
-  if (status === "success") {
-    return (
-      <Playground 
-        fileName={file?.name || ""} 
-        fileType={file?.type || ""} 
-        extractedText={extractedText || ""} 
-      />
-    );
-  }
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -189,82 +146,106 @@ export default function FileUpload() {
 
         {/* Main content */}
         <div className="flex-1">
-          <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-800">Files</h2>
+          <div className="bg-white shadow rounded-lg p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-medium text-gray-900">
+                Create New Agent
+              </h2>
+              <button
+                onClick={onCancel}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
-            <div className="p-6">
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-12">
-                <div className="text-center">
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx,.txt"
-                    onChange={handleFileChange}
-                    className="sr-only"
-                    id="file-upload"
-                  />
-                  <label htmlFor="file-upload" className="cursor-pointer">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="agentName"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Agent Name
+                </label>
+                <input
+                  type="text"
+                  id="agentName"
+                  value={agentName}
+                  onChange={(e) => setAgentName(e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  placeholder="Enter agent name"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Upload File
+                </label>
+                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                  <div className="space-y-1 text-center">
                     <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                    <p className="mt-1 text-sm text-gray-500">
-                      Drag & drop files here, or click to select files
+                    <div className="flex text-sm text-gray-600">
+                      <label
+                        htmlFor="file-upload"
+                        className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
+                      >
+                        <span>Upload a file</span>
+                        <input
+                          id="file-upload"
+                          name="file-upload"
+                          type="file"
+                          className="sr-only"
+                          onChange={handleFileChange}
+                          accept=".pdf,.doc,.docx,.txt"
+                        />
+                      </label>
+                      <p className="pl-1">or drag and drop</p>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      PDF, DOC, DOCX, TXT up to 10MB
                     </p>
-                    <p className="text-xs text-gray-400 mt-2">
-                      Supported File Types: .pdf, .doc, .docx, .txt
-                    </p>
-                  </label>
+                  </div>
                 </div>
               </div>
 
               {file && (
-                <div className="mt-4">
-                  <p className="text-sm text-gray-500">
-                    Selected file: {file.name}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Text extraction results will be logged to the browser console (F12 or right-click &gt; Inspect &gt; Console)
-                  </p>
-                  <button
-                    onClick={handleUpload}
-                    disabled={status === "uploading"}
-                    className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                  >
-                    {status === "uploading" ? "Processing..." : "Upload File"}
-                  </button>
+                <div className="text-sm text-gray-500">
+                  Selected file: {file.name}
                 </div>
               )}
 
               {status === "uploading" && (
-                <div className="mt-4">
-                  <div className="relative pt-1">
-                    <div className="flex mb-2 items-center justify-between">
-                      <div>
-                        <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-purple-600 bg-purple-200">
-                          Processing
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-xs font-semibold inline-block text-purple-600">
-                          {processingProgress}%
-                        </span>
-                      </div>
-                    </div>
-                    <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-purple-200">
-                      <div
-                        style={{ width: `${processingProgress}%` }}
-                        className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-purple-500 transition-all duration-300"
-                      ></div>
-                    </div>
-                  </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div
+                    className="bg-indigo-600 h-2.5 rounded-full"
+                    style={{ width: `${processingProgress}%` }}
+                  ></div>
                 </div>
               )}
 
-              {status === "error" && (
-                <div className="mt-4 p-4 bg-red-50 rounded-md">
-                  <p className="text-sm text-red-700">{message}</p>
+              {message && (
+                <div
+                  className={`text-sm ${
+                    status === "error" ? "text-red-600" : "text-green-600"
+                  }`}
+                >
+                  {message}
                 </div>
               )}
-            </div>
+
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={
+                    !file || !agentName || status === "uploading" || !clientId
+                  }
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Create Agent
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>

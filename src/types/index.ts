@@ -11,9 +11,16 @@ export interface UploadResponse {
   fileUrl?: string;
 }
 
+export interface CreateNewAgentResponse {
+  success: boolean;
+  message: string;
+  collectionName: string;
+  agentId: string;
+}
+
 export interface ChatMessage {
   id: string;
   content: string;
   timestamp: Date;
-  sender: 'user' | 'agent';
+  sender: "user" | "agent";
 }
