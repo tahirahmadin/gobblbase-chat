@@ -7,7 +7,7 @@ export default function Integration() {
   const [copied, setCopied] = React.useState(false);
 
   const iframeCode = `<iframe
-  src="https://gobblbase-chat.vercel.app/chatbot/${activeAgentId}"
+  src="https://gobblbase-chat.vercel.app/#/chatbot/${activeAgentId}"
   width="100%"
   style="height: 100%; min-height: 700px"
   frameborder="0"
