@@ -16,6 +16,7 @@ import PublicChat from "./components/PublicChat";
 import Services from "./components/Services";
 import { useUserStore } from "./store/useUserStore";
 import { ArrowLeft } from "lucide-react";
+import SettingsPage from "./components/Settings";
 
 function Dashboard() {
   const [activeTab, setActiveTab] = useState("playground");
@@ -82,7 +83,7 @@ function Dashboard() {
       case "services":
         return <Services />;
       case "settings":
-        return <div className="p-4">Settings panel coming soon...</div>;
+        return <SettingsPage />;
       default:
         return null;
     }
