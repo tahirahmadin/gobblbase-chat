@@ -1,5 +1,5 @@
 import React from "react";
-import { RefreshCw, Send, Save } from "lucide-react";
+import { RefreshCw, Send, Save, Plus } from "lucide-react";
 import { ChatMessage } from "../types";
 import {
   queryDocument,
@@ -12,6 +12,54 @@ import OpenAI from "openai";
 interface PlaygroundProps {
   agentId: string;
 }
+
+// Define available models with their context window sizes
+const AVAILABLE_MODELS = [
+  { id: "gpt-4o-mini", name: "GPT-4o Mini", contextWindow: "128K" },
+  { id: "gpt-4", name: "GPT-4", contextWindow: "8K" },
+  { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo", contextWindow: "16K" },
+  { id: "claude-3-opus", name: "Claude 3 Opus", contextWindow: "200K" },
+  { id: "claude-3-sonnet", name: "Claude 3 Sonnet", contextWindow: "200K" },
+];
+
+// Define system prompt templates
+const SYSTEM_PROMPT_TEMPLATES = [
+  {
+    id: "educational",
+    name: "Educational Institute",
+    prompt:
+      "You are an AI teaching assistant for an educational institution. Your role is to help students understand complex concepts, provide study guidance, and answer academic questions clearly and concisely. Always maintain a professional and supportive tone.",
+  },
+  {
+    id: "youtuber",
+    name: "Course Creator",
+    prompt:
+      "You are an AI assistant for a course creator. Your role is to help potential students understand the value of the courses, answer questions about course content, and provide information about enrollment and pricing. Be engaging and persuasive while maintaining honesty.",
+  },
+  {
+    id: "customer-service",
+    name: "Customer Service",
+    prompt:
+      "You are a customer service AI assistant. Your role is to help customers with their inquiries, provide information about products/services, and resolve common issues. Always be polite, professional, and solution-oriented.",
+  },
+  {
+    id: "technical",
+    name: "Technical Support",
+    prompt:
+      "You are a technical support AI assistant. Your role is to help users troubleshoot technical issues, explain technical concepts in simple terms, and guide them through solutions step by step. Be patient and thorough in your explanations.",
+  },
+  {
+    id: "sales",
+    name: "Sales Assistant",
+    prompt:
+      "You are a sales AI assistant. Your role is to help potential customers understand product features, benefits, and pricing. Be persuasive but honest, and always focus on how the product can solve the customer's specific needs.",
+  },
+  {
+    id: "custom",
+    name: "Custom Prompt",
+    prompt: "",
+  },
+];
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -30,13 +78,16 @@ export default function Playground({ agentId }: PlaygroundProps) {
     },
   ]);
   const [status] = React.useState("Trained");
-  const [model, setModel] = React.useState("GPT-4o Mini");
+  const [model, setModel] = React.useState("gpt-4o-mini");
   const [temperature, setTemperature] = React.useState(0.5);
   const [systemPrompt, setSystemPrompt] = React.useState(
     "You are a helpful assistant that provides accurate and concise information."
   );
   const [isLoading, setIsLoading] = React.useState(false);
   const [agentName, setAgentName] = React.useState("");
+  const [selectedPromptTemplate, setSelectedPromptTemplate] =
+    React.useState("educational");
+  const [isCustomPrompt, setIsCustomPrompt] = React.useState(false);
 
   // Add session state
   const [sessionId] = React.useState(
@@ -74,6 +125,31 @@ export default function Playground({ agentId }: PlaygroundProps) {
     };
     fetchUserIP();
   }, []);
+
+  // Add effect to update system prompt when template changes
+  React.useEffect(() => {
+    if (!isCustomPrompt) {
+      const template = SYSTEM_PROMPT_TEMPLATES.find(
+        (t) => t.id === selectedPromptTemplate
+      );
+      if (template) {
+        setSystemPrompt(template.prompt);
+      }
+    }
+  }, [selectedPromptTemplate, isCustomPrompt]);
+
+  // Add effect to check if current prompt matches any template
+  React.useEffect(() => {
+    if (!isCustomPrompt) {
+      const matchingTemplate = SYSTEM_PROMPT_TEMPLATES.find(
+        (template) =>
+          template.prompt === systemPrompt && template.id !== "custom"
+      );
+      setSelectedPromptTemplate(
+        matchingTemplate ? matchingTemplate.id : "custom"
+      );
+    }
+  }, [systemPrompt, isCustomPrompt]);
 
   const handleSendMessage = async () => {
     if (!message.trim()) return;
@@ -216,30 +292,17 @@ export default function Playground({ agentId }: PlaygroundProps) {
                   <RefreshCw className="h-4 w-4" />
                 </button>
               </div>
-              <input
-                type="text"
+              <select
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
                 className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">
-                  Temperature
-                </span>
-                <span className="text-sm text-gray-600">{temperature}</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                value={temperature}
-                onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              />
+              >
+                {AVAILABLE_MODELS.map((modelOption) => (
+                  <option key={modelOption.id} value={modelOption.id}>
+                    {modelOption.name} ({modelOption.contextWindow} context)
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="bg-white p-4 rounded-lg shadow-sm">
@@ -247,13 +310,48 @@ export default function Playground({ agentId }: PlaygroundProps) {
                 <span className="text-sm font-medium text-gray-700">
                   System Prompt
                 </span>
+                <button
+                  onClick={() => setIsCustomPrompt(!isCustomPrompt)}
+                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                >
+                  <Plus className="h-4 w-4" />
+                  {isCustomPrompt ? "Use Template" : "Custom Prompt"}
+                </button>
               </div>
-              <textarea
-                value={systemPrompt}
-                onChange={(e) => setSystemPrompt(e.target.value)}
-                className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-32 resize-none"
-                placeholder="Enter system prompt..."
-              />
+
+              {!isCustomPrompt ? (
+                <div className="space-y-2">
+                  <select
+                    value={selectedPromptTemplate}
+                    onChange={(e) => {
+                      setSelectedPromptTemplate(e.target.value);
+                      if (e.target.value === "custom") {
+                        setIsCustomPrompt(true);
+                      }
+                    }}
+                    className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    {SYSTEM_PROMPT_TEMPLATES.map((template) => (
+                      <option key={template.id} value={template.id}>
+                        {template.name}
+                      </option>
+                    ))}
+                  </select>
+                  <textarea
+                    value={systemPrompt}
+                    onChange={(e) => setSystemPrompt(e.target.value)}
+                    className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-32 resize-none"
+                    placeholder="Modify the selected template..."
+                  />
+                </div>
+              ) : (
+                <textarea
+                  value={systemPrompt}
+                  onChange={(e) => setSystemPrompt(e.target.value)}
+                  className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-32 resize-none"
+                  placeholder="Enter custom system prompt..."
+                />
+              )}
             </div>
 
             <div className="bg-white p-4 rounded-lg shadow-sm">
@@ -264,15 +362,6 @@ export default function Playground({ agentId }: PlaygroundProps) {
                 <Save className="h-4 w-4" />
                 Save Settings
               </button>
-            </div>
-
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">
-                AI Actions
-              </h3>
-              <div className="p-4 bg-gray-50 rounded-md text-sm text-gray-500">
-                No actions found
-              </div>
             </div>
           </div>
         </div>

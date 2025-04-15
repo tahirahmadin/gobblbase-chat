@@ -1,5 +1,5 @@
-import React from 'react';
-import { Plus, Activity, Link, Settings } from 'lucide-react';
+import React from "react";
+import { MessageSquare, Activity, Link, Settings } from "lucide-react";
 
 interface Tab {
   id: string;
@@ -14,10 +14,22 @@ interface TabsProps {
 
 export default function Tabs({ activeTab, onTabChange }: TabsProps) {
   const tabs: Tab[] = [
-    { id: 'create', name: 'Create', icon: <Plus className="h-5 w-5" /> },
-    { id: 'activity', name: 'Activity', icon: <Activity className="h-5 w-5" /> },
-    { id: 'integrate', name: 'Integrate', icon: <Link className="h-5 w-5" /> },
-    { id: 'settings', name: 'Settings', icon: <Settings className="h-5 w-5" /> },
+    {
+      id: "playground",
+      name: "Playground",
+      icon: <MessageSquare className="h-5 w-5" />,
+    },
+    {
+      id: "activity",
+      name: "Activity",
+      icon: <Activity className="h-5 w-5" />,
+    },
+    { id: "integrate", name: "Integrate", icon: <Link className="h-5 w-5" /> },
+    {
+      id: "settings",
+      name: "Settings",
+      icon: <Settings className="h-5 w-5" />,
+    },
   ];
 
   return (
@@ -30,9 +42,11 @@ export default function Tabs({ activeTab, onTabChange }: TabsProps) {
               onClick={() => onTabChange(tab.id)}
               className={`
                 flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm
-                ${activeTab === tab.id
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
+                ${
+                  activeTab === tab.id
+                    ? "border-indigo-500 text-indigo-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }
               `}
             >
               {tab.icon}
