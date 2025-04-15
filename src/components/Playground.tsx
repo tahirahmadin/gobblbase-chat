@@ -1,7 +1,11 @@
 import React from "react";
 import { RefreshCw, Send, Save } from "lucide-react";
 import { ChatMessage } from "../types";
-import { queryDocument } from "../lib/serverActions";
+import {
+  queryDocument,
+  getAgentDetails,
+  updateAgentDetails,
+} from "../lib/serverActions";
 import OpenAI from "openai";
 
 interface PlaygroundProps {
@@ -26,11 +30,28 @@ export default function Playground({ agentId }: PlaygroundProps) {
   ]);
   const [status] = React.useState("Trained");
   const [model, setModel] = React.useState("GPT-4o Mini");
-  const [temperature, setTemperature] = React.useState(0);
+  const [temperature, setTemperature] = React.useState(0.5);
   const [systemPrompt, setSystemPrompt] = React.useState(
     "You are a helpful assistant that provides accurate and concise information."
   );
   const [isLoading, setIsLoading] = React.useState(false);
+  const [agentName, setAgentName] = React.useState("");
+
+  // Fetch agent details on component mount
+  React.useEffect(() => {
+    const fetchAgentDetails = async () => {
+      try {
+        const agentDetails = await getAgentDetails(agentId);
+        setModel(agentDetails.model);
+        setSystemPrompt(agentDetails.systemPrompt);
+        setAgentName(agentDetails.name);
+      } catch (error) {
+        console.error("Error fetching agent details:", error);
+      }
+    };
+
+    fetchAgentDetails();
+  }, [agentId]);
 
   const handleSendMessage = async () => {
     if (!message.trim()) return;
@@ -98,10 +119,19 @@ export default function Playground({ agentId }: PlaygroundProps) {
     }
   };
 
-  const handleSaveSettings = () => {
+  const handleSaveSettings = async () => {
     // Here you can implement saving settings to your backend
     console.log("Saving settings:", { model, temperature, systemPrompt });
     // Add your save logic here
+
+    try {
+      const response = await updateAgentDetails(agentId, {
+        model,
+        systemPrompt,
+      });
+    } catch (error) {
+      console.error("Error saving settings:", error);
+    }
   };
 
   return (
@@ -199,7 +229,7 @@ export default function Playground({ agentId }: PlaygroundProps) {
           <div className="flex-1 p-4">
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm text-gray-600">
-                Agent {new Date().toLocaleString()}
+                {agentName || "Agent"} {new Date().toLocaleString()}
               </span>
               <button className="text-gray-400 hover:text-gray-600">
                 <RefreshCw className="h-4 w-4" />

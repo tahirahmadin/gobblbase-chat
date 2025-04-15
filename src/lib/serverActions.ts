@@ -102,3 +102,49 @@ export async function fetchClientAgents(clientId: string): Promise<Agent[]> {
     throw new Error("Failed to fetch client agents");
   }
 }
+
+export async function getAgentDetails(agentId: string) {
+  try {
+    const response = await fetch(
+      `https://rag.gobbl.ai/client/getAgentDetails/${agentId}`
+    );
+    if (!response.ok) {
+      throw new Error("Failed to fetch agent details");
+    }
+    const data = await response.json();
+    if (data.error) {
+      throw new Error("Error fetching agent details");
+    }
+    return data.result;
+  } catch (error) {
+    console.error("Error fetching agent details:", error);
+    throw error;
+  }
+}
+
+export async function updateAgentDetails(
+  agentId: string,
+  details: {
+    systemPrompt: string;
+    model: string;
+    [key: string]: any;
+  }
+) {
+  try {
+    const response = await axios.put(
+      `https://rag.gobbl.ai/client/updateAgent/${agentId}`,
+      {
+        model: details.model,
+        systemPrompt: details.systemPrompt,
+      }
+    );
+
+    if (response.data.error) {
+      throw new Error("Error updating agent details");
+    }
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating agent details:", error);
+    throw error;
+  }
+}
