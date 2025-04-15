@@ -13,6 +13,7 @@ import Integration from "./components/Integration";
 import Playground from "./components/Playground";
 import AgentsList from "./components/AgentsList";
 import PublicChat from "./components/PublicChat";
+import Services from "./components/Services";
 import { useUserStore } from "./store/useUserStore";
 import { ArrowLeft } from "lucide-react";
 
@@ -78,6 +79,8 @@ function Dashboard() {
         return <Activity />;
       case "integrate":
         return <Integration />;
+      case "services":
+        return <Services />;
       case "settings":
         return <div className="p-4">Settings panel coming soon...</div>;
       default:

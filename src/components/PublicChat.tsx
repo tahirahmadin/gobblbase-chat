@@ -11,6 +11,13 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true,
 });
 
+// Define query cues
+const QUERY_CUES = [
+  "Book an Appointment",
+  "What services do you offer?",
+  "How can I contact support?",
+];
+
 export default function PublicChat() {
   const { agentId } = useParams();
   const [message, setMessage] = React.useState("");
@@ -23,6 +30,7 @@ export default function PublicChat() {
     },
   ]);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [showCues, setShowCues] = React.useState(true);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -106,6 +114,15 @@ export default function PublicChat() {
     }
   };
 
+  const handleCueClick = (cue: string) => {
+    setMessage(cue);
+    setShowCues(false);
+    // Small delay to ensure the message is set before sending
+    setTimeout(() => {
+      handleSendMessage();
+    }, 100);
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Chat Header */}
@@ -148,6 +165,24 @@ export default function PublicChat() {
         ))}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Query Cues */}
+      {showCues && (
+        <div className="bg-white border-t border-gray-200 px-4 py-3">
+          <div className="flex flex-wrap gap-2 justify-start">
+            {QUERY_CUES.map((cue, index) => (
+              <button
+                key={index}
+                onClick={() => handleCueClick(cue)}
+                disabled={isLoading}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-full transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {cue}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Input Area */}
       <div className="bg-white border-t border-gray-200 p-4">

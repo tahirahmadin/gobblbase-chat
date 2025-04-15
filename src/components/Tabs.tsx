@@ -1,5 +1,5 @@
 import React from "react";
-import { MessageSquare, Activity, Link, Settings } from "lucide-react";
+import { MessageSquare, Activity, Link, Settings, Zap } from "lucide-react";
 
 interface Tab {
   id: string;
@@ -25,6 +25,11 @@ export default function Tabs({ activeTab, onTabChange }: TabsProps) {
       icon: <Activity className="h-5 w-5" />,
     },
     { id: "integrate", name: "Integrate", icon: <Link className="h-5 w-5" /> },
+    {
+      id: "services",
+      name: "Services",
+      icon: <Zap className="h-5 w-5" />,
+    },
     {
       id: "settings",
       name: "Settings",
