@@ -61,16 +61,14 @@ export default function PublicChat() {
 
       // Prepare system prompt with context
       const systemPrompt = `You are a concise AI assistant.
-
-      Use only the provided context to answer the user's question:
-
-      ${JSON.stringify(context)}
-
-      Rules:
-      - Answer in 1–2 plain sentences only.
-      - Do not add extra explanation, greetings, or conclusions.
-      - No special characters, markdown, or formatting.
-      - If the context doesn't contain relevant information, say so."`;
+     Use the provided context to answer the user's question when relevant:
+     ${JSON.stringify(context)}
+     Rules:
+     - Answer in 1-2 plain sentences only.
+     - Do not add extra explanation, greetings, or conclusions.
+     - No special characters, markdown, or formatting.
+     - For general greetings or conversational queries like "hello" or "how are you", respond naturally and briefly.
+     - Only say "I cannot assist with that" if the query requires specific information not in the context and is not a general greeting.`;
 
       // Call OpenAI API
       const completion = await openai.chat.completions.create({
