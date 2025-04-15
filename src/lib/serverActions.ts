@@ -24,6 +24,19 @@ interface Agent {
   agentId: string;
 }
 
+interface UserLog {
+  role: string;
+  content: string;
+  timestamp?: string;
+}
+
+interface UpdateUserLogsParams {
+  userId: string;
+  sessionId: string;
+  agentId: string;
+  newUserLogs: UserLog[];
+}
+
 export async function createNewAgent(
   textContent: string,
   name: string,
@@ -31,7 +44,7 @@ export async function createNewAgent(
 ): Promise<CreateNewAgentResponse> {
   try {
     const response = await axios.post(
-      "https://rag.gobbl.ai/milvus/create-new-agent ",
+      "https://rag.gobbl.ai/milvus/create-new-agent",
       {
         textContent: textContent,
         clientId: clientId,
@@ -145,6 +158,55 @@ export async function updateAgentDetails(
     return response.data.result;
   } catch (error) {
     console.error("Error updating agent details:", error);
+    throw error;
+  }
+}
+
+export async function deleteAgent(agentId: string) {
+  try {
+    const response = await axios.delete(
+      `https://rag.gobbl.ai/client/deleteAgent/${agentId}`
+    );
+
+    if (response.data.error) {
+      throw new Error("Error deleting agent");
+    }
+    return response.data.result;
+  } catch (error) {
+    console.error("Error deleting agent:", error);
+    throw error;
+  }
+}
+
+export async function updateUserLogs(params: UpdateUserLogsParams) {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/client/updateUserLogs",
+      params
+    );
+
+    if (response.data.error) {
+      throw new Error("Error updating user logs");
+    }
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating user logs:", error);
+    throw error;
+  }
+}
+
+export async function getChatLogs(agentId: string) {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/client/getAgentChatLogs/${agentId}`
+    );
+
+    if (response.data.error) {
+      throw new Error("Error fetching chat logs");
+    }
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching chat logs:", error);
     throw error;
   }
 }

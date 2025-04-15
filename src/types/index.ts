@@ -27,3 +27,19 @@ export interface ChatMessage {
   timestamp: Date;
   sender: "user" | "agent";
 }
+
+export interface ChatLog {
+  _id: string;
+  userId: string;
+  agentId: string;
+  content: string;
+  createdDate: string;
+  lastUpdatedAt: string;
+  sessionId: string;
+  userLogs: {
+    role: string;
+    content: string;
+    timestamp: string;
+  }[];
+  __v: number;
+}

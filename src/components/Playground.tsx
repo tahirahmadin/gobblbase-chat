@@ -5,6 +5,7 @@ import {
   queryDocument,
   getAgentDetails,
   updateAgentDetails,
+  updateUserLogs,
 } from "../lib/serverActions";
 import OpenAI from "openai";
 
@@ -37,6 +38,12 @@ export default function Playground({ agentId }: PlaygroundProps) {
   const [isLoading, setIsLoading] = React.useState(false);
   const [agentName, setAgentName] = React.useState("");
 
+  // Add session state
+  const [sessionId] = React.useState(
+    `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  );
+  const [userId, setUserId] = React.useState("");
+
   // Fetch agent details on component mount
   React.useEffect(() => {
     const fetchAgentDetails = async () => {
@@ -52,6 +59,21 @@ export default function Playground({ agentId }: PlaygroundProps) {
 
     fetchAgentDetails();
   }, [agentId]);
+
+  // Get user IP on component mount
+  React.useEffect(() => {
+    const fetchUserIP = async () => {
+      try {
+        const response = await fetch("https://api.ipify.org?format=json");
+        const data = await response.json();
+        setUserId(data.ip);
+      } catch (error) {
+        console.error("Error fetching IP:", error);
+        setUserId(`user_${Math.random().toString(36).substr(2, 9)}`);
+      }
+    };
+    fetchUserIP();
+  }, []);
 
   const handleSendMessage = async () => {
     if (!message.trim()) return;
@@ -104,6 +126,30 @@ export default function Playground({ agentId }: PlaygroundProps) {
       };
 
       setMessages((prev) => [...prev, agentResponse]);
+
+      // Update chat logs in backend
+      if (userId) {
+        const newUserLogs = [
+          {
+            role: "user",
+            content: message,
+            timestamp: newMessage.timestamp.toISOString(),
+          },
+          {
+            role: "assistant",
+            content: agentResponse.content,
+            timestamp: agentResponse.timestamp.toISOString(),
+          },
+        ];
+
+        await updateUserLogs({
+          userId,
+          sessionId,
+          agentId,
+          newUserLogs,
+        });
+      }
+
       setIsLoading(false);
     } catch (error) {
       console.error("Error:", error);
