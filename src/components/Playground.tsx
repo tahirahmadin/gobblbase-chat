@@ -72,10 +72,17 @@ export default function Playground({ agentId }: PlaygroundProps) {
       const context = await queryDocument(agentId, message);
 
       // Prepare system prompt with context
-      const systemPrompt = `You are a helpful assistant that has access to the following context from:
+      const systemPrompt = `You are a concise AI assistant.
+
+      Use only the provided context to answer the user's question:
+
       ${JSON.stringify(context)}
-      
-      Use this context to answer the user's question. If the context doesn't contain relevant information, say so.`;
+
+      Rules:
+      - Answer in 1–2 plain sentences only.
+      - Do not add extra explanation, greetings, or conclusions.
+      - No special characters, markdown, or formatting.
+      - If the context doesn’t contain the answer, reply: "No relevant info found."`;
 
       // Call OpenAI API
       const completion = await openai.chat.completions.create({
@@ -84,7 +91,7 @@ export default function Playground({ agentId }: PlaygroundProps) {
           { role: "system", content: systemPrompt },
           { role: "user", content: message },
         ],
-        temperature: temperature,
+        temperature: 0.6,
       });
 
       const agentResponse: ChatMessage = {
