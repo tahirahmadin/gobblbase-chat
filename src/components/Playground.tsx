@@ -138,18 +138,14 @@ export default function Playground({ agentId }: PlaygroundProps) {
     }
   }, [selectedPromptTemplate, isCustomPrompt]);
 
-  // Add effect to check if current prompt matches any template
-  React.useEffect(() => {
-    if (!isCustomPrompt) {
-      const matchingTemplate = SYSTEM_PROMPT_TEMPLATES.find(
-        (template) =>
-          template.prompt === systemPrompt && template.id !== "custom"
-      );
-      setSelectedPromptTemplate(
-        matchingTemplate ? matchingTemplate.id : "custom"
-      );
+  const handleTemplateChange = (templateId: string) => {
+    if (templateId === "custom") {
+      setIsCustomPrompt(true);
+    } else {
+      setIsCustomPrompt(false);
+      setSelectedPromptTemplate(templateId);
     }
-  }, [systemPrompt, isCustomPrompt]);
+  };
 
   const handleSendMessage = async () => {
     if (!message.trim()) return;
@@ -323,12 +319,7 @@ export default function Playground({ agentId }: PlaygroundProps) {
                 <div className="space-y-2">
                   <select
                     value={selectedPromptTemplate}
-                    onChange={(e) => {
-                      setSelectedPromptTemplate(e.target.value);
-                      if (e.target.value === "custom") {
-                        setIsCustomPrompt(true);
-                      }
-                    }}
+                    onChange={(e) => handleTemplateChange(e.target.value)}
                     className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     {SYSTEM_PROMPT_TEMPLATES.map((template) => (

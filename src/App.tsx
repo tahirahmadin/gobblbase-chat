@@ -1,4 +1,10 @@
 import React, { useState, useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import Header from "./components/Header";
 import Tabs from "./components/Tabs";
 import FileUpload from "./components/FileUpload";
@@ -6,10 +12,11 @@ import Activity from "./components/Activity";
 import Integration from "./components/Integration";
 import Playground from "./components/Playground";
 import AgentsList from "./components/AgentsList";
+import PublicChat from "./components/PublicChat";
 import { useUserStore } from "./store/useUserStore";
 import { ArrowLeft } from "lucide-react";
 
-function App() {
+function Dashboard() {
   const [activeTab, setActiveTab] = useState("playground");
   const [isCreating, setIsCreating] = useState(false);
   const { activeAgentId, agents, isLoggedIn, setActiveAgentId } =
@@ -66,7 +73,7 @@ function App() {
   const renderTabContent = () => {
     switch (activeTab) {
       case "playground":
-        return <Playground agentId={activeAgentId} />;
+        return activeAgentId ? <Playground agentId={activeAgentId} /> : null;
       case "activity":
         return <Activity />;
       case "integrate":
@@ -85,6 +92,18 @@ function App() {
         {renderContent()}
       </main>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/chatbot/:agentId" element={<PublicChat />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   );
 }
 
