@@ -82,7 +82,7 @@ export default function Playground({ agentId }: PlaygroundProps) {
       - Answer in 1–2 plain sentences only.
       - Do not add extra explanation, greetings, or conclusions.
       - No special characters, markdown, or formatting.
-      - If the context doesn’t contain the answer, reply: "No relevant info found."`;
+      - If the context doesn't contain relevant information, say so."`;
 
       // Call OpenAI API
       const completion = await openai.chat.completions.create({
