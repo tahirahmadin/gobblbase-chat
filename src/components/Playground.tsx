@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { RefreshCw, Send, Save, Plus } from "lucide-react";
 import { ChatMessage } from "../types";
 import {
@@ -8,6 +8,28 @@ import {
   updateUserLogs,
 } from "../lib/serverActions";
 import OpenAI from "openai";
+import PersonalityAnalyzer from "./PersonalityAnalyzer";
+
+interface PersonalityAnalysis {
+  dominantTrait: string;
+  confidence: number;
+  briefDescription: string;
+  speechPatterns: string[];
+  vocabularyStyle: string;
+  sentenceStructure: string;
+  emotionalTone: string;
+  uniqueMannerisms: string;
+  mimicryInstructions?: string;
+}
+
+type PersonalityType = "influencer" | "professional" | "friendly" | "expert" | "motivational" | "casual" | "custom";
+
+interface PersonalityData {
+  type: PersonalityType;
+  isCustom: boolean;
+  customPrompt: string;
+  analysis: PersonalityAnalysis | null;
+}
 
 interface PlaygroundProps {
   agentId: string;
@@ -68,8 +90,8 @@ const openai = new OpenAI({
 });
 
 export default function Playground({ agentId }: PlaygroundProps) {
-  const [message, setMessage] = React.useState("");
-  const [messages, setMessages] = React.useState<ChatMessage[]>([
+  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "1",
       content: "Hi! What can I help you with?",
@@ -77,43 +99,49 @@ export default function Playground({ agentId }: PlaygroundProps) {
       sender: "agent",
     },
   ]);
-  const [status] = React.useState("Trained");
-  const [model, setModel] = React.useState("gpt-4o-mini");
-  const [temperature, setTemperature] = React.useState(0.5);
-  const [systemPrompt, setSystemPrompt] = React.useState(
+  const [isLoading, setIsLoading] = useState(false);
+  const [status] = useState("Trained");
+  const [model, setModel] = useState("gpt-4o-mini");
+  const [temperature, setTemperature] = useState(0.5);
+  const [systemPrompt, setSystemPrompt] = useState(
     "You are a helpful assistant that provides accurate and concise information."
   );
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [agentName, setAgentName] = React.useState("");
-  const [selectedPromptTemplate, setSelectedPromptTemplate] =
-    React.useState("educational");
-  const [isCustomPrompt, setIsCustomPrompt] = React.useState(false);
+  const [agentName, setAgentName] = useState("");
+  const [selectedPromptTemplate, setSelectedPromptTemplate] = useState("educational");
+  const [isCustomPrompt, setIsCustomPrompt] = useState(false);
+  const [personalityData, setPersonalityData] = useState<PersonalityData>({
+    type: "professional",
+    isCustom: false,
+    customPrompt: "",
+    analysis: null,
+  });
+  const [sessionId] = useState(`session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+  const [userId, setUserId] = useState("");
 
-  // Add session state
-  const [sessionId] = React.useState(
-    `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-  );
-  const [userId, setUserId] = React.useState("");
-
-  // Fetch agent details on component mount
-  React.useEffect(() => {
-    const fetchAgentDetails = async () => {
+  useEffect(() => {
+    async function fetchAgentDetails() {
       try {
         const agentDetails = await getAgentDetails(agentId);
         setModel(agentDetails.model);
         setSystemPrompt(agentDetails.systemPrompt);
         setAgentName(agentDetails.name);
+        if (agentDetails.personalityType) {
+          setPersonalityData({
+            type: agentDetails.personalityType as PersonalityType,
+            isCustom: agentDetails.personalityType === "custom",
+            customPrompt: agentDetails.personalityPrompt || "",
+            analysis: null,
+          });
+        }
       } catch (error) {
         console.error("Error fetching agent details:", error);
       }
-    };
-
+    }
     fetchAgentDetails();
   }, [agentId]);
 
-  // Get user IP on component mount
-  React.useEffect(() => {
-    const fetchUserIP = async () => {
+  useEffect(() => {
+    async function fetchUserIP() {
       try {
         const response = await fetch("https://api.ipify.org?format=json");
         const data = await response.json();
@@ -122,12 +150,11 @@ export default function Playground({ agentId }: PlaygroundProps) {
         console.error("Error fetching IP:", error);
         setUserId(`user_${Math.random().toString(36).substr(2, 9)}`);
       }
-    };
+    }
     fetchUserIP();
   }, []);
 
-  // Add effect to update system prompt when template changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isCustomPrompt) {
       const template = SYSTEM_PROMPT_TEMPLATES.find(
         (t) => t.id === selectedPromptTemplate
@@ -144,6 +171,39 @@ export default function Playground({ agentId }: PlaygroundProps) {
     } else {
       setIsCustomPrompt(false);
       setSelectedPromptTemplate(templateId);
+    }
+  };
+
+  const handlePersonalityChange = (
+    personalityType: string, 
+    isCustom: boolean, 
+    customPrompt: string, 
+    analysisResult: PersonalityAnalysis | null
+  ) => {
+    setPersonalityData({
+      type: personalityType as PersonalityType,
+      isCustom: isCustom,
+      customPrompt: customPrompt,
+      analysis: analysisResult,
+    });
+  };
+
+  const getPersonalityPrompt = (): string => {
+    if (personalityData.analysis && personalityData.analysis.mimicryInstructions) {
+      return personalityData.analysis.mimicryInstructions;
+    }
+    if (personalityData.isCustom) {
+      return personalityData.customPrompt;
+    } else {
+      const personalities: Record<Exclude<PersonalityType, "custom">, string> = {
+        influencer: "Respond like a social media influencer. Use trendy language, be conversational and engaging, add occasional emojis, keep messages concise yet energetic, and focus on creating connection with the user. Make your responses feel like they're coming from someone who is charismatic and knows how to keep an audience engaged. Use phrases like 'you guys', 'literally', 'absolutely love', 'super excited', and 'amazing'. Occasionally use abbreviated words and colloquialisms. Vary sentence length but keep them generally short and impactful.",
+        professional: "Respond like a business professional. Use formal language, precise terminology, structured responses, and maintain an authoritative tone. Focus on clarity, accuracy, and demonstrating expertise. Avoid casual expressions and slang. Use complete sentences with proper grammar and punctuation. Structure responses with clear introductions and conclusions. Employ professional phrases like 'I recommend', 'best practice suggests', 'from my assessment', and 'in my professional opinion'. Maintain a confident, measured tone throughout.",
+        friendly: "Respond like a friendly helper. Use warm, conversational language, show empathy, ask supportive follow-up questions, and focus on building rapport. Make your responses feel like they're coming from someone who genuinely cares about helping the user in a comfortable, relaxed manner. Use phrases like 'I understand how you feel', 'that's a great question', 'I'm happy to help with that', and 'let me know if there's anything else'. Include personal touches and occasional gentle humor where appropriate.",
+        expert: "Respond like a subject matter expert. Use technical terminology appropriate to the topic, provide detailed explanations, cite relevant concepts or principles, and focus on accuracy and depth. Make your responses demonstrate deep domain knowledge while still being accessible. Structure explanations logically, moving from foundational concepts to more complex details. Use phrases like 'research indicates', 'a key principle here is', 'it's important to note that', and 'to understand this fully, consider'. Balance technical precision with clarity.",
+        motivational: "Respond like a motivational speaker. Use powerful, persuasive language with conviction and confidence. Include inspirational anecdotes, metaphors, and calls to action. Emphasize possibilities and focus on overcoming challenges. Use phrases like 'imagine what's possible', 'you have the power to', 'take the first step today', 'this is your moment', and 'I believe in you'. Vary sentence lengths dramatically for emphasis, using very short sentences to punctuate important points. Occasionally use rhetorical questions to engage the user in self-reflection.",
+        casual: "Respond like a casual friend. Use informal language with occasional slang, keep things light and easygoing, and maintain a conversational tone throughout. Don't worry about perfect grammar or structure - be more natural and spontaneous. Use phrases like 'hey there', 'so anyway', 'kinda', 'pretty much', and 'y'know what I mean?'. Feel free to use contractions, add friendly banter, and show personality through language choices. Respond as if chatting with a friend you've known for years."
+      };
+      return personalities[personalityData.type as Exclude<PersonalityType, "custom">] || "";
     }
   };
 
@@ -164,23 +224,26 @@ export default function Playground({ agentId }: PlaygroundProps) {
     try {
       // Call RAG API to get context using the server action
       const context = await queryDocument(agentId, message);
+      const personalityPrompt = getPersonalityPrompt();
+      const enhancedSystemPrompt = `${systemPrompt}
+      
+      ${personalityPrompt ? `PERSONALITY INSTRUCTIONS (MUST FOLLOW THESE EXACTLY):
+${personalityPrompt}
 
-      // Prepare system prompt with context
-      const systemPrompt = `You are a concise AI assistant.
-     Use the provided context to answer the user's question when relevant:
-     ${JSON.stringify(context)}
-     Rules:
-     - Answer in 1-2 plain sentences only.
-     - Do not add extra explanation, greetings, or conclusions.
-     - No special characters, markdown, or formatting.
-     - For general greetings or conversational queries like "hello" or "how are you", respond naturally and briefly.
-     - Only say "I cannot assist with that" if the query requires specific information not in the context and is not a general greeting.`;
-
-      // Call OpenAI API
+The personality instructions above should take precedence over other style guidelines.` : ''}
+      
+      Context Information:
+      ${JSON.stringify(context)}
+      
+      Additional Rules:
+      - For general greetings or conversational queries like "hello" or "how are you", respond naturally in the personality style.
+      - Only say "I cannot assist with that" if the query requires specific information not in the context and is not a general greeting.
+      - Always maintain the specified personality speech patterns throughout your response.
+      - If mimicking a specific person's style, use their vocabulary choices, sentence structures, and speech patterns consistently.`;
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: model,
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: enhancedSystemPrompt },
           { role: "user", content: message },
         ],
         temperature: 0.6,
@@ -219,8 +282,6 @@ export default function Playground({ agentId }: PlaygroundProps) {
           newUserLogs,
         });
       }
-
-      setIsLoading(false);
     } catch (error) {
       console.error("Error:", error);
       const errorMessage: ChatMessage = {
@@ -231,6 +292,7 @@ export default function Playground({ agentId }: PlaygroundProps) {
         sender: "agent",
       };
       setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -248,10 +310,13 @@ export default function Playground({ agentId }: PlaygroundProps) {
     // Add your save logic here
 
     try {
-      const response = await updateAgentDetails(agentId, {
+      await updateAgentDetails(agentId, {
         model,
         systemPrompt,
+        personalityType: personalityData.isCustom ? "custom" : personalityData.type,
+        personalityPrompt: personalityData.isCustom ? personalityData.customPrompt : getPersonalityPrompt(),
       });
+      console.log("Settings saved successfully");
     } catch (error) {
       console.error("Error saving settings:", error);
     }
@@ -260,8 +325,7 @@ export default function Playground({ agentId }: PlaygroundProps) {
   return (
     <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
       <div className="grid grid-cols-3 min-h-[600px]">
-        {/* Left Panel */}
-        <div className="col-span-1 border-r border-gray-200 p-4 bg-gray-50">
+      <div className="col-span-1 border-r border-gray-200 p-4 bg-gray-50 max-h-[600px] overflow-y-auto">
           <div className="space-y-6">
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <div className="flex justify-between items-center mb-2">
@@ -342,7 +406,15 @@ export default function Playground({ agentId }: PlaygroundProps) {
                 />
               )}
             </div>
-
+            <PersonalityAnalyzer 
+              openaiClient={openai}
+              onPersonalityChange={handlePersonalityChange}
+              initialPersonality={{
+                type: personalityData.type,
+                isCustom: personalityData.isCustom,
+                customPrompt: personalityData.customPrompt,
+              }}
+            />
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <button
                 onClick={handleSaveSettings}
