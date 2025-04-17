@@ -6,6 +6,13 @@ interface QueryDocumentResponse {
   calendlyUrl?: string;
 }
 
+interface ExtractContentResponse {
+  success: boolean;
+  content?: string;
+  error?: string;
+  platform?: string;
+}
+
 interface SignUpClientResponse {
   error: boolean;
   result:
@@ -36,6 +43,23 @@ interface UpdateUserLogsParams {
   sessionId: string;
   agentId: string;
   newUserLogs: UserLog[];
+}
+
+export async function extractContentFromURL(url: string): Promise<ExtractContentResponse> {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/content/extract",
+      { url }
+    );
+    
+    return response.data;
+  } catch (error) {
+    console.error("Error extracting content from URL:", error);
+    return {
+      success: false,
+      error: "Failed to extract content from URL"
+    };
+  }
 }
 
 export async function createNewAgent(
@@ -142,28 +166,40 @@ export async function getAgentDetails(
 export async function updateAgentDetails(
   agentId: string,
   details: {
-    systemPrompt: string;
     model: string;
+    systemPrompt: string;
     username?: string;
     logo?: string;
     calendlyUrl?: string;
     personalityType?: string;
-    personalityPrompt?: string;
+    isCustomPersonality?: boolean;
+    customPersonalityPrompt?: string;
+    personalityAnalysis?: any;
+    lastPersonalityUrl?: string;
+    lastPersonalityContent?: string;
     [key: string]: any;
   }
 ) {
   try {
+    const body = {
+      model: details.model,
+      systemPrompt: details.systemPrompt,
+      username: details.username,
+      logo: details.logo,
+      calendlyUrl: details.calendlyUrl,
+      personalityType: details.personalityType,
+      isCustomPersonality: details.isCustomPersonality,
+      customPersonalityPrompt: details.customPersonalityPrompt,
+      personalityAnalysis: details.personalityAnalysis,
+      lastPersonalityUrl: details.lastPersonalityUrl,
+      lastPersonalityContent: details.lastPersonalityContent,
+    };
+
+    console.log("🛰 Sending updateAgentDetails body:", body);
+
     const response = await axios.put(
       `https://rag.gobbl.ai/client/updateAgent/${agentId}`,
-      {
-        model: details.model,
-        systemPrompt: details.systemPrompt,
-        username: details.username,
-        logo: details.logo,
-        calendlyUrl: details.calendlyUrl,
-        personalityType: details.personalityType,
-        personalityPrompt: details.personalityPrompt,
-      }
+      body
     );
 
     if (response.data.error) {
@@ -175,6 +211,7 @@ export async function updateAgentDetails(
     throw error;
   }
 }
+
 
 export async function deleteAgent(agentId: string) {
   try {

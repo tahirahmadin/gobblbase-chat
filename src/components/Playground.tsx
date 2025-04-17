@@ -8,7 +8,7 @@ import {
   updateUserLogs,
 } from "../lib/serverActions";
 import OpenAI from "openai";
-import PersonalityAnalyzer from "./PersonalityAnalyzer";
+import PersonalityAnalyzer, { PERSONALITY_TYPES } from "./PersonalityAnalyzer";
 import { useUserStore } from "../store/useUserStore";
 import { useAgentStore } from "../store/useAgentStore";
 
@@ -24,20 +24,16 @@ interface PersonalityAnalysis {
   mimicryInstructions?: string;
 }
 
-type PersonalityType =
-  | "influencer"
-  | "professional"
-  | "friendly"
-  | "expert"
-  | "motivational"
-  | "casual"
-  | "custom";
+type PersonalityType = "influencer" | "professional" | "friendly" | "expert" | "motivational" | "casual" | "custom-personality" ;
+
 
 interface PersonalityData {
   type: PersonalityType;
   isCustom: boolean;
   customPrompt: string;
   analysis: PersonalityAnalysis | null;
+  lastUrl: string;
+  lastContent: string;
 }
 
 interface PlaygroundProps {
@@ -131,6 +127,8 @@ export default function Playground({ agentId }: PlaygroundProps) {
     isCustom: false,
     customPrompt: "",
     analysis: null,
+    lastUrl: "",
+    lastContent: ""
   });
   const [sessionId] = useState(
     `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
@@ -157,9 +155,11 @@ export default function Playground({ agentId }: PlaygroundProps) {
         if (agentDetails.personalityType) {
           setPersonalityData({
             type: agentDetails.personalityType as PersonalityType,
-            isCustom: agentDetails.personalityType === "custom",
-            customPrompt: agentDetails.personalityPrompt || "",
-            analysis: null,
+            isCustom: agentDetails.personalityType === "custom-personality",
+            customPrompt: agentDetails.customPersonalityPrompt || "",
+            analysis: agentDetails.personalityAnalysis,
+            lastUrl: agentDetails.lastPersonalityUrl || "",
+            lastContent: agentDetails.lastPersonalityContent || ""
           });
         }
       } catch (error) {
@@ -204,52 +204,42 @@ export default function Playground({ agentId }: PlaygroundProps) {
   };
 
   const handlePersonalityChange = (
-    personalityType: string,
-    isCustom: boolean,
-    customPrompt: string,
-    analysisResult: PersonalityAnalysis | null
+    personalityType: string, 
+    isCustom: boolean, 
+    customPrompt: string, 
+    analysisResult: PersonalityAnalysis | null,
+    lastUrl: string,
+    lastContent: string
   ) => {
     setPersonalityData({
       type: personalityType as PersonalityType,
       isCustom: isCustom,
       customPrompt: customPrompt,
       analysis: analysisResult,
+      lastUrl,
+      lastContent
     });
   };
 
   const getPersonalityPrompt = (): string => {
-    if (
-      personalityData.analysis &&
-      personalityData.analysis.mimicryInstructions
-    ) {
-      return personalityData.analysis.mimicryInstructions;
+  // If using custom personality with analysis result that has mimicry instructions
+  if (personalityData.isCustom && personalityData.analysis?.mimicryInstructions) {
+    return personalityData.analysis.mimicryInstructions;
+  } 
+  // If using custom personality with custom prompt
+  else if (personalityData.isCustom && personalityData.customPrompt) {
+    return personalityData.customPrompt;
+  } 
+  // If using a predefined personality type
+  else if (!personalityData.isCustom) {
+    // Get the predefined prompt from PERSONALITY_TYPES
+    const personalityType = PERSONALITY_TYPES.find(p => p.id === personalityData.type);
+    if (personalityType) {
+      return personalityType.prompt;
     }
-    if (personalityData.isCustom) {
-      return personalityData.customPrompt;
-    } else {
-      const personalities: Record<
-        Exclude<PersonalityType, "custom">,
-        string
-      > = {
-        influencer:
-          "Respond like a social media influencer. Use trendy language, be conversational and engaging, add occasional emojis, keep messages concise yet energetic, and focus on creating connection with the user. Make your responses feel like they're coming from someone who is charismatic and knows how to keep an audience engaged. Use phrases like 'you guys', 'literally', 'absolutely love', 'super excited', and 'amazing'. Occasionally use abbreviated words and colloquialisms. Vary sentence length but keep them generally short and impactful.",
-        professional:
-          "Respond like a business professional. Use formal language, precise terminology, structured responses, and maintain an authoritative tone. Focus on clarity, accuracy, and demonstrating expertise. Avoid casual expressions and slang. Use complete sentences with proper grammar and punctuation. Structure responses with clear introductions and conclusions. Employ professional phrases like 'I recommend', 'best practice suggests', 'from my assessment', and 'in my professional opinion'. Maintain a confident, measured tone throughout.",
-        friendly:
-          "Respond like a friendly helper. Use warm, conversational language, show empathy, ask supportive follow-up questions, and focus on building rapport. Make your responses feel like they're coming from someone who genuinely cares about helping the user in a comfortable, relaxed manner. Use phrases like 'I understand how you feel', 'that's a great question', 'I'm happy to help with that', and 'let me know if there's anything else'. Include personal touches and occasional gentle humor where appropriate.",
-        expert:
-          "Respond like a subject matter expert. Use technical terminology appropriate to the topic, provide detailed explanations, cite relevant concepts or principles, and focus on accuracy and depth. Make your responses demonstrate deep domain knowledge while still being accessible. Structure explanations logically, moving from foundational concepts to more complex details. Use phrases like 'research indicates', 'a key principle here is', 'it's important to note that', and 'to understand this fully, consider'. Balance technical precision with clarity.",
-        motivational:
-          "Respond like a motivational speaker. Use powerful, persuasive language with conviction and confidence. Include inspirational anecdotes, metaphors, and calls to action. Emphasize possibilities and focus on overcoming challenges. Use phrases like 'imagine what's possible', 'you have the power to', 'take the first step today', 'this is your moment', and 'I believe in you'. Vary sentence lengths dramatically for emphasis, using very short sentences to punctuate important points. Occasionally use rhetorical questions to engage the user in self-reflection.",
-        casual:
-          "Respond like a casual friend. Use informal language with occasional slang, keep things light and easygoing, and maintain a conversational tone throughout. Don't worry about perfect grammar or structure - be more natural and spontaneous. Use phrases like 'hey there', 'so anyway', 'kinda', 'pretty much', and 'y'know what I mean?'. Feel free to use contractions, add friendly banter, and show personality through language choices. Respond as if chatting with a friend you've known for years.",
-      };
-      return (
-        personalities[
-          personalityData.type as Exclude<PersonalityType, "custom">
-        ] || ""
-      );
-    }
+  }
+  
+  return "";
   };
 
   const handleSendMessage = async () => {
@@ -270,6 +260,8 @@ export default function Playground({ agentId }: PlaygroundProps) {
       // Call RAG API to get context using the server action
       const context = await queryDocument(agentId, message);
       const personalityPrompt = getPersonalityPrompt();
+      console.log("Using personality prompt:", personalityPrompt ? "Yes" : "No");
+    
       const enhancedSystemPrompt = `${systemPrompt}
       
       ${
@@ -354,18 +346,30 @@ The personality instructions above should take precedence over other style guide
   };
 
   const handleSaveSettings = async () => {
+    console.log("Saving settings:", { 
+      model, 
+      temperature, 
+      systemPrompt,
+      personalityType: personalityData.type,
+      isCustomPersonality: personalityData.isCustom,
+      customPersonalityPrompt: personalityData.customPrompt,
+      personalityAnalysis: personalityData.analysis,
+      lastPersonalityUrl: personalityData.lastUrl,
+      lastPersonalityContent: personalityData.lastContent
+    });
+  
     try {
       await updateAgentDetails(agentId, {
         model,
         systemPrompt,
         logo,
         calendlyUrl,
-        personalityType: personalityData.isCustom
-          ? "custom"
-          : personalityData.type,
-        personalityPrompt: personalityData.isCustom
-          ? personalityData.customPrompt
-          : getPersonalityPrompt(),
+        personalityType: personalityData.type,
+        isCustomPersonality: personalityData.isCustom,
+        customPersonalityPrompt: personalityData.customPrompt,
+        personalityAnalysis: personalityData.analysis,
+        lastPersonalityUrl: personalityData.lastUrl,
+        lastPersonalityContent: personalityData.lastContent,
       });
       console.log("Settings saved successfully");
     } catch (error) {
@@ -514,7 +518,9 @@ The personality instructions above should take precedence over other style guide
                           isCustom: personalityData.isCustom,
                           customPrompt: personalityData.customPrompt,
                         }}
-                      />
+                        initialUrl={personalityData.lastUrl}
+              initialContent={personalityData.lastContent}
+            />
                     </div>
                   )}
 
