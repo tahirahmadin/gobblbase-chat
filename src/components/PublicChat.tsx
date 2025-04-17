@@ -53,7 +53,7 @@ export default function PublicChat() {
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!message.trim() || !agentId) return;
+    if (!message.trim() || !config?.agentId) return;
 
     const newMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -68,7 +68,7 @@ export default function PublicChat() {
 
     try {
       // Call RAG API to get context using the server action
-      const context = await queryDocument(agentId, message);
+      const context = await queryDocument(config?.agentId, message);
 
       // Check if the message is about booking
       const isBookingRequest =

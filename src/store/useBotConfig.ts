@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { getAgentDetails } from "../lib/serverActions";
 
 interface BotConfig {
+  agentId?: string;
   logo?: string;
   username?: string;
   calendlyUrl?: string;
