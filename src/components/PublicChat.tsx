@@ -52,6 +52,27 @@ export default function PublicChat() {
     scrollToBottom();
   }, [messages]);
 
+  // Add useEffect for Calendly event handling
+  React.useEffect(() => {
+    const handleCalendlyEvent = (e: MessageEvent) => {
+      if (e.data?.event === "calendly.event_scheduled") {
+        console.log("✅ Event scheduled:", e.data);
+        const thankYouMessage: ChatMessage = {
+          id: Date.now().toString(),
+          content:
+            "Thank you for booking the meeting! We look forward to seeing you.",
+          timestamp: new Date(),
+          sender: "agent",
+        };
+        setMessages((prev) => [...prev, thankYouMessage]);
+        setShowCalendly(false);
+      }
+    };
+
+    window.addEventListener("message", handleCalendlyEvent);
+    return () => window.removeEventListener("message", handleCalendlyEvent);
+  }, []);
+
   const handleSendMessage = async () => {
     if (!message.trim() || !config?.agentId) return;
 
@@ -217,6 +238,7 @@ export default function PublicChat() {
               url={config?.calendlyUrl || ""}
               styles={{
                 height: "450px",
+                fontSize: 12,
               }}
             />
           </div>
