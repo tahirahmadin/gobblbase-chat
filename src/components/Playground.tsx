@@ -136,6 +136,13 @@ export default function Playground({ agentId }: PlaygroundProps) {
     `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   );
   const [userId, setUserId] = useState("");
+  const [activeTab, setActiveTab] = useState("model");
+  const [theme, setTheme] = useState({
+    primaryColor: "#3B82F6", // blue-500
+    secondaryColor: "#F3F4F6", // gray-100
+    textColor: "#1F2937", // gray-800
+    backgroundColor: "#FFFFFF", // white
+  });
 
   useEffect(() => {
     async function fetchAgentDetails() {
@@ -367,150 +374,266 @@ The personality instructions above should take precedence over other style guide
   };
 
   return (
-    <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="max-w-xxl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
       <div className="grid grid-cols-3 min-h-[600px]">
-        <div className="col-span-1 border-r border-gray-200 p-4 bg-gray-50 max-h-[600px] overflow-y-auto">
+        <div className="col-span-2 border-r border-gray-200 p-1 bg-gray-50 max-h-[600px] overflow-y-auto">
           <div className="space-y-6">
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">
-                  Status:
-                </span>
-                <span className="flex items-center text-sm text-gray-600">
-                  <span
-                    className={`w-2 h-2 rounded-full mr-2 ${
-                      isLoading ? "bg-yellow-400" : "bg-green-400"
-                    }`}
-                  ></span>
-                  {isLoading ? "Processing..." : status}
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">
-                  Agent Details
-                </span>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Username
-                  </label>
-                  <input
-                    type="text"
-                    value={activeAgentUsername || ""}
-                    onChange={(e) => setActiveAgentUsername(e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  />
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="flex">
+                {/* Vertical Tab Navigation */}
+                <div className="w-1/3 border-r border-gray-200">
+                  <nav className="space-y-1 p-2">
+                    <button
+                      onClick={() => setActiveTab("model")}
+                      className={`w-full text-left px-3 py-2 text-sm font-medium rounded-md ${
+                        activeTab === "model"
+                          ? "bg-blue-50 text-blue-700 border-l-2 border-blue-500"
+                          : "text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      Model
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("system")}
+                      className={`w-full text-left px-3 py-2 text-sm font-medium rounded-md ${
+                        activeTab === "system"
+                          ? "bg-blue-50 text-blue-700 border-l-2 border-blue-500"
+                          : "text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      System Prompt
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("personality")}
+                      className={`w-full text-left px-3 py-2 text-sm font-medium rounded-md ${
+                        activeTab === "personality"
+                          ? "bg-blue-50 text-blue-700 border-l-2 border-blue-500"
+                          : "text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      Personality
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("theme")}
+                      className={`w-full text-left px-3 py-2 text-sm font-medium rounded-md ${
+                        activeTab === "theme"
+                          ? "bg-blue-50 text-blue-700 border-l-2 border-blue-500"
+                          : "text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      Theme
+                    </button>
+                  </nav>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Logo URL
-                  </label>
-                  <input
-                    type="text"
-                    value={logo}
-                    onChange={(e) => setLogo(e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  />
-                  {logo && (
-                    <div className="mt-2">
-                      <img
-                        src={logo}
-                        alt="Agent logo"
-                        className="h-16 w-16 rounded-full object-cover"
+
+                {/* Tab Content */}
+                <div className="w-2/3 p-4 min-h-[450px]">
+                  {/* Model Settings Tab */}
+                  {activeTab === "model" && (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-700">
+                          Model
+                        </span>
+                        <button className="text-gray-400 hover:text-gray-600">
+                          <RefreshCw className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <select
+                        value={model}
+                        onChange={(e) => setModel(e.target.value)}
+                        className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        {AVAILABLE_MODELS.map((modelOption) => (
+                          <option key={modelOption.id} value={modelOption.id}>
+                            {modelOption.name} ({modelOption.contextWindow}{" "}
+                            context)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* System Prompt Tab */}
+                  {activeTab === "system" && (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-700">
+                          System Prompt
+                        </span>
+                        <button
+                          onClick={() => setIsCustomPrompt(!isCustomPrompt)}
+                          className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                        >
+                          <Plus className="h-4 w-4" />
+                          {isCustomPrompt ? "Use Template" : "Custom Prompt"}
+                        </button>
+                      </div>
+
+                      {!isCustomPrompt ? (
+                        <div className="space-y-2">
+                          <select
+                            value={selectedPromptTemplate}
+                            onChange={(e) =>
+                              handleTemplateChange(e.target.value)
+                            }
+                            className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            {SYSTEM_PROMPT_TEMPLATES.map((template) => (
+                              <option key={template.id} value={template.id}>
+                                {template.name}
+                              </option>
+                            ))}
+                          </select>
+                          <textarea
+                            value={systemPrompt}
+                            onChange={(e) => setSystemPrompt(e.target.value)}
+                            className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-64 resize-none"
+                            placeholder="Modify the selected template..."
+                          />
+                        </div>
+                      ) : (
+                        <textarea
+                          value={systemPrompt}
+                          onChange={(e) => setSystemPrompt(e.target.value)}
+                          className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-32 resize-none"
+                          placeholder="Enter custom system prompt..."
+                        />
+                      )}
+                    </div>
+                  )}
+
+                  {/* Personality Settings Tab */}
+                  {activeTab === "personality" && (
+                    <div className="space-y-4">
+                      <PersonalityAnalyzer
+                        openaiClient={openai}
+                        onPersonalityChange={handlePersonalityChange}
+                        initialPersonality={{
+                          type: personalityData.type,
+                          isCustom: personalityData.isCustom,
+                          customPrompt: personalityData.customPrompt,
+                        }}
                       />
                     </div>
                   )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Calendly URL
-                  </label>
-                  <input
-                    type="text"
-                    value={calendlyUrl}
-                    onChange={(e) => setCalendlyUrl(e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  />
+
+                  {/* Theme Settings Tab */}
+                  {activeTab === "theme" && (
+                    <div className="space-y-6">
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Primary Color
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="color"
+                              value={theme.primaryColor}
+                              onChange={(e) =>
+                                setTheme({
+                                  ...theme,
+                                  primaryColor: e.target.value,
+                                })
+                              }
+                              className="h-8 w-8 rounded cursor-pointer"
+                            />
+                            <span className="text-sm text-gray-500">
+                              {theme.primaryColor}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Secondary Color
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="color"
+                              value={theme.secondaryColor}
+                              onChange={(e) =>
+                                setTheme({
+                                  ...theme,
+                                  secondaryColor: e.target.value,
+                                })
+                              }
+                              className="h-8 w-8 rounded cursor-pointer"
+                            />
+                            <span className="text-sm text-gray-500">
+                              {theme.secondaryColor}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Text Color
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="color"
+                              value={theme.textColor}
+                              onChange={(e) =>
+                                setTheme({
+                                  ...theme,
+                                  textColor: e.target.value,
+                                })
+                              }
+                              className="h-8 w-8 rounded cursor-pointer"
+                            />
+                            <span className="text-sm text-gray-500">
+                              {theme.textColor}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Background Color
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="color"
+                              value={theme.backgroundColor}
+                              onChange={(e) =>
+                                setTheme({
+                                  ...theme,
+                                  backgroundColor: e.target.value,
+                                })
+                              }
+                              className="h-8 w-8 rounded cursor-pointer"
+                            />
+                            <span className="text-sm text-gray-500">
+                              {theme.backgroundColor}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-4">
+                        <button
+                          onClick={() => {
+                            // Reset to default theme
+                            setTheme({
+                              primaryColor: "#3B82F6",
+                              secondaryColor: "#F3F4F6",
+                              textColor: "#1F2937",
+                              backgroundColor: "#FFFFFF",
+                            });
+                          }}
+                          className="text-sm text-blue-600 hover:text-blue-800"
+                        >
+                          Reset to Default
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">Model</span>
-                <button className="text-gray-400 hover:text-gray-600">
-                  <RefreshCw className="h-4 w-4" />
-                </button>
-              </div>
-              <select
-                value={model}
-                onChange={(e) => setModel(e.target.value)}
-                className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                {AVAILABLE_MODELS.map((modelOption) => (
-                  <option key={modelOption.id} value={modelOption.id}>
-                    {modelOption.name} ({modelOption.contextWindow} context)
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">
-                  System Prompt
-                </span>
-                <button
-                  onClick={() => setIsCustomPrompt(!isCustomPrompt)}
-                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                >
-                  <Plus className="h-4 w-4" />
-                  {isCustomPrompt ? "Use Template" : "Custom Prompt"}
-                </button>
-              </div>
-
-              {!isCustomPrompt ? (
-                <div className="space-y-2">
-                  <select
-                    value={selectedPromptTemplate}
-                    onChange={(e) => handleTemplateChange(e.target.value)}
-                    className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    {SYSTEM_PROMPT_TEMPLATES.map((template) => (
-                      <option key={template.id} value={template.id}>
-                        {template.name}
-                      </option>
-                    ))}
-                  </select>
-                  <textarea
-                    value={systemPrompt}
-                    onChange={(e) => setSystemPrompt(e.target.value)}
-                    className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-32 resize-none"
-                    placeholder="Modify the selected template..."
-                  />
-                </div>
-              ) : (
-                <textarea
-                  value={systemPrompt}
-                  onChange={(e) => setSystemPrompt(e.target.value)}
-                  className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-32 resize-none"
-                  placeholder="Enter custom system prompt..."
-                />
-              )}
-            </div>
-            <PersonalityAnalyzer
-              openaiClient={openai}
-              onPersonalityChange={handlePersonalityChange}
-              initialPersonality={{
-                type: personalityData.type,
-                isCustom: personalityData.isCustom,
-                customPrompt: personalityData.customPrompt,
-              }}
-            />
+            {/* Save Settings Button */}
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <button
                 onClick={handleSaveSettings}
@@ -524,7 +647,7 @@ The personality instructions above should take precedence over other style guide
         </div>
 
         {/* Chat Area */}
-        <div className="col-span-2 flex flex-col">
+        <div className="col-span-1 flex flex-col">
           <div className="flex-1 p-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
