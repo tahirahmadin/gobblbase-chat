@@ -278,7 +278,6 @@ The personality instructions above should take precedence over other style guide
       
       Additional Rules:
       - For general greetings or conversational queries like "hello" or "how are you", respond naturally in the personality style.
-      - Only say "I cannot assist with that" if the query requires specific information not in the context and is not a general greeting.
       - Always maintain the specified personality speech patterns throughout your response.
       - If mimicking a specific person's style, use their vocabulary choices, sentence structures, and speech patterns consistently.`;
       const completion = await openai.chat.completions.create({
