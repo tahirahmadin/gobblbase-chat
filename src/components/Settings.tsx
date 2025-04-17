@@ -1,16 +1,5 @@
-import React, { useState } from "react";
-import {
-  CreditCard,
-  BarChart2,
-  Settings,
-  ToggleLeft,
-  ToggleRight,
-  User,
-  Upload,
-  Calendar,
-  ServerIcon,
-  Bot,
-} from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { CreditCard, BarChart2, Upload, Bot } from "lucide-react";
 import { useUserStore } from "../store/useUserStore";
 import { toast } from "react-hot-toast";
 import {
@@ -27,13 +16,19 @@ interface Plan {
 }
 
 const SettingsPage: React.FC = () => {
+  const { activeAgentId, activeAgentUsername, calendlyUrl, setCalendlyUrl } =
+    useUserStore();
+
   const [isEnabled, setIsEnabled] = useState(true);
   const [activeTab, setActiveTab] = useState("services");
-  const [agentUsername, setAgentUsername] = useState("");
+  const [agentUsername, setAgentUsername] = useState(activeAgentUsername || "");
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
-  const [calendlyUrl, setCalendlyUrl] = useState("");
+  const [profilePicturePreview, setProfilePicturePreview] = useState<
+    string | null
+  >(null);
   const [isUpdating, setIsUpdating] = useState(false);
-  const { activeAgentId } = useUserStore();
+
+  const isUsernameChanged = agentUsername !== activeAgentUsername;
 
   const handleUsernameUpdate = async () => {
     if (!activeAgentId) {
@@ -57,7 +52,14 @@ const SettingsPage: React.FC = () => {
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     if (e.target.files && e.target.files[0]) {
-      setProfilePicture(e.target.files[0]);
+      const file = e.target.files[0];
+      setProfilePicture(file);
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePicturePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -219,7 +221,9 @@ const SettingsPage: React.FC = () => {
                     />
                     <button
                       onClick={handleUsernameUpdate}
-                      disabled={isUpdating || !agentUsername}
+                      disabled={
+                        isUpdating || !agentUsername || !isUsernameChanged
+                      }
                       className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isUpdating ? "Updating..." : "Update"}
@@ -251,6 +255,15 @@ const SettingsPage: React.FC = () => {
                         </span>
                       </label>
                     </div>
+                    {profilePicturePreview && (
+                      <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-200">
+                        <img
+                          src={profilePicturePreview}
+                          alt="Profile preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
                     <button
                       onClick={handleProfilePictureUpload}
                       disabled={isUpdating || !profilePicture}

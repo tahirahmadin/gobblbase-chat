@@ -9,12 +9,14 @@ interface UserState {
   clientId: string | null;
   activeAgentId: string | null;
   activeAgentUsername: string | null;
+  calendlyUrl: string;
   agents: Agent[];
   setUserEmail: (email: string) => void;
   setClientId: (id: string) => void;
   setIsLoggedIn: (status: boolean) => void;
   setActiveAgentId: (id: string | null) => void;
   setActiveAgentUsername: (username: string | null) => void;
+  setCalendlyUrl: (url: string) => void;
   addAgent: (agent: Omit<Agent, "agentId">) => void;
   fetchAndSetAgents: () => Promise<void>;
   logout: () => void;
@@ -28,6 +30,7 @@ export const useUserStore = create<UserState>()(
       clientId: null,
       activeAgentId: null,
       activeAgentUsername: null,
+      calendlyUrl: "",
       agents: [],
       setUserEmail: (email) => set({ userEmail: email }),
       setClientId: (id) => set({ clientId: id }),
@@ -41,6 +44,7 @@ export const useUserStore = create<UserState>()(
       },
       setActiveAgentUsername: (username) =>
         set({ activeAgentUsername: username }),
+      setCalendlyUrl: (url) => set({ calendlyUrl: url }),
       addAgent: (agent) =>
         set((state) => ({
           agents: [
@@ -69,6 +73,7 @@ export const useUserStore = create<UserState>()(
           clientId: null,
           activeAgentId: null,
           activeAgentUsername: null,
+          calendlyUrl: "",
           agents: [],
         }),
     }),

@@ -10,6 +10,7 @@ import {
 import OpenAI from "openai";
 import PersonalityAnalyzer from "./PersonalityAnalyzer";
 import { useUserStore } from "../store/useUserStore";
+import { useAgentStore } from "../store/useAgentStore";
 
 interface PersonalityAnalysis {
   dominantTrait: string;
@@ -116,8 +117,12 @@ export default function Playground({ agentId }: PlaygroundProps) {
   );
   const [agentName, setAgentName] = useState("");
   const [logo, setLogo] = useState("");
-  const [calendlyUrl, setCalendlyUrl] = useState("");
-  const { activeAgentUsername, setActiveAgentUsername } = useUserStore();
+  const {
+    activeAgentUsername,
+    setActiveAgentUsername,
+    calendlyUrl,
+    setCalendlyUrl,
+  } = useUserStore();
   const [selectedPromptTemplate, setSelectedPromptTemplate] =
     useState("educational");
   const [isCustomPrompt, setIsCustomPrompt] = useState(false);
@@ -135,7 +140,7 @@ export default function Playground({ agentId }: PlaygroundProps) {
   useEffect(() => {
     async function fetchAgentDetails() {
       try {
-        const agentDetails = await getAgentDetails(null, agentId);
+        const agentDetails = await getAgentDetails(agentId, null);
         setModel(agentDetails.model);
         setSystemPrompt(agentDetails.systemPrompt);
         setAgentName(agentDetails.name);
@@ -155,7 +160,7 @@ export default function Playground({ agentId }: PlaygroundProps) {
       }
     }
     fetchAgentDetails();
-  }, [agentId, setActiveAgentUsername]);
+  }, [agentId, setActiveAgentUsername, setCalendlyUrl]);
 
   useEffect(() => {
     async function fetchUserIP() {

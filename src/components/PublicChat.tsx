@@ -21,7 +21,7 @@ const QUERY_CUES = [
 ];
 
 export default function PublicChat() {
-  const { agentId } = useParams();
+  const { botUsername } = useParams();
   const { config, isLoading: isConfigLoading, fetchConfig } = useBotConfig();
   const [message, setMessage] = React.useState("");
   const [messages, setMessages] = React.useState<ChatMessage[]>([
@@ -38,10 +38,10 @@ export default function PublicChat() {
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    if (agentId) {
-      fetchConfig(agentId);
+    if (botUsername) {
+      fetchConfig(botUsername);
     }
-  }, [agentId, fetchConfig]);
+  }, [botUsername, fetchConfig]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
