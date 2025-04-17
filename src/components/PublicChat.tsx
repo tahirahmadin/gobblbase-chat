@@ -1,11 +1,26 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import { ChatMessage } from "../types";
-import { queryDocument } from "../lib/serverActions";
+import { queryDocument, getAgentDetails } from "../lib/serverActions";
 import OpenAI from "openai";
 import { Send } from "lucide-react";
 import { InlineWidget } from "react-calendly";
 import { useBotConfig } from "../store/useBotConfig";
+import { PERSONALITY_TYPES } from "./PersonalityAnalyzer";
+
+interface PersonalityAnalysis {
+  dominantTrait: string;
+  confidence: number;
+  briefDescription: string;
+  speechPatterns: string[];
+  vocabularyStyle: string;
+  sentenceStructure: string;
+  emotionalTone: string;
+  uniqueMannerisms: string;
+  mimicryInstructions?: string;
+}
+
+type PersonalityType = "influencer" | "professional" | "friendly" | "expert" | "motivational" | "casual" | "custom-personality";
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -36,13 +51,51 @@ export default function PublicChat() {
   const [showCues, setShowCues] = React.useState(true);
   const [showCalendly, setShowCalendly] = React.useState(false);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
+  const [personalityType, setPersonalityType] = React.useState<PersonalityType | null>(null);
+  const [isCustomPersonality, setIsCustomPersonality] = React.useState(false);
+  const [customPersonalityPrompt, setCustomPersonalityPrompt] = React.useState("");
+  const [personalityAnalysis, setPersonalityAnalysis] = React.useState<PersonalityAnalysis | null>(null);
 
   React.useEffect(() => {
     console.log(botUsername);
     if (botUsername) {
       fetchConfig(botUsername);
+      fetchAgentPersonality(botUsername);
     }
   }, [botUsername, fetchConfig]);
+
+  const fetchAgentPersonality = async (username: string) => {
+    try {
+      const agentDetails = await getAgentDetails(null, username);
+      if (agentDetails) {
+        if (agentDetails.personalityType) {
+          setPersonalityType(agentDetails.personalityType as PersonalityType);
+          setIsCustomPersonality(agentDetails.personalityType === "custom-personality");
+          setCustomPersonalityPrompt(agentDetails.customPersonalityPrompt || "");
+          setPersonalityAnalysis(agentDetails.personalityAnalysis || null);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching agent personality:", error);
+    }
+  };
+
+  const getPersonalityPrompt = (): string => {
+    if (isCustomPersonality && personalityAnalysis?.mimicryInstructions) {
+      return personalityAnalysis.mimicryInstructions;
+    } 
+    else if (isCustomPersonality && customPersonalityPrompt) {
+      return customPersonalityPrompt;
+    } 
+    else if (personalityType && !isCustomPersonality) {
+      const personalityTypeInfo = PERSONALITY_TYPES.find(p => p.id === personalityType);
+      if (personalityTypeInfo) {
+        return personalityTypeInfo.prompt;
+      }
+    }
+    
+    return "";
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -113,10 +166,22 @@ export default function PublicChat() {
         return;
       }
 
-      // Prepare system prompt with context
+      const personalityPrompt = getPersonalityPrompt();
+      console.log("Using personality prompt:", personalityPrompt ? "Yes" : "No");
+
       const systemPrompt = `You are a concise AI assistant.
      Use the provided context to answer the user's question when relevant:
      ${JSON.stringify(context)}
+     
+     ${
+       personalityPrompt
+         ? `PERSONALITY INSTRUCTIONS (MUST FOLLOW THESE EXACTLY):
+${personalityPrompt}
+
+The personality instructions above should take precedence over other style guidelines.`
+         : ""
+     }
+     
      Rules:
      - Answer in 1-2 plain sentences only.
      - Do not add extra explanation, greetings, or conclusions.
