@@ -38,6 +38,7 @@ export default function PublicChat() {
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
+    console.log(botUsername);
     if (botUsername) {
       fetchConfig(botUsername);
     }

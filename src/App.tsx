@@ -104,7 +104,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/chatbot/:agentId" element={<PublicChat />} />
+        <Route path="/chatbot/:botUsername" element={<PublicChat />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
