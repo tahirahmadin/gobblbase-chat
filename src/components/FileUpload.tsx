@@ -1,10 +1,18 @@
 import React from "react";
-import { Upload, FileText, Globe, HelpCircle, Book, X } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  Globe,
+  HelpCircle,
+  Book,
+  X,
+  Loader2,
+} from "lucide-react";
 import mammoth from "mammoth";
 import * as pdfjsLib from "pdfjs-dist";
 import { useUserStore } from "../store/useUserStore";
 import { toast } from "react-hot-toast";
-import { createNewAgent } from "../lib/serverActions";
+import { createNewAgent, getAgentDetails } from "../lib/serverActions";
 
 // Set the PDF worker source
 pdfjsLib.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
@@ -22,20 +30,21 @@ interface FileUploadProps {
 export default function FileUpload({ onCancel }: FileUploadProps) {
   const [file, setFile] = React.useState<File | null>(null);
   const [status, setStatus] = React.useState<
-    "idle" | "uploading" | "success" | "error"
+    "idle" | "uploading" | "processing" | "success" | "error"
   >("idle");
   const [message, setMessage] = React.useState("");
   const [activeTab, setActiveTab] = React.useState("files");
   const [processingProgress, setProcessingProgress] = React.useState(0);
   const [extractedText, setExtractedText] = React.useState<string | null>(null);
   const [agentName, setAgentName] = React.useState("");
+  const [textInput, setTextInput] = React.useState("");
+  const [websiteUrl, setWebsiteUrl] = React.useState("");
   const { addAgent, setActiveAgentId, clientId } = useUserStore();
 
   const tabs: SourceTab[] = [
     { id: "files", name: "Files", icon: <FileText className="h-5 w-5" /> },
     { id: "text", name: "Text", icon: <Book className="h-5 w-5" /> },
     { id: "website", name: "Website", icon: <Globe className="h-5 w-5" /> },
-    { id: "qa", name: "Q&A", icon: <HelpCircle className="h-5 w-5" /> },
   ];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,68 +57,156 @@ export default function FileUpload({ onCancel }: FileUploadProps) {
     }
   };
 
+  const fetchWebsiteContent = async (url: string): Promise<string> => {
+    try {
+      // Add CORS proxy to avoid CORS issues
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(
+        url
+      )}`;
+      const response = await fetch(proxyUrl);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch website content");
+      }
+
+      const data = await response.json();
+      const htmlContent = data.contents;
+
+      // Create a temporary DOM element to parse HTML
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlContent, "text/html");
+
+      // Remove script and style elements
+      const scripts = doc.getElementsByTagName("script");
+      const styles = doc.getElementsByTagName("style");
+      Array.from(scripts).forEach((script) => script.remove());
+      Array.from(styles).forEach((style) => style.remove());
+
+      // Get text content from body
+      const textContent = doc.body.textContent || "";
+
+      // Clean up the text content
+      return textContent.replace(/\s+/g, " ").trim();
+    } catch (error) {
+      console.error("Error fetching website content:", error);
+      throw error;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !agentName || !clientId) return;
+    if ((!file && !textInput && !websiteUrl) || !agentName || !clientId) return;
 
-    setStatus("uploading");
+    setStatus("processing");
     setProcessingProgress(0);
+    toast.loading("Processing content...", { id: "processing" });
 
     try {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        let textContent = "";
+      let textContent = "";
 
-        if (file.type === "application/pdf") {
-          const pdf = await pdfjsLib.getDocument(
-            event.target?.result as ArrayBuffer
-          ).promise;
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const text = await page.getTextContent();
-            textContent += text.items.map((item: any) => item.str).join(" ");
+      if (activeTab === "files" && file) {
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          if (file.type === "application/pdf") {
+            const pdf = await pdfjsLib.getDocument(
+              event.target?.result as ArrayBuffer
+            ).promise;
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+              const page = await pdf.getPage(i);
+              const text = await page.getTextContent();
+              textContent += text.items.map((item: any) => item.str).join(" ");
+              setProcessingProgress((i / pdf.numPages) * 100);
+            }
+          } else if (
+            file.type ===
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+            file.type === "application/msword"
+          ) {
+            const result = await mammoth.extractRawText({
+              arrayBuffer: event.target?.result as ArrayBuffer,
+            });
+            textContent = result.value;
+            setProcessingProgress(100);
+          } else if (file.type === "text/plain") {
+            textContent = event.target?.result as string;
+            setProcessingProgress(100);
           }
-        } else if (
-          file.type ===
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-          file.type === "application/msword"
-        ) {
-          const result = await mammoth.extractRawText({
-            arrayBuffer: event.target?.result as ArrayBuffer,
-          });
-          textContent = result.value;
-        } else if (file.type === "text/plain") {
-          textContent = event.target?.result as string;
-        }
 
-        setExtractedText(textContent);
-        const response = await createNewAgent(textContent, agentName, clientId);
+          if (textContent) {
+            await createAgent(textContent);
+          } else {
+            throw new Error("Failed to extract text from file");
+          }
+        };
 
-        if (!response.error) {
-          let output = response.result;
-          const newAgent = {
-            name: agentName,
-            collectionName: output.collectionName,
-            id: output.agentId,
-          };
-          addAgent(newAgent);
-          setStatus("success");
-          setMessage("Agent created successfully!");
-          // Set the active agent ID to the newly created agent
-          setActiveAgentId(output.agentId);
-          // Call onCancel to close the file upload view
-          onCancel();
-        } else {
-          setStatus("error");
-          setMessage("Failed to create agent");
-        }
-      };
-
-      reader.readAsArrayBuffer(file);
+        reader.readAsArrayBuffer(file);
+      } else if (activeTab === "text") {
+        textContent = textInput;
+        setProcessingProgress(100);
+        await createAgent(textContent);
+      } else if (activeTab === "website") {
+        setProcessingProgress(50);
+        textContent = await fetchWebsiteContent(websiteUrl);
+        setProcessingProgress(100);
+        await createAgent(textContent);
+      }
     } catch (error) {
       setStatus("error");
-      setMessage("Error processing file");
+      setMessage("Error processing content");
+      toast.error("Error processing content", { id: "error" });
       console.error(error);
+    }
+  };
+
+  const createAgent = async (textContent: string) => {
+    if (!textContent) {
+      setStatus("error");
+      setMessage("No content provided");
+      toast.error("No content provided", { id: "error" });
+      return;
+    }
+
+    toast.loading("Creating agent...", { id: "creating" });
+    const response = await createNewAgent(textContent, agentName, clientId);
+
+    if (!response.error) {
+      let output = response.result;
+      const newAgent = {
+        name: agentName,
+        collectionName: output.collectionName,
+        id: output.agentId,
+      };
+      addAgent(newAgent);
+
+      // Fetch agent details after creating the agent
+      try {
+        const agentDetails = await getAgentDetails(output.agentId, null);
+        // Update the agent with the fetched details
+        const updatedAgent = {
+          ...newAgent,
+          username: agentDetails.username,
+          logo: agentDetails.logo,
+          calendlyUrl: agentDetails.calendlyUrl,
+          systemPrompt: agentDetails.systemPrompt,
+          model: agentDetails.model,
+          personalityType: agentDetails.personalityType,
+          personalityPrompt: agentDetails.personalityPrompt,
+        };
+        addAgent(updatedAgent);
+      } catch (error) {
+        console.error("Error fetching agent details:", error);
+      }
+
+      setStatus("success");
+      setMessage("Agent created successfully!");
+      toast.success("Agent created successfully!", { id: "success" });
+      setActiveAgentId(output.agentId);
+      onCancel();
+    } else {
+      setStatus("error");
+      setMessage("Failed to create agent");
+      toast.error("Failed to create agent", { id: "error" });
     }
   };
 
@@ -179,49 +276,104 @@ export default function FileUpload({ onCancel }: FileUploadProps) {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Upload File
-                </label>
-                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                  <div className="space-y-1 text-center">
-                    <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                    <div className="flex text-sm text-gray-600">
-                      <label
-                        htmlFor="file-upload"
-                        className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
-                      >
-                        <span>Upload a file</span>
-                        <input
-                          id="file-upload"
-                          name="file-upload"
-                          type="file"
-                          className="sr-only"
-                          onChange={handleFileChange}
-                          accept=".pdf,.doc,.docx,.txt"
-                        />
-                      </label>
-                      <p className="pl-1">or drag and drop</p>
+              {activeTab === "files" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Upload File
+                  </label>
+                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                    <div className="space-y-1 text-center">
+                      <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                      <div className="flex text-sm text-gray-600">
+                        <label
+                          htmlFor="file-upload"
+                          className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
+                        >
+                          <span>Upload a file</span>
+                          <input
+                            id="file-upload"
+                            name="file-upload"
+                            type="file"
+                            className="sr-only"
+                            onChange={handleFileChange}
+                            accept=".pdf,.doc,.docx,.txt"
+                          />
+                        </label>
+                        <p className="pl-1">or drag and drop</p>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        PDF, DOC, DOCX, TXT up to 10MB
+                      </p>
                     </div>
-                    <p className="text-xs text-gray-500">
-                      PDF, DOC, DOCX, TXT up to 10MB
-                    </p>
                   </div>
                 </div>
-              </div>
+              )}
 
-              {file && (
+              {activeTab === "text" && (
+                <div>
+                  <label
+                    htmlFor="text-input"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Enter Text
+                  </label>
+                  <textarea
+                    id="text-input"
+                    value={textInput}
+                    onChange={(e) => setTextInput(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    rows={10}
+                    placeholder="Enter your text here..."
+                    required
+                  />
+                </div>
+              )}
+
+              {activeTab === "website" && (
+                <div>
+                  <label
+                    htmlFor="website-url"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Website URL
+                  </label>
+                  <input
+                    type="url"
+                    id="website-url"
+                    value={websiteUrl}
+                    onChange={(e) => setWebsiteUrl(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    placeholder="https://example.com"
+                    required
+                  />
+                  <p className="mt-2 text-sm text-gray-500">
+                    Enter the URL of the website you want to create an agent
+                    from
+                  </p>
+                </div>
+              )}
+
+              {file && activeTab === "files" && (
                 <div className="text-sm text-gray-500">
                   Selected file: {file.name}
                 </div>
               )}
 
-              {status === "uploading" && (
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div
-                    className="bg-indigo-600 h-2.5 rounded-full"
-                    style={{ width: `${processingProgress}%` }}
-                  ></div>
+              {status === "processing" && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-center space-x-2 text-indigo-600">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Processing content...</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div
+                      className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300"
+                      style={{ width: `${processingProgress}%` }}
+                    ></div>
+                  </div>
+                  <div className="text-center text-sm text-gray-500">
+                    {Math.round(processingProgress)}% complete
+                  </div>
                 </div>
               )}
 
@@ -239,11 +391,21 @@ export default function FileUpload({ onCancel }: FileUploadProps) {
                 <button
                   type="submit"
                   disabled={
-                    !file || !agentName || status === "uploading" || !clientId
+                    (!file && !textInput && !websiteUrl) ||
+                    !agentName ||
+                    !clientId ||
+                    status === "processing"
                   }
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Create Agent
+                  {status === "processing" ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Create Agent"
+                  )}
                 </button>
               </div>
             </form>

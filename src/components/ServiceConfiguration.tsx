@@ -33,7 +33,7 @@ export default function ServiceConfiguration({
               htmlFor="apiKey"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              API Key
+              Calendly Url
             </label>
             <input
               type="password"
@@ -41,14 +41,23 @@ export default function ServiceConfiguration({
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              placeholder="Enter your API key"
+              placeholder="Enter your calendly url"
               required
             />
             <p className="mt-2 text-sm text-gray-500">
-              You can find your API key in your {serviceId} dashboard settings.
+              You can get your calendly url by visiting to
+              <a
+                href="https://calendly.com/"
+                style={{ color: "blue" }}
+                target="_blank"
+              >
+                {" "}
+                https://calendly.com/
+              </a>
+              .
             </p>
           </div>
-          <div className="flex justify-end space-x-3">
+          <div className="flex justify-start space-x-3">
             <button
               type="button"
               onClick={onClose}
@@ -61,7 +70,7 @@ export default function ServiceConfiguration({
               disabled={isLoading}
               className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
-              {isLoading ? "Saving..." : "Save Configuration"}
+              {isLoading ? "Saving..." : "Save "}
             </button>
           </div>
         </form>

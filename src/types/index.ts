@@ -43,3 +43,15 @@ export interface ChatLog {
   }[];
   __v: number;
 }
+
+export interface Agent {
+  name: string;
+  agentId: string;
+  username?: string;
+  logo?: string;
+  calendlyUrl?: string;
+  systemPrompt?: string;
+  model?: string;
+  personalityType?: string;
+  personalityPrompt?: string;
+}

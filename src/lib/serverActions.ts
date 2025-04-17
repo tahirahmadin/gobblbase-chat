@@ -3,6 +3,7 @@ import { CreateNewAgentResponse } from "../types";
 
 interface QueryDocumentResponse {
   context: any; // You might want to define a more specific type based on the actual response
+  calendlyUrl?: string;
 }
 
 interface SignUpClientResponse {
@@ -116,10 +117,13 @@ export async function fetchClientAgents(clientId: string): Promise<Agent[]> {
   }
 }
 
-export async function getAgentDetails(agentId: string) {
+export async function getAgentDetails(
+  agentId: string | null,
+  username: string | null
+) {
   try {
     const response = await fetch(
-      `https://rag.gobbl.ai/client/getAgentDetails/${agentId}`
+      `https://rag.gobbl.ai/client/getAgentDetails?agentId=${agentId}&username=${username}`
     );
     if (!response.ok) {
       throw new Error("Failed to fetch agent details");
@@ -140,6 +144,11 @@ export async function updateAgentDetails(
   details: {
     systemPrompt: string;
     model: string;
+    username?: string;
+    logo?: string;
+    calendlyUrl?: string;
+    personalityType?: string;
+    personalityPrompt?: string;
     [key: string]: any;
   }
 ) {
@@ -149,6 +158,11 @@ export async function updateAgentDetails(
       {
         model: details.model,
         systemPrompt: details.systemPrompt,
+        username: details.username,
+        logo: details.logo,
+        calendlyUrl: details.calendlyUrl,
+        personalityType: details.personalityType,
+        personalityPrompt: details.personalityPrompt,
       }
     );
 
@@ -207,6 +221,90 @@ export async function getChatLogs(agentId: string) {
     return response.data.result;
   } catch (error) {
     console.error("Error fetching chat logs:", error);
+    throw error;
+  }
+}
+
+export async function getIntegratedServices(agentId: string) {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/client/getServices?agentId=${agentId}`
+    );
+    if (response.data.error) {
+      throw new Error("Failed to fetch integrated services");
+    }
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching integrated services:", error);
+    throw error;
+  }
+}
+
+export async function updateAgentUsername(agentId: string, username: string) {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/client/updateAgentUsername",
+      {
+        agentId,
+        agentName: username,
+      }
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating agent username:", error);
+    throw error;
+  }
+}
+
+export async function uploadProfilePicture(
+  agentId: string,
+  profilePicture: File
+) {
+  try {
+    const formData = new FormData();
+    formData.append("agentId", agentId);
+    formData.append("file", profilePicture);
+
+    const response = await axios.post(
+      "https://rag.gobbl.ai/client/uploadAgentLogo",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+    return response.data.result;
+  } catch (error) {
+    console.error("Error uploading profile picture:", error);
+    throw error;
+  }
+}
+
+export async function updateCalendlyUrl(agentId: string, calendlyUrl: string) {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/client/updateCalendlyUrl",
+      {
+        agentId,
+        calendlyUrl,
+      }
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating Calendly URL:", error);
     throw error;
   }
 }

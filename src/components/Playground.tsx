@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { RefreshCw, Send, Save, Plus } from "lucide-react";
+import { RefreshCw, Send, Save, Plus, Bot } from "lucide-react";
 import { ChatMessage } from "../types";
 import {
   queryDocument,
@@ -9,6 +9,7 @@ import {
 } from "../lib/serverActions";
 import OpenAI from "openai";
 import PersonalityAnalyzer from "./PersonalityAnalyzer";
+import { useUserStore } from "../store/useUserStore";
 
 interface PersonalityAnalysis {
   dominantTrait: string;
@@ -22,7 +23,14 @@ interface PersonalityAnalysis {
   mimicryInstructions?: string;
 }
 
-type PersonalityType = "influencer" | "professional" | "friendly" | "expert" | "motivational" | "casual" | "custom";
+type PersonalityType =
+  | "influencer"
+  | "professional"
+  | "friendly"
+  | "expert"
+  | "motivational"
+  | "casual"
+  | "custom";
 
 interface PersonalityData {
   type: PersonalityType;
@@ -107,7 +115,11 @@ export default function Playground({ agentId }: PlaygroundProps) {
     "You are a helpful assistant that provides accurate and concise information."
   );
   const [agentName, setAgentName] = useState("");
-  const [selectedPromptTemplate, setSelectedPromptTemplate] = useState("educational");
+  const [logo, setLogo] = useState("");
+  const [calendlyUrl, setCalendlyUrl] = useState("");
+  const { activeAgentUsername, setActiveAgentUsername } = useUserStore();
+  const [selectedPromptTemplate, setSelectedPromptTemplate] =
+    useState("educational");
   const [isCustomPrompt, setIsCustomPrompt] = useState(false);
   const [personalityData, setPersonalityData] = useState<PersonalityData>({
     type: "professional",
@@ -115,16 +127,21 @@ export default function Playground({ agentId }: PlaygroundProps) {
     customPrompt: "",
     analysis: null,
   });
-  const [sessionId] = useState(`session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+  const [sessionId] = useState(
+    `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  );
   const [userId, setUserId] = useState("");
 
   useEffect(() => {
     async function fetchAgentDetails() {
       try {
-        const agentDetails = await getAgentDetails(agentId);
+        const agentDetails = await getAgentDetails(null, agentId);
         setModel(agentDetails.model);
         setSystemPrompt(agentDetails.systemPrompt);
         setAgentName(agentDetails.name);
+        setActiveAgentUsername(agentDetails.username || null);
+        setLogo(agentDetails.logo || "");
+        setCalendlyUrl(agentDetails.calendlyUrl || "");
         if (agentDetails.personalityType) {
           setPersonalityData({
             type: agentDetails.personalityType as PersonalityType,
@@ -138,7 +155,7 @@ export default function Playground({ agentId }: PlaygroundProps) {
       }
     }
     fetchAgentDetails();
-  }, [agentId]);
+  }, [agentId, setActiveAgentUsername]);
 
   useEffect(() => {
     async function fetchUserIP() {
@@ -175,9 +192,9 @@ export default function Playground({ agentId }: PlaygroundProps) {
   };
 
   const handlePersonalityChange = (
-    personalityType: string, 
-    isCustom: boolean, 
-    customPrompt: string, 
+    personalityType: string,
+    isCustom: boolean,
+    customPrompt: string,
     analysisResult: PersonalityAnalysis | null
   ) => {
     setPersonalityData({
@@ -189,21 +206,37 @@ export default function Playground({ agentId }: PlaygroundProps) {
   };
 
   const getPersonalityPrompt = (): string => {
-    if (personalityData.analysis && personalityData.analysis.mimicryInstructions) {
+    if (
+      personalityData.analysis &&
+      personalityData.analysis.mimicryInstructions
+    ) {
       return personalityData.analysis.mimicryInstructions;
     }
     if (personalityData.isCustom) {
       return personalityData.customPrompt;
     } else {
-      const personalities: Record<Exclude<PersonalityType, "custom">, string> = {
-        influencer: "Respond like a social media influencer. Use trendy language, be conversational and engaging, add occasional emojis, keep messages concise yet energetic, and focus on creating connection with the user. Make your responses feel like they're coming from someone who is charismatic and knows how to keep an audience engaged. Use phrases like 'you guys', 'literally', 'absolutely love', 'super excited', and 'amazing'. Occasionally use abbreviated words and colloquialisms. Vary sentence length but keep them generally short and impactful.",
-        professional: "Respond like a business professional. Use formal language, precise terminology, structured responses, and maintain an authoritative tone. Focus on clarity, accuracy, and demonstrating expertise. Avoid casual expressions and slang. Use complete sentences with proper grammar and punctuation. Structure responses with clear introductions and conclusions. Employ professional phrases like 'I recommend', 'best practice suggests', 'from my assessment', and 'in my professional opinion'. Maintain a confident, measured tone throughout.",
-        friendly: "Respond like a friendly helper. Use warm, conversational language, show empathy, ask supportive follow-up questions, and focus on building rapport. Make your responses feel like they're coming from someone who genuinely cares about helping the user in a comfortable, relaxed manner. Use phrases like 'I understand how you feel', 'that's a great question', 'I'm happy to help with that', and 'let me know if there's anything else'. Include personal touches and occasional gentle humor where appropriate.",
-        expert: "Respond like a subject matter expert. Use technical terminology appropriate to the topic, provide detailed explanations, cite relevant concepts or principles, and focus on accuracy and depth. Make your responses demonstrate deep domain knowledge while still being accessible. Structure explanations logically, moving from foundational concepts to more complex details. Use phrases like 'research indicates', 'a key principle here is', 'it's important to note that', and 'to understand this fully, consider'. Balance technical precision with clarity.",
-        motivational: "Respond like a motivational speaker. Use powerful, persuasive language with conviction and confidence. Include inspirational anecdotes, metaphors, and calls to action. Emphasize possibilities and focus on overcoming challenges. Use phrases like 'imagine what's possible', 'you have the power to', 'take the first step today', 'this is your moment', and 'I believe in you'. Vary sentence lengths dramatically for emphasis, using very short sentences to punctuate important points. Occasionally use rhetorical questions to engage the user in self-reflection.",
-        casual: "Respond like a casual friend. Use informal language with occasional slang, keep things light and easygoing, and maintain a conversational tone throughout. Don't worry about perfect grammar or structure - be more natural and spontaneous. Use phrases like 'hey there', 'so anyway', 'kinda', 'pretty much', and 'y'know what I mean?'. Feel free to use contractions, add friendly banter, and show personality through language choices. Respond as if chatting with a friend you've known for years."
+      const personalities: Record<
+        Exclude<PersonalityType, "custom">,
+        string
+      > = {
+        influencer:
+          "Respond like a social media influencer. Use trendy language, be conversational and engaging, add occasional emojis, keep messages concise yet energetic, and focus on creating connection with the user. Make your responses feel like they're coming from someone who is charismatic and knows how to keep an audience engaged. Use phrases like 'you guys', 'literally', 'absolutely love', 'super excited', and 'amazing'. Occasionally use abbreviated words and colloquialisms. Vary sentence length but keep them generally short and impactful.",
+        professional:
+          "Respond like a business professional. Use formal language, precise terminology, structured responses, and maintain an authoritative tone. Focus on clarity, accuracy, and demonstrating expertise. Avoid casual expressions and slang. Use complete sentences with proper grammar and punctuation. Structure responses with clear introductions and conclusions. Employ professional phrases like 'I recommend', 'best practice suggests', 'from my assessment', and 'in my professional opinion'. Maintain a confident, measured tone throughout.",
+        friendly:
+          "Respond like a friendly helper. Use warm, conversational language, show empathy, ask supportive follow-up questions, and focus on building rapport. Make your responses feel like they're coming from someone who genuinely cares about helping the user in a comfortable, relaxed manner. Use phrases like 'I understand how you feel', 'that's a great question', 'I'm happy to help with that', and 'let me know if there's anything else'. Include personal touches and occasional gentle humor where appropriate.",
+        expert:
+          "Respond like a subject matter expert. Use technical terminology appropriate to the topic, provide detailed explanations, cite relevant concepts or principles, and focus on accuracy and depth. Make your responses demonstrate deep domain knowledge while still being accessible. Structure explanations logically, moving from foundational concepts to more complex details. Use phrases like 'research indicates', 'a key principle here is', 'it's important to note that', and 'to understand this fully, consider'. Balance technical precision with clarity.",
+        motivational:
+          "Respond like a motivational speaker. Use powerful, persuasive language with conviction and confidence. Include inspirational anecdotes, metaphors, and calls to action. Emphasize possibilities and focus on overcoming challenges. Use phrases like 'imagine what's possible', 'you have the power to', 'take the first step today', 'this is your moment', and 'I believe in you'. Vary sentence lengths dramatically for emphasis, using very short sentences to punctuate important points. Occasionally use rhetorical questions to engage the user in self-reflection.",
+        casual:
+          "Respond like a casual friend. Use informal language with occasional slang, keep things light and easygoing, and maintain a conversational tone throughout. Don't worry about perfect grammar or structure - be more natural and spontaneous. Use phrases like 'hey there', 'so anyway', 'kinda', 'pretty much', and 'y'know what I mean?'. Feel free to use contractions, add friendly banter, and show personality through language choices. Respond as if chatting with a friend you've known for years.",
       };
-      return personalities[personalityData.type as Exclude<PersonalityType, "custom">] || "";
+      return (
+        personalities[
+          personalityData.type as Exclude<PersonalityType, "custom">
+        ] || ""
+      );
     }
   };
 
@@ -227,10 +260,14 @@ export default function Playground({ agentId }: PlaygroundProps) {
       const personalityPrompt = getPersonalityPrompt();
       const enhancedSystemPrompt = `${systemPrompt}
       
-      ${personalityPrompt ? `PERSONALITY INSTRUCTIONS (MUST FOLLOW THESE EXACTLY):
+      ${
+        personalityPrompt
+          ? `PERSONALITY INSTRUCTIONS (MUST FOLLOW THESE EXACTLY):
 ${personalityPrompt}
 
-The personality instructions above should take precedence over other style guidelines.` : ''}
+The personality instructions above should take precedence over other style guidelines.`
+          : ""
+      }
       
       Context Information:
       ${JSON.stringify(context)}
@@ -305,16 +342,18 @@ The personality instructions above should take precedence over other style guide
   };
 
   const handleSaveSettings = async () => {
-    // Here you can implement saving settings to your backend
-    console.log("Saving settings:", { model, temperature, systemPrompt });
-    // Add your save logic here
-
     try {
       await updateAgentDetails(agentId, {
         model,
         systemPrompt,
-        personalityType: personalityData.isCustom ? "custom" : personalityData.type,
-        personalityPrompt: personalityData.isCustom ? personalityData.customPrompt : getPersonalityPrompt(),
+        logo,
+        calendlyUrl,
+        personalityType: personalityData.isCustom
+          ? "custom"
+          : personalityData.type,
+        personalityPrompt: personalityData.isCustom
+          ? personalityData.customPrompt
+          : getPersonalityPrompt(),
       });
       console.log("Settings saved successfully");
     } catch (error) {
@@ -325,7 +364,7 @@ The personality instructions above should take precedence over other style guide
   return (
     <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
       <div className="grid grid-cols-3 min-h-[600px]">
-      <div className="col-span-1 border-r border-gray-200 p-4 bg-gray-50 max-h-[600px] overflow-y-auto">
+        <div className="col-span-1 border-r border-gray-200 p-4 bg-gray-50 max-h-[600px] overflow-y-auto">
           <div className="space-y-6">
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <div className="flex justify-between items-center mb-2">
@@ -340,6 +379,58 @@ The personality instructions above should take precedence over other style guide
                   ></span>
                   {isLoading ? "Processing..." : status}
                 </span>
+              </div>
+            </div>
+
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-gray-700">
+                  Agent Details
+                </span>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    value={activeAgentUsername || ""}
+                    onChange={(e) => setActiveAgentUsername(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Logo URL
+                  </label>
+                  <input
+                    type="text"
+                    value={logo}
+                    onChange={(e) => setLogo(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                  {logo && (
+                    <div className="mt-2">
+                      <img
+                        src={logo}
+                        alt="Agent logo"
+                        className="h-16 w-16 rounded-full object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Calendly URL
+                  </label>
+                  <input
+                    type="text"
+                    value={calendlyUrl}
+                    onChange={(e) => setCalendlyUrl(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
               </div>
             </div>
 
@@ -406,7 +497,7 @@ The personality instructions above should take precedence over other style guide
                 />
               )}
             </div>
-            <PersonalityAnalyzer 
+            <PersonalityAnalyzer
               openaiClient={openai}
               onPersonalityChange={handlePersonalityChange}
               initialPersonality={{
@@ -431,12 +522,42 @@ The personality instructions above should take precedence over other style guide
         <div className="col-span-2 flex flex-col">
           <div className="flex-1 p-4">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-sm text-gray-600">
-                {agentName || "Agent"} {new Date().toLocaleString()}
-              </span>
-              <button className="text-gray-400 hover:text-gray-600">
-                <RefreshCw className="h-4 w-4" />
-              </button>
+              <div className="flex items-center space-x-3">
+                {logo ? (
+                  <img
+                    src={logo}
+                    alt={`${agentName} logo`}
+                    className="h-8 w-8 rounded-full object-cover"
+                  />
+                ) : (
+                  <Bot className="h-8 w-8 text-indigo-600" />
+                )}
+                <div>
+                  <span className="text-sm font-medium text-gray-900">
+                    {agentName}
+                  </span>
+                  {activeAgentUsername && (
+                    <span className="text-xs text-gray-500 block">
+                      @{activeAgentUsername}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                {calendlyUrl && (
+                  <a
+                    href={calendlyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-indigo-600 hover:text-indigo-800"
+                  >
+                    Schedule a meeting
+                  </a>
+                )}
+                <button className="text-gray-400 hover:text-gray-600">
+                  <RefreshCw className="h-4 w-4" />
+                </button>
+              </div>
             </div>
 
             <div className="space-y-4 mb-4 max-h-[550px] overflow-y-auto">

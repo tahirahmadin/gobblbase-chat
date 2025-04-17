@@ -5,7 +5,19 @@ import {
   Settings,
   ToggleLeft,
   ToggleRight,
+  User,
+  Upload,
+  Calendar,
+  ServerIcon,
+  Bot,
 } from "lucide-react";
+import { useUserStore } from "../store/useUserStore";
+import { toast } from "react-hot-toast";
+import {
+  updateAgentUsername,
+  uploadProfilePicture,
+  updateCalendlyUrl,
+} from "../lib/serverActions";
 
 interface Plan {
   name: string;
@@ -16,7 +28,74 @@ interface Plan {
 
 const SettingsPage: React.FC = () => {
   const [isEnabled, setIsEnabled] = useState(true);
-  const [activeTab, setActiveTab] = useState("billing");
+  const [activeTab, setActiveTab] = useState("services");
+  const [agentUsername, setAgentUsername] = useState("");
+  const [profilePicture, setProfilePicture] = useState<File | null>(null);
+  const [calendlyUrl, setCalendlyUrl] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+  const { activeAgentId } = useUserStore();
+
+  const handleUsernameUpdate = async () => {
+    if (!activeAgentId) {
+      toast.error("No active agent selected");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await updateAgentUsername(activeAgentId, agentUsername);
+      toast.success("Username updated successfully");
+    } catch (error) {
+      console.error("Error updating username:", error);
+      toast.error("Failed to update username");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleProfilePictureChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (e.target.files && e.target.files[0]) {
+      setProfilePicture(e.target.files[0]);
+    }
+  };
+
+  const handleProfilePictureUpload = async () => {
+    if (!activeAgentId || !profilePicture) {
+      toast.error("No active agent or profile picture selected");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await uploadProfilePicture(activeAgentId, profilePicture);
+      toast.success("Profile picture updated successfully");
+    } catch (error) {
+      console.error("Error uploading profile picture:", error);
+      toast.error("Failed to upload profile picture");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleCalendlyUrlUpdate = async () => {
+    if (!activeAgentId) {
+      toast.error("No active agent selected");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await updateCalendlyUrl(activeAgentId, calendlyUrl);
+      toast.success("Calendly URL updated successfully");
+    } catch (error) {
+      console.error("Error updating Calendly URL:", error);
+      toast.error("Failed to update Calendly URL");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const plans: Plan[] = [
     {
@@ -120,39 +199,99 @@ const SettingsPage: React.FC = () => {
             </div>
           </div>
         );
-      case "settings":
+      case "services":
         return (
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-medium mb-4">General Settings</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h3 className="text-lg font-medium mb-4">Agent Profile</h3>
+              <div className="space-y-6">
                 <div>
-                  <h4 className="font-medium">Enable Notifications</h4>
-                  <p className="text-sm text-gray-500">
-                    Receive email notifications about your account
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Agent Username
+                  </label>
+                  <div className="flex space-x-4">
+                    <input
+                      type="text"
+                      value={agentUsername}
+                      onChange={(e) => setAgentUsername(e.target.value)}
+                      className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      placeholder="Enter agent username"
+                    />
+                    <button
+                      onClick={handleUsernameUpdate}
+                      disabled={isUpdating || !agentUsername}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isUpdating ? "Updating..." : "Update"}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Profile Picture
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex-1">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProfilePictureChange}
+                        className="hidden"
+                        id="profile-picture"
+                      />
+                      <label
+                        htmlFor="profile-picture"
+                        className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50"
+                      >
+                        <Upload className="h-5 w-5 text-gray-400" />
+                        <span>
+                          {profilePicture
+                            ? profilePicture.name
+                            : "Choose a profile picture"}
+                        </span>
+                      </label>
+                    </div>
+                    <button
+                      onClick={handleProfilePictureUpload}
+                      disabled={isUpdating || !profilePicture}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isUpdating ? "Uploading..." : "Upload"}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Calendly URL
+                  </label>
+                  <div className="flex space-x-4">
+                    <input
+                      type="text"
+                      value={calendlyUrl}
+                      onChange={(e) => setCalendlyUrl(e.target.value)}
+                      className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      placeholder="Enter your Calendly URL"
+                    />
+                    <button
+                      onClick={handleCalendlyUrlUpdate}
+                      disabled={isUpdating || !calendlyUrl}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isUpdating ? "Updating..." : "Update"}
+                    </button>
+                  </div>
+                  <p className="mt-2 text-sm text-gray-500">
+                    You can get your Calendly URL by visiting{" "}
+                    <a
+                      href="https://calendly.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:text-blue-600"
+                    >
+                      https://calendly.com/
+                    </a>
                   </p>
                 </div>
-                <button
-                  onClick={() => setIsEnabled(!isEnabled)}
-                  className="text-gray-400 hover:text-gray-500"
-                >
-                  {isEnabled ? (
-                    <ToggleRight className="h-6 w-6 text-blue-500" />
-                  ) : (
-                    <ToggleLeft className="h-6 w-6" />
-                  )}
-                </button>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">Two-Factor Authentication</h4>
-                  <p className="text-sm text-gray-500">
-                    Add an extra layer of security to your account
-                  </p>
-                </div>
-                <button className="text-blue-500 hover:text-blue-600">
-                  Enable
-                </button>
               </div>
             </div>
           </div>
@@ -166,6 +305,17 @@ const SettingsPage: React.FC = () => {
     <div className="flex space-x-6">
       <div className="w-64 flex-shrink-0">
         <div className="space-y-1">
+          <button
+            onClick={() => setActiveTab("services")}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg ${
+              activeTab === "services"
+                ? "bg-blue-50 text-blue-600 border-l-4 border-blue-500"
+                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            <Bot className="h-5 w-5" />
+            <span>Services</span>
+          </button>
           <button
             onClick={() => setActiveTab("billing")}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg ${
@@ -187,17 +337,6 @@ const SettingsPage: React.FC = () => {
           >
             <BarChart2 className="h-5 w-5" />
             <span>Usage</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("settings")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg ${
-              activeTab === "settings"
-                ? "bg-blue-50 text-blue-600 border-l-4 border-blue-500"
-                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-            }`}
-          >
-            <Settings className="h-5 w-5" />
-            <span>Settings</span>
           </button>
         </div>
       </div>

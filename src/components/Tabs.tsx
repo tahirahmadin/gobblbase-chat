@@ -26,11 +26,6 @@ export default function Tabs({ activeTab, onTabChange }: TabsProps) {
     },
     { id: "integrate", name: "Integrate", icon: <Link className="h-5 w-5" /> },
     {
-      id: "services",
-      name: "Services",
-      icon: <Zap className="h-5 w-5" />,
-    },
-    {
       id: "settings",
       name: "Settings",
       icon: <Settings className="h-5 w-5" />,

@@ -4,6 +4,8 @@ import { ChatMessage } from "../types";
 import { queryDocument } from "../lib/serverActions";
 import OpenAI from "openai";
 import { Send } from "lucide-react";
+import { InlineWidget } from "react-calendly";
+import { useBotConfig } from "../store/useBotConfig";
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -20,6 +22,7 @@ const QUERY_CUES = [
 
 export default function PublicChat() {
   const { agentId } = useParams();
+  const { config, isLoading: isConfigLoading, fetchConfig } = useBotConfig();
   const [message, setMessage] = React.useState("");
   const [messages, setMessages] = React.useState<ChatMessage[]>([
     {
@@ -31,7 +34,14 @@ export default function PublicChat() {
   ]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [showCues, setShowCues] = React.useState(true);
+  const [showCalendly, setShowCalendly] = React.useState(false);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (agentId) {
+      fetchConfig(agentId);
+    }
+  }, [agentId, fetchConfig]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -58,6 +68,29 @@ export default function PublicChat() {
     try {
       // Call RAG API to get context using the server action
       const context = await queryDocument(agentId, message);
+
+      // Check if the message is about booking
+      const isBookingRequest =
+        message.toLowerCase().includes("book") ||
+        message.toLowerCase().includes("appointment") ||
+        message.toLowerCase().includes("meeting") ||
+        message.toLowerCase().includes("schedule");
+
+      let calendlyUrl =
+        "https://calendly.com/tahirahmadin/30min?preview_source=et_card&month=2025-04";
+      if (isBookingRequest && calendlyUrl) {
+        setShowCalendly(true);
+        const agentResponse: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          content:
+            "I can help you book an appointment. Please use the calendar below to schedule a time that works for you.",
+          timestamp: new Date(),
+          sender: "agent",
+        };
+        setMessages((prev) => [...prev, agentResponse]);
+        setIsLoading(false);
+        return;
+      }
 
       // Prepare system prompt with context
       const systemPrompt = `You are a concise AI assistant.
@@ -121,16 +154,33 @@ export default function PublicChat() {
     }, 100);
   };
 
+  if (isConfigLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Chat Header */}
       <div className="bg-white border-b border-gray-200 px-4 py-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-            <span className="text-sm font-medium text-gray-700">
-              Gobbl.ai Chat
-            </span>
+          <div className="flex items-center space-x-3">
+            {config?.logo && (
+              <img
+                src={config.logo}
+                alt="Bot Logo"
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            )}
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+              <span className="text-sm font-medium text-gray-700">
+                {config?.username || "Gobbl.ai Chat"}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -161,6 +211,18 @@ export default function PublicChat() {
             </div>
           </div>
         ))}
+        {showCalendly && (
+          <div className="mt-4">
+            <InlineWidget
+              url={
+                "https://calendly.com/tahirahmadin/30min?preview_source=et_card&month=2025-04"
+              }
+              styles={{
+                height: "450px",
+              }}
+            />
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 

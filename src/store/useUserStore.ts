@@ -1,22 +1,20 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { fetchClientAgents } from "../lib/serverActions";
-
-interface Agent {
-  name: string;
-  agentId: string;
-}
+import { Agent } from "../types";
 
 interface UserState {
   isLoggedIn: boolean;
   userEmail: string | null;
   clientId: string | null;
   activeAgentId: string | null;
+  activeAgentUsername: string | null;
   agents: Agent[];
   setUserEmail: (email: string) => void;
   setClientId: (id: string) => void;
   setIsLoggedIn: (status: boolean) => void;
   setActiveAgentId: (id: string | null) => void;
+  setActiveAgentUsername: (username: string | null) => void;
   addAgent: (agent: Omit<Agent, "agentId">) => void;
   fetchAndSetAgents: () => Promise<void>;
   logout: () => void;
@@ -29,11 +27,20 @@ export const useUserStore = create<UserState>()(
       userEmail: null,
       clientId: null,
       activeAgentId: null,
+      activeAgentUsername: null,
       agents: [],
       setUserEmail: (email) => set({ userEmail: email }),
       setClientId: (id) => set({ clientId: id }),
       setIsLoggedIn: (status) => set({ isLoggedIn: status }),
-      setActiveAgentId: (id) => set({ activeAgentId: id }),
+      setActiveAgentId: (id) => {
+        const agent = get().agents.find((a) => a.agentId === id);
+        set({
+          activeAgentId: id,
+          activeAgentUsername: agent?.username || null,
+        });
+      },
+      setActiveAgentUsername: (username) =>
+        set({ activeAgentUsername: username }),
       addAgent: (agent) =>
         set((state) => ({
           agents: [
@@ -61,6 +68,7 @@ export const useUserStore = create<UserState>()(
           userEmail: null,
           clientId: null,
           activeAgentId: null,
+          activeAgentUsername: null,
           agents: [],
         }),
     }),

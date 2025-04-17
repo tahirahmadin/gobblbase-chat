@@ -74,12 +74,35 @@ export default function AgentsList({ onStartCreating }: AgentsListProps) {
             }`}
           >
             <div className="flex items-center">
-              <Bot className="h-8 w-8 text-indigo-600" />
+              {agent.logo ? (
+                <img
+                  src={agent.logo}
+                  alt={`${agent.name} logo`}
+                  className="h-8 w-8 rounded-full object-cover"
+                />
+              ) : (
+                <Bot className="h-8 w-8 text-indigo-600" />
+              )}
               <div className="ml-4">
                 <h3 className="text-lg font-medium text-gray-900">
                   {agent.name}
                 </h3>
-                <p className="text-sm text-gray-500">ID: {agent.agentId}</p>
+                <p className="text-sm text-gray-500">
+                  {agent.username
+                    ? `@${agent.username}`
+                    : `ID: ${agent.agentId}`}
+                </p>
+                {agent.calendlyUrl && (
+                  <a
+                    href={agent.calendlyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-indigo-600 hover:text-indigo-800 mt-1 block"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Schedule a meeting
+                  </a>
+                )}
               </div>
             </div>
             <button
