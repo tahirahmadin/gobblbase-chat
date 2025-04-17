@@ -77,8 +77,7 @@ export default function PublicChat() {
         message.toLowerCase().includes("meeting") ||
         message.toLowerCase().includes("schedule");
 
-      let calendlyUrl =
-        "https://calendly.com/tahirahmadin/30min?preview_source=et_card&month=2025-04";
+      let calendlyUrl = config.calendlyUrl;
       if (isBookingRequest && calendlyUrl) {
         setShowCalendly(true);
         const agentResponse: ChatMessage = {
@@ -215,9 +214,7 @@ export default function PublicChat() {
         {showCalendly && (
           <div className="mt-4">
             <InlineWidget
-              url={
-                "https://calendly.com/tahirahmadin/30min?preview_source=et_card&month=2025-04"
-              }
+              url={config?.calendlyUrl || ""}
               styles={{
                 height: "450px",
               }}
