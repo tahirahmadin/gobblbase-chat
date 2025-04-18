@@ -157,6 +157,8 @@ interface PersonalityAnalyzerProps {
   initialPersonality?: { type: string; isCustom: boolean; customPrompt: string };
   initialUrl?: string;
   initialContent?: string;
+  initialAnalysis?: PersonalityAnalysis | null;
+  initialExtractedPlatform?: string | null;
 }
 
 const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
@@ -169,6 +171,8 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
   },
   initialUrl = "",
   initialContent = "",
+  initialAnalysis = null,
+  initialExtractedPlatform = null,
 }) => {
   const [selectedPersonality, setSelectedPersonality] = useState(
     initialPersonality.type
@@ -191,12 +195,30 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
   const [contentSource, setContentSource] = useState<"manual" | "url">(
     initialUrl ? "url" : "manual"
   );
-  const [extractedPlatform, setExtractedPlatform] = useState<string | null>(null);
-
+  const [extractedPlatform, setExtractedPlatform] = useState<string | null>(initialExtractedPlatform);
   const [isLoading, setIsLoading] = useState(false);
-  const [personalityAnalysis, setPersonalityAnalysis] = useState<
-    PersonalityAnalysis | null
-  >(null);
+  const [personalityAnalysis, setPersonalityAnalysis] =
+  useState<PersonalityAnalysis | null>(initialAnalysis);
+
+  useEffect(() => {
+    setPersonalityAnalysis(initialAnalysis);
+  }, [initialAnalysis]);
+
+  useEffect(() => {
+    setPersonalityUrl(initialUrl);
+    setPersonalityText(initialContent);
+  }, [initialUrl, initialContent]);
+
+  useEffect(() => {
+    setSelectedPersonality(initialPersonality.type);
+    setIsCustomPersonality(initialPersonality.isCustom);
+    setCustomPersonalityPrompt(initialPersonality.customPrompt);
+  }, [initialPersonality]);
+
+  useEffect(() => {
+    setExtractedPlatform(initialExtractedPlatform);
+  }, [initialExtractedPlatform]);
+
 
   const [backendStatus, setBackendStatus] = useState<
     "unknown" | "online" | "offline"
@@ -275,14 +297,16 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
     if (result.success && result.content) {
       setPersonalityText(result.content);
       setContentSource("url");
-      setExtractedPlatform(result.platform || null);
+      const platform = result.platform || getPlatformType(personalityUrl);
+      setExtractedPlatform(platform);
       onPersonalityChange(
         selectedPersonality,
         isCustomPersonality,
         customPersonalityPrompt,
         personalityAnalysis,
         personalityUrl,
-        result.content
+        result.content,
+        platform
       );
     } else {
       setUrlError(result.error || "Failed to extract content");
@@ -314,7 +338,8 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
           customPersonalityPrompt,
         analysis,
         personalityUrl,
-        personalityText
+        personalityText,
+        extractedPlatform
       );
     } catch (error) {
       console.error("Error in personality analysis:", error);
@@ -533,11 +558,14 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
                           d="M5 13l4 4L19 7"
                         />
                       </svg>
-                      <span>
-                        Content successfully extracted from{" "}
-                        {extractedPlatform?.[0].toUpperCase() +
-                          extractedPlatform?.slice(1)}
-                      </span>
+                      {extractedPlatform ? (
+                        <span>
+                          Content successfully extracted from{" "}
+                          {`${extractedPlatform.charAt(0).toUpperCase()}${extractedPlatform.slice(1)}`}
+                        </span>
+                      ) : (
+                        <span>Content successfully extracted</span>
+                      )}
                     </div>
                   )}
 

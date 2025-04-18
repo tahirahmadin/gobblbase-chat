@@ -39,6 +39,7 @@ interface PersonalityData {
   analysis: PersonalityAnalysis | null;
   lastUrl: string;
   lastContent: string;
+  extractedPlatform: string | null;
 }
 
 interface PlaygroundProps {
@@ -222,7 +223,8 @@ export default function Playground({ agentId }: PlaygroundProps) {
     customPrompt: string,
     analysisResult: PersonalityAnalysis | null,
     lastUrl: string,
-    lastContent: string
+    lastContent: string,
+    extractedPlatform: string | null
   ) => {
     setPersonalityData({
       type: personalityType as PersonalityType,
@@ -231,6 +233,7 @@ export default function Playground({ agentId }: PlaygroundProps) {
       analysis: analysisResult,
       lastUrl,
       lastContent,
+      extractedPlatform
     });
   };
 
@@ -555,7 +558,8 @@ The personality instructions above should take precedence over other style guide
                         initialAnalysis={personalityData.analysis}
                         initialUrl={personalityData.lastUrl}
                         initialContent={personalityData.lastContent}
-                      />
+                        initialExtractedPlatform={personalityData.extractedPlatform}
+            />
                     </div>
                   )}
 
