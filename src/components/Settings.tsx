@@ -350,60 +350,10 @@ const SettingsPage: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* Calendly URL Section */}
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-              <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
-                <div className="flex items-center space-x-3">
-                  <Calendar className="h-6 w-6 text-gray-600" />
-                  <h2 className="text-xl font-semibold text-gray-800">
-                    Booking Integration
-                  </h2>
-                </div>
-                <p className="mt-2 text-gray-600">
-                  Connect your Calendly account for appointment scheduling
-                </p>
-              </div>
-              <div className="p-6">
-                <div className="space-y-4">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={calendlyUrl}
-                      onChange={(e) => setCalendlyUrl(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                      placeholder="Enter your Calendly URL"
-                    />
-                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  </div>
-                  <div className="flex items-center space-x-2 text-sm text-gray-500">
-                    <a
-                      href="https://calendly.com/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-600 hover:text-gray-800"
-                    >
-                      Get your Calendly URL
-                    </a>
-                    <span>•</span>
-                    <span>Example: https://calendly.com/your-username</span>
-                  </div>
-                  <button
-                    onClick={handleCalendlyUrlUpdate}
-                    disabled={isUpdating || !calendlyUrl}
-                    className={`w-full py-3 px-4 rounded-lg text-white font-medium transition-colors ${
-                      isUpdating || !calendlyUrl
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-gray-800 hover:bg-gray-900"
-                    }`}
-                  >
-                    {isUpdating ? "Updating..." : "Update Calendly URL"}
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         );
+      case "SERVICES":
+        return null;
       default:
         return null;
     }
@@ -424,6 +374,17 @@ const SettingsPage: React.FC = () => {
           >
             <Bot className="h-5 w-5" />
             <span>Configurations</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("SERVICES")}
+            className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium border-b-2 ${
+              activeTab === "SERVICES"
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200"
+            }`}
+          >
+            <Bot className="h-5 w-5" />
+            <span>SERVICES</span>
           </button>
           <button
             onClick={() => setActiveTab("billing")}

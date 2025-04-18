@@ -4,7 +4,7 @@ import { useUserStore } from "../store/useUserStore";
 import { deleteAgent } from "../lib/serverActions";
 
 interface AgentsListProps {
-  onStartCreating: () => void;
+  onStartCreating?: () => void;
 }
 
 export default function AgentsList({ onStartCreating }: AgentsListProps) {
@@ -52,13 +52,15 @@ export default function AgentsList({ onStartCreating }: AgentsListProps) {
     <div className="max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold text-gray-900">Your Agents</h2>
-        <button
-          onClick={onStartCreating}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
-        >
-          <Plus className="h-5 w-5 mr-2" />
-          Create New Agent
-        </button>
+        {onStartCreating && (
+          <button
+            onClick={onStartCreating}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Create New Agent
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

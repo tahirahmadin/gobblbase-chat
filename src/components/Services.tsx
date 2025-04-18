@@ -9,8 +9,9 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import ServiceConfiguration from "./ServiceConfiguration";
-import { getIntegratedServices } from "../lib/serverActions";
+import { getIntegratedServices, updateCalendlyUrl } from "../lib/serverActions";
 import { useUserStore } from "../store/useUserStore";
+import { toast } from "react-hot-toast";
 
 interface Service {
   id: string;
@@ -64,11 +65,12 @@ const services: Service[] = [
   },
 ];
 
-export default function Services() {
+const Services: React.FC = () => {
+  const { activeAgentId, calendlyUrl, setCalendlyUrl } = useUserStore();
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [integratedServices, setIntegratedServices] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { activeAgentId } = useUserStore();
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // useEffect(() => {
   //   const fetchIntegratedServices = async () => {
@@ -96,6 +98,24 @@ export default function Services() {
     setSelectedService(null);
   };
 
+  const handleCalendlyUrlUpdate = async () => {
+    if (!activeAgentId) {
+      toast.error("No active agent selected");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await updateCalendlyUrl(activeAgentId, calendlyUrl);
+      toast.success("Calendly URL updated successfully");
+    } catch (error) {
+      console.error("Error updating Calendly URL:", error);
+      toast.error("Failed to update Calendly URL");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   if (selectedService) {
     return (
       <div className="p-6">
@@ -115,62 +135,60 @@ export default function Services() {
   }
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">
-        Available Services
-      </h2>
-      {isLoading ? (
-        <div className="text-center py-8">Loading services...</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {services.map((service) => {
-            const isIntegrated = integratedServices.includes(service.id);
-            return (
-              <div
-                key={service.id}
-                className={`bg-white p-6 rounded-lg shadow-sm border ${
-                  isIntegrated
-                    ? "border-green-200"
-                    : "border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
-                }`}
-                onClick={() => handleServiceClick(service.id)}
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="flex-shrink-0">
-                    <img
-                      src={service.logo}
-                      alt={`${service.name} logo`}
-                      className="h-12 w-12 object-contain"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {service.name}
-                      </h3>
-                      {isIntegrated && (
-                        <CheckCircle2 className="h-5 w-5 text-green-500" />
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-500">
-                      {service.description}
-                    </p>
-                    {isIntegrated && (
-                      <p className="text-sm text-green-600 mt-2">Integrated</p>
-                    )}
-                    {!service.active && (
-                      <p className="text-sm text-gray-500 mt-2">Coming soon</p>
-                    )}
-                    {service.active && (
-                      <p className="text-sm text-green-600 mt-2">Live</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+    <div className="space-y-6">
+      {/* Calendly URL Section */}
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
+          <div className="flex items-center space-x-3">
+            <Calendar className="h-6 w-6 text-gray-600" />
+            <h2 className="text-xl font-semibold text-gray-800">
+              Booking Integration
+            </h2>
+          </div>
+          <p className="mt-2 text-gray-600">
+            Connect your Calendly account for appointment scheduling
+          </p>
         </div>
-      )}
+        <div className="p-6">
+          <div className="space-y-4">
+            <div className="relative">
+              <input
+                type="text"
+                value={calendlyUrl}
+                onChange={(e) => setCalendlyUrl(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                placeholder="Enter your Calendly URL"
+              />
+              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
+            <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <a
+                href="https://calendly.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-600 hover:text-gray-800"
+              >
+                Get your Calendly URL
+              </a>
+              <span>•</span>
+              <span>Example: https://calendly.com/your-username</span>
+            </div>
+            <button
+              onClick={handleCalendlyUrlUpdate}
+              disabled={isUpdating || !calendlyUrl}
+              className={`w-full py-3 px-4 rounded-lg text-white font-medium transition-colors ${
+                isUpdating || !calendlyUrl
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-gray-800 hover:bg-gray-900"
+              }`}
+            >
+              {isUpdating ? "Updating..." : "Update Calendly URL"}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default Services;

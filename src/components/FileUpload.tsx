@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useRef } from "react";
 import {
   Upload,
   FileText,
@@ -7,6 +7,8 @@ import {
   Book,
   X,
   Loader2,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 import mammoth from "mammoth";
 import * as pdfjsLib from "pdfjs-dist";
@@ -27,391 +29,358 @@ interface FileUploadProps {
   onCancel: () => void;
 }
 
-export default function FileUpload({ onCancel }: FileUploadProps) {
-  const [file, setFile] = React.useState<File | null>(null);
-  const [status, setStatus] = React.useState<
-    "idle" | "uploading" | "processing" | "success" | "error"
-  >("idle");
-  const [message, setMessage] = React.useState("");
-  const [activeTab, setActiveTab] = React.useState("files");
-  const [processingProgress, setProcessingProgress] = React.useState(0);
-  const [extractedText, setExtractedText] = React.useState<string | null>(null);
-  const [agentName, setAgentName] = React.useState("");
-  const [textInput, setTextInput] = React.useState("");
-  const [websiteUrl, setWebsiteUrl] = React.useState("");
-  const { addAgent, setActiveAgentId, clientId } = useUserStore();
+const sourceTabs: SourceTab[] = [
+  { id: "file", name: "File", icon: <FileText className="h-5 w-5" /> },
+  { id: "website", name: "Website", icon: <Globe className="h-5 w-5" /> },
+  { id: "text", name: "Text", icon: <Book className="h-5 w-5" /> },
+];
 
-  const tabs: SourceTab[] = [
-    { id: "files", name: "Files", icon: <FileText className="h-5 w-5" /> },
-    { id: "text", name: "Text", icon: <Book className="h-5 w-5" /> },
-    { id: "website", name: "Website", icon: <Globe className="h-5 w-5" /> },
-  ];
+export default function FileUpload({ onCancel }: FileUploadProps) {
+  const [file, setFile] = useState<File | null>(null);
+  const [textInput, setTextInput] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState("");
+  const [agentName, setAgentName] = useState("");
+  const [activeTab, setActiveTab] = useState("file");
+  const [status, setStatus] = useState<
+    "idle" | "processing" | "success" | "error"
+  >("idle");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [errorMessage, setErrorMessage] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { clientId, addAgent, setActiveAgentId } = useUserStore();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-      setStatus("idle");
-      setMessage("");
-      setProcessingProgress(0);
-      setExtractedText(null);
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      if (selectedFile.size > 10 * 1024 * 1024) {
+        // 10MB limit
+        setErrorMessage("File size should be less than 10MB");
+        setFile(null);
+        return;
+      }
+      setFile(selectedFile);
+      setErrorMessage("");
     }
   };
 
-  const fetchWebsiteContent = async (url: string): Promise<string> => {
-    try {
-      // Add CORS proxy to avoid CORS issues
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(
-        url
-      )}`;
-      const response = await fetch(proxyUrl);
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch website content");
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile) {
+      if (droppedFile.size > 10 * 1024 * 1024) {
+        setErrorMessage("File size should be less than 10MB");
+        setFile(null);
+        return;
       }
-
-      const data = await response.json();
-      const htmlContent = data.contents;
-
-      // Create a temporary DOM element to parse HTML
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlContent, "text/html");
-
-      // Remove script and style elements
-      const scripts = doc.getElementsByTagName("script");
-      const styles = doc.getElementsByTagName("style");
-      Array.from(scripts).forEach((script) => script.remove());
-      Array.from(styles).forEach((style) => style.remove());
-
-      // Get text content from body
-      const textContent = doc.body.textContent || "";
-
-      // Clean up the text content
-      return textContent.replace(/\s+/g, " ").trim();
-    } catch (error) {
-      console.error("Error fetching website content:", error);
-      throw error;
+      setFile(droppedFile);
+      setErrorMessage("");
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ((!file && !textInput && !websiteUrl) || !agentName || !clientId) return;
-
-    setStatus("processing");
-    setProcessingProgress(0);
-    toast.loading("Processing content...", { id: "processing" });
-
-    try {
-      let textContent = "";
-
-      if (activeTab === "files" && file) {
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-          if (file.type === "application/pdf") {
-            const pdf = await pdfjsLib.getDocument(
-              event.target?.result as ArrayBuffer
-            ).promise;
-
-            for (let i = 1; i <= pdf.numPages; i++) {
-              const page = await pdf.getPage(i);
-              const text = await page.getTextContent();
-              textContent += text.items.map((item: any) => item.str).join(" ");
-              setProcessingProgress((i / pdf.numPages) * 100);
-            }
-          } else if (
-            file.type ===
-              "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-            file.type === "application/msword"
-          ) {
-            const result = await mammoth.extractRawText({
-              arrayBuffer: event.target?.result as ArrayBuffer,
-            });
-            textContent = result.value;
-            setProcessingProgress(100);
-          } else if (file.type === "text/plain") {
-            textContent = event.target?.result as string;
-            setProcessingProgress(100);
-          }
-
-          if (textContent) {
-            await createAgent(textContent);
-          } else {
-            throw new Error("Failed to extract text from file");
-          }
-        };
-
-        reader.readAsArrayBuffer(file);
-      } else if (activeTab === "text") {
-        textContent = textInput;
-        setProcessingProgress(100);
-        await createAgent(textContent);
-      } else if (activeTab === "website") {
-        setProcessingProgress(50);
-        textContent = await fetchWebsiteContent(websiteUrl);
-        setProcessingProgress(100);
-        await createAgent(textContent);
-      }
-    } catch (error) {
-      setStatus("error");
-      setMessage("Error processing content");
-      toast.error("Error processing content", { id: "error" });
-      console.error(error);
-    }
-  };
-
-  const createAgent = async (textContent: string) => {
-    if (!textContent) {
-      setStatus("error");
-      setMessage("No content provided");
-      toast.error("No content provided", { id: "error" });
+    if (!agentName.trim()) {
+      setErrorMessage("Agent name is required");
       return;
     }
 
-    toast.loading("Creating agent...", { id: "creating" });
-    const response = await createNewAgent(textContent, agentName, clientId);
+    if (activeTab === "file" && !file) {
+      setErrorMessage("Please upload a file");
+      return;
+    }
 
-    if (!response.error) {
-      let output = response.result;
-      const newAgent = {
-        name: agentName,
-        collectionName: output.collectionName,
-        id: output.agentId,
-      };
-      addAgent(newAgent);
+    if (activeTab === "website" && !websiteUrl.trim()) {
+      setErrorMessage("Website URL is required");
+      return;
+    }
 
-      // Fetch agent details after creating the agent
-      try {
-        const agentDetails = await getAgentDetails(output.agentId, null);
-        // Update the agent with the fetched details
-        const updatedAgent = {
-          ...newAgent,
-          username: agentDetails.username,
-          logo: agentDetails.logo,
-          calendlyUrl: agentDetails.calendlyUrl,
-          systemPrompt: agentDetails.systemPrompt,
-          model: agentDetails.model,
-          personalityType: agentDetails.personalityType,
-          personalityPrompt: agentDetails.personalityPrompt,
-        };
-        addAgent(updatedAgent);
-      } catch (error) {
-        console.error("Error fetching agent details:", error);
+    if (activeTab === "text" && !textInput.trim()) {
+      setErrorMessage("Text content is required");
+      return;
+    }
+
+    setStatus("processing");
+    setUploadProgress(0);
+    setErrorMessage("");
+
+    try {
+      let content = "";
+      if (activeTab === "file" && file) {
+        const fileType = file.type;
+        if (fileType === "application/pdf") {
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            content += textContent.items.map((item: any) => item.str).join(" ");
+            setUploadProgress((i / pdf.numPages) * 100);
+          }
+        } else if (
+          fileType ===
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        ) {
+          const arrayBuffer = await file.arrayBuffer();
+          const result = await mammoth.extractRawText({ arrayBuffer });
+          content = result.value;
+          setUploadProgress(100);
+        } else {
+          content = await file.text();
+          setUploadProgress(100);
+        }
+      } else if (activeTab === "website") {
+        // Simulate website content fetching
+        setUploadProgress(50);
+        content = websiteUrl;
+        setUploadProgress(100);
+      } else {
+        content = textInput;
+        setUploadProgress(100);
       }
 
-      setStatus("success");
-      setMessage("Agent created successfully!");
-      toast.success("Agent created successfully!", { id: "success" });
-      setActiveAgentId(output.agentId);
-      onCancel();
-    } else {
+      if (!clientId) {
+        throw new Error("Client ID is required");
+      }
+
+      const response = await createNewAgent(clientId, agentName, content);
+
+      if (!response.error) {
+        let output = response.result;
+        const newAgent = {
+          name: agentName,
+          collectionName: output.collectionName,
+          id: output.agentId,
+        };
+        addAgent(newAgent);
+
+        // Fetch agent details after creating the agent
+        try {
+          const agentDetails = await getAgentDetails(output.agentId, null);
+          const updatedAgent = {
+            ...newAgent,
+            username: agentDetails.username,
+            logo: agentDetails.logo,
+            calendlyUrl: agentDetails.calendlyUrl,
+            systemPrompt: agentDetails.systemPrompt,
+            model: agentDetails.model,
+            personalityType: agentDetails.personalityType,
+            personalityPrompt: agentDetails.personalityPrompt,
+          };
+          addAgent(updatedAgent);
+        } catch (error) {
+          console.error("Error fetching agent details:", error);
+        }
+
+        setStatus("success");
+        toast.success("Agent created successfully!");
+        setTimeout(() => {
+          setActiveAgentId(output.agentId);
+          onCancel();
+        }, 1500);
+      } else {
+        setStatus("error");
+        setErrorMessage("Failed to create agent");
+        toast.error("Failed to create agent");
+      }
+    } catch (error) {
       setStatus("error");
-      setMessage("Failed to create agent");
-      toast.error("Failed to create agent", { id: "error" });
+      setErrorMessage("An error occurred while processing your request");
+      toast.error("An error occurred while processing your request");
     }
   };
 
+  const isFormValid = () => {
+    if (!agentName.trim()) return false;
+    if (activeTab === "file" && !file) return false;
+    if (activeTab === "website" && !websiteUrl.trim()) return false;
+    if (activeTab === "text" && !textInput.trim()) return false;
+    return true;
+  };
+
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="flex">
-        {/* Left sidebar */}
-        <div className="w-64 pr-8">
-          <nav className="space-y-1">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`
-                  flex items-center px-3 py-2 text-sm font-medium rounded-md w-full
-                  ${
-                    activeTab === tab.id
-                      ? "text-purple-600 bg-purple-50"
-                      : "text-gray-600 hover:bg-gray-50"
-                  }
-                `}
-              >
-                <span
-                  className={`mr-3 ${
-                    activeTab === tab.id ? "text-purple-600" : "text-gray-400"
-                  }`}
-                >
-                  {tab.icon}
-                </span>
-                {tab.name}
-              </button>
-            ))}
-          </nav>
+    <div className="space-y-6">
+      <div className="flex space-x-4">
+        {sourceTabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center px-4 py-2 rounded-md ${
+              activeTab === tab.id
+                ? "bg-indigo-100 text-indigo-700"
+                : "text-gray-600 hover:bg-gray-100"
+            }`}
+          >
+            <span className="mr-2">{tab.icon}</span>
+            {tab.name}
+          </button>
+        ))}
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label
+            htmlFor="agentName"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Agent Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="agentName"
+            value={agentName}
+            onChange={(e) => setAgentName(e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            placeholder="Enter agent name"
+            required
+          />
         </div>
 
-        {/* Main content */}
-        <div className="flex-1">
-          <div className="bg-white shadow rounded-lg p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-medium text-gray-900">
-                Create New Agent
-              </h2>
-              <button
-                onClick={onCancel}
-                className="text-gray-400 hover:text-gray-500"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label
-                  htmlFor="agentName"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Agent Name
-                </label>
-                <input
-                  type="text"
-                  id="agentName"
-                  value={agentName}
-                  onChange={(e) => setAgentName(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  placeholder="Enter agent name"
-                  required
-                />
-              </div>
-
-              {activeTab === "files" && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Upload File
-                  </label>
-                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                    <div className="space-y-1 text-center">
-                      <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                      <div className="flex text-sm text-gray-600">
-                        <label
-                          htmlFor="file-upload"
-                          className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
-                        >
-                          <span>Upload a file</span>
-                          <input
-                            id="file-upload"
-                            name="file-upload"
-                            type="file"
-                            className="sr-only"
-                            onChange={handleFileChange}
-                            accept=".pdf,.doc,.docx,.txt"
-                          />
-                        </label>
-                        <p className="pl-1">or drag and drop</p>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        PDF, DOC, DOCX, TXT up to 10MB
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === "text" && (
-                <div>
-                  <label
-                    htmlFor="text-input"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Enter Text
-                  </label>
-                  <textarea
-                    id="text-input"
-                    value={textInput}
-                    onChange={(e) => setTextInput(e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    rows={10}
-                    placeholder="Enter your text here..."
-                    required
-                  />
-                </div>
-              )}
-
-              {activeTab === "website" && (
-                <div>
-                  <label
-                    htmlFor="website-url"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Website URL
-                  </label>
-                  <input
-                    type="url"
-                    id="website-url"
-                    value={websiteUrl}
-                    onChange={(e) => setWebsiteUrl(e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    placeholder="https://example.com"
-                    required
-                  />
-                  <p className="mt-2 text-sm text-gray-500">
-                    Enter the URL of the website you want to create an agent
-                    from
-                  </p>
-                </div>
-              )}
-
-              {file && activeTab === "files" && (
-                <div className="text-sm text-gray-500">
-                  Selected file: {file.name}
-                </div>
-              )}
-
-              {status === "processing" && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-center space-x-2 text-indigo-600">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Processing content...</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div
-                      className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300"
-                      style={{ width: `${processingProgress}%` }}
-                    ></div>
-                  </div>
-                  <div className="text-center text-sm text-gray-500">
-                    {Math.round(processingProgress)}% complete
-                  </div>
-                </div>
-              )}
-
-              {message && (
-                <div
-                  className={`text-sm ${
-                    status === "error" ? "text-red-600" : "text-green-600"
-                  }`}
-                >
-                  {message}
-                </div>
-              )}
-
-              <div className="flex justify-end">
+        {activeTab === "file" && (
+          <div
+            className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center"
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept=".pdf,.docx,.txt"
+              className="hidden"
+            />
+            {file ? (
+              <div className="flex items-center justify-center space-x-2">
+                <FileText className="h-5 w-5 text-indigo-600" />
+                <span className="text-sm text-gray-600">{file.name}</span>
                 <button
-                  type="submit"
-                  disabled={
-                    (!file && !textInput && !websiteUrl) ||
-                    !agentName ||
-                    !clientId ||
-                    status === "processing"
-                  }
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFile(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
                 >
-                  {status === "processing" ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    "Create Agent"
-                  )}
+                  <X className="h-4 w-4" />
                 </button>
               </div>
-            </form>
+            ) : (
+              <div className="space-y-2">
+                <Upload className="h-8 w-8 mx-auto text-gray-400" />
+                <p className="text-sm text-gray-600">
+                  Drag and drop a file here, or click to select
+                </p>
+                <p className="text-xs text-gray-500">
+                  Supported formats: PDF, DOCX, TXT (max 10MB)
+                </p>
+              </div>
+            )}
           </div>
+        )}
+
+        {activeTab === "website" && (
+          <div>
+            <label
+              htmlFor="websiteUrl"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Website URL <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="url"
+              id="websiteUrl"
+              value={websiteUrl}
+              onChange={(e) => setWebsiteUrl(e.target.value)}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              placeholder="https://example.com"
+              required
+            />
+          </div>
+        )}
+
+        {activeTab === "text" && (
+          <div>
+            <label
+              htmlFor="textInput"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Text Content <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              id="textInput"
+              value={textInput}
+              onChange={(e) => setTextInput(e.target.value)}
+              rows={6}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              placeholder="Enter your text content here..."
+              required
+            />
+          </div>
+        )}
+
+        {errorMessage && (
+          <div className="flex items-center text-red-600 text-sm">
+            <AlertCircle className="h-4 w-4 mr-2" />
+            {errorMessage}
+          </div>
+        )}
+
+        {status === "processing" && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <span>Processing...</span>
+              <span>{Math.round(uploadProgress)}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div
+                className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {status === "success" && (
+          <div className="flex items-center text-green-600">
+            <CheckCircle2 className="h-5 w-5 mr-2" />
+            <span>Agent created successfully!</span>
+          </div>
+        )}
+
+        <div className="flex justify-end space-x-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={!isFormValid() || status === "processing"}
+            className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${
+              !isFormValid() || status === "processing"
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            }`}
+          >
+            {status === "processing" ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              "Create Agent"
+            )}
+          </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
