@@ -8,13 +8,13 @@ export default function Integration() {
   const [urlCopied, setUrlCopied] = React.useState(false);
 
   const iframeCode = `<iframe
-  src="https://gobblbase-chat.vercel.app/#/chatbot/${activeAgentUsername}"
+  src="https://KiFor.ai/#/chatbot/${activeAgentUsername}"
   width="100%"
   style="height: 100%; min-height: 700px"
   frameborder="0"
 ></iframe>`;
 
-  const chatbotUrl = `https://gobblbase-chat.vercel.app/#/chatbot/${activeAgentUsername}`;
+  const chatbotUrl = `https://KiFor.ai/#/chatbot/${activeAgentUsername}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(iframeCode);

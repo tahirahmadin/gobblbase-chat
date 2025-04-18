@@ -10,7 +10,6 @@ import {
 import OpenAI from "openai";
 import PersonalityAnalyzer, { PERSONALITY_TYPES } from "./PersonalityAnalyzer";
 import { useUserStore } from "../store/useUserStore";
-import { useAgentStore } from "../store/useAgentStore";
 
 interface PersonalityAnalysis {
   dominantTrait: string;
@@ -24,8 +23,14 @@ interface PersonalityAnalysis {
   mimicryInstructions?: string;
 }
 
-type PersonalityType = "influencer" | "professional" | "friendly" | "expert" | "motivational" | "casual" | "custom-personality" ;
-
+type PersonalityType =
+  | "influencer"
+  | "professional"
+  | "friendly"
+  | "expert"
+  | "motivational"
+  | "casual"
+  | "custom-personality";
 
 interface PersonalityData {
   type: PersonalityType;
@@ -128,7 +133,7 @@ export default function Playground({ agentId }: PlaygroundProps) {
     customPrompt: "",
     analysis: null,
     lastUrl: "",
-    lastContent: ""
+    lastContent: "",
   });
   const [sessionId] = useState(
     `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
@@ -136,10 +141,11 @@ export default function Playground({ agentId }: PlaygroundProps) {
   const [userId, setUserId] = useState("");
   const [activeTab, setActiveTab] = useState("model");
   const [theme, setTheme] = useState({
-    primaryColor: "#3B82F6", // blue-500
-    secondaryColor: "#F3F4F6", // gray-100
-    textColor: "#1F2937", // gray-800
-    backgroundColor: "#FFFFFF", // white
+    botColor: "#ffffff",
+    botText: "#000000",
+    bubbleBackground: "#ffffff",
+    bubbleColor: "#e5e5e5",
+    bubbleTextColor: "#000000",
   });
 
   useEffect(() => {
@@ -148,6 +154,13 @@ export default function Playground({ agentId }: PlaygroundProps) {
         const agentDetails = await getAgentDetails(agentId, null);
         setModel(agentDetails.model);
         setSystemPrompt(agentDetails.systemPrompt);
+        setTheme({
+          botColor: agentDetails.themeColors.botColor,
+          botText: agentDetails.themeColors.botText,
+          bubbleBackground: agentDetails.themeColors.bubbleBackground,
+          bubbleColor: agentDetails.themeColors.bubbleColor,
+          bubbleTextColor: agentDetails.themeColors.bubbleTextColor,
+        });
         setAgentName(agentDetails.name);
         setActiveAgentUsername(agentDetails.username || null);
         setLogo(agentDetails.logo || "");
@@ -159,7 +172,7 @@ export default function Playground({ agentId }: PlaygroundProps) {
             customPrompt: agentDetails.customPersonalityPrompt || "",
             analysis: agentDetails.personalityAnalysis,
             lastUrl: agentDetails.lastPersonalityUrl || "",
-            lastContent: agentDetails.lastPersonalityContent || ""
+            lastContent: agentDetails.lastPersonalityContent || "",
           });
         }
       } catch (error) {
@@ -204,9 +217,9 @@ export default function Playground({ agentId }: PlaygroundProps) {
   };
 
   const handlePersonalityChange = (
-    personalityType: string, 
-    isCustom: boolean, 
-    customPrompt: string, 
+    personalityType: string,
+    isCustom: boolean,
+    customPrompt: string,
     analysisResult: PersonalityAnalysis | null,
     lastUrl: string,
     lastContent: string
@@ -217,29 +230,34 @@ export default function Playground({ agentId }: PlaygroundProps) {
       customPrompt: customPrompt,
       analysis: analysisResult,
       lastUrl,
-      lastContent
+      lastContent,
     });
   };
 
   const getPersonalityPrompt = (): string => {
-  // If using custom personality with analysis result that has mimicry instructions
-  if (personalityData.isCustom && personalityData.analysis?.mimicryInstructions) {
-    return personalityData.analysis.mimicryInstructions;
-  } 
-  // If using custom personality with custom prompt
-  else if (personalityData.isCustom && personalityData.customPrompt) {
-    return personalityData.customPrompt;
-  } 
-  // If using a predefined personality type
-  else if (!personalityData.isCustom) {
-    // Get the predefined prompt from PERSONALITY_TYPES
-    const personalityType = PERSONALITY_TYPES.find(p => p.id === personalityData.type);
-    if (personalityType) {
-      return personalityType.prompt;
+    // If using custom personality with analysis result that has mimicry instructions
+    if (
+      personalityData.isCustom &&
+      personalityData.analysis?.mimicryInstructions
+    ) {
+      return personalityData.analysis.mimicryInstructions;
     }
-  }
-  
-  return "";
+    // If using custom personality with custom prompt
+    else if (personalityData.isCustom && personalityData.customPrompt) {
+      return personalityData.customPrompt;
+    }
+    // If using a predefined personality type
+    else if (!personalityData.isCustom) {
+      // Get the predefined prompt from PERSONALITY_TYPES
+      const personalityType = PERSONALITY_TYPES.find(
+        (p) => p.id === personalityData.type
+      );
+      if (personalityType) {
+        return personalityType.prompt;
+      }
+    }
+
+    return "";
   };
 
   const handleSendMessage = async () => {
@@ -260,8 +278,11 @@ export default function Playground({ agentId }: PlaygroundProps) {
       // Call RAG API to get context using the server action
       const context = await queryDocument(agentId, message);
       const personalityPrompt = getPersonalityPrompt();
-      console.log("Using personality prompt:", personalityPrompt ? "Yes" : "No");
-    
+      console.log(
+        "Using personality prompt:",
+        personalityPrompt ? "Yes" : "No"
+      );
+
       const enhancedSystemPrompt = `${systemPrompt}
       
       ${
@@ -345,18 +366,25 @@ The personality instructions above should take precedence over other style guide
   };
 
   const handleSaveSettings = async () => {
-    console.log("Saving settings:", { 
-      model, 
-      temperature, 
+    console.log("Saving settings:", {
+      model,
+      temperature,
       systemPrompt,
       personalityType: personalityData.type,
       isCustomPersonality: personalityData.isCustom,
       customPersonalityPrompt: personalityData.customPrompt,
       personalityAnalysis: personalityData.analysis,
       lastPersonalityUrl: personalityData.lastUrl,
-      lastPersonalityContent: personalityData.lastContent
+      lastPersonalityContent: personalityData.lastContent,
+      themeColors: {
+        botColor: theme.botColor,
+        botText: theme.botText,
+        bubbleBackground: theme.bubbleBackground,
+        bubbleColor: theme.bubbleColor,
+        bubbleTextColor: theme.bubbleTextColor,
+      },
     });
-  
+
     try {
       await updateAgentDetails(agentId, {
         model,
@@ -369,6 +397,13 @@ The personality instructions above should take precedence over other style guide
         personalityAnalysis: personalityData.analysis,
         lastPersonalityUrl: personalityData.lastUrl,
         lastPersonalityContent: personalityData.lastContent,
+        themeColors: {
+          botColor: theme.botColor,
+          botText: theme.botText,
+          bubbleBackground: theme.bubbleBackground,
+          bubbleColor: theme.bubbleColor,
+          bubbleTextColor: theme.bubbleTextColor,
+        },
       });
       console.log("Settings saved successfully");
     } catch (error) {
@@ -379,7 +414,7 @@ The personality instructions above should take precedence over other style guide
   return (
     <div className="max-w-xxl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
       <div className="grid grid-cols-3 min-h-[600px]">
-        <div className="col-span-2 border-r border-gray-200 p-1 bg-gray-50 max-h-[600px] overflow-y-auto">
+        <div className="col-span-2 border-r border-gray-200 p-1 bg-gray-50 max-h-[650px] overflow-y-auto">
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-sm">
               <div className="flex">
@@ -430,7 +465,7 @@ The personality instructions above should take precedence over other style guide
                 </div>
 
                 {/* Tab Content */}
-                <div className="w-2/3 p-4 min-h-[450px]">
+                <div className="w-2/3 p-4 min-h-[500px]">
                   {/* Model Settings Tab */}
                   {activeTab === "model" && (
                     <div className="space-y-4">
@@ -520,7 +555,7 @@ The personality instructions above should take precedence over other style guide
                         initialAnalysis={personalityData.analysis}
                         initialUrl={personalityData.lastUrl}
                         initialContent={personalityData.lastContent}
-            />
+                      />
                     </div>
                   )}
 
@@ -530,88 +565,106 @@ The personality instructions above should take precedence over other style guide
                       <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Primary Color
+                            Theme color:
                           </label>
                           <div className="flex items-center gap-2">
                             <input
                               type="color"
-                              value={theme.primaryColor}
+                              value={theme.botColor}
                               onChange={(e) =>
                                 setTheme({
                                   ...theme,
-                                  primaryColor: e.target.value,
+                                  botColor: e.target.value,
                                 })
                               }
                               className="h-8 w-8 rounded cursor-pointer"
                             />
                             <span className="text-sm text-gray-500">
-                              {theme.primaryColor}
+                              {theme.botColor}
                             </span>
                           </div>
                         </div>
-
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Secondary Color
+                            Theme text:
                           </label>
                           <div className="flex items-center gap-2">
                             <input
                               type="color"
-                              value={theme.secondaryColor}
+                              value={theme.botText}
                               onChange={(e) =>
                                 setTheme({
                                   ...theme,
-                                  secondaryColor: e.target.value,
+                                  botText: e.target.value,
                                 })
                               }
                               className="h-8 w-8 rounded cursor-pointer"
                             />
                             <span className="text-sm text-gray-500">
-                              {theme.secondaryColor}
+                              {theme.botText}
                             </span>
                           </div>
                         </div>
-
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Text Color
+                            Chat background:
                           </label>
                           <div className="flex items-center gap-2">
                             <input
                               type="color"
-                              value={theme.textColor}
+                              value={theme.bubbleBackground}
                               onChange={(e) =>
                                 setTheme({
                                   ...theme,
-                                  textColor: e.target.value,
+                                  bubbleBackground: e.target.value,
                                 })
                               }
                               className="h-8 w-8 rounded cursor-pointer"
                             />
                             <span className="text-sm text-gray-500">
-                              {theme.textColor}
+                              {theme.bubbleBackground}
                             </span>
                           </div>
                         </div>
-
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Background Color
+                            Bubble color:
                           </label>
                           <div className="flex items-center gap-2">
                             <input
                               type="color"
-                              value={theme.backgroundColor}
+                              value={theme.bubbleColor}
                               onChange={(e) =>
                                 setTheme({
                                   ...theme,
-                                  backgroundColor: e.target.value,
+                                  bubbleColor: e.target.value,
                                 })
                               }
                               className="h-8 w-8 rounded cursor-pointer"
                             />
                             <span className="text-sm text-gray-500">
-                              {theme.backgroundColor}
+                              {theme.bubbleColor}
+                            </span>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Bubble text color:
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="color"
+                              value={theme.bubbleTextColor}
+                              onChange={(e) =>
+                                setTheme({
+                                  ...theme,
+                                  bubbleTextColor: e.target.value,
+                                })
+                              }
+                              className="h-8 w-8 rounded cursor-pointer"
+                            />
+                            <span className="text-sm text-gray-500">
+                              {theme.bubbleTextColor}
                             </span>
                           </div>
                         </div>
@@ -622,10 +675,11 @@ The personality instructions above should take precedence over other style guide
                           onClick={() => {
                             // Reset to default theme
                             setTheme({
-                              primaryColor: "#3B82F6",
-                              secondaryColor: "#F3F4F6",
-                              textColor: "#1F2937",
-                              backgroundColor: "#FFFFFF",
+                              botColor: "#FFFFFF",
+                              botText: "#000000",
+                              bubbleBackground: "#ffffff",
+                              bubbleColor: "#e5e5e5",
+                              bubbleTextColor: "#000000",
                             });
                           }}
                           className="text-sm text-blue-600 hover:text-blue-800"
@@ -653,9 +707,16 @@ The personality instructions above should take precedence over other style guide
         </div>
 
         {/* Chat Area */}
-        <div className="col-span-1 flex flex-col">
-          <div className="flex-1 p-4">
-            <div className="flex items-center justify-between mb-4">
+        <div
+          className="col-span-1 flex flex-col"
+          style={{
+            backgroundColor: theme.botColor,
+            borderTopLeftRadius: "10px",
+            borderTopRightRadius: "10px",
+          }}
+        >
+          <div className="flex-1">
+            <div className="flex items-center justify-between p-2">
               <div className="flex items-center space-x-3">
                 {logo ? (
                   <img
@@ -666,42 +727,33 @@ The personality instructions above should take precedence over other style guide
                 ) : (
                   <Bot className="h-8 w-8 text-indigo-600" />
                 )}
-                <div>
-                  <span className="text-sm font-medium text-gray-900">
-                    {agentName}
-                  </span>
+                <div style={{ color: theme.botText }}>
+                  <span className="text-sm font-medium">{agentName}</span>
                   {activeAgentUsername && (
-                    <span className="text-xs text-gray-500 block">
+                    <span className="text-xs block">
                       @{activeAgentUsername}
                     </span>
                   )}
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                {calendlyUrl && (
-                  <a
-                    href={calendlyUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-indigo-600 hover:text-indigo-800"
-                  >
-                    Schedule a meeting
-                  </a>
-                )}
-                <button className="text-gray-400 hover:text-gray-600">
-                  <RefreshCw className="h-4 w-4" />
-                </button>
-              </div>
             </div>
 
-            <div className="space-y-4 mb-4 max-h-[550px] overflow-y-auto">
+            <div
+              className="space-y-4 h-[450px] overflow-y-auto pt-2 pb-2"
+              style={{ backgroundColor: theme.bubbleBackground }}
+            >
               {messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`rounded-lg p-4 ${
-                    msg.sender === "agent"
-                      ? "bg-gray-50 text-gray-700"
-                      : "bg-indigo-50 text-indigo-700 ml-8"
+                  style={{
+                    backgroundColor:
+                      msg.sender != "agent" ? theme.bubbleColor : "#f9f9f9",
+                    color:
+                      msg.sender != "agent" ? theme.bubbleTextColor : "#000000",
+                    border: "1px solid #e5e5e5",
+                  }}
+                  className={`rounded-lg p-2 ${
+                    msg.sender === "agent" ? "mr-8 ml-1" : `ml-8 mr-1`
                   }`}
                 >
                   <p>{msg.content}</p>
@@ -711,14 +763,13 @@ The personality instructions above should take precedence over other style guide
                 </div>
               ))}
             </div>
-
-            <div className="text-xs text-gray-500 text-center">
-              Processing file: {agentId}
-            </div>
           </div>
 
           {/* Message Input */}
-          <div className="border-t border-gray-200 p-4">
+          <div
+            className="border-t border-gray-200 p-4"
+            style={{ backgroundColor: theme.bubbleBackground }}
+          >
             <div className="relative">
               <input
                 type="text"
@@ -735,8 +786,11 @@ The personality instructions above should take precedence over other style guide
                 <Send className="h-5 w-5" />
               </button>
             </div>
-            <div className="mt-2 text-xs text-right text-gray-500">
-              Powered By Gobbl.ai
+            <div
+              className="mt-2 text-xs text-right"
+              style={{ color: theme.botText }}
+            >
+              Powered By KiFor.ai
             </div>
           </div>
         </div>

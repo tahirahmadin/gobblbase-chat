@@ -45,19 +45,20 @@ interface UpdateUserLogsParams {
   newUserLogs: UserLog[];
 }
 
-export async function extractContentFromURL(url: string): Promise<ExtractContentResponse> {
+export async function extractContentFromURL(
+  url: string
+): Promise<ExtractContentResponse> {
   try {
-    const response = await axios.post(
-      "https://rag.gobbl.ai/content/extract",
-      { url }
-    );
-    
+    const response = await axios.post("https://rag.gobbl.ai/content/extract", {
+      url,
+    });
+
     return response.data;
   } catch (error) {
     console.error("Error extracting content from URL:", error);
     return {
       success: false,
-      error: "Failed to extract content from URL"
+      error: "Failed to extract content from URL",
     };
   }
 }
@@ -177,6 +178,7 @@ export async function updateAgentDetails(
     personalityAnalysis?: any;
     lastPersonalityUrl?: string;
     lastPersonalityContent?: string;
+    themeColors?: any;
     [key: string]: any;
   }
 ) {
@@ -193,6 +195,7 @@ export async function updateAgentDetails(
       personalityAnalysis: details.personalityAnalysis,
       lastPersonalityUrl: details.lastPersonalityUrl,
       lastPersonalityContent: details.lastPersonalityContent,
+      themeColors: details.themeColors,
     };
 
     console.log("🛰 Sending updateAgentDetails body:", body);
@@ -211,7 +214,6 @@ export async function updateAgentDetails(
     throw error;
   }
 }
-
 
 export async function deleteAgent(agentId: string) {
   try {

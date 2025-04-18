@@ -141,7 +141,7 @@ export default function Activity() {
                         >
                           <div className="flex justify-between items-center">
                             <span className="font-medium truncate">
-                              {chat.userLogs[0].content.slice(0, 8)}
+                              {chat.userLogs[0].content.slice(0, 16)}...
                             </span>
                             <span className="text-xs text-gray-500">
                               {new Date(chat.createdDate).toLocaleDateString()}

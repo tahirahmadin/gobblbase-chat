@@ -8,6 +8,13 @@ interface BotConfig {
   calendlyUrl?: string;
   systemPrompt?: string;
   model?: string;
+  themeColors?: {
+    botColor?: string;
+    botText?: string;
+    bubbleBackground?: string;
+    bubbleColor?: string;
+    bubbleTextColor?: string;
+  };
   [key: string]: any;
 }
 

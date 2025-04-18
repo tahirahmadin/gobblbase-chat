@@ -20,7 +20,14 @@ interface PersonalityAnalysis {
   mimicryInstructions?: string;
 }
 
-type PersonalityType = "influencer" | "professional" | "friendly" | "expert" | "motivational" | "casual" | "custom-personality";
+type PersonalityType =
+  | "influencer"
+  | "professional"
+  | "friendly"
+  | "expert"
+  | "motivational"
+  | "casual"
+  | "custom-personality";
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -51,49 +58,46 @@ export default function PublicChat() {
   const [showCues, setShowCues] = React.useState(true);
   const [showCalendly, setShowCalendly] = React.useState(false);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
-  const [personalityType, setPersonalityType] = React.useState<PersonalityType | null>(null);
+  const [personalityType, setPersonalityType] =
+    React.useState<PersonalityType | null>(null);
   const [isCustomPersonality, setIsCustomPersonality] = React.useState(false);
-  const [customPersonalityPrompt, setCustomPersonalityPrompt] = React.useState("");
-  const [personalityAnalysis, setPersonalityAnalysis] = React.useState<PersonalityAnalysis | null>(null);
+  const [customPersonalityPrompt, setCustomPersonalityPrompt] =
+    React.useState("");
+  const [personalityAnalysis, setPersonalityAnalysis] =
+    React.useState<PersonalityAnalysis | null>(null);
 
   React.useEffect(() => {
-    console.log(botUsername);
     if (botUsername) {
       fetchConfig(botUsername);
-      fetchAgentPersonality(botUsername);
     }
   }, [botUsername, fetchConfig]);
 
-  const fetchAgentPersonality = async (username: string) => {
-    try {
-      const agentDetails = await getAgentDetails(null, username);
-      if (agentDetails) {
-        if (agentDetails.personalityType) {
-          setPersonalityType(agentDetails.personalityType as PersonalityType);
-          setIsCustomPersonality(agentDetails.personalityType === "custom-personality");
-          setCustomPersonalityPrompt(agentDetails.customPersonalityPrompt || "");
-          setPersonalityAnalysis(agentDetails.personalityAnalysis || null);
-        }
+  // Update personality settings when config changes
+  React.useEffect(() => {
+    if (config) {
+      if (config.personalityType) {
+        setPersonalityType(config.personalityType as PersonalityType);
+        setIsCustomPersonality(config.personalityType === "custom-personality");
+        setCustomPersonalityPrompt(config.customPersonalityPrompt || "");
+        setPersonalityAnalysis(config.personalityAnalysis || null);
       }
-    } catch (error) {
-      console.error("Error fetching agent personality:", error);
     }
-  };
+  }, [config]);
 
   const getPersonalityPrompt = (): string => {
     if (isCustomPersonality && personalityAnalysis?.mimicryInstructions) {
       return personalityAnalysis.mimicryInstructions;
-    } 
-    else if (isCustomPersonality && customPersonalityPrompt) {
+    } else if (isCustomPersonality && customPersonalityPrompt) {
       return customPersonalityPrompt;
-    } 
-    else if (personalityType && !isCustomPersonality) {
-      const personalityTypeInfo = PERSONALITY_TYPES.find(p => p.id === personalityType);
+    } else if (personalityType && !isCustomPersonality) {
+      const personalityTypeInfo = PERSONALITY_TYPES.find(
+        (p) => p.id === personalityType
+      );
       if (personalityTypeInfo) {
         return personalityTypeInfo.prompt;
       }
     }
-    
+
     return "";
   };
 
@@ -139,6 +143,7 @@ export default function PublicChat() {
     setMessages((prev) => [...prev, newMessage]);
     setMessage("");
     setIsLoading(true);
+    setShowCues(false);
 
     try {
       // Call RAG API to get context using the server action
@@ -167,7 +172,10 @@ export default function PublicChat() {
       }
 
       const personalityPrompt = getPersonalityPrompt();
-      console.log("Using personality prompt:", personalityPrompt ? "Yes" : "No");
+      console.log(
+        "Using personality prompt:",
+        personalityPrompt ? "Yes" : "No"
+      );
 
       const systemPrompt = `You are a concise AI assistant.
      Use the provided context to answer the user's question when relevant:
@@ -249,9 +257,14 @@ The personality instructions above should take precedence over other style guide
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div
+      className="flex flex-col h-screen"
+      style={{
+        backgroundColor: config?.themeColors?.botColor,
+      }}
+    >
       {/* Chat Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3">
+      <div className="border-b border-gray-200 px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {config?.logo && (
@@ -261,10 +274,13 @@ The personality instructions above should take precedence over other style guide
                 className="w-8 h-8 rounded-full object-cover"
               />
             )}
-            <div className="flex items-center space-x-2">
+            <div
+              className="flex items-center space-x-2"
+              style={{ color: config?.themeColors?.botText }}
+            >
               <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <span className="text-sm font-medium text-gray-700">
-                {config?.username || "Gobbl.ai Chat"}
+              <span className="text-sm font-medium">
+                {config?.username || "KiFor.ai Chat"}
               </span>
             </div>
           </div>
@@ -272,7 +288,12 @@ The personality instructions above should take precedence over other style guide
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div
+        className="flex-1 overflow-y-auto p-4 space-y-4"
+        style={{
+          backgroundColor: config?.themeColors?.bubbleBackground || "#ffffff",
+        }}
+      >
         {messages.map((msg) => (
           <div
             key={msg.id}
@@ -281,11 +302,18 @@ The personality instructions above should take precedence over other style guide
             }`}
           >
             <div
-              className={`max-w-[80%] rounded-lg p-3 ${
-                msg.sender === "agent"
-                  ? "bg-white text-gray-800 shadow-sm"
-                  : "bg-blue-600 text-white"
-              }`}
+              className="max-w-[80%] rounded-lg p-3 shadow-sm"
+              style={{
+                backgroundColor:
+                  msg.sender != "agent"
+                    ? config?.themeColors?.bubbleColor
+                    : "#f9f9f9",
+                color:
+                  msg.sender != "agent"
+                    ? config?.themeColors?.bubbleTextColor
+                    : "#000000",
+                border: "1px solid #e5e5e5",
+              }}
             >
               <p className="text-sm">{msg.content}</p>
               <div className="mt-1 text-xs opacity-70">
@@ -330,7 +358,12 @@ The personality instructions above should take precedence over other style guide
       )}
 
       {/* Input Area */}
-      <div className="bg-white border-t border-gray-200 p-4">
+      <div
+        className="border-t border-gray-200 p-4"
+        style={{
+          backgroundColor: config?.themeColors?.bubbleBackground || "#ffffff",
+        }}
+      >
         <div className="relative">
           <input
             type="text"
@@ -354,7 +387,7 @@ The personality instructions above should take precedence over other style guide
           </button>
         </div>
         <div className="mt-2 text-center">
-          <span className="text-xs text-gray-400">Powered by Gobbl.ai</span>
+          <span className="text-xs text-gray-400">Powered by KiFor.ai</span>
         </div>
       </div>
     </div>
