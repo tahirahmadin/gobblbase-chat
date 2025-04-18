@@ -64,9 +64,9 @@ export async function extractContentFromURL(
 }
 
 export async function createNewAgent(
-  textContent: string,
+  clientId: string,
   name: string,
-  clientId: string
+  textContent: string
 ): Promise<CreateNewAgentResponse> {
   try {
     const response = await axios.post(
