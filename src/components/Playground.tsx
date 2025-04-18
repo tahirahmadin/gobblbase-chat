@@ -517,8 +517,9 @@ The personality instructions above should take precedence over other style guide
                           isCustom: personalityData.isCustom,
                           customPrompt: personalityData.customPrompt,
                         }}
+                        initialAnalysis={personalityData.analysis}
                         initialUrl={personalityData.lastUrl}
-              initialContent={personalityData.lastContent}
+                        initialContent={personalityData.lastContent}
             />
                     </div>
                   )}
