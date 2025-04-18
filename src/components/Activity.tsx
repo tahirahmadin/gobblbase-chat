@@ -56,31 +56,33 @@ export default function Activity() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Left sidebar */}
-      <div className="flex">
-        <div className="w-64 pr-8">
-          <nav className="space-y-1">
+      <div className="flex flex-col">
+        {/* Horizontal Tab Navigation */}
+        <div className="border-b border-gray-200">
+          <nav className="flex">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`
-                  flex items-center px-3 py-2 text-sm font-medium rounded-md w-full
+                  flex items-center space-x-2 px-4 py-2 text-sm font-medium border-b-2
                   ${
                     activeTab === tab.id
-                      ? "text-purple-600 bg-purple-50"
-                      : "text-gray-600 hover:bg-gray-50"
+                      ? "border-purple-500 text-purple-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200"
                   }
                 `}
               >
                 <span
-                  className={`mr-3 ${
-                    activeTab === tab.id ? "text-purple-600" : "text-gray-400"
-                  }`}
+                  className={`
+                    ${
+                      activeTab === tab.id ? "text-purple-600" : "text-gray-400"
+                    }
+                  `}
                 >
                   {tab.icon}
                 </span>
-                {tab.name}
+                <span>{tab.name}</span>
               </button>
             ))}
           </nav>
@@ -102,10 +104,7 @@ export default function Activity() {
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Refresh
                   </button>
-                  <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filter
-                  </button>
+
                   <button className="inline-flex items-center px-3 py-1.5 bg-black text-white rounded-md text-sm font-medium hover:bg-gray-800">
                     <Download className="h-4 w-4 mr-2" />
                     Export

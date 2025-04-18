@@ -39,10 +39,10 @@ function Dashboard() {
           <div className="space-y-4">
             <button
               onClick={() => setIsCreating(false)}
-              className="flex items-center text-gray-600 hover:text-gray-900"
+              className="flex items-center text-gray-600 hover:text-gray-900 transition-colors duration-200"
             >
               <ArrowLeft className="h-5 w-5 mr-2" />
-              Back to Agents
+              Back
             </button>
             <FileUpload onCancel={() => setIsCreating(false)} />
           </div>
@@ -58,16 +58,18 @@ function Dashboard() {
     }
 
     return (
-      <div className="space-y-4">
+      <div className="space-y-6 w-full">
         <button
           onClick={() => setActiveAgentId(null)}
-          className="flex items-center text-gray-600 hover:text-gray-900"
+          className="flex items-center text-gray-600 hover:text-gray-900 transition-colors duration-200"
         >
           <ArrowLeft className="h-5 w-5 mr-2" />
-          Back to Agents
+          Back
         </button>
-        <Tabs activeTab={activeTab} onTabChange={setActiveTab} />
-        {renderTabContent()}
+        <div className="flex justify-start">
+          <Tabs activeTab={activeTab} onTabChange={setActiveTab} />
+          <div className="w-full">{renderTabContent()}</div>
+        </div>
       </div>
     );
   };
@@ -92,7 +94,7 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto py-4 sm:px-6 lg:px-8 w-full">
         {renderContent()}
       </main>
     </div>

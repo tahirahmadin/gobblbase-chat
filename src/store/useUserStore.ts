@@ -8,6 +8,7 @@ interface UserState {
   userEmail: string | null;
   clientId: string | null;
   activeAgentId: string | null;
+  currentAgentData: Agent | null;
   activeAgentUsername: string | null;
   calendlyUrl: string;
   agents: Agent[];
@@ -29,6 +30,9 @@ export const useUserStore = create<UserState>()(
       userEmail: null,
       clientId: null,
       activeAgentId: null,
+      currentAgentData: null,
+      setCurrentAgentData: (data: Agent | null) =>
+        set({ currentAgentData: data }),
       activeAgentUsername: null,
       calendlyUrl: "",
       agents: [],

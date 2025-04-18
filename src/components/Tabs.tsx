@@ -9,7 +9,7 @@ interface Tab {
 
 interface TabsProps {
   activeTab: string;
-  onTabChange: (tabId: string) => void;
+  onTabChange: (tab: string) => void;
 }
 
 export default function Tabs({ activeTab, onTabChange }: TabsProps) {
@@ -33,23 +33,29 @@ export default function Tabs({ activeTab, onTabChange }: TabsProps) {
   ];
 
   return (
-    <div className="border-b border-gray-200">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex space-x-8">
+    <div className="border-r border-gray-100">
+      <nav className="h-full max-w-[200px] min-w-[180px]">
+        <div className="flex flex-col space-y-1">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={`
-                flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm
+                flex items-center space-x-2 py-4 px-4 border-l-2 font-medium text-sm transition-all duration-200
                 ${
                   activeTab === tab.id
-                    ? "border-indigo-500 text-indigo-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    ? "border-primary-500 text-primary-600 bg-primary-50"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                 }
               `}
             >
-              {tab.icon}
+              <span
+                className={`
+                  ${activeTab === tab.id ? "text-primary-600" : "text-gray-400"}
+                `}
+              >
+                {tab.icon}
+              </span>
               <span>{tab.name}</span>
             </button>
           ))}

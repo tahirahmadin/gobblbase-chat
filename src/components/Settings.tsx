@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { CreditCard, BarChart2, Upload, Bot } from "lucide-react";
+import {
+  CreditCard,
+  BarChart2,
+  Upload,
+  Bot,
+  User,
+  Calendar,
+} from "lucide-react";
 import { useUserStore } from "../store/useUserStore";
 import { toast } from "react-hot-toast";
 import {
@@ -16,8 +23,13 @@ interface Plan {
 }
 
 const SettingsPage: React.FC = () => {
-  const { activeAgentId, activeAgentUsername, calendlyUrl, setCalendlyUrl } =
-    useUserStore();
+  const {
+    activeAgentId,
+    activeAgentUsername,
+    calendlyUrl,
+    setCalendlyUrl,
+    currentAgentData,
+  } = useUserStore();
 
   const [isEnabled, setIsEnabled] = useState(true);
   const [activeTab, setActiveTab] = useState("services");
@@ -27,6 +39,7 @@ const SettingsPage: React.FC = () => {
     string | null
   >(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isUsernameValid, setIsUsernameValid] = useState(true);
 
   const isUsernameChanged = agentUsername !== activeAgentUsername;
 
@@ -53,8 +66,12 @@ const SettingsPage: React.FC = () => {
   ) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        // 5MB limit
+        toast.error("Image size should be less than 5MB");
+        return;
+      }
       setProfilePicture(file);
-      // Create preview URL
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfilePicturePreview(reader.result as string);
@@ -99,32 +116,30 @@ const SettingsPage: React.FC = () => {
     }
   };
 
+  const validateUsername = (username: string) => {
+    const regex = /^[a-zA-Z0-9]+$/;
+    setIsUsernameValid(regex.test(username) && username.length >= 3);
+  };
+
+  useEffect(() => {
+    validateUsername(agentUsername);
+  }, [agentUsername]);
+
   const plans: Plan[] = [
     {
       name: "Free",
       price: "$0/month",
-      features: ["Basic features", "Limited usage", "Community support"],
+      features: ["Basic features", "Limited usage", "Booking features"],
       current: true,
     },
     {
       name: "Pro",
-      price: "$29/month",
+      price: "$20/month",
       features: [
         "Advanced features",
         "Higher usage limits",
         "Priority support",
         "Custom integrations",
-      ],
-      current: false,
-    },
-    {
-      name: "Enterprise",
-      price: "Custom",
-      features: [
-        "All Pro features",
-        "Unlimited usage",
-        "Dedicated support",
-        "Custom development",
       ],
       current: false,
     },
@@ -135,9 +150,9 @@ const SettingsPage: React.FC = () => {
       case "billing":
         return (
           <div className="space-y-6">
-            <div className="bg-white p-6 rounded-lg shadow">
+            <div className="bg-white p-6 rounded-lg">
               <h3 className="text-lg font-medium mb-4">Current Plan</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {plans.map((plan) => (
                   <div
                     key={plan.name}
@@ -166,76 +181,123 @@ const SettingsPage: React.FC = () => {
                 ))}
               </div>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="text-lg font-medium mb-4">Payment Methods</h3>
-              <div className="flex items-center space-x-4">
-                <CreditCard className="h-8 w-8 text-gray-400" />
-                <span>Visa ending in 4242</span>
-                <button className="text-blue-500 hover:text-blue-600">
-                  Update
-                </button>
-              </div>
-            </div>
           </div>
         );
       case "usage":
         return (
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-medium mb-4">Usage Statistics</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="border rounded-lg p-4">
-                <h4 className="text-gray-500">API Calls</h4>
-                <p className="text-2xl font-bold">1,234</p>
-                <p className="text-sm text-gray-500">This month</p>
-              </div>
-              <div className="border rounded-lg p-4">
-                <h4 className="text-gray-500">Storage</h4>
-                <p className="text-2xl font-bold">2.5 GB</p>
-                <p className="text-sm text-gray-500">of 10 GB used</p>
-              </div>
-              <div className="border rounded-lg p-4">
-                <h4 className="text-gray-500">Active Users</h4>
-                <p className="text-2xl font-bold">45</p>
-                <p className="text-sm text-gray-500">Last 30 days</p>
-              </div>
-            </div>
+          <div className="bg-white p-6 rounded-lg">
+            <h3 className="text-lg font-medium mb-4">Coming soon</h3>
           </div>
         );
       case "services":
         return (
           <div className="space-y-6">
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="text-lg font-medium mb-4">Agent Profile</h3>
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+            {/* Username Section */}
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
+                <div className="flex items-center space-x-3">
+                  <User className="h-6 w-6 text-gray-600" />
+                  <h2 className="text-xl font-semibold text-gray-800">
                     Agent Username
-                  </label>
-                  <div className="flex space-x-4">
+                  </h2>
+                </div>
+                <p className="mt-2 text-gray-600">
+                  Set your unique username for your AI agent
+                </p>
+              </div>
+              <div className="p-6">
+                <div className="space-y-4">
+                  <div className="relative">
                     <input
                       type="text"
                       value={agentUsername}
-                      onChange={(e) => setAgentUsername(e.target.value)}
-                      className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      onChange={(e) => {
+                        setAgentUsername(e.target.value);
+                        validateUsername(e.target.value);
+                      }}
+                      className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
+                        isUsernameValid ? "border-gray-200" : "border-red-500"
+                      } focus:outline-none focus:ring-2 focus:ring-gray-500`}
                       placeholder="Enter agent username"
                     />
-                    <button
-                      onClick={handleUsernameUpdate}
-                      disabled={
-                        isUpdating || !agentUsername || !isUsernameChanged
-                      }
-                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isUpdating ? "Updating..." : "Update"}
-                    </button>
+                    <User className="absolute left-2 top-1/3 transform -translate-y-1/2 text-gray-400" />
+                    {!isUsernameValid && (
+                      <p className="mt-1 text-sm text-red-500">
+                        Username must contain only letters, numbers (minimum 3
+                        characters)
+                      </p>
+                    )}
                   </div>
+                  <button
+                    onClick={handleUsernameUpdate}
+                    disabled={
+                      isUpdating || !isUsernameValid || !isUsernameChanged
+                    }
+                    className={`w-full py-3 px-4 rounded-lg text-white font-medium transition-colors ${
+                      isUpdating || !isUsernameValid || !isUsernameChanged
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-gray-800 hover:bg-gray-900"
+                    }`}
+                  >
+                    {isUpdating ? "Updating..." : "Update Username"}
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Profile Picture
-                  </label>
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-1">
+              </div>
+            </div>
+
+            {/* Profile Picture Section */}
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
+                <div className="flex items-center space-x-3">
+                  <Bot className="h-6 w-6 text-gray-600" />
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    Agent Profile Picture
+                  </h2>
+                </div>
+                <p className="mt-2 text-gray-600">
+                  Upload or update your AI agent's profile picture
+                </p>
+              </div>
+              <div className="p-6">
+                <div className="space-y-6">
+                  <div className="flex flex-col items-center space-y-4">
+                    <div className="relative group">
+                      <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-100 shadow-lg">
+                        {profilePicturePreview ? (
+                          <img
+                            src={profilePicturePreview}
+                            alt="Profile preview"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : currentAgentData ? (
+                          <img
+                            src={currentAgentData.logo}
+                            alt="Current profile"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = "";
+                              target.parentElement!.innerHTML = `
+                                <div class="w-full h-full bg-gray-50 flex items-center justify-center">
+                                  <Bot class="h-16 w-16 text-gray-400" />
+                                </div>
+                              `;
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gray-50 flex items-center justify-center">
+                            <Bot className="h-16 w-16 text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+                      <label
+                        htmlFor="profile-picture"
+                        className="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg cursor-pointer hover:bg-gray-50 transition-colors group-hover:opacity-100 opacity-0"
+                      >
+                        <Upload className="h-5 w-5 text-gray-600" />
+                      </label>
+                    </div>
+                    <div className="text-center">
                       <input
                         type="file"
                         accept="image/*"
@@ -245,65 +307,98 @@ const SettingsPage: React.FC = () => {
                       />
                       <label
                         htmlFor="profile-picture"
-                        className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50"
+                        className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 cursor-pointer"
                       >
-                        <Upload className="h-5 w-5 text-gray-400" />
-                        <span>
-                          {profilePicture
-                            ? profilePicture.name
-                            : "Choose a profile picture"}
-                        </span>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Choose New Picture
                       </label>
                     </div>
-                    {profilePicturePreview && (
-                      <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-200">
-                        <img
-                          src={profilePicturePreview}
-                          alt="Profile preview"
-                          className="w-full h-full object-cover"
-                        />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-500 text-center">
+                      Recommended: Square image (512x512px)
+                      <br />
+                      Maximum file size: 5MB
+                    </p>
+                    {profilePicture && (
+                      <div className="flex justify-center space-x-3">
+                        <button
+                          onClick={handleProfilePictureUpload}
+                          disabled={isUpdating}
+                          className={`px-4 py-2 rounded-lg text-white font-medium transition-colors ${
+                            isUpdating
+                              ? "bg-gray-400 cursor-not-allowed"
+                              : "bg-gray-800 hover:bg-gray-900"
+                          }`}
+                        >
+                          {isUpdating
+                            ? "Uploading..."
+                            : "Update Profile Picture"}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setProfilePicture(null);
+                            setProfilePicturePreview(null);
+                          }}
+                          className="px-4 py-2 rounded-lg text-gray-700 font-medium border border-gray-300 hover:bg-gray-50 transition-colors"
+                        >
+                          Cancel
+                        </button>
                       </div>
                     )}
-                    <button
-                      onClick={handleProfilePictureUpload}
-                      disabled={isUpdating || !profilePicture}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isUpdating ? "Uploading..." : "Upload"}
-                    </button>
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Calendly URL
-                  </label>
-                  <div className="flex space-x-4">
+              </div>
+            </div>
+
+            {/* Calendly URL Section */}
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
+                <div className="flex items-center space-x-3">
+                  <Calendar className="h-6 w-6 text-gray-600" />
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    Booking Integration
+                  </h2>
+                </div>
+                <p className="mt-2 text-gray-600">
+                  Connect your Calendly account for appointment scheduling
+                </p>
+              </div>
+              <div className="p-6">
+                <div className="space-y-4">
+                  <div className="relative">
                     <input
                       type="text"
                       value={calendlyUrl}
                       onChange={(e) => setCalendlyUrl(e.target.value)}
-                      className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
                       placeholder="Enter your Calendly URL"
                     />
-                    <button
-                      onClick={handleCalendlyUrlUpdate}
-                      disabled={isUpdating || !calendlyUrl}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isUpdating ? "Updating..." : "Update"}
-                    </button>
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                   </div>
-                  <p className="mt-2 text-sm text-gray-500">
-                    You can get your Calendly URL by visiting{" "}
+                  <div className="flex items-center space-x-2 text-sm text-gray-500">
                     <a
                       href="https://calendly.com/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-500 hover:text-blue-600"
+                      className="text-gray-600 hover:text-gray-800"
                     >
-                      https://calendly.com/
+                      Get your Calendly URL
                     </a>
-                  </p>
+                    <span>•</span>
+                    <span>Example: https://calendly.com/your-username</span>
+                  </div>
+                  <button
+                    onClick={handleCalendlyUrlUpdate}
+                    disabled={isUpdating || !calendlyUrl}
+                    className={`w-full py-3 px-4 rounded-lg text-white font-medium transition-colors ${
+                      isUpdating || !calendlyUrl
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-gray-800 hover:bg-gray-900"
+                    }`}
+                  >
+                    {isUpdating ? "Updating..." : "Update Calendly URL"}
+                  </button>
                 </div>
               </div>
             </div>
@@ -315,26 +410,27 @@ const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="flex space-x-6">
-      <div className="w-64 flex-shrink-0">
-        <div className="space-y-1">
+    <div className="flex flex-col">
+      {/* Horizontal Tab Navigation */}
+      <div className="border-b border-gray-200">
+        <nav className="flex">
           <button
             onClick={() => setActiveTab("services")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg ${
+            className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium border-b-2 ${
               activeTab === "services"
-                ? "bg-blue-50 text-blue-600 border-l-4 border-blue-500"
-                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200"
             }`}
           >
             <Bot className="h-5 w-5" />
-            <span>Services</span>
+            <span>Configurations</span>
           </button>
           <button
             onClick={() => setActiveTab("billing")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg ${
+            className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium border-b-2 ${
               activeTab === "billing"
-                ? "bg-blue-50 text-blue-600 border-l-4 border-blue-500"
-                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200"
             }`}
           >
             <CreditCard className="h-5 w-5" />
@@ -342,18 +438,20 @@ const SettingsPage: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab("usage")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg ${
+            className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium border-b-2 ${
               activeTab === "usage"
-                ? "bg-blue-50 text-blue-600 border-l-4 border-blue-500"
-                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200"
             }`}
           >
             <BarChart2 className="h-5 w-5" />
             <span>Usage</span>
           </button>
-        </div>
+        </nav>
       </div>
-      <div className="flex-1">{renderTabContent()}</div>
+
+      {/* Main content */}
+      <div className="flex-1 p-6">{renderTabContent()}</div>
     </div>
   );
 };

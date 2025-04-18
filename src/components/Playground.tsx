@@ -124,6 +124,8 @@ export default function Playground({ agentId }: PlaygroundProps) {
     setActiveAgentUsername,
     calendlyUrl,
     setCalendlyUrl,
+    currentAgentData,
+    setCurrentAgentData,
   } = useUserStore();
   const [selectedPromptTemplate, setSelectedPromptTemplate] =
     useState("educational");
@@ -162,6 +164,7 @@ export default function Playground({ agentId }: PlaygroundProps) {
           bubbleColor: agentDetails.themeColors.bubbleColor,
           bubbleTextColor: agentDetails.themeColors.bubbleTextColor,
         });
+        setCurrentAgentData(agentDetails);
         setAgentName(agentDetails.name);
         setActiveAgentUsername(agentDetails.username || null);
         setLogo(agentDetails.logo || "");
@@ -233,7 +236,7 @@ export default function Playground({ agentId }: PlaygroundProps) {
       analysis: analysisResult,
       lastUrl,
       lastContent,
-      extractedPlatform
+      extractedPlatform,
     });
   };
 
@@ -415,387 +418,377 @@ The personality instructions above should take precedence over other style guide
   };
 
   return (
-    <div className="max-w-xxl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
-      <div className="grid grid-cols-3 min-h-[600px]">
-        <div className="col-span-2 border-r border-gray-200 p-1 bg-gray-50 max-h-[650px] overflow-y-auto">
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm">
-              <div className="flex">
-                {/* Vertical Tab Navigation */}
-                <div className="w-1/3 border-r border-gray-200">
-                  <nav className="space-y-1 p-2">
-                    <button
-                      onClick={() => setActiveTab("model")}
-                      className={`w-full text-left px-3 py-2 text-sm font-medium rounded-md ${
-                        activeTab === "model"
-                          ? "bg-blue-50 text-blue-700 border-l-2 border-blue-500"
-                          : "text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      Model
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("system")}
-                      className={`w-full text-left px-3 py-2 text-sm font-medium rounded-md ${
-                        activeTab === "system"
-                          ? "bg-blue-50 text-blue-700 border-l-2 border-blue-500"
-                          : "text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      System Prompt
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("personality")}
-                      className={`w-full text-left px-3 py-2 text-sm font-medium rounded-md ${
-                        activeTab === "personality"
-                          ? "bg-blue-50 text-blue-700 border-l-2 border-blue-500"
-                          : "text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      Personality
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("theme")}
-                      className={`w-full text-left px-3 py-2 text-sm font-medium rounded-md ${
-                        activeTab === "theme"
-                          ? "bg-blue-50 text-blue-700 border-l-2 border-blue-500"
-                          : "text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      Theme
-                    </button>
-                  </nav>
-                </div>
+    <div className="grid grid-cols-3 min-h-[600px] w-full">
+      <div className="col-span-2 border-r border-gray-200 p-1 bg-gray-50 max-h-[650px] overflow-y-auto">
+        <div className="space-y-6">
+          <div className="bg-white rounded-lg shadow-sm">
+            <div className="flex flex-col">
+              {/* Horizontal Tab Navigation */}
+              <div className="border-b border-gray-200">
+                <nav className="flex">
+                  <button
+                    onClick={() => setActiveTab("model")}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 ${
+                      activeTab === "model"
+                        ? "border-blue-500 text-blue-700"
+                        : "border-transparent text-gray-600 hover:text-gray-700 hover:border-gray-200"
+                    }`}
+                  >
+                    Model
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("system")}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 ${
+                      activeTab === "system"
+                        ? "border-blue-500 text-blue-700"
+                        : "border-transparent text-gray-600 hover:text-gray-700 hover:border-gray-200"
+                    }`}
+                  >
+                    System Prompt
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("personality")}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 ${
+                      activeTab === "personality"
+                        ? "border-blue-500 text-blue-700"
+                        : "border-transparent text-gray-600 hover:text-gray-700 hover:border-gray-200"
+                    }`}
+                  >
+                    Personality
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("theme")}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 ${
+                      activeTab === "theme"
+                        ? "border-blue-500 text-blue-700"
+                        : "border-transparent text-gray-600 hover:text-gray-700 hover:border-gray-200"
+                    }`}
+                  >
+                    Theme
+                  </button>
+                </nav>
+              </div>
 
-                {/* Tab Content */}
-                <div className="w-2/3 p-4 min-h-[500px]">
-                  {/* Model Settings Tab */}
-                  {activeTab === "model" && (
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-gray-700">
-                          Model
-                        </span>
-                        <button className="text-gray-400 hover:text-gray-600">
-                          <RefreshCw className="h-4 w-4" />
-                        </button>
-                      </div>
-                      <select
-                        value={model}
-                        onChange={(e) => setModel(e.target.value)}
-                        className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        {AVAILABLE_MODELS.map((modelOption) => (
-                          <option key={modelOption.id} value={modelOption.id}>
-                            {modelOption.name} ({modelOption.contextWindow}{" "}
-                            context)
-                          </option>
-                        ))}
-                      </select>
+              {/* Tab Content */}
+              <div className="p-4 min-h-[500px]">
+                {/* Model Settings Tab */}
+                {activeTab === "model" && (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-700">
+                        Model
+                      </span>
+                      <button className="text-gray-400 hover:text-gray-600">
+                        <RefreshCw className="h-4 w-4" />
+                      </button>
                     </div>
-                  )}
+                    <select
+                      value={model}
+                      onChange={(e) => setModel(e.target.value)}
+                      className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      {AVAILABLE_MODELS.map((modelOption) => (
+                        <option key={modelOption.id} value={modelOption.id}>
+                          {modelOption.name} ({modelOption.contextWindow}{" "}
+                          context)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
-                  {/* System Prompt Tab */}
-                  {activeTab === "system" && (
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-gray-700">
-                          System Prompt
-                        </span>
-                        <button
-                          onClick={() => setIsCustomPrompt(!isCustomPrompt)}
-                          className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                {/* System Prompt Tab */}
+                {activeTab === "system" && (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-700">
+                        System Prompt
+                      </span>
+                      <button
+                        onClick={() => setIsCustomPrompt(!isCustomPrompt)}
+                        className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                      >
+                        <Plus className="h-4 w-4" />
+                        {isCustomPrompt ? "Use Template" : "Custom Prompt"}
+                      </button>
+                    </div>
+
+                    {!isCustomPrompt ? (
+                      <div className="space-y-2">
+                        <select
+                          value={selectedPromptTemplate}
+                          onChange={(e) => handleTemplateChange(e.target.value)}
+                          className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
-                          <Plus className="h-4 w-4" />
-                          {isCustomPrompt ? "Use Template" : "Custom Prompt"}
-                        </button>
-                      </div>
-
-                      {!isCustomPrompt ? (
-                        <div className="space-y-2">
-                          <select
-                            value={selectedPromptTemplate}
-                            onChange={(e) =>
-                              handleTemplateChange(e.target.value)
-                            }
-                            className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          >
-                            {SYSTEM_PROMPT_TEMPLATES.map((template) => (
-                              <option key={template.id} value={template.id}>
-                                {template.name}
-                              </option>
-                            ))}
-                          </select>
-                          <textarea
-                            value={systemPrompt}
-                            onChange={(e) => setSystemPrompt(e.target.value)}
-                            className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-64 resize-none"
-                            placeholder="Modify the selected template..."
-                          />
-                        </div>
-                      ) : (
+                          {SYSTEM_PROMPT_TEMPLATES.map((template) => (
+                            <option key={template.id} value={template.id}>
+                              {template.name}
+                            </option>
+                          ))}
+                        </select>
                         <textarea
                           value={systemPrompt}
                           onChange={(e) => setSystemPrompt(e.target.value)}
-                          className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-32 resize-none"
-                          placeholder="Enter custom system prompt..."
+                          className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-64 resize-none"
+                          placeholder="Modify the selected template..."
                         />
-                      )}
-                    </div>
-                  )}
+                      </div>
+                    ) : (
+                      <textarea
+                        value={systemPrompt}
+                        onChange={(e) => setSystemPrompt(e.target.value)}
+                        className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-32 resize-none"
+                        placeholder="Enter custom system prompt..."
+                      />
+                    )}
+                  </div>
+                )}
 
-                  {/* Personality Settings Tab */}
-                  {activeTab === "personality" && (
+                {/* Personality Settings Tab */}
+                {activeTab === "personality" && (
+                  <div className="space-y-4">
+                    <PersonalityAnalyzer
+                      openaiClient={openai}
+                      onPersonalityChange={handlePersonalityChange}
+                      initialPersonality={{
+                        type: personalityData.type,
+                        isCustom: personalityData.isCustom,
+                        customPrompt: personalityData.customPrompt,
+                      }}
+                      initialAnalysis={personalityData.analysis}
+                      initialUrl={personalityData.lastUrl}
+                      initialContent={personalityData.lastContent}
+                    />
+                  </div>
+                )}
+
+                {/* Theme Settings Tab */}
+                {activeTab === "theme" && (
+                  <div className="space-y-6">
                     <div className="space-y-4">
-                      <PersonalityAnalyzer
-                        openaiClient={openai}
-                        onPersonalityChange={handlePersonalityChange}
-                        initialPersonality={{
-                          type: personalityData.type,
-                          isCustom: personalityData.isCustom,
-                          customPrompt: personalityData.customPrompt,
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Theme color:
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={theme.botColor}
+                            onChange={(e) =>
+                              setTheme({
+                                ...theme,
+                                botColor: e.target.value,
+                              })
+                            }
+                            className="h-8 w-8 rounded cursor-pointer"
+                          />
+                          <span className="text-sm text-gray-500">
+                            {theme.botColor}
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Theme text:
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={theme.botText}
+                            onChange={(e) =>
+                              setTheme({
+                                ...theme,
+                                botText: e.target.value,
+                              })
+                            }
+                            className="h-8 w-8 rounded cursor-pointer"
+                          />
+                          <span className="text-sm text-gray-500">
+                            {theme.botText}
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Chat background:
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={theme.bubbleBackground}
+                            onChange={(e) =>
+                              setTheme({
+                                ...theme,
+                                bubbleBackground: e.target.value,
+                              })
+                            }
+                            className="h-8 w-8 rounded cursor-pointer"
+                          />
+                          <span className="text-sm text-gray-500">
+                            {theme.bubbleBackground}
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Bubble color:
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={theme.bubbleColor}
+                            onChange={(e) =>
+                              setTheme({
+                                ...theme,
+                                bubbleColor: e.target.value,
+                              })
+                            }
+                            className="h-8 w-8 rounded cursor-pointer"
+                          />
+                          <span className="text-sm text-gray-500">
+                            {theme.bubbleColor}
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Bubble text color:
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={theme.bubbleTextColor}
+                            onChange={(e) =>
+                              setTheme({
+                                ...theme,
+                                bubbleTextColor: e.target.value,
+                              })
+                            }
+                            className="h-8 w-8 rounded cursor-pointer"
+                          />
+                          <span className="text-sm text-gray-500">
+                            {theme.bubbleTextColor}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-4">
+                      <button
+                        onClick={() => {
+                          // Reset to default theme
+                          setTheme({
+                            botColor: "#FFFFFF",
+                            botText: "#000000",
+                            bubbleBackground: "#ffffff",
+                            bubbleColor: "#e5e5e5",
+                            bubbleTextColor: "#000000",
+                          });
                         }}
-                        initialAnalysis={personalityData.analysis}
-                        initialUrl={personalityData.lastUrl}
-                        initialContent={personalityData.lastContent}
-                        initialExtractedPlatform={personalityData.extractedPlatform}
-            />
+                        className="text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        Reset to Default
+                      </button>
                     </div>
-                  )}
-
-                  {/* Theme Settings Tab */}
-                  {activeTab === "theme" && (
-                    <div className="space-y-6">
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Theme color:
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="color"
-                              value={theme.botColor}
-                              onChange={(e) =>
-                                setTheme({
-                                  ...theme,
-                                  botColor: e.target.value,
-                                })
-                              }
-                              className="h-8 w-8 rounded cursor-pointer"
-                            />
-                            <span className="text-sm text-gray-500">
-                              {theme.botColor}
-                            </span>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Theme text:
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="color"
-                              value={theme.botText}
-                              onChange={(e) =>
-                                setTheme({
-                                  ...theme,
-                                  botText: e.target.value,
-                                })
-                              }
-                              className="h-8 w-8 rounded cursor-pointer"
-                            />
-                            <span className="text-sm text-gray-500">
-                              {theme.botText}
-                            </span>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Chat background:
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="color"
-                              value={theme.bubbleBackground}
-                              onChange={(e) =>
-                                setTheme({
-                                  ...theme,
-                                  bubbleBackground: e.target.value,
-                                })
-                              }
-                              className="h-8 w-8 rounded cursor-pointer"
-                            />
-                            <span className="text-sm text-gray-500">
-                              {theme.bubbleBackground}
-                            </span>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Bubble color:
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="color"
-                              value={theme.bubbleColor}
-                              onChange={(e) =>
-                                setTheme({
-                                  ...theme,
-                                  bubbleColor: e.target.value,
-                                })
-                              }
-                              className="h-8 w-8 rounded cursor-pointer"
-                            />
-                            <span className="text-sm text-gray-500">
-                              {theme.bubbleColor}
-                            </span>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Bubble text color:
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="color"
-                              value={theme.bubbleTextColor}
-                              onChange={(e) =>
-                                setTheme({
-                                  ...theme,
-                                  bubbleTextColor: e.target.value,
-                                })
-                              }
-                              className="h-8 w-8 rounded cursor-pointer"
-                            />
-                            <span className="text-sm text-gray-500">
-                              {theme.bubbleTextColor}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="pt-4">
-                        <button
-                          onClick={() => {
-                            // Reset to default theme
-                            setTheme({
-                              botColor: "#FFFFFF",
-                              botText: "#000000",
-                              bubbleBackground: "#ffffff",
-                              bubbleColor: "#e5e5e5",
-                              bubbleTextColor: "#000000",
-                            });
-                          }}
-                          className="text-sm text-blue-600 hover:text-blue-800"
-                        >
-                          Reset to Default
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
+          </div>
 
-            {/* Save Settings Button */}
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <button
-                onClick={handleSaveSettings}
-                className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-              >
-                <Save className="h-4 w-4" />
-                Save Settings
-              </button>
+          {/* Save Settings Button */}
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <button
+              onClick={handleSaveSettings}
+              className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              <Save className="h-4 w-4" />
+              Save Settings
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Chat Area */}
+      <div
+        className="col-span-1 flex flex-col"
+        style={{
+          backgroundColor: theme.botColor,
+          borderTopLeftRadius: "10px",
+          borderTopRightRadius: "10px",
+        }}
+      >
+        <div className="flex-1">
+          <div className="flex items-center justify-between p-2">
+            <div className="flex items-center space-x-3">
+              {logo ? (
+                <img
+                  src={logo}
+                  alt={`${agentName} logo`}
+                  className="h-8 w-8 rounded-full object-cover"
+                />
+              ) : (
+                <Bot className="h-8 w-8 text-indigo-600" />
+              )}
+              <div style={{ color: theme.botText }}>
+                <span className="text-sm font-medium">{agentName}</span>
+                {activeAgentUsername && (
+                  <span className="text-xs block">@{activeAgentUsername}</span>
+                )}
+              </div>
             </div>
+          </div>
+
+          <div
+            className="space-y-4 h-[500px] overflow-y-auto pt-2 pb-2"
+            style={{ backgroundColor: theme.bubbleBackground }}
+          >
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                style={{
+                  backgroundColor:
+                    msg.sender != "agent" ? theme.bubbleColor : "#f9f9f9",
+                  color:
+                    msg.sender != "agent" ? theme.bubbleTextColor : "#000000",
+                  border: "1px solid #e5e5e5",
+                }}
+                className={`rounded-lg p-2 ${
+                  msg.sender === "agent" ? "mr-8 ml-1" : `ml-8 mr-1`
+                }`}
+              >
+                <p>{msg.content}</p>
+                <div className="mt-1 text-xs text-gray-500">
+                  {msg.timestamp.toLocaleTimeString()}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Chat Area */}
+        {/* Message Input */}
         <div
-          className="col-span-1 flex flex-col"
-          style={{
-            backgroundColor: theme.botColor,
-            borderTopLeftRadius: "10px",
-            borderTopRightRadius: "10px",
-          }}
+          className="border-t border-gray-200 p-4"
+          style={{ backgroundColor: theme.bubbleBackground }}
         >
-          <div className="flex-1">
-            <div className="flex items-center justify-between p-2">
-              <div className="flex items-center space-x-3">
-                {logo ? (
-                  <img
-                    src={logo}
-                    alt={`${agentName} logo`}
-                    className="h-8 w-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <Bot className="h-8 w-8 text-indigo-600" />
-                )}
-                <div style={{ color: theme.botText }}>
-                  <span className="text-sm font-medium">{agentName}</span>
-                  {activeAgentUsername && (
-                    <span className="text-xs block">
-                      @{activeAgentUsername}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div
-              className="space-y-4 h-[450px] overflow-y-auto pt-2 pb-2"
-              style={{ backgroundColor: theme.bubbleBackground }}
+          <div className="relative">
+            <input
+              type="text"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Message..."
+              onKeyPress={handleKeyPress}
+              className="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <button
+              onClick={handleSendMessage}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  style={{
-                    backgroundColor:
-                      msg.sender != "agent" ? theme.bubbleColor : "#f9f9f9",
-                    color:
-                      msg.sender != "agent" ? theme.bubbleTextColor : "#000000",
-                    border: "1px solid #e5e5e5",
-                  }}
-                  className={`rounded-lg p-2 ${
-                    msg.sender === "agent" ? "mr-8 ml-1" : `ml-8 mr-1`
-                  }`}
-                >
-                  <p>{msg.content}</p>
-                  <div className="mt-1 text-xs text-gray-500">
-                    {msg.timestamp.toLocaleTimeString()}
-                  </div>
-                </div>
-              ))}
-            </div>
+              <Send className="h-5 w-5" />
+            </button>
           </div>
-
-          {/* Message Input */}
-          <div
-            className="border-t border-gray-200 p-4"
-            style={{ backgroundColor: theme.bubbleBackground }}
-          >
-            <div className="relative">
-              <input
-                type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Message..."
-                onKeyPress={handleKeyPress}
-                className="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <button
-                onClick={handleSendMessage}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                <Send className="h-5 w-5" />
-              </button>
-            </div>
-            <div
-              className="mt-2 text-xs text-right"
-              style={{ color: theme.botText }}
-            >
-              Powered By KiFor.ai
-            </div>
+          <div className="mt-2 text-xs text-right text-gray-500">
+            Powered By KiFor.ai
           </div>
         </div>
       </div>
