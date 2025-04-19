@@ -392,7 +392,7 @@ The personality instructions above should take precedence over other style guide
             ))}
           </div>
         )}
-        {activeScreen === "book" && showCalendly && (
+        {activeScreen === "book" && config?.calendlyUrl && (
           <div className="bg-white rounded-lg p-4">
             <InlineWidget
               url={config?.calendlyUrl || ""}
@@ -401,8 +401,14 @@ The personality instructions above should take precedence over other style guide
           </div>
         )}
         {activeScreen === "browse" && (
-          <div className="bg-white rounded-lg p-4">
-            <h2 className="text-lg font-semibold mb-4">All Services</h2>
+          <div className="rounded-lg p-4">
+            <p
+              className="text-sm mt-8 text-center w-[75%] mx-auto"
+              style={{ color: themeSettings.headerTextColor }}
+            >
+              Currently, I am not offering any product/services. Please check
+              back later.
+            </p>
             {/* Add restaurant browsing content here */}
           </div>
         )}
