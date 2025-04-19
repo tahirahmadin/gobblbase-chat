@@ -5,15 +5,25 @@ interface BotConfig {
   agentId?: string;
   logo?: string;
   username?: string;
+  name: string;
   calendlyUrl?: string;
   systemPrompt?: string;
   model?: string;
   themeColors?: {
-    botColor?: string;
-    botText?: string;
-    bubbleBackground?: string;
-    bubbleColor?: string;
-    bubbleTextColor?: string;
+    headerColor: string;
+    headerTextColor: string;
+    headerNavColor: string;
+    headerIconColor: string;
+    chatBackgroundColor: string;
+    bubbleAgentBgColor: string;
+    bubbleAgentTextColor: string;
+    bubbleAgentTimeTextColor: string;
+    bubbleUserBgColor: string;
+    bubbleUserTextColor: string;
+    bubbleUserTimeTextColor: string;
+    inputCardColor: string;
+    inputBackgroundColor: string;
+    inputTextColor: string;
   };
   [key: string]: any;
 }

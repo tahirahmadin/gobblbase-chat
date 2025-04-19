@@ -1,9 +1,9 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import { ChatMessage } from "../types";
-import { queryDocument, getAgentDetails } from "../lib/serverActions";
+import { queryDocument } from "../lib/serverActions";
 import OpenAI from "openai";
-import { Send } from "lucide-react";
+import { Send, MessageSquare, Calendar, Search, MenuIcon } from "lucide-react";
 import { InlineWidget } from "react-calendly";
 import { useBotConfig } from "../store/useBotConfig";
 import { PERSONALITY_TYPES } from "./PersonalityAnalyzer";
@@ -35,12 +35,13 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true,
 });
 
-// Define query cues
+// Define query cues in pairs for 2x2 grid
 const QUERY_CUES = [
-  "Book an Appointment",
-  "What services do you offer?",
-  "How can I contact support?",
+  ["Tell me about you ?", "Most popular items ?"],
+  ["Best courses available?", "Your education ?"],
 ];
+
+type Screen = "chat" | "book" | "browse";
 
 export default function PublicChat() {
   const { botUsername } = useParams();
@@ -49,15 +50,18 @@ export default function PublicChat() {
   const [messages, setMessages] = React.useState<ChatMessage[]>([
     {
       id: "1",
-      content: "Hi! What can I help you with?",
+      content:
+        "Hi! Cozy weather today calls for something delicious. Let me know what you're craving?",
       timestamp: new Date(),
       sender: "agent",
     },
   ]);
+  const [activeScreen, setActiveScreen] = React.useState<Screen>("chat");
   const [isLoading, setIsLoading] = React.useState(false);
   const [showCues, setShowCues] = React.useState(true);
   const [showCalendly, setShowCalendly] = React.useState(false);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
+
   const [personalityType, setPersonalityType] =
     React.useState<PersonalityType | null>(null);
   const [isCustomPersonality, setIsCustomPersonality] = React.useState(false);
@@ -65,6 +69,24 @@ export default function PublicChat() {
     React.useState("");
   const [personalityAnalysis, setPersonalityAnalysis] =
     React.useState<PersonalityAnalysis | null>(null);
+
+  let themeSettings = config?.themeColors || {
+    headerColor: "#000000",
+    headerTextColor: "#F0B90A",
+    headerNavColor: "#bdbdbd",
+    headerIconColor: "#F0B90A",
+    chatBackgroundColor: "#313131",
+    bubbleAgentBgColor: "#1E2026",
+    bubbleAgentTextColor: "#ffffff",
+    bubbleAgentTimeTextColor: "#F0B90A",
+    bubbleUserBgColor: "#F0B90A",
+    bubbleUserTextColor: "#000000",
+    bubbleUserTimeTextColor: "#000000",
+
+    inputCardColor: "#27282B",
+    inputBackgroundColor: "#212121",
+    inputTextColor: "#ffffff",
+  };
 
   React.useEffect(() => {
     if (botUsername) {
@@ -108,27 +130,6 @@ export default function PublicChat() {
   React.useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  // Add useEffect for Calendly event handling
-  React.useEffect(() => {
-    const handleCalendlyEvent = (e: MessageEvent) => {
-      if (e.data?.event === "calendly.event_scheduled") {
-        console.log("✅ Event scheduled:", e.data);
-        const thankYouMessage: ChatMessage = {
-          id: Date.now().toString(),
-          content:
-            "Thank you for booking the meeting! We look forward to seeing you.",
-          timestamp: new Date(),
-          sender: "agent",
-        };
-        setMessages((prev) => [...prev, thankYouMessage]);
-        setShowCalendly(false);
-      }
-    };
-
-    window.addEventListener("message", handleCalendlyEvent);
-    return () => window.removeEventListener("message", handleCalendlyEvent);
-  }, []);
 
   const handleSendMessage = async () => {
     if (!message.trim() || !config?.agentId) return;
@@ -242,7 +243,6 @@ The personality instructions above should take precedence over other style guide
   const handleCueClick = (cue: string) => {
     setMessage(cue);
     setShowCues(false);
-    // Small delay to ensure the message is set before sending
     setTimeout(() => {
       handleSendMessage();
     }, 100);
@@ -257,137 +257,218 @@ The personality instructions above should take precedence over other style guide
   }
 
   return (
-    <div
-      className="flex flex-col h-screen"
-      style={{
-        backgroundColor: config?.themeColors?.botColor,
-      }}
-    >
-      {/* Chat Header */}
-      <div className="border-b border-gray-200 px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+    <div className="flex flex-col h-screen">
+      {/* Header */}
+      <div
+        className="shadow-sm"
+        style={{ backgroundColor: themeSettings.headerColor }}
+      >
+        <div className="px-4 pt-3  flex items-center justify-between mb-2">
+          <div
+            className="flex items-center space-x-3"
+            style={{ color: themeSettings.headerTextColor }}
+          >
             {config?.logo && (
               <img
                 src={config.logo}
-                alt="Bot Logo"
+                alt="Profile image"
                 className="w-8 h-8 rounded-full object-cover"
               />
             )}
-            <div
-              className="flex items-center space-x-2"
-              style={{ color: config?.themeColors?.botText }}
-            >
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <span className="text-sm font-medium">
-                {config?.username || "KiFor.ai Chat"}
-              </span>
+            <div className="flex items-start text-lg font-bold transition-colors duration-300">
+              {config?.name || "KiFor Bot"}
             </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span
+              className="text-xs"
+              style={{ color: themeSettings.headerIconColor }}
+            >
+              <MenuIcon className="h-4 w-4" />
+            </span>
+          </div>
+        </div>
+        {/* Navigation */}
+        <div className="border-t border-gray-200">
+          <div className="flex justify-around py-1 text-xs">
+            <button
+              onClick={() => setActiveScreen("chat")}
+              className={`flex items-center space-x-1 px-4 py-2 rounded-lg text-[13px] font-medium`}
+              style={{
+                color:
+                  activeScreen === "chat"
+                    ? themeSettings.headerTextColor
+                    : themeSettings.headerNavColor,
+              }}
+            >
+              <MessageSquare className="h-3.5 w-3.5" />
+              <span>Chat</span>
+            </button>
+            <button
+              onClick={() => setActiveScreen("book")}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-[13px] font-medium `}
+              style={{
+                color:
+                  activeScreen === "book"
+                    ? themeSettings.headerTextColor
+                    : themeSettings.headerNavColor,
+              }}
+            >
+              <Calendar className="h-4 w-4" />
+              <span>BOOK</span>
+            </button>
+            <button
+              onClick={() => setActiveScreen("browse")}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-[13px] font-medium`}
+              style={{
+                color:
+                  activeScreen === "browse"
+                    ? themeSettings.headerTextColor
+                    : themeSettings.headerNavColor,
+              }}
+            >
+              <Search className="h-4 w-4" />
+              <span>BROWSE</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Messages Area */}
+      {/* Content Area */}
       <div
-        className="flex-1 overflow-y-auto p-4 space-y-4"
-        style={{
-          backgroundColor: config?.themeColors?.bubbleBackground || "#ffffff",
-        }}
+        className="flex-1 overflow-y-auto p-2"
+        style={{ backgroundColor: themeSettings.chatBackgroundColor }}
       >
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex ${
-              msg.sender === "agent" ? "justify-start" : "justify-end"
-            }`}
-          >
-            <div
-              className="max-w-[80%] rounded-lg p-3 shadow-sm"
-              style={{
-                backgroundColor:
-                  msg.sender != "agent"
-                    ? config?.themeColors?.bubbleColor
-                    : "#f9f9f9",
-                color:
-                  msg.sender != "agent"
-                    ? config?.themeColors?.bubbleTextColor
-                    : "#000000",
-                border: "1px solid #e5e5e5",
-              }}
-            >
-              <p className="text-sm">{msg.content}</p>
-              <div className="mt-1 text-xs opacity-70">
-                {msg.timestamp.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+        {activeScreen === "chat" && (
+          <div className="space-y-4">
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex ${
+                  msg.sender === "agent" ? "justify-start" : "justify-end"
+                }`}
+              >
+                <div
+                  className={`max-w-[90%] rounded-lg p-2`}
+                  style={{
+                    backgroundColor:
+                      msg.sender === "agent"
+                        ? themeSettings.bubbleAgentBgColor
+                        : themeSettings.bubbleUserBgColor,
+                    color:
+                      msg.sender === "agent"
+                        ? themeSettings.bubbleAgentTextColor
+                        : themeSettings.bubbleUserTextColor,
+                  }}
+                >
+                  <div className="flex items-start space-x-2">
+                    {config?.logo && (
+                      <img
+                        src={config.logo}
+                        alt="Bot Logo"
+                        className="w-6 h-6 rounded-full object-cover"
+                      />
+                    )}
+                    <div>
+                      <p className="text-[13px]">{msg.content}</p>
+                    </div>
+                  </div>
+                  <div
+                    className="mt-1 text-xs opacity-70"
+                    style={{
+                      color:
+                        msg.sender === "agent"
+                          ? themeSettings.bubbleAgentTimeTextColor
+                          : themeSettings.bubbleUserTimeTextColor,
+                    }}
+                  >
+                    {msg.timestamp.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
-        ))}
-        {showCalendly && (
-          <div className="mt-4">
+        )}
+        {activeScreen === "book" && showCalendly && (
+          <div className="bg-white rounded-lg p-4">
             <InlineWidget
               url={config?.calendlyUrl || ""}
-              styles={{
-                height: "450px",
-                fontSize: 12,
-              }}
+              styles={{ height: "600px" }}
             />
           </div>
         )}
-        <div ref={messagesEndRef} />
+        {activeScreen === "browse" && (
+          <div className="bg-white rounded-lg p-4">
+            <h2 className="text-lg font-semibold mb-4">All Services</h2>
+            {/* Add restaurant browsing content here */}
+          </div>
+        )}
       </div>
 
-      {/* Query Cues */}
-      {showCues && (
-        <div className="bg-white border-t border-gray-200 px-4 py-3">
-          <div className="flex flex-wrap gap-2 justify-start">
-            {QUERY_CUES.map((cue, index) => (
-              <button
-                key={index}
-                onClick={() => handleCueClick(cue)}
-                disabled={isLoading}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-full transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {cue}
-              </button>
-            ))}
-          </div>
+      {/* Query Cues - 2x2 Grid */}
+      {showCues && activeScreen === "chat" && (
+        <div
+          className="p-2 grid grid-cols-1 gap-1"
+          style={{ backgroundColor: themeSettings.inputCardColor }}
+        >
+          {QUERY_CUES.map((row, rowIndex) => (
+            <div key={rowIndex} className="grid grid-cols-2 gap-2">
+              {row.map((cue, colIndex) => (
+                <button
+                  key={`${rowIndex}-${colIndex}`}
+                  onClick={() => handleCueClick(cue)}
+                  disabled={isLoading}
+                  className="w-full px-2 py-1  text-gray-800 rounded-xl text-xs font-medium transition-colors duration-200"
+                  style={{
+                    backgroundColor: themeSettings.headerTextColor,
+                    color: themeSettings.headerColor,
+                  }}
+                >
+                  {cue}
+                </button>
+              ))}
+            </div>
+          ))}
         </div>
       )}
 
       {/* Input Area */}
       <div
-        className="border-t border-gray-200 p-4"
-        style={{
-          backgroundColor: config?.themeColors?.bubbleBackground || "#ffffff",
-        }}
+        className="p-2"
+        style={{ backgroundColor: themeSettings.inputCardColor }}
       >
-        <div className="relative">
+        <div className="relative flex items-center">
           <input
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type your message..."
+            placeholder="Ask here..."
             onKeyPress={handleKeyPress}
-            className="w-full pl-4 pr-12 py-3 bg-gray-50 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="flex-1 pl-4 pr-12 py-3 rounded-full text-sm focus:outline-none"
+            style={{
+              backgroundColor: themeSettings.inputBackgroundColor,
+              color: themeSettings.inputTextColor,
+            }}
             disabled={isLoading}
           />
           <button
             onClick={handleSendMessage}
             disabled={isLoading || !message.trim()}
-            className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
-              isLoading || !message.trim()
-                ? "text-gray-400"
-                : "text-blue-600 hover:text-blue-700"
-            }`}
+            className="absolute right-2 p-2"
           >
-            <Send className="h-5 w-5" />
+            <Send
+              className="h-5 w-5"
+              style={{
+                color:
+                  isLoading || !message.trim()
+                    ? themeSettings.headerNavColor
+                    : themeSettings.headerIconColor,
+              }}
+            />
           </button>
-        </div>
-        <div className="mt-2 text-center">
-          <span className="text-xs text-gray-400">Powered by KiFor.ai</span>
         </div>
       </div>
     </div>

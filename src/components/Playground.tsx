@@ -42,6 +42,23 @@ interface PersonalityData {
   extractedPlatform: string | null;
 }
 
+interface Theme {
+  headerColor: string;
+  headerTextColor: string;
+  headerNavColor: string;
+  headerIconColor: string;
+  chatBackgroundColor: string;
+  bubbleAgentBgColor: string;
+  bubbleAgentTextColor: string;
+  bubbleAgentTimeTextColor: string;
+  bubbleUserBgColor: string;
+  bubbleUserTextColor: string;
+  bubbleUserTimeTextColor: string;
+  inputCardColor: string;
+  inputBackgroundColor: string;
+  inputTextColor: string;
+}
+
 interface PlaygroundProps {
   agentId: string;
 }
@@ -94,6 +111,90 @@ const SYSTEM_PROMPT_TEMPLATES = [
   },
 ];
 
+// Define available themes
+const AVAILABLE_THEMES = [
+  {
+    id: "crypto",
+    name: "Crypto Theme",
+    theme: {
+      headerColor: "#000000",
+      headerTextColor: "#F0B90A",
+      headerNavColor: "#bdbdbd",
+      headerIconColor: "#F0B90A",
+      chatBackgroundColor: "#313131",
+      bubbleAgentBgColor: "#1E2026",
+      bubbleAgentTextColor: "#ffffff",
+      bubbleAgentTimeTextColor: "#F0B90A",
+      bubbleUserBgColor: "#F0B90A",
+      bubbleUserTextColor: "#000000",
+      bubbleUserTimeTextColor: "#000000",
+      inputCardColor: "#27282B",
+      inputBackgroundColor: "#212121",
+      inputTextColor: "#ffffff",
+    },
+  },
+  {
+    id: "modern",
+    name: "Modern Theme",
+    theme: {
+      headerColor: "#ffffff",
+      headerTextColor: "#1a1a1a",
+      headerNavColor: "#bdbdbd",
+      headerIconColor: "#10B981",
+      chatBackgroundColor: "#ffffff",
+      bubbleAgentBgColor: "#f0fdf9",
+      bubbleAgentTextColor: "#1a1a1a",
+      bubbleAgentTimeTextColor: "#94a3b8",
+      bubbleUserBgColor: "#10B981",
+      bubbleUserTextColor: "#ffffff",
+      bubbleUserTimeTextColor: "#ffffff",
+      inputCardColor: "#ffffff",
+      inputBackgroundColor: "#f8fafc",
+      inputTextColor: "#1a1a1a",
+    },
+  },
+  {
+    id: "purple",
+    name: "Purple Theme",
+    theme: {
+      headerColor: "#ffffff",
+      headerTextColor: "#1a1a1a",
+      headerNavColor: "#bdbdbd",
+      headerIconColor: "#8B5CF6",
+      chatBackgroundColor: "#ffffff",
+      bubbleAgentBgColor: "#f5f3ff",
+      bubbleAgentTextColor: "#1a1a1a",
+      bubbleAgentTimeTextColor: "#94a3b8",
+      bubbleUserBgColor: "#8B5CF6",
+      bubbleUserTextColor: "#ffffff",
+      bubbleUserTimeTextColor: "#ffffff",
+      inputCardColor: "#ffffff",
+      inputBackgroundColor: "#f8fafc",
+      inputTextColor: "#1a1a1a",
+    },
+  },
+  {
+    id: "red",
+    name: "Red Theme",
+    theme: {
+      headerColor: "#ffffff",
+      headerTextColor: "#1a1a1a",
+      headerNavColor: "#bdbdbd",
+      headerIconColor: "#EF4444",
+      chatBackgroundColor: "#ffffff",
+      bubbleAgentBgColor: "#fef2f2",
+      bubbleAgentTextColor: "#1a1a1a",
+      bubbleAgentTimeTextColor: "#94a3b8",
+      bubbleUserBgColor: "#EF4444",
+      bubbleUserTextColor: "#ffffff",
+      bubbleUserTimeTextColor: "#ffffff",
+      inputCardColor: "#ffffff",
+      inputBackgroundColor: "#f8fafc",
+      inputTextColor: "#1a1a1a",
+    },
+  },
+];
+
 // Initialize OpenAI client
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_PUBLIC_OPENAI_API_KEY,
@@ -143,13 +244,7 @@ export default function Playground({ agentId }: PlaygroundProps) {
   );
   const [userId, setUserId] = useState("");
   const [activeTab, setActiveTab] = useState("model");
-  const [theme, setTheme] = useState({
-    botColor: "#ffffff",
-    botText: "#000000",
-    bubbleBackground: "#ffffff",
-    bubbleColor: "#e5e5e5",
-    bubbleTextColor: "#000000",
-  });
+  const [theme, setTheme] = useState<Theme>(AVAILABLE_THEMES[0].theme);
 
   useEffect(() => {
     async function fetchAgentDetails() {
@@ -157,13 +252,7 @@ export default function Playground({ agentId }: PlaygroundProps) {
         const agentDetails = await getAgentDetails(agentId, null);
         setModel(agentDetails.model);
         setSystemPrompt(agentDetails.systemPrompt);
-        setTheme({
-          botColor: agentDetails.themeColors.botColor,
-          botText: agentDetails.themeColors.botText,
-          bubbleBackground: agentDetails.themeColors.bubbleBackground,
-          bubbleColor: agentDetails.themeColors.bubbleColor,
-          bubbleTextColor: agentDetails.themeColors.bubbleTextColor,
-        });
+        setTheme(agentDetails.themeColors);
         setCurrentAgentData(agentDetails);
         setAgentName(agentDetails.name);
         setActiveAgentUsername(agentDetails.username || null);
@@ -382,13 +471,7 @@ The personality instructions above should take precedence over other style guide
       personalityAnalysis: personalityData.analysis,
       lastPersonalityUrl: personalityData.lastUrl,
       lastPersonalityContent: personalityData.lastContent,
-      themeColors: {
-        botColor: theme.botColor,
-        botText: theme.botText,
-        bubbleBackground: theme.bubbleBackground,
-        bubbleColor: theme.bubbleColor,
-        bubbleTextColor: theme.bubbleTextColor,
-      },
+      themeColors: theme,
     });
 
     try {
@@ -403,13 +486,7 @@ The personality instructions above should take precedence over other style guide
         personalityAnalysis: personalityData.analysis,
         lastPersonalityUrl: personalityData.lastUrl,
         lastPersonalityContent: personalityData.lastContent,
-        themeColors: {
-          botColor: theme.botColor,
-          botText: theme.botText,
-          bubbleBackground: theme.bubbleBackground,
-          bubbleColor: theme.bubbleColor,
-          bubbleTextColor: theme.bubbleTextColor,
-        },
+        themeColors: theme,
       });
       console.log("Settings saved successfully");
     } catch (error) {
@@ -567,124 +644,60 @@ The personality instructions above should take precedence over other style guide
                   <div className="space-y-6">
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Theme color:
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Select Theme
                         </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="color"
-                            value={theme.botColor}
-                            onChange={(e) =>
-                              setTheme({
-                                ...theme,
-                                botColor: e.target.value,
-                              })
-                            }
-                            className="h-8 w-8 rounded cursor-pointer"
-                          />
-                          <span className="text-sm text-gray-500">
-                            {theme.botColor}
-                          </span>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Theme text:
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="color"
-                            value={theme.botText}
-                            onChange={(e) =>
-                              setTheme({
-                                ...theme,
-                                botText: e.target.value,
-                              })
-                            }
-                            className="h-8 w-8 rounded cursor-pointer"
-                          />
-                          <span className="text-sm text-gray-500">
-                            {theme.botText}
-                          </span>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Chat background:
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="color"
-                            value={theme.bubbleBackground}
-                            onChange={(e) =>
-                              setTheme({
-                                ...theme,
-                                bubbleBackground: e.target.value,
-                              })
-                            }
-                            className="h-8 w-8 rounded cursor-pointer"
-                          />
-                          <span className="text-sm text-gray-500">
-                            {theme.bubbleBackground}
-                          </span>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Bubble color:
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="color"
-                            value={theme.bubbleColor}
-                            onChange={(e) =>
-                              setTheme({
-                                ...theme,
-                                bubbleColor: e.target.value,
-                              })
-                            }
-                            className="h-8 w-8 rounded cursor-pointer"
-                          />
-                          <span className="text-sm text-gray-500">
-                            {theme.bubbleColor}
-                          </span>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Bubble text color:
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="color"
-                            value={theme.bubbleTextColor}
-                            onChange={(e) =>
-                              setTheme({
-                                ...theme,
-                                bubbleTextColor: e.target.value,
-                              })
-                            }
-                            className="h-8 w-8 rounded cursor-pointer"
-                          />
-                          <span className="text-sm text-gray-500">
-                            {theme.bubbleTextColor}
-                          </span>
+                        <div className="grid grid-cols-2 gap-4">
+                          {AVAILABLE_THEMES.map((themeOption) => (
+                            <button
+                              key={themeOption.id}
+                              onClick={() => setTheme(themeOption.theme)}
+                              className={`p-4 rounded-lg border-2 transition-all ${
+                                theme === themeOption.theme
+                                  ? "border-blue-500 bg-blue-50"
+                                  : "border-gray-200 hover:border-gray-300"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="font-medium">
+                                  {themeOption.name}
+                                </span>
+                                {theme === themeOption.theme && (
+                                  <span className="text-blue-500">✓</span>
+                                )}
+                              </div>
+                              <div className="grid grid-cols-3 gap-1 h-12">
+                                <div
+                                  className="rounded"
+                                  style={{
+                                    backgroundColor:
+                                      themeOption.theme.headerColor,
+                                  }}
+                                />
+                                <div
+                                  className="rounded"
+                                  style={{
+                                    backgroundColor:
+                                      themeOption.theme.chatBackgroundColor,
+                                  }}
+                                />
+                                <div
+                                  className="rounded"
+                                  style={{
+                                    backgroundColor:
+                                      themeOption.theme.bubbleUserBgColor,
+                                  }}
+                                />
+                              </div>
+                            </button>
+                          ))}
                         </div>
                       </div>
                     </div>
 
                     <div className="pt-4">
                       <button
-                        onClick={() => {
-                          // Reset to default theme
-                          setTheme({
-                            botColor: "#FFFFFF",
-                            botText: "#000000",
-                            bubbleBackground: "#ffffff",
-                            bubbleColor: "#e5e5e5",
-                            bubbleTextColor: "#000000",
-                          });
-                        }}
+                        onClick={() => setTheme(AVAILABLE_THEMES[0].theme)}
                         className="text-sm text-blue-600 hover:text-blue-800"
                       >
                         Reset to Default
@@ -713,7 +726,7 @@ The personality instructions above should take precedence over other style guide
       <div
         className="col-span-1 flex flex-col"
         style={{
-          backgroundColor: theme.botColor,
+          backgroundColor: theme.headerColor,
           borderTopLeftRadius: "10px",
           borderTopRightRadius: "10px",
         }}
@@ -728,9 +741,12 @@ The personality instructions above should take precedence over other style guide
                   className="h-8 w-8 rounded-full object-cover"
                 />
               ) : (
-                <Bot className="h-8 w-8 text-indigo-600" />
+                <Bot
+                  className="h-8 w-8"
+                  style={{ color: theme.headerIconColor }}
+                />
               )}
-              <div style={{ color: theme.botText }}>
+              <div style={{ color: theme.headerTextColor }}>
                 <span className="text-sm font-medium">{agentName}</span>
                 {activeAgentUsername && (
                   <span className="text-xs block">@{activeAgentUsername}</span>
@@ -741,16 +757,20 @@ The personality instructions above should take precedence over other style guide
 
           <div
             className="space-y-4 h-[500px] overflow-y-auto pt-2 pb-2"
-            style={{ backgroundColor: theme.bubbleBackground }}
+            style={{ backgroundColor: theme.chatBackgroundColor }}
           >
             {messages.map((msg) => (
               <div
                 key={msg.id}
                 style={{
                   backgroundColor:
-                    msg.sender != "agent" ? theme.bubbleColor : "#f9f9f9",
+                    msg.sender === "agent"
+                      ? theme.bubbleAgentBgColor
+                      : theme.bubbleUserBgColor,
                   color:
-                    msg.sender != "agent" ? theme.bubbleTextColor : "#000000",
+                    msg.sender === "agent"
+                      ? theme.bubbleAgentTextColor
+                      : theme.bubbleUserTextColor,
                   border: "1px solid #e5e5e5",
                 }}
                 className={`rounded-lg p-2 ${
@@ -758,7 +778,15 @@ The personality instructions above should take precedence over other style guide
                 }`}
               >
                 <p>{msg.content}</p>
-                <div className="mt-1 text-xs text-gray-500">
+                <div
+                  className="mt-1 text-xs"
+                  style={{
+                    color:
+                      msg.sender === "agent"
+                        ? theme.bubbleAgentTimeTextColor
+                        : theme.bubbleUserTimeTextColor,
+                  }}
+                >
                   {msg.timestamp.toLocaleTimeString()}
                 </div>
               </div>
@@ -769,7 +797,7 @@ The personality instructions above should take precedence over other style guide
         {/* Message Input */}
         <div
           className="border-t border-gray-200 p-4"
-          style={{ backgroundColor: theme.bubbleBackground }}
+          style={{ backgroundColor: theme.inputCardColor }}
         >
           <div className="relative">
             <input
@@ -778,16 +806,24 @@ The personality instructions above should take precedence over other style guide
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Message..."
               onKeyPress={handleKeyPress}
+              style={{
+                backgroundColor: theme.inputBackgroundColor,
+                color: theme.inputTextColor,
+              }}
               className="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <button
               onClick={handleSendMessage}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2"
+              style={{ color: theme.headerIconColor }}
             >
               <Send className="h-5 w-5" />
             </button>
           </div>
-          <div className="mt-2 text-xs text-right text-gray-500">
+          <div
+            className="mt-2 text-xs text-right"
+            style={{ color: theme.headerTextColor }}
+          >
             Powered By KiFor.ai
           </div>
         </div>
