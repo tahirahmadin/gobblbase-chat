@@ -71,9 +71,13 @@ export default function Header() {
           <Link to="/">
             <div className="flex items-center space-x-3">
               <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary-50">
-                <Bot className="h-6 w-6 text-primary-600" />
+                <img
+                  src="https://gobbl-bucket.s3.ap-south-1.amazonaws.com/gobbl_token.png"
+                  alt="KiFor.ai"
+                  className="w-6 h-6"
+                />
               </div>
-              <span className="text-xl font-semibold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
+              <span className="text-xl font-semibold bg-black  bg-clip-text text-transparent">
                 KiFor.ai
               </span>
             </div>

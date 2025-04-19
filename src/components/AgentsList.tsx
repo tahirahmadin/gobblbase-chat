@@ -55,7 +55,7 @@ export default function AgentsList({ onStartCreating }: AgentsListProps) {
         {onStartCreating && (
           <button
             onClick={onStartCreating}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-black from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
           >
             <Plus className="h-5 w-5 mr-2" />
             Create New Agent
@@ -68,13 +68,12 @@ export default function AgentsList({ onStartCreating }: AgentsListProps) {
           <div
             key={agent.agentId}
             onClick={() => setActiveAgentId(agent.agentId)}
-            className={`relative rounded-xl overflow-hidden cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${
+            className={`relative bg-white rounded-xl overflow-hidden cursor-pointer transition-all duration-300 transform hover:scale-[1.02] border border-gray-100 ${
               activeAgentId === agent.agentId
-                ? "ring-2 ring-indigo-500 shadow-lg"
-                : "shadow-md hover:shadow-lg"
+                ? "ring-2 ring-gray-900 shadow-lg"
+                : "shadow-sm hover:shadow-md"
             }`}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-purple-50 opacity-80" />
             <div className="relative p-6">
               <div className="flex items-center space-x-4">
                 <div className="flex-shrink-0">
@@ -82,11 +81,11 @@ export default function AgentsList({ onStartCreating }: AgentsListProps) {
                     <img
                       src={agent.logo}
                       alt={`${agent.name} logo`}
-                      className="h-16 w-16 rounded-full object-cover ring-2 ring-white shadow-md"
+                      className="h-16 w-16 rounded-full object-cover border-2 border-gray-100 shadow-sm"
                     />
                   ) : (
-                    <div className="h-16 w-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-md">
-                      <Bot className="h-8 w-8 text-white" />
+                    <div className="h-16 w-16 rounded-full bg-gray-900 flex items-center justify-center shadow-sm">
+                      <Bot className="h-8 w-8 text-gray-100" />
                     </div>
                   )}
                 </div>
@@ -94,7 +93,7 @@ export default function AgentsList({ onStartCreating }: AgentsListProps) {
                   <h3 className="text-xl font-bold text-gray-900 truncate">
                     {agent.name}
                   </h3>
-                  <p className="text-sm text-gray-600 truncate">
+                  <p className="text-sm text-gray-500 truncate">
                     {agent.username
                       ? `@${agent.username}`
                       : `ID: ${agent.agentId}`}
@@ -104,7 +103,7 @@ export default function AgentsList({ onStartCreating }: AgentsListProps) {
                       href={agent.calendlyUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-2 inline-flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
+                      className="mt-2 inline-flex items-center text-xs font-medium text-gray-700 hover:text-gray-900 transition-colors"
                       onClick={(e) => e.stopPropagation()}
                     >
                       Schedule a meeting
@@ -115,7 +114,7 @@ export default function AgentsList({ onStartCreating }: AgentsListProps) {
             </div>
             <button
               onClick={(e) => handleDeleteAgent(agent.agentId, e)}
-              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-red-500 transition-colors bg-white rounded-full shadow-sm hover:shadow-md"
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-red-500 transition-colors bg-gray-50 hover:bg-gray-100 rounded-full shadow-sm"
               title="Delete agent"
             >
               <Trash2 className="h-5 w-5" />
@@ -126,7 +125,7 @@ export default function AgentsList({ onStartCreating }: AgentsListProps) {
 
       {/* Delete Confirmation Modal */}
       {agentToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-sm w-full">
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               Delete Agent
@@ -138,7 +137,7 @@ export default function AgentsList({ onStartCreating }: AgentsListProps) {
             <div className="flex justify-end space-x-3">
               <button
                 onClick={cancelDelete}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
               >
                 Cancel
               </button>

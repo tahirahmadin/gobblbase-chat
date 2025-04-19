@@ -43,7 +43,38 @@ const QUERY_CUES = [
 
 type Screen = "chat" | "book" | "browse";
 
-export default function PublicChat() {
+interface PreviewConfig {
+  name?: string;
+  logo?: string;
+  calendlyUrl?: string;
+  themeColors?: {
+    headerColor: string;
+    headerTextColor: string;
+    headerNavColor: string;
+    headerIconColor: string;
+    chatBackgroundColor: string;
+    bubbleAgentBgColor: string;
+    bubbleAgentTextColor: string;
+    bubbleAgentTimeTextColor: string;
+    bubbleUserBgColor: string;
+    bubbleUserTextColor: string;
+    bubbleUserTimeTextColor: string;
+    inputCardColor: string;
+    inputBackgroundColor: string;
+    inputTextColor: string;
+  };
+  personalityType?: PersonalityType;
+  customPersonalityPrompt?: string;
+  personalityAnalysis?: PersonalityAnalysis | null;
+}
+
+export default function PublicChat({
+  agentUsernamePlayground,
+  previewConfig,
+}: {
+  agentUsernamePlayground: string | null;
+  previewConfig?: PreviewConfig;
+}) {
   const { botUsername } = useParams();
   const { config, isLoading: isConfigLoading, fetchConfig } = useBotConfig();
   const [message, setMessage] = React.useState("");
@@ -51,7 +82,7 @@ export default function PublicChat() {
     {
       id: "1",
       content:
-        "Hi! Cozy weather today calls for something delicious. Let me know what you're craving?",
+        "Hi! Looking for upskill yourself? Let me know how may I help you?",
       timestamp: new Date(),
       sender: "agent",
     },
@@ -70,7 +101,11 @@ export default function PublicChat() {
   const [personalityAnalysis, setPersonalityAnalysis] =
     React.useState<PersonalityAnalysis | null>(null);
 
-  let themeSettings = config?.themeColors || {
+  // Use preview config if available, otherwise use config from useBotConfig
+  const currentConfig = previewConfig || config;
+  const currentIsLoading = previewConfig ? false : isConfigLoading;
+
+  let themeSettings = currentConfig?.themeColors || {
     headerColor: "#000000",
     headerTextColor: "#F0B90A",
     headerNavColor: "#bdbdbd",
@@ -82,29 +117,35 @@ export default function PublicChat() {
     bubbleUserBgColor: "#F0B90A",
     bubbleUserTextColor: "#000000",
     bubbleUserTimeTextColor: "#000000",
-
     inputCardColor: "#27282B",
     inputBackgroundColor: "#212121",
     inputTextColor: "#ffffff",
   };
 
   React.useEffect(() => {
-    if (botUsername) {
-      fetchConfig(botUsername);
+    if (!previewConfig) {
+      if (botUsername) {
+        fetchConfig(botUsername);
+      }
+      if (agentUsernamePlayground) {
+        fetchConfig(agentUsernamePlayground);
+      }
     }
-  }, [botUsername, fetchConfig]);
+  }, [botUsername, fetchConfig, agentUsernamePlayground, previewConfig]);
 
   // Update personality settings when config changes
   React.useEffect(() => {
-    if (config) {
-      if (config.personalityType) {
-        setPersonalityType(config.personalityType as PersonalityType);
-        setIsCustomPersonality(config.personalityType === "custom-personality");
-        setCustomPersonalityPrompt(config.customPersonalityPrompt || "");
-        setPersonalityAnalysis(config.personalityAnalysis || null);
+    if (currentConfig) {
+      if (currentConfig.personalityType) {
+        setPersonalityType(currentConfig.personalityType);
+        setIsCustomPersonality(
+          currentConfig.personalityType === "custom-personality"
+        );
+        setCustomPersonalityPrompt(currentConfig.customPersonalityPrompt || "");
+        setPersonalityAnalysis(currentConfig.personalityAnalysis || null);
       }
     }
-  }, [config]);
+  }, [currentConfig]);
 
   const getPersonalityPrompt = (): string => {
     if (isCustomPersonality && personalityAnalysis?.mimicryInstructions) {
@@ -248,7 +289,7 @@ The personality instructions above should take precedence over other style guide
     }, 100);
   };
 
-  if (isConfigLoading) {
+  if (currentIsLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -257,11 +298,23 @@ The personality instructions above should take precedence over other style guide
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div
+      className="flex flex-col"
+      style={{
+        height: agentUsernamePlayground ? "100%" : "100vh",
+        backgroundColor: agentUsernamePlayground
+          ? "transparent"
+          : themeSettings.headerColor,
+      }}
+    >
       {/* Header */}
       <div
         className="shadow-sm"
-        style={{ backgroundColor: themeSettings.headerColor }}
+        style={{
+          backgroundColor: themeSettings.headerColor,
+          borderTopLeftRadius: 10,
+          borderTopRightRadius: 10,
+        }}
       >
         <div className="px-4 pt-3  flex items-center justify-between mb-2">
           <div

@@ -60,7 +60,7 @@ export default function Integration() {
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Embed Chatbot Card */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
             <div className="flex items-center space-x-3">
               <Code className="h-6 w-6 text-gray-600" />
@@ -96,7 +96,7 @@ export default function Integration() {
         </div>
 
         {/* Direct Access URL Card */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
             <div className="flex items-center space-x-3">
               <Globe className="h-6 w-6 text-gray-600" />
@@ -149,7 +149,7 @@ export default function Integration() {
       </div>
 
       {/* Social Sharing Section */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
           <div className="flex items-center space-x-3">
             <Share2 className="h-6 w-6 text-gray-600" />

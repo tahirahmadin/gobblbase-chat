@@ -182,7 +182,7 @@ function Dashboard() {
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex">
-          <div className="w-64 pr-8">
+          <div className="w-42 pr-8">
             <div className="mb-4">
               <button
                 onClick={() => setActiveAgentId(null)}

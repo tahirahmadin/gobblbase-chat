@@ -6,6 +6,8 @@ import {
   Bot,
   User,
   Calendar,
+  AlertCircle,
+  CheckCircle2,
 } from "lucide-react";
 import { useUserStore } from "../store/useUserStore";
 import { toast } from "react-hot-toast";
@@ -13,6 +15,7 @@ import {
   updateAgentUsername,
   uploadProfilePicture,
   updateCalendlyUrl,
+  checkUsernameAvailability,
 } from "../lib/serverActions";
 
 interface Plan {
@@ -40,12 +43,18 @@ const SettingsPage: React.FC = () => {
   >(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUsernameValid, setIsUsernameValid] = useState(true);
+  const [isUsernameAvailable, setIsUsernameAvailable] = useState(true);
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
 
   const isUsernameChanged = agentUsername !== activeAgentUsername;
 
   const handleUsernameUpdate = async () => {
     if (!activeAgentId) {
       toast.error("No active agent selected");
+      return;
+    }
+
+    if (!isUsernameValid || !isUsernameAvailable) {
       return;
     }
 
@@ -58,6 +67,20 @@ const SettingsPage: React.FC = () => {
       toast.error("Failed to update username");
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const checkUsername = async (username: string) => {
+    if (!username || username.length < 3) return;
+
+    setIsCheckingUsername(true);
+    try {
+      const isAvailable = await checkUsernameAvailability(username);
+      setIsUsernameAvailable(isAvailable);
+    } catch (error) {
+      console.error("Error checking username:", error);
+    } finally {
+      setIsCheckingUsername(false);
     }
   };
 
@@ -118,7 +141,11 @@ const SettingsPage: React.FC = () => {
 
   const validateUsername = (username: string) => {
     const regex = /^[a-zA-Z0-9]+$/;
-    setIsUsernameValid(regex.test(username) && username.length >= 3);
+    const isValid = regex.test(username) && username.length >= 3;
+    setIsUsernameValid(isValid);
+    if (isValid) {
+      checkUsername(username);
+    }
   };
 
   useEffect(() => {
@@ -193,19 +220,21 @@ const SettingsPage: React.FC = () => {
         return (
           <div className="space-y-6">
             {/* Username Section */}
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-              <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
-                <div className="flex items-center space-x-3">
-                  <User className="h-6 w-6 text-gray-600" />
-                  <h2 className="text-xl font-semibold text-gray-800">
-                    Agent Username
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <div className="p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <User className="h-6 w-6 text-gray-900" />
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Bot Handle
                   </h2>
                 </div>
-                <p className="mt-2 text-gray-600">
-                  Set your unique username for your AI agent
+                <p className="text-gray-600 mb-6">
+                  Choose a unique handle for your bot. This will be used in your
+                  bot's URL: KiFor.ai/#chat/
+                  <span className="font-mono text-gray-900">
+                    {agentUsername || "your-handle"}
+                  </span>
                 </p>
-              </div>
-              <div className="p-6">
                 <div className="space-y-4">
                   <div className="relative">
                     <input
@@ -215,137 +244,150 @@ const SettingsPage: React.FC = () => {
                         setAgentUsername(e.target.value);
                         validateUsername(e.target.value);
                       }}
-                      className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                        isUsernameValid ? "border-gray-200" : "border-red-500"
-                      } focus:outline-none focus:ring-2 focus:ring-gray-500`}
-                      placeholder="Enter agent username"
+                      className={`w-full px-4 py-3 rounded-lg border ${
+                        !isUsernameValid || !isUsernameAvailable
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-gray-200 focus:ring-gray-900"
+                      } focus:outline-none focus:ring-2`}
+                      placeholder="Enter bot handle"
                     />
-                    <User className="absolute left-2 top-1/3 transform -translate-y-1/2 text-gray-400" />
-                    {!isUsernameValid && (
-                      <p className="mt-1 text-sm text-red-500">
-                        Username must contain only letters, numbers (minimum 3
-                        characters)
-                      </p>
-                    )}
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      {isCheckingUsername ? (
+                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-900 border-t-transparent" />
+                      ) : !isUsernameValid ? (
+                        <AlertCircle className="h-5 w-5 text-red-500" />
+                      ) : !isUsernameAvailable ? (
+                        <AlertCircle className="h-5 w-5 text-red-500" />
+                      ) : agentUsername.length >= 3 ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                      ) : null}
+                    </div>
                   </div>
+                  {!isUsernameValid && (
+                    <p className="text-sm text-red-500 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-1" />
+                      Username must contain only letters and numbers (minimum 3
+                      characters)
+                    </p>
+                  )}
+                  {isUsernameValid && !isUsernameAvailable && (
+                    <p className="text-sm text-red-500 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-1" />
+                      This username is already taken
+                    </p>
+                  )}
                   <button
                     onClick={handleUsernameUpdate}
                     disabled={
-                      isUpdating || !isUsernameValid || !isUsernameChanged
+                      isUpdating ||
+                      !isUsernameValid ||
+                      !isUsernameAvailable ||
+                      !isUsernameChanged ||
+                      isCheckingUsername
                     }
                     className={`w-full py-3 px-4 rounded-lg text-white font-medium transition-colors ${
-                      isUpdating || !isUsernameValid || !isUsernameChanged
+                      isUpdating ||
+                      !isUsernameValid ||
+                      !isUsernameAvailable ||
+                      !isUsernameChanged ||
+                      isCheckingUsername
                         ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-gray-800 hover:bg-gray-900"
+                        : "bg-gray-900 hover:bg-gray-800"
                     }`}
                   >
-                    {isUpdating ? "Updating..." : "Update Username"}
+                    {isUpdating ? "Updating..." : "Update Bot Handle"}
                   </button>
                 </div>
               </div>
             </div>
 
             {/* Profile Picture Section */}
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-              <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
-                <div className="flex items-center space-x-3">
-                  <Bot className="h-6 w-6 text-gray-600" />
-                  <h2 className="text-xl font-semibold text-gray-800">
-                    Agent Profile Picture
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <div className="p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <Bot className="h-6 w-6 text-gray-900" />
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Bot Avatar
                   </h2>
                 </div>
-                <p className="mt-2 text-gray-600">
-                  Upload or update your AI agent's profile picture
+                <p className="text-gray-600 mb-6">
+                  Upload a profile picture for your bot. This will be displayed
+                  in conversations and on your bot's page.
                 </p>
-              </div>
-              <div className="p-6">
-                <div className="space-y-6">
-                  <div className="flex flex-col items-center space-y-4">
-                    <div className="relative group">
-                      <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-100 shadow-lg">
-                        {profilePicturePreview ? (
-                          <img
-                            src={profilePicturePreview}
-                            alt="Profile preview"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : currentAgentData ? (
-                          <img
-                            src={currentAgentData.logo}
-                            alt="Current profile"
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = "";
-                              target.parentElement!.innerHTML = `
-                                <div class="w-full h-full bg-gray-50 flex items-center justify-center">
-                                  <Bot class="h-16 w-16 text-gray-400" />
-                                </div>
-                              `;
-                            }}
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gray-50 flex items-center justify-center">
-                            <Bot className="h-16 w-16 text-gray-400" />
-                          </div>
-                        )}
-                      </div>
-                      <label
-                        htmlFor="profile-picture"
-                        className="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg cursor-pointer hover:bg-gray-50 transition-colors group-hover:opacity-100 opacity-0"
-                      >
-                        <Upload className="h-5 w-5 text-gray-600" />
-                      </label>
+                <div className="flex flex-col items-center space-y-6">
+                  <div className="relative group">
+                    <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-100 shadow-lg">
+                      {profilePicturePreview ? (
+                        <img
+                          src={profilePicturePreview}
+                          alt="Profile preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : currentAgentData?.logo ? (
+                        <img
+                          src={currentAgentData.logo}
+                          alt="Current profile"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = "";
+                            target.parentElement!.innerHTML = `
+                              <div class="w-full h-full bg-gray-50 flex items-center justify-center">
+                                <Bot class="h-16 w-16 text-gray-400" />
+                              </div>
+                            `;
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-50 flex items-center justify-center">
+                          <Bot className="h-16 w-16 text-gray-400" />
+                        </div>
+                      )}
                     </div>
-                    <div className="text-center">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleProfilePictureChange}
-                        className="hidden"
-                        id="profile-picture"
-                      />
-                      <label
-                        htmlFor="profile-picture"
-                        className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 cursor-pointer"
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        Choose New Picture
-                      </label>
-                    </div>
+                    <label
+                      htmlFor="profile-picture"
+                      className="absolute bottom-0 right-0 bg-gray-900 rounded-full p-2 shadow-lg cursor-pointer hover:bg-gray-800 transition-colors"
+                    >
+                      <Upload className="h-5 w-5 text-white" />
+                    </label>
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-500 text-center">
-                      Recommended: Square image (512x512px)
-                      <br />
-                      Maximum file size: 5MB
-                    </p>
+                  <div className="space-y-4 w-full max-w-sm">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProfilePictureChange}
+                      className="hidden"
+                      id="profile-picture"
+                    />
                     {profilePicture && (
                       <div className="flex justify-center space-x-3">
                         <button
                           onClick={handleProfilePictureUpload}
                           disabled={isUpdating}
-                          className={`px-4 py-2 rounded-lg text-white font-medium transition-colors ${
+                          className={`flex-1 py-3 px-4 rounded-lg text-white font-medium transition-colors ${
                             isUpdating
                               ? "bg-gray-400 cursor-not-allowed"
-                              : "bg-gray-800 hover:bg-gray-900"
+                              : "bg-gray-900 hover:bg-gray-800"
                           }`}
                         >
-                          {isUpdating
-                            ? "Uploading..."
-                            : "Update Profile Picture"}
+                          {isUpdating ? "Uploading..." : "Update Avatar"}
                         </button>
                         <button
                           onClick={() => {
                             setProfilePicture(null);
                             setProfilePicturePreview(null);
                           }}
-                          className="px-4 py-2 rounded-lg text-gray-700 font-medium border border-gray-300 hover:bg-gray-50 transition-colors"
+                          className="flex-1 py-3 px-4 rounded-lg text-gray-700 font-medium border border-gray-300 hover:bg-gray-50 transition-colors"
                         >
                           Cancel
                         </button>
                       </div>
                     )}
+                    <p className="text-sm text-gray-500 text-center">
+                      Recommended: Square image (512x512px)
+                      <br />
+                      Maximum file size: 5MB
+                    </p>
                   </div>
                 </div>
               </div>
@@ -375,17 +417,7 @@ const SettingsPage: React.FC = () => {
             <Bot className="h-5 w-5" />
             <span>Configurations</span>
           </button>
-          <button
-            onClick={() => setActiveTab("SERVICES")}
-            className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium border-b-2 ${
-              activeTab === "SERVICES"
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200"
-            }`}
-          >
-            <Bot className="h-5 w-5" />
-            <span>SERVICES</span>
-          </button>
+
           <button
             onClick={() => setActiveTab("billing")}
             className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium border-b-2 ${

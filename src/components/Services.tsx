@@ -137,7 +137,7 @@ const Services: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Calendly URL Section */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
           <div className="flex items-center space-x-3">
             <Calendar className="h-6 w-6 text-gray-600" />

@@ -18,6 +18,7 @@ interface UserState {
   setActiveAgentId: (id: string | null) => void;
   setActiveAgentUsername: (username: string | null) => void;
   setCalendlyUrl: (url: string) => void;
+  setCurrentAgentData: (data: Agent | null) => void;
   addAgent: (agent: Omit<Agent, "agentId">) => void;
   fetchAndSetAgents: () => Promise<void>;
   logout: () => void;

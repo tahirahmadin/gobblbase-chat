@@ -347,3 +347,17 @@ export async function updateCalendlyUrl(agentId: string, calendlyUrl: string) {
     throw error;
   }
 }
+
+export async function checkUsernameAvailability(
+  username: string
+): Promise<boolean> {
+  try {
+    // We'll use a temporary ID for checking availability
+    const tempAgentId = "check-availability";
+    await updateAgentUsername(tempAgentId, username);
+    return true;
+  } catch (error) {
+    // If there's an error, the username is not available
+    return false;
+  }
+}
