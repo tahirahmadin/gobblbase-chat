@@ -11,6 +11,7 @@ import OpenAI from "openai";
 import PersonalityAnalyzer, { PERSONALITY_TYPES } from "./PersonalityAnalyzer";
 import { useUserStore } from "../store/useUserStore";
 import PublicChat from "./PublicChat";
+import { toast } from "react-hot-toast";
 
 interface PersonalityAnalysis {
   dominantTrait: string;
@@ -604,9 +605,51 @@ The personality instructions above should take precedence over other style guide
         lastPersonalityContent: personalityData.lastContent,
         themeColors: theme,
       });
+
+      // Show success toast for settings saved
+      toast.success("Settings saved successfully", {
+        duration: 3000,
+        position: "top-right",
+      });
+
+      // Show additional toasts for specific changes only if they were modified
+      if (currentAgentData?.name !== agentName) {
+        toast.success(`Agent name updated to ${agentName}`, {
+          duration: 3000,
+          position: "top-right",
+        });
+      }
+
+      if (currentAgentData?.calendlyUrl !== calendlyUrl) {
+        toast.success("Calendly URL updated successfully", {
+          duration: 3000,
+          position: "top-right",
+        });
+      }
+
+      if (currentAgentData?.personalityType !== personalityData.type) {
+        toast.success(`Personality set to ${personalityData.type}`, {
+          duration: 3000,
+          position: "top-right",
+        });
+      }
+
+      if (
+        JSON.stringify(currentAgentData?.themeColors) !== JSON.stringify(theme)
+      ) {
+        toast.success("Theme updated successfully", {
+          duration: 3000,
+          position: "top-right",
+        });
+      }
+
       console.log("Settings saved successfully");
     } catch (error) {
       console.error("Error saving settings:", error);
+      toast.error("Failed to save settings. Please try again.", {
+        duration: 3000,
+        position: "top-right",
+      });
     }
   };
 

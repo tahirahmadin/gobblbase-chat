@@ -15,11 +15,11 @@ import AgentsList from "./components/AgentsList";
 import PublicChat from "./components/PublicChat";
 import Services from "./components/Services";
 import { useUserStore } from "./store/useUserStore";
-import { ArrowLeft, LogIn, Bot, X } from "lucide-react";
+import { ArrowLeft, Bot } from "lucide-react";
 import SettingsPage from "./components/Settings";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { signUpClient } from "./lib/serverActions";
-import { toast } from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast";
 
 function Dashboard() {
   const [activeTab, setActiveTab] = useState("playground");
@@ -212,9 +212,13 @@ function Dashboard() {
 function App() {
   return (
     <Router>
+      <Toaster position="top-right" />
       <Routes>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/chatbot/:botUsername" element={<PublicChat />} />
+        <Route
+          path="/chatbot/:botUsername"
+          element={<PublicChat agentUsernamePlayground={null} />}
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
