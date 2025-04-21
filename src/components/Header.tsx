@@ -1,5 +1,4 @@
-import React from "react";
-import { LogIn, User, Upload, Bot, LogOut } from "lucide-react";
+import { User, LogOut } from "lucide-react";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { useUserStore } from "../store/useUserStore";
 import { signUpClient } from "../lib/serverActions";

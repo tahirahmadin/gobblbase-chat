@@ -3,10 +3,21 @@ import { useParams } from "react-router-dom";
 import { ChatMessage } from "../types";
 import { queryDocument } from "../lib/serverActions";
 import OpenAI from "openai";
-import { Send, MessageSquare, Calendar, Search, MenuIcon } from "lucide-react";
+import {
+  Send,
+  MessageSquare,
+  Calendar,
+  Search,
+  MenuIcon,
+  ShoppingCart,
+} from "lucide-react";
 import { InlineWidget } from "react-calendly";
 import { useBotConfig } from "../store/useBotConfig";
 import { PERSONALITY_TYPES } from "./PersonalityAnalyzer";
+import Browse from "./BrowseComponent/Browse";
+import { Link } from "react-router-dom";
+import { useCartStore } from "../store/useCartStore";
+import Drawer from "./BrowseComponent/Drawer";
 
 interface PersonalityAnalysis {
   dominantTrait: string;
@@ -41,7 +52,7 @@ const QUERY_CUES = [
   ["Best courses available?", "Your education ?"],
 ];
 
-type Screen = "chat" | "book" | "browse";
+type Screen = "chat" | "book" | "browse" | "cart";
 
 interface PreviewConfig {
   name?: string;
@@ -101,6 +112,8 @@ export default function PublicChat({
   const [personalityAnalysis, setPersonalityAnalysis] =
     React.useState<PersonalityAnalysis | null>(null);
 
+  const { getTotalItems } = useCartStore();
+
   // Use preview config if available, otherwise use config from useBotConfig
   const currentConfig = previewConfig || config;
   const currentIsLoading = previewConfig ? false : isConfigLoading;
@@ -121,6 +134,8 @@ export default function PublicChat({
     inputBackgroundColor: "#212121",
     inputTextColor: "#ffffff",
   };
+
+  const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (!previewConfig) {
@@ -332,13 +347,24 @@ The personality instructions above should take precedence over other style guide
               {config?.name || "KiFor Bot"}
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <span
-              className="text-xs"
-              style={{ color: themeSettings.headerIconColor }}
+          <div className="flex items-center space-x-4">
+            <div className="relative" onClick={() => setActiveScreen("cart")}>
+              <ShoppingCart
+                className="h-5 w-5"
+                style={{ color: themeSettings.headerIconColor }}
+              />
+              {getTotalItems() > 0 && (
+                <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {getTotalItems()}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={() => setIsDrawerOpen(true)}
+              className="text-gray-500 hover:text-gray-700"
             >
               <MenuIcon className="h-4 w-4" />
-            </span>
+            </button>
           </div>
         </div>
         {/* Navigation */}
@@ -454,15 +480,20 @@ The personality instructions above should take precedence over other style guide
           </div>
         )}
         {activeScreen === "browse" && (
-          <div className="rounded-lg p-4">
-            <p
-              className="text-sm mt-8 text-center w-[75%] mx-auto"
-              style={{ color: themeSettings.headerTextColor }}
-            >
-              Currently, I am not offering any product/services. Please check
-              back later.
-            </p>
-            {/* Add restaurant browsing content here */}
+          <div>
+            <Browse
+              onShowCart={() => setActiveScreen("cart")}
+              onOpenDrawer={() => setIsDrawerOpen(true)}
+            />
+          </div>
+        )}
+        {activeScreen === "cart" && (
+          <div>
+            <Browse
+              showCart={true}
+              onShowCart={() => setActiveScreen("browse")}
+              onOpenDrawer={() => setIsDrawerOpen(true)}
+            />
           </div>
         )}
       </div>
@@ -530,6 +561,8 @@ The personality instructions above should take precedence over other style guide
           </button>
         </div>
       </div>
+
+      <Drawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
     </div>
   );
 }
