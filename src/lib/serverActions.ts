@@ -13,6 +13,14 @@ interface ExtractContentResponse {
   platform?: string;
 }
 
+interface AvailabilityDay {
+  day: string;
+  available: boolean;
+  timeSlots: {
+    startTime: string;
+    endTime: string;
+  }[];
+}
 interface SignUpClientResponse {
   error: boolean;
   result:
@@ -359,5 +367,150 @@ export async function checkUsernameAvailability(
   } catch (error) {
     // If there's an error, the username is not available
     return false;
+  }
+}
+
+export async function updateAppointmentSettings(
+  payload: {
+    agentId: string;
+    bookingType: string;
+    bookingsPerSlot: number;
+    meetingDuration: number;
+    bufferTime: number;
+    lunchBreak: { start: string; end: string };
+    availability: AvailabilityDay[];
+    locations: string[];
+  }
+) {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/appointment/settings",
+      payload
+    );
+    if (response.data.error) throw new Error(response.data.error);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating appointment settings:", error);
+    throw error;
+  }
+}
+
+export async function getAppointmentSettings(agentId: string) {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/appointment/settings?agentId=${agentId}`
+    );
+    if (response.data.error) throw new Error(response.data.error);
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching appointment settings:", error);
+    throw error;
+  }
+}
+
+export interface TimeSlot {
+  startTime: string;
+  endTime: string;
+}
+export async function getAvailableSlots(
+  agentId: string,
+  date: string
+): Promise<TimeSlot[]> {
+  const response = await axios.get(
+    `https://rag.gobbl.ai/appointment/available-slots`,
+    {
+      params: { agentId, date },
+    }
+  );
+  if (response.data.error) {
+    throw new Error(response.data.result || "No slots found");
+  }
+  // backend returns result: [ { startTime, endTime }, ... ]
+  return response.data.result as TimeSlot[];
+}
+
+
+
+export interface BookingPayload {
+  agentId: string;
+  userId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+}
+
+export async function bookAppointment(payload: BookingPayload): Promise<any> {
+  const response = await axios.post(
+    `https://rag.gobbl.ai/appointment/book`,
+    payload
+  );
+  if (response.data.error) throw new Error(response.data.error);
+  return response.data.result;
+}
+
+export async function updateUnavailableDates(
+  agentId: string,
+  unavailableDates: Array<{
+    date: string;
+    startTime: string;
+    endTime: string;
+    allDay: boolean;
+  }>
+): Promise<any> {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/appointment/update-unavailable-dates",
+      {
+        agentId,
+        unavailableDates
+      }
+    );
+    if (response.data.error) throw new Error(response.data.error);
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating unavailable dates:", error);
+    throw error;
+  }
+}
+
+
+export async function getUnavailableDates(agentId: string): Promise<string[]> {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/appointment/unavailable-dates?agentId=${agentId}`
+    );
+    if (response.data.error) throw new Error(response.data.error);
+    return response.data.result || [];
+  } catch (error) {
+    console.error("Error fetching unavailable dates:", error);
+    return [];
+  }
+}
+
+export async function getBookings(agentId: string) {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/appointment/bookings?agentId=${agentId}`
+    );
+    if (response.data.error) throw new Error(response.data.error);
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching bookings:", error);
+    throw error;
+  }
+}
+
+export async function cancelBooking(bookingId: string) {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/appointment/cancel-booking",
+      { bookingId }
+    );
+    if (response.data.error) throw new Error(response.data.error);
+    return response.data.result;
+  } catch (error) {
+    console.error("Error cancelling booking:", error);
+    throw error;
   }
 }

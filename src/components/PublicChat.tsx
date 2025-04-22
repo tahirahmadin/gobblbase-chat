@@ -11,11 +11,10 @@ import {
   MenuIcon,
   ShoppingCart,
 } from "lucide-react";
-import { InlineWidget } from "react-calendly";
 import { useBotConfig } from "../store/useBotConfig";
 import { PERSONALITY_TYPES } from "./PersonalityAnalyzer";
+import CustomerBooking from "./booking/CustomerBooking";
 import Browse from "./BrowseComponent/Browse";
-import { Link } from "react-router-dom";
 import { useCartStore } from "../store/useCartStore";
 import Drawer from "./BrowseComponent/Drawer";
 
@@ -40,14 +39,14 @@ type PersonalityType =
   | "casual"
   | "custom-personality";
 
-// Initialize OpenAI client
+type ExtendedChatMessage = ChatMessage & { type?: "booking" };
+
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_PUBLIC_OPENAI_API_KEY,
   dangerouslyAllowBrowser: true,
 });
 
-// Define query cues in pairs for 2x2 grid
-const QUERY_CUES = [
+const QUERY_CUES: string[][] = [
   ["Tell me about you ?", "Most popular items ?"],
   ["Best courses available?", "Your education ?"],
 ];
@@ -88,25 +87,29 @@ export default function PublicChat({
 }) {
   const { botUsername } = useParams();
   const { config, isLoading: isConfigLoading, fetchConfig } = useBotConfig();
+
   const [message, setMessage] = React.useState("");
-  const [messages, setMessages] = React.useState<ChatMessage[]>([
+  const [messages, setMessages] = React.useState<ExtendedChatMessage[]>([
     {
       id: "1",
       content:
-        "Hi! Looking for upskill yourself? Let me know how may I help you?",
+        "Hi! Looking to upskill yourself? Let me know how I can help you.",
       timestamp: new Date(),
       sender: "agent",
     },
   ]);
+
   const [activeScreen, setActiveScreen] = React.useState<Screen>("chat");
   const [isLoading, setIsLoading] = React.useState(false);
   const [showCues, setShowCues] = React.useState(true);
-  const [showCalendly, setShowCalendly] = React.useState(false);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
 
+  // Personality
   const [personalityType, setPersonalityType] =
     React.useState<PersonalityType | null>(null);
-  const [isCustomPersonality, setIsCustomPersonality] = React.useState(false);
+  const [isCustomPersonality, setIsCustomPersonality] =
+    React.useState(false);
   const [customPersonalityPrompt, setCustomPersonalityPrompt] =
     React.useState("");
   const [personalityAnalysis, setPersonalityAnalysis] =
@@ -114,11 +117,12 @@ export default function PublicChat({
 
   const { getTotalItems } = useCartStore();
 
-  // Use preview config if available, otherwise use config from useBotConfig
+  // use preview or fetched config
   const currentConfig = previewConfig || config;
   const currentIsLoading = previewConfig ? false : isConfigLoading;
 
-  let themeSettings = currentConfig?.themeColors || {
+  // safe themeColors fallback
+  const theme = currentConfig?.themeColors ?? {
     headerColor: "#000000",
     headerTextColor: "#F0B90A",
     headerNavColor: "#bdbdbd",
@@ -135,126 +139,93 @@ export default function PublicChat({
     inputTextColor: "#ffffff",
   };
 
-  const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
-
+  // fetch config on mount/params change
   React.useEffect(() => {
     if (!previewConfig) {
-      if (botUsername) {
-        fetchConfig(botUsername);
-      }
-      if (agentUsernamePlayground) {
-        fetchConfig(agentUsernamePlayground);
-      }
+      if (botUsername) fetchConfig(botUsername);
+      if (agentUsernamePlayground) fetchConfig(agentUsernamePlayground);
     }
-  }, [botUsername, fetchConfig, agentUsernamePlayground, previewConfig]);
+  }, [botUsername, agentUsernamePlayground, fetchConfig, previewConfig]);
 
-  // Update personality settings when config changes
+  // update personality when config arrives
   React.useEffect(() => {
     if (currentConfig) {
-      if (currentConfig.personalityType) {
-        setPersonalityType(currentConfig.personalityType);
-        setIsCustomPersonality(
-          currentConfig.personalityType === "custom-personality"
-        );
-        setCustomPersonalityPrompt(currentConfig.customPersonalityPrompt || "");
-        setPersonalityAnalysis(currentConfig.personalityAnalysis || null);
-      }
+      const pt = currentConfig.personalityType;
+      setPersonalityType(pt ?? null);
+      setIsCustomPersonality(pt === "custom-personality");
+      setCustomPersonalityPrompt(currentConfig.customPersonalityPrompt || "");
+      setPersonalityAnalysis(currentConfig.personalityAnalysis || null);
     }
   }, [currentConfig]);
 
-  const getPersonalityPrompt = (): string => {
+  // scroll to bottom when messages change
+  React.useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // build personality prompt
+  const getPersonalityPrompt = () => {
     if (isCustomPersonality && personalityAnalysis?.mimicryInstructions) {
       return personalityAnalysis.mimicryInstructions;
-    } else if (isCustomPersonality && customPersonalityPrompt) {
-      return customPersonalityPrompt;
-    } else if (personalityType && !isCustomPersonality) {
-      const personalityTypeInfo = PERSONALITY_TYPES.find(
-        (p) => p.id === personalityType
-      );
-      if (personalityTypeInfo) {
-        return personalityTypeInfo.prompt;
-      }
     }
-
+    if (isCustomPersonality && customPersonalityPrompt) {
+      return customPersonalityPrompt;
+    }
+    if (personalityType && !isCustomPersonality) {
+      return (
+        PERSONALITY_TYPES.find((p) => p.id === personalityType)?.prompt || ""
+      );
+    }
     return "";
   };
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  React.useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   const handleSendMessage = async () => {
     if (!message.trim() || !config?.agentId) return;
 
-    const newMessage: ChatMessage = {
+    // user message
+    const userMsg: ExtendedChatMessage = {
       id: Date.now().toString(),
       content: message,
       timestamp: new Date(),
       sender: "user",
     };
-
-    setMessages((prev) => [...prev, newMessage]);
+    setMessages((m) => [...m, userMsg]);
     setMessage("");
     setIsLoading(true);
     setShowCues(false);
 
+    // detect booking intent
+    const text = message.toLowerCase();
+    const isBookingRequest = ["book", "appointment", "meeting", "schedule"].some(
+      (kw) => text.includes(kw)
+    );
+
+    if (isBookingRequest) {
+      // inject booking embed
+      const bookingMsg: ExtendedChatMessage = {
+        id: (Date.now() + 1).toString(),
+        content: "",
+        timestamp: new Date(),
+        sender: "agent",
+        type: "booking",
+      };
+      setMessages((m) => [...m, bookingMsg]);
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // Call RAG API to get context using the server action
-      const context = await queryDocument(config?.agentId, message);
-
-      // Check if the message is about booking
-      const isBookingRequest =
-        message.toLowerCase().includes("book") ||
-        message.toLowerCase().includes("appointment") ||
-        message.toLowerCase().includes("meeting") ||
-        message.toLowerCase().includes("schedule");
-
-      let calendlyUrl = config.calendlyUrl;
-      if (isBookingRequest && calendlyUrl) {
-        setShowCalendly(true);
-        const agentResponse: ChatMessage = {
-          id: (Date.now() + 1).toString(),
-          content:
-            "I can help you book an appointment. Please use the calendar below to schedule a time that works for you.",
-          timestamp: new Date(),
-          sender: "agent",
-        };
-        setMessages((prev) => [...prev, agentResponse]);
-        setIsLoading(false);
-        return;
-      }
-
+      // fetch RAG context
+      const context = await queryDocument(config.agentId, message);
+      let systemPrompt = `You are a concise AI assistant. Use context when relevant:\n${JSON.stringify(
+        context
+      )}`;
       const personalityPrompt = getPersonalityPrompt();
-      console.log(
-        "Using personality prompt:",
-        personalityPrompt ? "Yes" : "No"
-      );
+      if (personalityPrompt) {
+        systemPrompt += `\nPERSONALITY INSTRUCTIONS (MUST FOLLOW):\n${personalityPrompt}`;
+      }
+      systemPrompt += `\nRules: answer in 1–2 sentences. No extra greetings or formatting.`;
 
-      const systemPrompt = `You are a concise AI assistant.
-     Use the provided context to answer the user's question when relevant:
-     ${JSON.stringify(context)}
-     
-     ${
-       personalityPrompt
-         ? `PERSONALITY INSTRUCTIONS (MUST FOLLOW THESE EXACTLY):
-${personalityPrompt}
-
-The personality instructions above should take precedence over other style guidelines.`
-         : ""
-     }
-     
-     Rules:
-     - Answer in 1-2 plain sentences only.
-     - Do not add extra explanation, greetings, or conclusions.
-     - No special characters, markdown, or formatting.
-     - For general greetings or conversational queries like "hello" or "how are you", respond naturally and briefly.
-     - Only say "I cannot assist with that" if the query requires specific information not in the context and is not a general greeting.`;
-
-      // Call OpenAI API
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
@@ -264,27 +235,27 @@ The personality instructions above should take precedence over other style guide
         temperature: 0.6,
       });
 
-      const agentResponse: ChatMessage = {
-        id: (Date.now() + 1).toString(),
+      const agentMsg: ExtendedChatMessage = {
+        id: (Date.now() + 2).toString(),
         content:
           completion.choices[0].message.content ||
           "Sorry, I couldn't generate a response.",
         timestamp: new Date(),
         sender: "agent",
       };
-
-      setMessages((prev) => [...prev, agentResponse]);
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Error:", error);
-      const errorMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        content:
-          "Sorry, there was an error processing your request. Please try again.",
-        timestamp: new Date(),
-        sender: "agent",
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages((m) => [...m, agentMsg]);
+    } catch (err) {
+      console.error(err);
+      setMessages((m) => [
+        ...m,
+        {
+          id: (Date.now() + 3).toString(),
+          content: "Sorry, there was an error. Please try again.",
+          timestamp: new Date(),
+          sender: "agent",
+        },
+      ]);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -299,15 +270,25 @@ The personality instructions above should take precedence over other style guide
   const handleCueClick = (cue: string) => {
     setMessage(cue);
     setShowCues(false);
-    setTimeout(() => {
-      handleSendMessage();
-    }, 100);
+    setTimeout(handleSendMessage, 100);
+  };
+
+  const handleBookingComplete = (bookingDetails: any) => {
+    // Add a confirmation message after booking is complete
+    setMessages((m) => [...m, {
+      id: Date.now().toString(),
+      content: `Great! Your appointment has been confirmed for ${
+        bookingDetails.date} at ${bookingDetails.startTime}. 
+        I've sent all the details to your email.`,
+      timestamp: new Date(),
+      sender: "agent",
+    }]);
   };
 
   if (currentIsLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin h-12 w-12 border-t-2 border-blue-500 rounded-full"></div>
       </div>
     );
   }
@@ -319,39 +300,39 @@ The personality instructions above should take precedence over other style guide
         height: agentUsernamePlayground ? "100%" : "100vh",
         backgroundColor: agentUsernamePlayground
           ? "transparent"
-          : themeSettings.headerColor,
+          : theme.headerColor,
       }}
     >
-      {/* Header */}
-      <div
-        className="shadow-sm"
-        style={{
-          backgroundColor: themeSettings.headerColor,
+      {/* header */}
+      <div 
+        className="shadow-sm" 
+        style={{ 
+          backgroundColor: theme.headerColor,
           borderTopLeftRadius: 10,
           borderTopRightRadius: 10,
         }}
       >
-        <div className="px-4 pt-3  flex items-center justify-between mb-2">
+        <div className="px-4 pt-3 flex items-center justify-between mb-2">
           <div
             className="flex items-center space-x-3"
-            style={{ color: themeSettings.headerTextColor }}
+            style={{ color: theme.headerTextColor }}
           >
-            {config?.logo && (
+            {currentConfig?.logo && (
               <img
-                src={config.logo}
-                alt="Profile image"
+                src={currentConfig.logo}
+                alt="Logo"
                 className="w-8 h-8 rounded-full object-cover"
               />
             )}
-            <div className="flex items-start text-lg font-bold transition-colors duration-300">
-              {config?.name || "KiFor Bot"}
+            <div className="text-lg font-bold">
+              {currentConfig?.name || "KiFor Bot"}
             </div>
           </div>
           <div className="flex items-center space-x-4">
             <div className="relative" onClick={() => setActiveScreen("cart")}>
               <ShoppingCart
                 className="h-5 w-5"
-                style={{ color: themeSettings.headerIconColor }}
+                style={{ color: theme.headerIconColor }}
               />
               {getTotalItems() > 0 && (
                 <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
@@ -363,34 +344,33 @@ The personality instructions above should take precedence over other style guide
               onClick={() => setIsDrawerOpen(true)}
               className="text-gray-500 hover:text-gray-700"
             >
-              <MenuIcon className="h-4 w-4" />
+              <MenuIcon className="h-5 w-5" style={{ color: theme.headerIconColor }} />
             </button>
           </div>
         </div>
-        {/* Navigation */}
         <div className="border-t border-gray-200">
           <div className="flex justify-around py-1 text-xs">
             <button
               onClick={() => setActiveScreen("chat")}
-              className={`flex items-center space-x-1 px-4 py-2 rounded-lg text-[13px] font-medium`}
+              className="flex items-center space-x-1 px-4 py-2 rounded-lg font-medium"
               style={{
                 color:
                   activeScreen === "chat"
-                    ? themeSettings.headerTextColor
-                    : themeSettings.headerNavColor,
+                    ? theme.headerTextColor
+                    : theme.headerNavColor,
               }}
             >
-              <MessageSquare className="h-3.5 w-3.5" />
+              <MessageSquare className="h-4 w-4" />
               <span>Chat</span>
             </button>
             <button
               onClick={() => setActiveScreen("book")}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-[13px] font-medium `}
+              className="flex items-center space-x-1 px-4 py-2 rounded-lg font-medium"
               style={{
                 color:
                   activeScreen === "book"
-                    ? themeSettings.headerTextColor
-                    : themeSettings.headerNavColor,
+                    ? theme.headerTextColor
+                    : theme.headerNavColor,
               }}
             >
               <Calendar className="h-4 w-4" />
@@ -398,12 +378,12 @@ The personality instructions above should take precedence over other style guide
             </button>
             <button
               onClick={() => setActiveScreen("browse")}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-[13px] font-medium`}
+              className="flex items-center space-x-1 px-4 py-2 rounded-lg font-medium"
               style={{
                 color:
                   activeScreen === "browse"
-                    ? themeSettings.headerTextColor
-                    : themeSettings.headerNavColor,
+                    ? theme.headerTextColor
+                    : theme.headerNavColor,
               }}
             >
               <Search className="h-4 w-4" />
@@ -413,14 +393,22 @@ The personality instructions above should take precedence over other style guide
         </div>
       </div>
 
-      {/* Content Area */}
+      {/* content */}
       <div
         className="flex-1 overflow-y-auto p-2"
-        style={{ backgroundColor: themeSettings.chatBackgroundColor }}
+        style={{ backgroundColor: theme.chatBackgroundColor }}
       >
-        {activeScreen === "chat" && (
-          <div className="space-y-4">
-            {messages.map((msg) => (
+        {activeScreen === "chat" &&
+          messages.map((msg) =>
+            msg.type === "booking" ? (
+              <div key={msg.id} className="w-full">
+                <CustomerBooking 
+                  businessId={config?.agentId} 
+                  serviceName={currentConfig?.name || "Consultation"}
+                  onBookingComplete={handleBookingComplete}
+                />
+              </div>
+            ) : (
               <div
                 key={msg.id}
                 className={`flex ${
@@ -428,22 +416,22 @@ The personality instructions above should take precedence over other style guide
                 }`}
               >
                 <div
-                  className={`max-w-[90%] rounded-lg p-2`}
+                  className="max-w-[90%] rounded-lg p-2"
                   style={{
                     backgroundColor:
                       msg.sender === "agent"
-                        ? themeSettings.bubbleAgentBgColor
-                        : themeSettings.bubbleUserBgColor,
+                        ? theme.bubbleAgentBgColor
+                        : theme.bubbleUserBgColor,
                     color:
                       msg.sender === "agent"
-                        ? themeSettings.bubbleAgentTextColor
-                        : themeSettings.bubbleUserTextColor,
+                        ? theme.bubbleAgentTextColor
+                        : theme.bubbleUserTextColor,
                   }}
                 >
                   <div className="flex items-start space-x-2">
-                    {config?.logo && (
+                    {msg.sender === "agent" && currentConfig?.logo && (
                       <img
-                        src={config.logo}
+                        src={currentConfig.logo}
                         alt="Bot Logo"
                         className="w-6 h-6 rounded-full object-cover"
                       />
@@ -453,12 +441,12 @@ The personality instructions above should take precedence over other style guide
                     </div>
                   </div>
                   <div
-                    className="mt-1 text-xs opacity-70"
+                    className="mt-1 text-xs opacity-70 text-right"
                     style={{
                       color:
                         msg.sender === "agent"
-                          ? themeSettings.bubbleAgentTimeTextColor
-                          : themeSettings.bubbleUserTimeTextColor,
+                          ? theme.bubbleAgentTimeTextColor
+                          : theme.bubbleUserTimeTextColor,
                     }}
                   >
                     {msg.timestamp.toLocaleTimeString([], {
@@ -468,53 +456,49 @@ The personality instructions above should take precedence over other style guide
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+            )
+          )}
+
+        {activeScreen === "book" && (
+          <CustomerBooking 
+            businessId={config?.agentId} 
+            serviceName={currentConfig?.name || "Consultation"}
+          />
         )}
-        {activeScreen === "book" && config?.calendlyUrl && (
-          <div className="bg-white rounded-lg p-4">
-            <InlineWidget
-              url={config?.calendlyUrl || ""}
-              styles={{ height: "600px" }}
-            />
-          </div>
-        )}
+
         {activeScreen === "browse" && (
-          <div>
-            <Browse
-              onShowCart={() => setActiveScreen("cart")}
-              onOpenDrawer={() => setIsDrawerOpen(true)}
-            />
-          </div>
+          <Browse
+            onShowCart={() => setActiveScreen("cart")}
+            onOpenDrawer={() => setIsDrawerOpen(true)}
+          />
         )}
+
         {activeScreen === "cart" && (
-          <div>
-            <Browse
-              showCart={true}
-              onShowCart={() => setActiveScreen("browse")}
-              onOpenDrawer={() => setIsDrawerOpen(true)}
-            />
-          </div>
+          <Browse
+            showCart={true}
+            onShowCart={() => setActiveScreen("browse")}
+            onOpenDrawer={() => setIsDrawerOpen(true)}
+          />
         )}
       </div>
 
-      {/* Query Cues - 2x2 Grid */}
+      {/* cues */}
       {showCues && activeScreen === "chat" && (
         <div
           className="p-2 grid grid-cols-1 gap-1"
-          style={{ backgroundColor: themeSettings.inputCardColor }}
+          style={{ backgroundColor: theme.inputCardColor }}
         >
-          {QUERY_CUES.map((row, rowIndex) => (
-            <div key={rowIndex} className="grid grid-cols-2 gap-2">
-              {row.map((cue, colIndex) => (
+          {QUERY_CUES.map((row, i) => (
+            <div key={i} className="grid grid-cols-2 gap-2">
+              {row.map((cue) => (
                 <button
-                  key={`${rowIndex}-${colIndex}`}
+                  key={cue}
                   onClick={() => handleCueClick(cue)}
                   disabled={isLoading}
-                  className="w-full px-2 py-1  text-gray-800 rounded-xl text-xs font-medium transition-colors duration-200"
+                  className="px-2 py-1 rounded-xl text-xs font-medium"
                   style={{
-                    backgroundColor: themeSettings.headerTextColor,
-                    color: themeSettings.headerColor,
+                    backgroundColor: theme.headerTextColor,
+                    color: theme.headerColor,
                   }}
                 >
                   {cue}
@@ -525,44 +509,48 @@ The personality instructions above should take precedence over other style guide
         </div>
       )}
 
-      {/* Input Area */}
-      <div
-        className="p-2"
-        style={{ backgroundColor: themeSettings.inputCardColor }}
-      >
-        <div className="relative flex items-center">
-          <input
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Ask here..."
-            onKeyPress={handleKeyPress}
-            className="flex-1 pl-4 pr-12 py-3 rounded-full text-sm focus:outline-none"
-            style={{
-              backgroundColor: themeSettings.inputBackgroundColor,
-              color: themeSettings.inputTextColor,
-            }}
-            disabled={isLoading}
-          />
-          <button
-            onClick={handleSendMessage}
-            disabled={isLoading || !message.trim()}
-            className="absolute right-2 p-2"
-          >
-            <Send
-              className="h-5 w-5"
+      {/* input */}
+      {activeScreen === "chat" && (
+        <div
+          className="p-2"
+          style={{ backgroundColor: theme.inputCardColor }}
+        >
+          <div className="relative flex items-center">
+            <input
+              className="flex-1 pl-4 pr-12 py-3 rounded-full text-sm focus:outline-none"
               style={{
-                color:
-                  isLoading || !message.trim()
-                    ? themeSettings.headerNavColor
-                    : themeSettings.headerIconColor,
+                backgroundColor: theme.inputBackgroundColor,
+                color: theme.inputTextColor,
               }}
+              placeholder="Ask here..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              disabled={isLoading}
             />
-          </button>
+            <button
+              className="absolute right-2 p-2"
+              onClick={handleSendMessage}
+              disabled={isLoading || !message.trim()}
+            >
+              <Send
+                className="h-5 w-5"
+                style={{
+                  color:
+                    isLoading || !message.trim()
+                      ? theme.headerNavColor
+                      : theme.headerIconColor,
+                }}
+              />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
+      {/* Drawer component */}
       <Drawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
+
+      <div ref={messagesEndRef} />
     </div>
   );
 }

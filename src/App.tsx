@@ -13,6 +13,7 @@ import Integration from "./components/Integration";
 import Playground from "./components/Playground";
 import AgentsList from "./components/AgentsList";
 import PublicChat from "./components/PublicChat";
+import CustomerBooking from "./components/booking/CustomerBooking";
 import Services from "./components/Services";
 import { useUserStore } from "./store/useUserStore";
 import { ArrowLeft, Bot } from "lucide-react";
@@ -209,6 +210,22 @@ function Dashboard() {
   );
 }
 
+function CustomerBookingPage() {
+  const { activeAgentId } = useUserStore();
+  
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <CustomerBooking 
+          businessId={activeAgentId || "default"} 
+          serviceName="Consultation" 
+        />
+      </div>
+    </div>
+  );
+}
+
 function App() {
   return (
     <Router>
@@ -219,6 +236,7 @@ function App() {
           path="/chatbot/:botUsername"
           element={<PublicChat agentUsernamePlayground={null} />}
         />
+        <Route path="/book/:agentId" element={<CustomerBookingPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
