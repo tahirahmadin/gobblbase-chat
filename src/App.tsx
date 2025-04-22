@@ -19,8 +19,7 @@ import { useUserStore } from "./store/useUserStore";
 import { ArrowLeft, Bot } from "lucide-react";
 import SettingsPage from "./components/Settings";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
-import { signUpClient } from "./lib/serverActions";
-import { toast, Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import Products from "./components/Products";
 
 function Dashboard() {
@@ -31,53 +30,10 @@ function Dashboard() {
     agents,
     isLoggedIn,
     setActiveAgentId,
-    setUserEmail,
-    setIsLoggedIn,
-    setClientId,
+    handleGoogleLoginSuccess,
+    handleGoogleLoginError,
+    userRole,
   } = useUserStore();
-
-  const handleGoogleLoginSuccess = async (credentialResponse: any) => {
-    try {
-      // Decode the JWT token to get user info
-      const base64Url = credentialResponse.credential.split(".")[1];
-      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split("")
-          .map(function (c) {
-            return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
-          })
-          .join("")
-      );
-
-      const userInfo = JSON.parse(jsonPayload);
-      setUserEmail(userInfo.email);
-      setIsLoggedIn(true);
-
-      // Call the signUpClient API
-      const response = await signUpClient("google", userInfo.email);
-
-      if (response.error) {
-        toast.error("Failed to complete signup process");
-        console.error("Signup failed:", response.result);
-      } else {
-        // Store the clientId from the response
-        if (typeof response.result !== "string" && response.result._id) {
-          setClientId(response.result._id);
-        }
-        toast.success("Successfully signed up!");
-        console.log("User signed up successfully:", response.result);
-      }
-    } catch (error) {
-      console.error("Error during Google login:", error);
-      toast.error("An error occurred during login");
-    }
-  };
-
-  const handleGoogleLoginError = () => {
-    console.log("Login Failed");
-    toast.error("Google login failed");
-  };
 
   // If not logged in, redirect to create tab
   useEffect(() => {
@@ -194,7 +150,11 @@ function Dashboard() {
                 Back to Agents
               </button>
             </div>
-            <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
+            <Tabs
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              userRole={userRole}
+            />
           </div>
           <div className="flex-1">
             {activeTab === "playground" && (
@@ -204,7 +164,7 @@ function Dashboard() {
             {activeTab === "integration" && <Integration />}
             {activeTab === "services" && <Services />}
             {activeTab === "settings" && <SettingsPage />}
-            {activeTab === "products" && <Products />}
+            {activeTab === "products" && userRole === "admin" && <Products />}
           </div>
         </div>
       </div>

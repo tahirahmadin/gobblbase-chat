@@ -1,27 +1,14 @@
-import React, { useState } from "react";
-import { X, ShoppingCart, ArrowLeft, Plus, Minus } from "lucide-react";
-import Payment from "./Payment";
+import React from "react";
+import {
+  X,
+  ShoppingCart,
+  ArrowLeft,
+  Plus,
+  Minus,
+  CreditCard,
+} from "lucide-react";
 import { useCartStore } from "../../store/useCartStore";
-
-interface Product {
-  id: string;
-  title: string;
-  image: string;
-  price: string;
-  currency: string;
-  description: string;
-  quantity: number;
-}
-
-interface CartProps {
-  items: Product[];
-  onRemoveItem: (productId: string) => void;
-  onCheckout: () => void;
-  totalItems: number;
-  totalPrice: number;
-  onBack: () => void;
-  onOpenDrawer?: () => void;
-}
+import { CartProps } from "../../types/cart";
 
 const Cart: React.FC<CartProps> = ({
   items,
@@ -32,7 +19,6 @@ const Cart: React.FC<CartProps> = ({
   onBack,
   onOpenDrawer,
 }) => {
-  const [showPayment, setShowPayment] = useState(false);
   const { updateQuantity } = useCartStore();
 
   const handleIncrement = (productId: string, currentQuantity: number) => {
@@ -40,105 +26,78 @@ const Cart: React.FC<CartProps> = ({
   };
 
   const handleDecrement = (productId: string, currentQuantity: number) => {
-    updateQuantity(productId, currentQuantity - 1);
+    if (currentQuantity > 1) {
+      updateQuantity(productId, currentQuantity - 1);
+    }
   };
 
-  if (showPayment) {
-    return (
-      <Payment
-        onBack={() => setShowPayment(false)}
-        onOpenDrawer={onOpenDrawer}
-      />
-    );
-  }
-
   return (
-    <div className="container py-2">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={onBack}
-            className="text-gray-600 hover:text-gray-800"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <h2 className="text-lg font-semibold">Shopping Cart</h2>
-        </div>
-        <div className="flex items-center space-x-2">
-          <ShoppingCart className="h-5 w-5" />
-          <span className="text-sm font-medium">{totalItems} items</span>
-        </div>
+    <div className="container py-4">
+      <div className="flex items-center space-x-2 mb-6">
+        <button onClick={onBack} className="text-gray-600 hover:text-gray-800">
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <h2 className="text-lg font-semibold">Your Cart</h2>
       </div>
 
-      <div className="space-y-4">
-        {items.map((item) => (
-          <div
-            key={item.id}
-            className="flex items-center justify-between bg-white p-3 rounded-md"
-          >
-            <div className="flex items-center space-x-3">
-              <img
-                src={item.image}
-                alt={item.title}
-                className="w-12 h-12 object-cover rounded-md"
-              />
-              <div>
-                <h3 className="text-sm font-medium">{item.title}</h3>
-                <p className="text-xs text-gray-500">
-                  {item.currency} {item.price}
-                </p>
+      <div className="bg-white rounded-lg p-4 mb-6">
+        <div className="space-y-4">
+          {items.map((item) => (
+            <div key={item.id} className="flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-12 h-12 object-cover rounded-md"
+                />
+                <div>
+                  <h4 className="text-sm font-medium">{item.title}</h4>
+                  <p className="text-xs text-gray-500">
+                    {item.currency} {item.price} x {item.quantity}
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => handleDecrement(item.id, item.quantity)}
-                  className="p-1 rounded-full bg-gray-100 hover:bg-gray-200"
+                  className="p-1 rounded-full hover:bg-gray-100"
                 >
-                  <Minus className="h-3 w-3" />
+                  <Minus className="h-4 w-4" />
                 </button>
-                <span className="text-sm font-medium">{item.quantity}</span>
+                <span className="text-sm">{item.quantity}</span>
                 <button
                   onClick={() => handleIncrement(item.id, item.quantity)}
-                  className="p-1 rounded-full bg-gray-100 hover:bg-gray-200"
+                  className="p-1 rounded-full hover:bg-gray-100"
                 >
-                  <Plus className="h-3 w-3" />
+                  <Plus className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => onRemoveItem(item.id)}
+                  className="p-1 rounded-full hover:bg-gray-100"
+                >
+                  <X className="h-4 w-4" />
                 </button>
               </div>
-              <button
-                onClick={() => onRemoveItem(item.id)}
-                className="text-gray-500 hover:text-red-500"
-              >
-                <X className="h-4 w-4" />
-              </button>
             </div>
-          </div>
-        ))}
-      </div>
-
-      {items.length > 0 && (
-        <div className="mt-6">
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-sm font-medium">Total</span>
+          ))}
+        </div>
+        <div className="border-t mt-4 pt-4">
+          <div className="flex justify-between items-center">
+            <span className="font-medium">Total</span>
             <span className="text-lg font-semibold">
-              USD {totalPrice.toFixed(2)}
+              AED {totalPrice.toFixed(2)}
             </span>
           </div>
-          <button
-            onClick={() => setShowPayment(true)}
-            className="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 transition-colors"
-          >
-            Proceed to Checkout
-          </button>
         </div>
-      )}
+      </div>
 
-      {items.length === 0 && (
-        <div className="text-center py-8">
-          <ShoppingCart className="h-12 w-12 mx-auto text-gray-400" />
-          <p className="mt-2 text-gray-500">Your cart is empty</p>
-        </div>
-      )}
+      <button
+        onClick={onCheckout}
+        className="w-full bg-orange-500 text-white py-3 px-4 rounded-md hover:bg-orange-600 transition-colors flex items-center justify-center space-x-2"
+      >
+        <CreditCard className="h-5 w-5" />
+        <span>Proceed to Payment</span>
+      </button>
     </div>
   );
 };

@@ -159,6 +159,7 @@ export async function signUpClient(
     throw new Error("Failed to sign up client");
   }
 }
+
 export async function signUpUser(
   via: string,
   handle: string
@@ -177,6 +178,7 @@ export async function signUpUser(
     throw new Error("Failed to sign up client");
   }
 }
+
 export async function fetchClientAgents(clientId: string): Promise<Agent[]> {
   try {
     const response = await axios.get(
@@ -711,3 +713,31 @@ export const getTransactions = async (
     throw new Error("Failed to fetch transactions");
   }
 };
+
+interface UserDetails {
+  _id: string;
+  email: string;
+  name?: string;
+  avatar?: string;
+  signUpVia: {
+    via: string;
+    handle: string;
+  };
+}
+
+export async function getUserDetails(userId: string): Promise<UserDetails> {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/user/getUserDetails?userId=${userId}`
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.result || "Failed to fetch user details");
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching user details:", error);
+    throw error;
+  }
+}

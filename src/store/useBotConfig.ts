@@ -1,8 +1,45 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { signUpUser } from "../lib/serverActions";
+import { signUpUser, getAgentDetails, getProducts } from "../lib/serverActions";
 import { toast } from "react-hot-toast";
 import { Agent } from "../types";
+
+interface Product {
+  _id: string;
+  title: string;
+  image: string;
+  price: string;
+  description: string;
+  about?: string;
+}
+
+interface BotConfig {
+  agentId: string;
+  username: string;
+  name: string;
+  logo: string;
+  calendlyUrl: string;
+  stripeAccountId: string;
+  currency: string;
+  model: string;
+  systemPrompt: string;
+  themeColors: {
+    headerColor: string;
+    headerTextColor: string;
+    headerNavColor: string;
+    headerIconColor: string;
+    chatBackgroundColor: string;
+    bubbleAgentBgColor: string;
+    bubbleAgentTextColor: string;
+    bubbleAgentTimeTextColor: string;
+    bubbleUserBgColor: string;
+    bubbleUserTextColor: string;
+    bubbleUserTimeTextColor: string;
+    inputCardColor: string;
+    inputBackgroundColor: string;
+    inputTextColor: string;
+  };
+}
 
 interface BotConfigState {
   isBotUserLoggedIn: boolean;
@@ -11,9 +48,12 @@ interface BotConfigState {
   activeBotId: string | null;
   activeBotUsername: string | null;
   currentBotData: Agent | null;
-  config: any | null;
+  config: BotConfig | null;
   isLoading: boolean;
-  fetchConfig: (username: string) => Promise<void>;
+  error: string | null;
+  products: Product[];
+  isProductsLoading: boolean;
+  productsError: string | null;
   setBotUserEmail: (email: string) => void;
   setBotUserId: (id: string) => void;
   setIsBotUserLoggedIn: (status: boolean) => void;
@@ -23,6 +63,8 @@ interface BotConfigState {
   handleGoogleLoginSuccess: (credentialResponse: any) => Promise<void>;
   handleGoogleLoginError: () => void;
   botUserLogout: () => void;
+  fetchConfig: (username: string) => Promise<void>;
+  fetchProducts: (agentId: string) => Promise<void>;
 }
 
 export const useBotConfig = create<BotConfigState>()(
@@ -36,16 +78,10 @@ export const useBotConfig = create<BotConfigState>()(
       currentBotData: null,
       config: null,
       isLoading: false,
-      fetchConfig: async (username: string) => {
-        set({ isLoading: true });
-        try {
-          // Add your fetch config logic here
-          set({ isLoading: false });
-        } catch (error) {
-          set({ isLoading: false });
-          console.error("Error fetching config:", error);
-        }
-      },
+      error: null,
+      products: [],
+      isProductsLoading: false,
+      productsError: null,
       setBotUserEmail: (email) => set({ botUserEmail: email }),
       setBotUserId: (id) => set({ botUserId: id }),
       setIsBotUserLoggedIn: (status) => set({ isBotUserLoggedIn: status }),
@@ -100,8 +136,46 @@ export const useBotConfig = create<BotConfigState>()(
           activeBotId: null,
           activeBotUsername: null,
           currentBotData: null,
+          config: null,
+          products: [],
         });
         toast.success("Bot user logged out successfully");
+      },
+      fetchConfig: async (username: string) => {
+        try {
+          set({ isLoading: true, error: null });
+          const response = await getAgentDetails(null, username);
+          // Extract only the required fields from the response
+          const cleanConfig: BotConfig = {
+            agentId: response.agentId,
+            username: response.username,
+            name: response.name,
+            logo: response.logo,
+            calendlyUrl: response.calendlyUrl,
+            stripeAccountId: response.stripeAccountId,
+            currency: response.currency,
+            model: response.model,
+            systemPrompt: response.systemPrompt,
+            themeColors: response.themeColors,
+          };
+          set({ config: cleanConfig, isLoading: false });
+        } catch (error) {
+          set({ error: (error as Error).message, isLoading: false });
+          toast.error("Failed to fetch bot configuration");
+        }
+      },
+      fetchProducts: async (agentId: string) => {
+        try {
+          set({ isProductsLoading: true, productsError: null });
+          const response = await getProducts(agentId);
+          set({ products: response, isProductsLoading: false });
+        } catch (error) {
+          set({
+            productsError: (error as Error).message,
+            isProductsLoading: false,
+          });
+          toast.error("Failed to fetch products");
+        }
       },
     }),
     {

@@ -1,28 +1,19 @@
 import React from "react";
-import {
-  Bot,
-  Activity,
-  Settings,
-  Link,
-  FileText,
-  Briefcase,
-  Package,
-} from "lucide-react";
+import { Activity, Code2, Settings, ShoppingBag, Wrench } from "lucide-react";
 
-interface Tab {
-  id: string;
-  name: string;
-  icon: React.ReactNode;
-}
-
-interface TabsProps {
+export interface TabsProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  userRole: "user" | "admin" | null;
 }
 
-export default function Tabs({ activeTab, setActiveTab }: TabsProps) {
-  const tabs: Tab[] = [
-    { id: "playground", name: "Playground", icon: <Bot className="h-5 w-5" /> },
+const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab, userRole }) => {
+  const tabs = [
+    {
+      id: "playground",
+      name: "Playground",
+      icon: <Code2 className="h-5 w-5" />,
+    },
     {
       id: "activity",
       name: "Activity",
@@ -31,17 +22,12 @@ export default function Tabs({ activeTab, setActiveTab }: TabsProps) {
     {
       id: "integration",
       name: "Integration",
-      icon: <Link className="h-5 w-5" />,
+      icon: <Wrench className="h-5 w-5" />,
     },
     {
       id: "services",
       name: "Services",
-      icon: <Briefcase className="h-5 w-5" />,
-    },
-    {
-      id: "products",
-      name: "Products",
-      icon: <Package className="h-5 w-5" />,
+      icon: <ShoppingBag className="h-5 w-5" />,
     },
     {
       id: "settings",
@@ -50,25 +36,31 @@ export default function Tabs({ activeTab, setActiveTab }: TabsProps) {
     },
   ];
 
+  // Add products tab for admin users
+  if (userRole === "admin") {
+    tabs.push({
+      id: "products",
+      name: "Products",
+      icon: <ShoppingBag className="h-5 w-5" />,
+    });
+  }
+
   return (
     <nav className="space-y-1">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => setActiveTab(tab.id)}
-          className={`
-            flex items-center px-3 py-2 text-sm font-medium rounded-md w-full
-            ${
-              activeTab === tab.id
-                ? "text-white bg-gray-800"
-                : "text-gray-600 hover:bg-gray-50"
-            }
-          `}
+          className={`${
+            activeTab === tab.id
+              ? "bg-gray-100 text-gray-900"
+              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+          } flex items-center px-3 py-2 text-sm font-medium rounded-md w-full`}
         >
           <span
-            className={`mr-3 ${
-              activeTab === tab.id ? "text-white" : "text-gray-400"
-            }`}
+            className={`${
+              activeTab === tab.id ? "text-gray-500" : "text-gray-400"
+            } mr-3`}
           >
             {tab.icon}
           </span>
@@ -77,4 +69,6 @@ export default function Tabs({ activeTab, setActiveTab }: TabsProps) {
       ))}
     </nav>
   );
-}
+};
+
+export default Tabs;
