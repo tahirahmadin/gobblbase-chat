@@ -504,6 +504,7 @@ export async function updateUnavailableDates(
     startTime: string;
     endTime: string;
     allDay: boolean;
+    timezone?: string;
   }>
 ): Promise<any> {
   try {

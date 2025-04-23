@@ -422,7 +422,7 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
         console.log("Fetching slots from API");
         // Try to get slots from the API
         try {
-          const raw = await getAvailableSlots(businessId, apiDate);
+          const raw = await getAvailableSlots(businessId, apiDate, userTimezone);
           console.log("API returned slots:", raw);
           
           if (raw && raw.length > 0) {

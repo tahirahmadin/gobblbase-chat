@@ -9,6 +9,7 @@ import {
   Check,
   Loader2,
   AlertCircle,
+  Globe
 } from "lucide-react";
 import { useBotConfig } from "../../store/useBotConfig";
 import {
@@ -47,6 +48,9 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
   const [showTimeModal, setShowTimeModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<ScheduleDay | null>(null);
+  const [userTimezone, setUserTimezone] = useState<string>(
+    Intl.DateTimeFormat().resolvedOptions().timeZone
+  );
   const [timeInput, setTimeInput] = useState({
     start: "9:00",
     end: "5:00",
@@ -133,6 +137,23 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
     }).format(selectedDay.dateObj);
   };
 
+  const formatTimezone = (tz: string): string => {
+    try {
+      const date = new Date();
+      const options: Intl.DateTimeFormatOptions = {
+        timeZone: tz,
+        timeZoneName: 'short'
+      };
+      const tzName = new Intl.DateTimeFormat('en-US', options)
+        .formatToParts(date)
+        .find(part => part.type === 'timeZoneName')?.value || tz;
+      
+      return tzName;
+    } catch (e) {
+      return tz;
+    }
+  };
+
   
   const loadScheduleData = async () => {
     if (!activeAgentId) return;
@@ -141,19 +162,31 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
       const settings = await getAppointmentSettings(activeAgentId);
       const unavailableDatesData = settings.unavailableDates || [];
       const weekly = settings.availability;
-
+  
+      // If settings has a timezone, use it as the business timezone
+      if (settings.timezone) {
+        // You might want to store this in a state variable if needed
+        console.log("Business timezone from settings:", settings.timezone);
+      }
+  
       const days: ScheduleDay[] = [];
       const startOfCalendar = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
       const totalCells = 42;
       const today = new Date(); today.setHours(0,0,0,0);
-
+  
       for (let i = 0; i < totalCells; i++) {
         const dateObj = new Date(startOfCalendar);
         dateObj.setDate(startOfCalendar.getDate() + i);
         const apiDate = formatDateForApi(dateObj);
-        const dayName = new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(dateObj);
+        
+        // Use the business timezone for determining day of week
+        const dayName = new Intl.DateTimeFormat("en-US", { 
+          weekday: "long",
+          timeZone: settings.timezone || userTimezone 
+        }).format(dateObj);
+        
         const rule = weekly.find((w: any) => w.day === dayName);
-
+  
         let available = true;
         let timeSlot = "9:00am - 5:00pm"; 
         let startTime = "09:00";
@@ -161,7 +194,7 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
         let isApiUnavailable = false;
         let allDay = false;
         
-        
+        // Rest of the function remains the same
         if (rule) {
           if (rule.available && rule.timeSlots.length > 0) {
             const slot = rule.timeSlots[0];
@@ -174,14 +207,11 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
           }
         }
         
-        
         const unavailableData = unavailableDatesData.find(
           (item: any) => item.date === apiDate
         );
         
         if (unavailableData) {
-          
-          
           allDay = !!unavailableData.allDay;
           available = !allDay;
           
@@ -191,9 +221,9 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
             timeSlot = `${formatTime12(startTime)} - ${formatTime12(endTime)}`;
           }
         }
-
+  
         const isPast = dateObj < today;
-
+  
         days.push({
           apiDate,
           dateObj,
@@ -211,7 +241,7 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
           endTime
         });
       }
-
+  
       setScheduleDays(days);
     } catch (e) {
       console.error(e);
@@ -435,7 +465,8 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
           date: d.apiDate,
           startTime: d.startTime,
           endTime: d.endTime,
-          allDay: !d.available || d.allDay 
+          allDay: !d.available || d.allDay,
+          timezone: userTimezone
         }));
       
       await updateUnavailableDates(activeAgentId, unavailableDates);
@@ -490,6 +521,18 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
           )}
         </button>
       </div>
+      {/* Timezone indicator */}
+        <div className="mb-4 bg-blue-50 border border-blue-100 rounded-lg p-3 flex items-center">
+          <Globe className="h-5 w-5 text-blue-500 mr-2" />
+          <div>
+            <p className="text-sm text-blue-800">
+              Your schedule is displayed in your local timezone: <strong>{formatTimezone(userTimezone)}</strong>
+            </p>
+            <p className="text-xs text-blue-600 mt-1">
+              When customers book, times will be automatically converted to their local timezone.
+            </p>
+          </div>
+        </div>
 
       {/* Success/Error */}
       {saveSuccess && (
