@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import Booking from "./Booking";
 import BookingDashboard from "./BookingDashboard";
-import { useUserStore } from "../../store/useUserStore";
+import { useBotConfig } from "../../store/useBotConfig";
 
 interface BookingIntegrationProps {
   /** Called to close the integration view */
@@ -13,7 +13,8 @@ interface BookingIntegrationProps {
 }
 
 const BookingIntegration: React.FC<BookingIntegrationProps> = ({ onSetupComplete, initialView = 'dashboard', isEditMode, }) => {
-  const { activeAgentId } = useUserStore();
+  const { activeBotData } = useBotConfig();
+  const activeAgentId = activeBotData?.agentId;
   const [view, setView] = useState<"setup" | "dashboard">(initialView);
   
   const handleLocalSetupComplete = () => onSetupComplete();

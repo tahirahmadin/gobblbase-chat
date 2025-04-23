@@ -16,7 +16,7 @@ import {
   Timer,
   Loader2
 } from "lucide-react";
-import { useUserStore } from "../../store/useUserStore";
+import { useBotConfig } from "../../store/useBotConfig";
 import { updateAppointmentSettings, getAppointmentSettings } from "../../lib/serverActions";
 
 interface TimeSlot {
@@ -94,7 +94,8 @@ const COMMON_TIMEZONES = [
 ];
 
 const Booking: React.FC<BookingProps> = ({ onSetupComplete, isEditMode = false }) => {
-  const { activeAgentId } = useUserStore();
+  const { activeBotData } = useBotConfig();
+  const activeAgentId = activeBotData?.agentId;
   const [currentStep, setCurrentStep] = useState<
     "booking-type" | "duration" | "availability" | "locations" | "complete"
   >("booking-type");

@@ -22,6 +22,7 @@ import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { Toaster } from "react-hot-toast";
 import Products from "./components/Products";
 import { useBotConfig } from "./store/useBotConfig";
+import BookingTab from "./components/BookingTab";
 
 function Dashboard() {
   const [activeTab, setActiveTab] = useState("playground");
@@ -150,6 +151,7 @@ function Dashboard() {
           <div className="flex-1">
             {activeTab === "playground" && <Playground agentId={activeBotId} />}
             {activeTab === "activity" && <Activity />}
+            {activeTab === "booking" && <BookingTab />}
             {activeTab === "integration" && <Integration />}
             {activeTab === "services" && <Services />}
             {activeTab === "settings" && <SettingsPage />}

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import ServiceConfiguration from "./ServiceConfiguration";
 import { getIntegratedServices, updateCalendlyUrl, getAppointmentSettings } from "../lib/serverActions";
+import { useBotConfig } from "../store/useBotConfig";
 import { useUserStore } from "../store/useUserStore";
 import { toast } from "react-hot-toast";
 import BookingIntegration from "./booking/BookingIntegration";
@@ -67,7 +68,9 @@ const services: Service[] = [
 ];
 
 const Services: React.FC = () => {
-  const { activeAgentId, calendlyUrl, setCalendlyUrl } = useUserStore();
+  const { activeBotData } = useBotConfig();
+  const activeAgentId = activeBotData?.agentId;
+  const { calendlyUrl, setCalendlyUrl } = useUserStore();
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [integratedServices, setIntegratedServices] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);

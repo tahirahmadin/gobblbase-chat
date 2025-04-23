@@ -10,7 +10,7 @@ import {
   Loader2,
   AlertCircle,
 } from "lucide-react";
-import { useUserStore } from "../../store/useUserStore";
+import { useBotConfig } from "../../store/useBotConfig";
 import {
   getAppointmentSettings,
   updateUnavailableDates,
@@ -36,7 +36,8 @@ type ScheduleDay = {
 };
 
 const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
-  const { activeAgentId } = useUserStore();
+  const { activeBotData } = useBotConfig();
+  const activeAgentId = activeBotData?.agentId; 
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [scheduleDays, setScheduleDays] = useState<ScheduleDay[]>([]);
   const [isLoading, setIsLoading] = useState(true);

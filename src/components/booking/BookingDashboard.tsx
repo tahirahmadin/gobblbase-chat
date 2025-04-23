@@ -19,7 +19,7 @@ import {
   X,
   Globe
 } from "lucide-react";
-import { useUserStore } from "../../store/useUserStore";
+import { useBotConfig } from "../../store/useBotConfig";
 import { getAppointmentSettings, getBookings, cancelBooking } from "../../lib/serverActions";
 import { AvailabilityDay } from "./Booking";
 import AvailabilitySchedule from "./AvailabilitySchedule";
@@ -93,7 +93,8 @@ const formatTimezone = (tz: string): string => {
 };
 
 const BookingDashboard: React.FC<BookingDashboardProps> = ({ onEditSettings }) => {
-  const { activeAgentId } = useUserStore();
+  const { activeBotData } = useBotConfig();
+  const activeAgentId = activeBotData?.agentId;
   const [activeTab, setActiveTab] = useState<"upcoming" | "past" | "settings" | "schedule">("upcoming");
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
