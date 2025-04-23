@@ -10,6 +10,8 @@ import {
   Linkedin,
   Facebook,
   MessageSquare,
+  Clock,
+  Calendar,
 } from "lucide-react";
 
 export default function Integration() {
@@ -143,6 +145,72 @@ export default function Integration() {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Booking Timezone Feature */}
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
+          <div className="flex items-center space-x-3">
+            <Clock className="h-6 w-6 text-gray-600" />
+            <h2 className="text-xl font-semibold text-gray-800">
+              Timezone Support
+            </h2>
+          </div>
+          <p className="mt-2 text-gray-600">
+            Your booking system now supports multi-timezone functionality
+          </p>
+        </div>
+        <div className="p-6">
+          <div className="space-y-6">
+            <div className="flex items-start gap-4">
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <Calendar className="h-6 w-6 text-gray-600" />
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-800 mb-1">
+                  International Booking
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Your customers can now book appointments from anywhere in the world. Times will automatically convert between their timezone and yours.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-4">
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <Globe className="h-6 w-6 text-gray-600" />
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-800 mb-1">
+                  Business Timezone
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Set your business timezone in the booking settings. All appointments will be stored in your timezone while being displayed to users in their local time.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-4">
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <Clock className="h-6 w-6 text-gray-600" />
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-800 mb-1">
+                  Automatic Timezone Detection
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  The system automatically detects your visitors' timezone and shows available slots accordingly. No more confusion about meeting times!
+                </p>
+              </div>
+            </div>
+            
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+              <p className="text-blue-800 text-sm">
+                <strong>Pro Tip:</strong> Let your customers know they can now book appointments in their local timezone. This feature helps reduce scheduling confusion and missed appointments.
+              </p>
             </div>
           </div>
         </div>
