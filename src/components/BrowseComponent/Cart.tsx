@@ -4,7 +4,7 @@ import Payment from "./Payment";
 import { useCartStore } from "../../store/useCartStore";
 
 interface Product {
-  id: number;
+  id: string;
   title: string;
   image: string;
   price: string;
@@ -15,7 +15,7 @@ interface Product {
 
 interface CartProps {
   items: Product[];
-  onRemoveItem: (productId: number) => void;
+  onRemoveItem: (productId: string) => void;
   onCheckout: () => void;
   totalItems: number;
   totalPrice: number;
@@ -35,11 +35,11 @@ const Cart: React.FC<CartProps> = ({
   const [showPayment, setShowPayment] = useState(false);
   const { updateQuantity } = useCartStore();
 
-  const handleIncrement = (productId: number, currentQuantity: number) => {
+  const handleIncrement = (productId: string, currentQuantity: number) => {
     updateQuantity(productId, currentQuantity + 1);
   };
 
-  const handleDecrement = (productId: number, currentQuantity: number) => {
+  const handleDecrement = (productId: string, currentQuantity: number) => {
     updateQuantity(productId, currentQuantity - 1);
   };
 

@@ -53,6 +53,31 @@ interface UpdateUserLogsParams {
   newUserLogs: UserLog[];
 }
 
+interface AddProductData {
+  file: File;
+  title: string;
+  description: string;
+  image: string;
+  price: string;
+  about: string;
+  agentId: string;
+}
+
+interface StripeConfig {
+  isEnabled: boolean;
+  sellerId: string;
+  currency: string;
+}
+
+interface Transaction {
+  id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  createdAt: string;
+  productName: string;
+}
+
 export async function extractContentFromURL(
   url: string
 ): Promise<ExtractContentResponse> {
@@ -134,7 +159,24 @@ export async function signUpClient(
     throw new Error("Failed to sign up client");
   }
 }
+export async function signUpUser(
+  via: string,
+  handle: string
+): Promise<SignUpClientResponse> {
+  try {
+    const response = await axios.post("https://rag.gobbl.ai/user/signupUser", {
+      body: {
+        via,
+        handle,
+      },
+    });
 
+    return response.data;
+  } catch (error) {
+    console.error("Error signing up client:", error);
+    throw new Error("Failed to sign up client");
+  }
+}
 export async function fetchClientAgents(clientId: string): Promise<Agent[]> {
   try {
     const response = await axios.get(
@@ -370,18 +412,16 @@ export async function checkUsernameAvailability(
   }
 }
 
-export async function updateAppointmentSettings(
-  payload: {
-    agentId: string;
-    bookingType: string;
-    bookingsPerSlot: number;
-    meetingDuration: number;
-    bufferTime: number;
-    lunchBreak: { start: string; end: string };
-    availability: AvailabilityDay[];
-    locations: string[];
-  }
-) {
+export async function updateAppointmentSettings(payload: {
+  agentId: string;
+  bookingType: string;
+  bookingsPerSlot: number;
+  meetingDuration: number;
+  bufferTime: number;
+  lunchBreak: { start: string; end: string };
+  availability: AvailabilityDay[];
+  locations: string[];
+}) {
   try {
     const response = await axios.post(
       "https://rag.gobbl.ai/appointment/settings",
@@ -429,8 +469,6 @@ export async function getAvailableSlots(
   return response.data.result as TimeSlot[];
 }
 
-
-
 export interface BookingPayload {
   agentId: string;
   userId: string;
@@ -463,7 +501,7 @@ export async function updateUnavailableDates(
       "https://rag.gobbl.ai/appointment/update-unavailable-dates",
       {
         agentId,
-        unavailableDates
+        unavailableDates,
       }
     );
     if (response.data.error) throw new Error(response.data.error);
@@ -473,7 +511,6 @@ export async function updateUnavailableDates(
     throw error;
   }
 }
-
 
 export async function getUnavailableDates(agentId: string): Promise<string[]> {
   try {
@@ -514,3 +551,163 @@ export async function cancelBooking(bookingId: string) {
     throw error;
   }
 }
+export const addProduct = async (data: AddProductData) => {
+  try {
+    const formData = new FormData();
+    formData.append("file", data.file);
+    formData.append("title", data.title);
+    formData.append("description", data.description);
+    formData.append("image", data.image);
+    formData.append("price", data.price);
+    formData.append("about", data.about);
+    formData.append("agentId", data.agentId);
+
+    const response = await fetch("https://rag.gobbl.ai/product/addProduct", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to add product");
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("Error adding product:", error);
+    throw error;
+  }
+};
+
+export const updateProduct = async (data: {
+  productId: string;
+  title: string;
+  description: string;
+  price: string;
+  about?: string;
+  agentId: string;
+}) => {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/product/updateProduct",
+      data
+    );
+
+    if (response.data.error) {
+      throw new Error("Failed to update product");
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating product:", error);
+    throw error;
+  }
+};
+
+export const deleteProduct = async (id: string, agentId: string) => {
+  try {
+    const response = await axios.delete(
+      `https://rag.gobbl.ai/product/deleteProduct`,
+      {
+        data: {
+          productId: id,
+          agentId,
+        },
+      }
+    );
+
+    if (response.data.error) {
+      throw new Error("Failed to delete product");
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    throw error;
+  }
+};
+
+export const getProducts = async (agentId: string) => {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/product/getProducts?agentId=${agentId}`
+    );
+
+    if (response.data.error) {
+      throw new Error("Failed to fetch products");
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    throw error;
+  }
+};
+
+export const updateProductImage = async (data: {
+  file: File;
+  agentId: string;
+  productId: string;
+}) => {
+  try {
+    const formData = new FormData();
+    formData.append("file", data.file);
+    formData.append("agentId", data.agentId);
+    formData.append("productId", data.productId);
+
+    const response = await axios.post(
+      "https://rag.gobbl.ai/product/updateProductImage",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    if (response.data.error) {
+      throw new Error("Failed to update product image");
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating product image:", error);
+    throw error;
+  }
+};
+
+export const updateStripeAccountIdCurrency = async (data: {
+  agentId: string;
+  stripeAccountId: string;
+  currency: string;
+}) => {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/client/updateStripeAccountIdCurrency",
+      data
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating Stripe account ID and currency:", error);
+    throw new Error("Failed to update Stripe account ID and currency");
+  }
+};
+
+export const getTransactions = async (
+  agentId: string
+): Promise<Transaction[]> => {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/agent/transactions/${agentId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching transactions:", error);
+    throw new Error("Failed to fetch transactions");
+  }
+};

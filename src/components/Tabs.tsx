@@ -6,6 +6,7 @@ import {
   Link,
   FileText,
   Briefcase,
+  Package,
 } from "lucide-react";
 
 interface Tab {
@@ -36,6 +37,11 @@ export default function Tabs({ activeTab, setActiveTab }: TabsProps) {
       id: "services",
       name: "Services",
       icon: <Briefcase className="h-5 w-5" />,
+    },
+    {
+      id: "products",
+      name: "Products",
+      icon: <Package className="h-5 w-5" />,
     },
     {
       id: "settings",

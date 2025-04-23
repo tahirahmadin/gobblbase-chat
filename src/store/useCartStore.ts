@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface Product {
-  id: number;
+  id: string;
   title: string;
   image: string;
   price: string;
@@ -17,8 +17,8 @@ interface CartItem extends Product {
 interface CartStore {
   items: CartItem[];
   addItem: (product: Product) => void;
-  removeItem: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
+  removeItem: (productId: string) => void;
+  updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;

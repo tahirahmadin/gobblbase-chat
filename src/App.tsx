@@ -21,6 +21,7 @@ import SettingsPage from "./components/Settings";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { signUpClient } from "./lib/serverActions";
 import { toast, Toaster } from "react-hot-toast";
+import Products from "./components/Products";
 
 function Dashboard() {
   const [activeTab, setActiveTab] = useState("playground");
@@ -203,6 +204,7 @@ function Dashboard() {
             {activeTab === "integration" && <Integration />}
             {activeTab === "services" && <Services />}
             {activeTab === "settings" && <SettingsPage />}
+            {activeTab === "products" && <Products />}
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import { ChatMessage } from "../types";
-import { queryDocument } from "../lib/serverActions";
+import { queryDocument, signUpUser } from "../lib/serverActions";
 import OpenAI from "openai";
 import {
   Send,
@@ -17,6 +17,9 @@ import CustomerBooking from "./booking/CustomerBooking";
 import Browse from "./BrowseComponent/Browse";
 import { useCartStore } from "../store/useCartStore";
 import Drawer from "./BrowseComponent/Drawer";
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import { useUserStore } from "../store/useUserStore";
+import { toast } from "react-hot-toast";
 
 interface PersonalityAnalysis {
   dominantTrait: string;
@@ -88,6 +91,9 @@ export default function PublicChat({
   const { botUsername } = useParams();
   const { config, isLoading: isConfigLoading, fetchConfig } = useBotConfig();
 
+  const { isLoggedIn, setUserEmail, setIsLoggedIn, setClientId } =
+    useUserStore();
+  const [showSignInOverlay, setShowSignInOverlay] = React.useState(!isLoggedIn);
   const [message, setMessage] = React.useState("");
   const [messages, setMessages] = React.useState<ExtendedChatMessage[]>([
     {
@@ -108,8 +114,7 @@ export default function PublicChat({
   // Personality
   const [personalityType, setPersonalityType] =
     React.useState<PersonalityType | null>(null);
-  const [isCustomPersonality, setIsCustomPersonality] =
-    React.useState(false);
+  const [isCustomPersonality, setIsCustomPersonality] = React.useState(false);
   const [customPersonalityPrompt, setCustomPersonalityPrompt] =
     React.useState("");
   const [personalityAnalysis, setPersonalityAnalysis] =
@@ -196,9 +201,12 @@ export default function PublicChat({
 
     // detect booking intent
     const text = message.toLowerCase();
-    const isBookingRequest = ["book", "appointment", "meeting", "schedule"].some(
-      (kw) => text.includes(kw)
-    );
+    const isBookingRequest = [
+      "book",
+      "appointment",
+      "meeting",
+      "schedule",
+    ].some((kw) => text.includes(kw));
 
     if (isBookingRequest) {
       // inject booking embed
@@ -275,14 +283,59 @@ export default function PublicChat({
 
   const handleBookingComplete = (bookingDetails: any) => {
     // Add a confirmation message after booking is complete
-    setMessages((m) => [...m, {
-      id: Date.now().toString(),
-      content: `Great! Your appointment has been confirmed for ${
-        bookingDetails.date} at ${bookingDetails.startTime}. 
+    setMessages((m) => [
+      ...m,
+      {
+        id: Date.now().toString(),
+        content: `Great! Your appointment has been confirmed for ${bookingDetails.date} at ${bookingDetails.startTime}. 
         I've sent all the details to your email.`,
-      timestamp: new Date(),
-      sender: "agent",
-    }]);
+        timestamp: new Date(),
+        sender: "agent",
+      },
+    ]);
+  };
+
+  const handleGoogleLoginSuccess = async (credentialResponse: any) => {
+    try {
+      // Decode the JWT token to get user info
+      const base64Url = credentialResponse.credential.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map(function (c) {
+            return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+          })
+          .join("")
+      );
+
+      const userInfo = JSON.parse(jsonPayload);
+      setUserEmail(userInfo.email);
+      setIsLoggedIn(true);
+
+      // Call the signUpUser API
+      const response = await signUpUser("google", userInfo.email);
+
+      if (response.error) {
+        toast.error("Failed to complete signup process");
+        console.error("Signup failed:", response.result);
+      } else {
+        // Store the clientId from the response
+        if (typeof response.result !== "string" && response.result._id) {
+          setClientId(response.result._id);
+        }
+        setShowSignInOverlay(false);
+        toast.success("Successfully signed in!");
+      }
+    } catch (error) {
+      console.error("Error during Google login:", error);
+      toast.error("An error occurred during login");
+    }
+  };
+
+  const handleGoogleLoginError = () => {
+    console.log("Login Failed");
+    toast.error("Google login failed");
   };
 
   if (currentIsLoading) {
@@ -295,7 +348,7 @@ export default function PublicChat({
 
   return (
     <div
-      className="flex flex-col"
+      className="flex flex-col relative"
       style={{
         height: agentUsernamePlayground ? "100%" : "100vh",
         backgroundColor: agentUsernamePlayground
@@ -303,10 +356,64 @@ export default function PublicChat({
           : theme.headerColor,
       }}
     >
-      {/* header */}
-      <div 
-        className="shadow-sm" 
-        style={{ 
+      {/* Sign In Overlay */}
+      {showSignInOverlay && (
+        <div className="absolute inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden w-full max-w-md mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-center mb-6">
+                <img
+                  src={
+                    config?.logo ||
+                    "https://gobbl-bucket.s3.ap-south-1.amazonaws.com/gobbl_token.png"
+                  }
+                  alt="Bot Logo"
+                  className="w-12 h-12 rounded-full"
+                />
+              </div>
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Sign In Required
+                </h3>
+                <p className="mt-2 text-sm text-gray-500">
+                  Please sign in to start chatting and ordering with us.
+                </p>
+              </div>
+              <div className="flex flex-col items-center space-y-4">
+                <div className="w-full flex items-center justify-center">
+                  <div className="flex items-center justify-center">
+                    <div className="w-full max-w-xs">
+                      <GoogleOAuthProvider
+                        clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}
+                      >
+                        <GoogleLogin
+                          onSuccess={handleGoogleLoginSuccess}
+                          onError={handleGoogleLoginError}
+                          useOneTap
+                          theme="filled_blue"
+                          size="large"
+                          width="100%"
+                        />
+                      </GoogleOAuthProvider>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">
+                    By signing in, you agree to our Terms of Service and Privacy
+                    Policy
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
+      <div
+        className="shadow-sm"
+        style={{
           backgroundColor: theme.headerColor,
           borderTopLeftRadius: 10,
           borderTopRightRadius: 10,
@@ -344,7 +451,10 @@ export default function PublicChat({
               onClick={() => setIsDrawerOpen(true)}
               className="text-gray-500 hover:text-gray-700"
             >
-              <MenuIcon className="h-5 w-5" style={{ color: theme.headerIconColor }} />
+              <MenuIcon
+                className="h-5 w-5"
+                style={{ color: theme.headerIconColor }}
+              />
             </button>
           </div>
         </div>
@@ -402,10 +512,9 @@ export default function PublicChat({
           messages.map((msg) =>
             msg.type === "booking" ? (
               <div key={msg.id} className="w-full">
-                <CustomerBooking 
-                  businessId={config?.agentId} 
+                <CustomerBooking
+                  businessId={config?.agentId}
                   serviceName={currentConfig?.name || "Consultation"}
-                  onBookingComplete={handleBookingComplete}
                 />
               </div>
             ) : (
@@ -460,8 +569,8 @@ export default function PublicChat({
           )}
 
         {activeScreen === "book" && (
-          <CustomerBooking 
-            businessId={config?.agentId} 
+          <CustomerBooking
+            businessId={config?.agentId}
             serviceName={currentConfig?.name || "Consultation"}
           />
         )}
@@ -511,10 +620,7 @@ export default function PublicChat({
 
       {/* input */}
       {activeScreen === "chat" && (
-        <div
-          className="p-2"
-          style={{ backgroundColor: theme.inputCardColor }}
-        >
+        <div className="p-2" style={{ backgroundColor: theme.inputCardColor }}>
           <div className="relative flex items-center">
             <input
               className="flex-1 pl-4 pr-12 py-3 rounded-full text-sm focus:outline-none"

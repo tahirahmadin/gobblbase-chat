@@ -1,17 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ProductDetail from "./ProductDetail";
 import Cart from "./Cart";
 import { useCartStore } from "../../store/useCartStore";
-import { ArrowLeft, Plus, Minus, ShoppingCart } from "lucide-react";
+import { ArrowLeft, Plus, Minus, ShoppingCart, Loader2 } from "lucide-react";
+import { getProducts } from "../../lib/serverActions";
+import { useUserStore } from "../../store/useUserStore";
 
 interface Product {
-  id: number;
+  _id: string;
   title: string;
   image: string;
   price: string;
-  currency: string;
   description: string;
+  about?: string;
 }
 
 interface BrowseProps {
@@ -19,49 +21,6 @@ interface BrowseProps {
   onShowCart?: () => void;
   onOpenDrawer?: () => void;
 }
-
-const products: Product[] = [
-  {
-    id: 1,
-    title: "30 Days Instagram Mastery",
-    image:
-      "https://images.indianexpress.com/2024/09/ankur-warikoo.jpg?resize=600,338",
-    price: "20",
-    currency: "USD",
-    description:
-      "Learn how to grow your Instagram following and engagement in just 30 days. Perfect for businesses and influencers.",
-  },
-  {
-    id: 2,
-    title: "10 Sessions Physiotherapy",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTPUYFT5rbJvOct3cLleq9Haj4REW9ARN5kjA&s",
-    price: "49",
-    currency: "USD",
-    description:
-      "Professional physiotherapy sessions to help you recover from injuries and improve mobility.",
-  },
-  {
-    id: 3,
-    title: "1 month Personal Training",
-    image:
-      "https://true-elevate.com/wp-content/uploads/2024/04/360_F_317917629_HjBCyRlH1Hpwwg2HfEbExTdkbyWiGFuN.jpg",
-    price: "49",
-    currency: "USD",
-    description:
-      "One-on-one personal training sessions to help you achieve your fitness goals.",
-  },
-  {
-    id: 4,
-    title: "Personal Finance Ebook",
-    image:
-      "https://images.unsplash.com/photo-1541963463532-d68292c34b19?ixlib=rb-4.0.3",
-    price: "49",
-    currency: "USD",
-    description:
-      "Comprehensive guide to managing your personal finances and building wealth.",
-  },
-];
 
 const Browse: React.FC<BrowseProps> = ({
   showCart = false,
@@ -71,6 +30,9 @@ const Browse: React.FC<BrowseProps> = ({
   const navigate = useNavigate();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { activeAgentId } = useUserStore();
 
   const {
     items,
@@ -81,6 +43,24 @@ const Browse: React.FC<BrowseProps> = ({
     getTotalPrice,
   } = useCartStore();
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (!activeAgentId) return;
+
+      try {
+        setIsLoading(true);
+        const response = await getProducts(activeAgentId);
+        setProducts(response);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [activeAgentId]);
+
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);
   };
@@ -88,7 +68,14 @@ const Browse: React.FC<BrowseProps> = ({
   const handleAddToCart = () => {
     if (selectedProduct) {
       for (let i = 0; i < quantity; i++) {
-        addItem(selectedProduct);
+        addItem({
+          id: selectedProduct._id,
+          title: selectedProduct.title,
+          image: selectedProduct.image,
+          price: selectedProduct.price,
+          currency: "USD",
+          description: selectedProduct.description,
+        });
       }
       setSelectedProduct(null);
       setQuantity(1);
@@ -109,7 +96,7 @@ const Browse: React.FC<BrowseProps> = ({
     setSelectedProduct(null);
   };
 
-  const handleRemoveFromCart = (productId: number) => {
+  const handleRemoveFromCart = (productId: string) => {
     removeItem(productId);
   };
 
@@ -145,7 +132,7 @@ const Browse: React.FC<BrowseProps> = ({
           <p className="text-gray-600 mb-4">{selectedProduct.description}</p>
           <div className="flex justify-between items-center mb-4">
             <span className="text-lg font-semibold">
-              {selectedProduct.currency} {selectedProduct.price}
+              USD {selectedProduct.price}
             </span>
             <div className="flex items-center space-x-4">
               <button
@@ -202,34 +189,44 @@ const Browse: React.FC<BrowseProps> = ({
         </h2>
       </div> */}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-        {products.map((product) => (
-          <div
-            key={product.id}
-            className="group cursor-pointer bg-white p-2 rounded-md"
-            onClick={() => handleProductClick(product)}
-          >
-            <div className="bg-gray-500 rounded-md overflow-hidden mb-3">
-              <img
-                src={product.image}
-                alt={product.title}
-                className="w-full h-24 object-cover"
-              />
-            </div>
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-600" />
+        </div>
+      ) : products.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500">No products available at the moment.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+          {products.map((product) => (
+            <div
+              key={product._id}
+              className="group cursor-pointer bg-white p-2 rounded-md"
+              onClick={() => handleProductClick(product)}
+            >
+              <div className="bg-gray-500 rounded-md overflow-hidden mb-3">
+                <img
+                  src={product.image}
+                  alt={product.title}
+                  className="w-full h-24 object-cover"
+                />
+              </div>
 
-            <div className="px-1">
-              <h2 className="text-xs font-semibold text-gray-900 mb-1">
-                {product.title}
-              </h2>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-orange-500 font-semibold">
-                  {product.currency} {product.price}
-                </span>
+              <div className="px-1">
+                <h2 className="text-xs font-semibold text-gray-900 mb-1">
+                  {product.title}
+                </h2>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-orange-500 font-semibold">
+                    USD {product.price}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
