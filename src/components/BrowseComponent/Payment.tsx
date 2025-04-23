@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { ArrowLeft, CreditCard, CheckCircle2 } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
@@ -11,13 +10,7 @@ import {
 import toast from "react-hot-toast";
 import { useCartStore } from "../../store/useCartStore";
 import { useBotConfig } from "../../store/useBotConfig";
-import { Product } from "../../types/cart";
 import { useUserStore } from "../../store/useUserStore";
-
-// Initialize Stripe
-const stripePromise = loadStripe(
-  "pk_test_51QmCr1HKEjO0z2HywTIERQIhoe6VpFHQOdLFrzAB8zb3qEj94S9v4MzxW3Wkdlh5YN0PogAcMSXoGl0xuDqBgCzw00nmJ8Segm"
-);
 
 interface PaymentProps {
   onBack: () => void;
@@ -35,7 +28,7 @@ const PaymentForm = ({
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
   const { items, getTotalPrice, clearCart } = useCartStore();
-  const { config } = useBotConfig();
+  const { activeBotData } = useBotConfig();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -62,23 +55,6 @@ const PaymentForm = ({
 
       if (error) {
         throw error;
-      }
-
-      // Payment successful, create order
-      const response = await fetch("/api/user/create-new-order", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          items,
-          totalAmount: getTotalPrice(),
-          agentId: config?.agentId,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create order");
       }
 
       clearCart();
@@ -153,39 +129,46 @@ const Payment: React.FC<PaymentProps> = ({ onBack, onOpenDrawer }) => {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const { items, getTotalPrice } = useCartStore();
-  const { config } = useBotConfig();
-  const { userId } = useUserStore();
+  const { activeBotId, activeBotData } = useBotConfig();
+  const { userId, userEmail } = useUserStore();
+
+  let stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY, {
+    stripeAccount: activeBotData?.stripeAccountId,
+  });
 
   useEffect(() => {
-    console.log("calling");
-    console.log("userId");
-    console.log(userId);
     const createPaymentIntent = async () => {
       try {
-        const response = await fetch("/api/product/create-payment-intent", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            lineItems: items.map((item) => ({
-              id: item.id,
-              quantity: item.quantity,
-            })),
-            agentId: config?.agentId || "",
-            userId: userId, // Add user ID if available
-            cart: items,
-            stripeAccountId: config?.stripeAccountId || "",
-            amount: getTotalPrice() * 100,
-            currency: config?.currency || "USD",
-          }),
-        });
+        const response = await fetch(
+          "https://rag.gobbl.ai/product/create-payment-intent",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              lineItems: items.map((item) => ({
+                id: item.id,
+                quantity: item.quantity,
+              })),
+              agentId: activeBotId,
+              userId: userId, // Add user ID if available
+              userEmail: userEmail,
+              cart: items,
+              stripeAccountId: activeBotData?.stripeAccountId || "",
+              amount: getTotalPrice() * 100,
+              currency: activeBotData?.currency || "USD",
+            }),
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to create payment intent");
         }
 
         const data = await response.json();
+        console.log("data");
+        console.log(data);
         setClientSecret(data.clientSecret);
       } catch (error: any) {
         toast.error(error.message || "Failed to initialize payment");
@@ -193,7 +176,7 @@ const Payment: React.FC<PaymentProps> = ({ onBack, onOpenDrawer }) => {
     };
 
     createPaymentIntent();
-  }, [items, config]);
+  }, [items, activeBotData]);
 
   if (isSuccess) {
     return (

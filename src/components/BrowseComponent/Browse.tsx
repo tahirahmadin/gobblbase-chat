@@ -32,8 +32,8 @@ const Browse: React.FC<BrowseProps> = ({
   const [quantity, setQuantity] = useState(1);
   const [justAddedToCart, setJustAddedToCart] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
-  const { config, activeBotId, products, isProductsLoading, fetchProducts } =
-    useBotConfig();
+  const { config, activeBotId, products, isProductsLoading } = useBotConfig();
+  const { getProductsInventory } = useCartStore();
 
   const {
     items,
@@ -45,10 +45,10 @@ const Browse: React.FC<BrowseProps> = ({
   } = useCartStore();
 
   useEffect(() => {
-    if (config?.agentId) {
-      fetchProducts(config?.agentId);
+    if (activeBotId) {
+      getProductsInventory(activeBotId);
     }
-  }, [config, fetchProducts]);
+  }, [activeBotId, getProductsInventory]);
 
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);

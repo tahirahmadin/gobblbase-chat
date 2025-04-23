@@ -617,7 +617,7 @@ export const updateProduct = async (data: {
   agentId: string;
 }) => {
   try {
-    const response = await axios.post(
+    const response = await axios.put(
       "https://rag.gobbl.ai/product/updateProduct",
       data
     );
@@ -732,9 +732,9 @@ export const getTransactions = async (
 ): Promise<Transaction[]> => {
   try {
     const response = await axios.get(
-      `https://rag.gobbl.ai/agent/transactions/${agentId}`
+      `https://rag.gobbl.ai/client/getAgentOrders?agentId=${agentId}`
     );
-    return response.data;
+    return response.data.result;
   } catch (error) {
     console.error("Error fetching transactions:", error);
     throw new Error("Failed to fetch transactions");

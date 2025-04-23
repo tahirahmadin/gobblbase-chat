@@ -822,7 +822,9 @@ const Products: React.FC = () => {
                     <div className="flex justify-between items-center">
                       <div>
                         <h3 className="text-sm font-medium text-gray-900">
-                          {transaction.productName}
+                          {transaction.items.map((item) => {
+                            return <div>{item.title}</div>;
+                          })}
                         </h3>
                         <p className="text-sm text-gray-500">
                           {new Date(transaction.createdAt).toLocaleDateString()}
@@ -830,7 +832,7 @@ const Products: React.FC = () => {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-medium text-gray-900">
-                          {transaction.amount} {transaction.currency}
+                          {transaction.totalAmount / 100} {transaction.currency}
                         </p>
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${

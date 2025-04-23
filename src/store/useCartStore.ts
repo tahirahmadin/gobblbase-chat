@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { getProducts } from "../lib/serverActions";
 
 interface Product {
   id: string;
@@ -15,6 +16,7 @@ interface CartItem extends Product {
 }
 
 interface CartStore {
+  products: Product[];
   items: CartItem[];
   addItem: (product: Product) => void;
   removeItem: (productId: string) => void;
@@ -22,12 +24,14 @@ interface CartStore {
   clearCart: () => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
+  getProductsInventory: (inputAgentId: string) => Promise<void>;
 }
 
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      products: [],
       addItem: (product) => {
         set((state) => {
           const existingItem = state.items.find(
@@ -74,6 +78,10 @@ export const useCartStore = create<CartStore>()(
           (total, item) => total + parseFloat(item.price) * item.quantity,
           0
         );
+      },
+      getProductsInventory: async (inputAgentId: string) => {
+        let response = await getProducts(inputAgentId);
+        set({ products: response });
       },
     }),
     {
