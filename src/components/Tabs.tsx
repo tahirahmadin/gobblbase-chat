@@ -4,10 +4,9 @@ import { Activity, Code2, Settings, ShoppingBag, Wrench } from "lucide-react";
 export interface TabsProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  userRole: "user" | "admin" | null;
 }
 
-const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab, userRole }) => {
+const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab }) => {
   const tabs = [
     {
       id: "playground",
@@ -34,16 +33,12 @@ const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab, userRole }) => {
       name: "Settings",
       icon: <Settings className="h-5 w-5" />,
     },
-  ];
-
-  // Add products tab for admin users
-  if (userRole === "admin") {
-    tabs.push({
+    {
       id: "products",
       name: "Products",
       icon: <ShoppingBag className="h-5 w-5" />,
-    });
-  }
+    },
+  ];
 
   return (
     <nav className="space-y-1">

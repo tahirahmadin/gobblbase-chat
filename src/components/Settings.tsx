@@ -5,18 +5,12 @@ import {
   Upload,
   Bot,
   User,
-  Calendar,
   AlertCircle,
   CheckCircle2,
 } from "lucide-react";
-import { useUserStore } from "../store/useUserStore";
 import { toast } from "react-hot-toast";
-import {
-  updateAgentUsername,
-  uploadProfilePicture,
-  updateCalendlyUrl,
-  checkUsernameAvailability,
-} from "../lib/serverActions";
+import { uploadProfilePicture } from "../lib/serverActions";
+import { useBotConfig } from "../store/useBotConfig";
 
 interface Plan {
   name: string;
@@ -26,61 +20,42 @@ interface Plan {
 }
 
 const SettingsPage: React.FC = () => {
-  const {
-    activeAgentId,
-    activeAgentUsername,
-    calendlyUrl,
-    setCalendlyUrl,
-    currentAgentData,
-  } = useUserStore();
+  const { activeBotData, updateBotUsernameViaStore, updateBotLogoViaStore } =
+    useBotConfig();
 
-  const [isEnabled, setIsEnabled] = useState(true);
   const [activeTab, setActiveTab] = useState("services");
-  const [agentUsername, setAgentUsername] = useState(activeAgentUsername || "");
+  const [agentUsername, setAgentUsername] = useState(
+    activeBotData?.username || ""
+  );
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [profilePicturePreview, setProfilePicturePreview] = useState<
     string | null
   >(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUsernameValid, setIsUsernameValid] = useState(true);
-  const [isUsernameAvailable, setIsUsernameAvailable] = useState(true);
-  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
 
-  const isUsernameChanged = agentUsername !== activeAgentUsername;
+  const isUsernameChanged = agentUsername !== activeBotData?.username;
 
   const handleUsernameUpdate = async () => {
-    if (!activeAgentId) {
+    if (!activeBotData?.agentId) {
       toast.error("No active agent selected");
       return;
     }
 
-    if (!isUsernameValid || !isUsernameAvailable) {
+    if (!isUsernameValid) {
       return;
     }
 
     setIsUpdating(true);
     try {
-      await updateAgentUsername(activeAgentId, agentUsername);
+      console.log("calling updateBotUsernameViaStore");
+      await updateBotUsernameViaStore(activeBotData?.agentId, agentUsername);
       toast.success("Username updated successfully");
     } catch (error) {
       console.error("Error updating username:", error);
       toast.error("Failed to update username");
     } finally {
       setIsUpdating(false);
-    }
-  };
-
-  const checkUsername = async (username: string) => {
-    if (!username || username.length < 3) return;
-
-    setIsCheckingUsername(true);
-    try {
-      const isAvailable = await checkUsernameAvailability(username);
-      setIsUsernameAvailable(isAvailable);
-    } catch (error) {
-      console.error("Error checking username:", error);
-    } finally {
-      setIsCheckingUsername(false);
     }
   };
 
@@ -104,14 +79,14 @@ const SettingsPage: React.FC = () => {
   };
 
   const handleProfilePictureUpload = async () => {
-    if (!activeAgentId || !profilePicture) {
+    if (!activeBotData?.agentId || !profilePicture) {
       toast.error("No active agent or profile picture selected");
       return;
     }
 
     setIsUpdating(true);
     try {
-      await uploadProfilePicture(activeAgentId, profilePicture);
+      await updateBotLogoViaStore(activeBotData?.agentId, profilePicture);
       toast.success("Profile picture updated successfully");
     } catch (error) {
       console.error("Error uploading profile picture:", error);
@@ -121,31 +96,10 @@ const SettingsPage: React.FC = () => {
     }
   };
 
-  const handleCalendlyUrlUpdate = async () => {
-    if (!activeAgentId) {
-      toast.error("No active agent selected");
-      return;
-    }
-
-    setIsUpdating(true);
-    try {
-      await updateCalendlyUrl(activeAgentId, calendlyUrl);
-      toast.success("Calendly URL updated successfully");
-    } catch (error) {
-      console.error("Error updating Calendly URL:", error);
-      toast.error("Failed to update Calendly URL");
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
   const validateUsername = (username: string) => {
     const regex = /^[a-zA-Z0-9]+$/;
     const isValid = regex.test(username) && username.length >= 3;
     setIsUsernameValid(isValid);
-    if (isValid) {
-      checkUsername(username);
-    }
   };
 
   useEffect(() => {
@@ -245,18 +199,14 @@ const SettingsPage: React.FC = () => {
                         validateUsername(e.target.value);
                       }}
                       className={`w-full px-4 py-3 rounded-lg border ${
-                        !isUsernameValid || !isUsernameAvailable
+                        !isUsernameValid
                           ? "border-red-500 focus:ring-red-500"
                           : "border-gray-200 focus:ring-gray-900"
                       } focus:outline-none focus:ring-2`}
                       placeholder="Enter bot handle"
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      {isCheckingUsername ? (
-                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-900 border-t-transparent" />
-                      ) : !isUsernameValid ? (
-                        <AlertCircle className="h-5 w-5 text-red-500" />
-                      ) : !isUsernameAvailable ? (
+                      {!isUsernameValid ? (
                         <AlertCircle className="h-5 w-5 text-red-500" />
                       ) : agentUsername.length >= 3 ? (
                         <CheckCircle2 className="h-5 w-5 text-green-500" />
@@ -270,27 +220,14 @@ const SettingsPage: React.FC = () => {
                       characters)
                     </p>
                   )}
-                  {isUsernameValid && !isUsernameAvailable && (
-                    <p className="text-sm text-red-500 flex items-center">
-                      <AlertCircle className="h-4 w-4 mr-1" />
-                      This username is already taken
-                    </p>
-                  )}
+
                   <button
                     onClick={handleUsernameUpdate}
                     disabled={
-                      isUpdating ||
-                      !isUsernameValid ||
-                      !isUsernameAvailable ||
-                      !isUsernameChanged ||
-                      isCheckingUsername
+                      isUpdating || !isUsernameValid || !isUsernameChanged
                     }
                     className={`w-full py-3 px-4 rounded-lg text-white font-medium transition-colors ${
-                      isUpdating ||
-                      !isUsernameValid ||
-                      !isUsernameAvailable ||
-                      !isUsernameChanged ||
-                      isCheckingUsername
+                      isUpdating || !isUsernameValid || !isUsernameChanged
                         ? "bg-gray-400 cursor-not-allowed"
                         : "bg-gray-900 hover:bg-gray-800"
                     }`}
@@ -323,9 +260,9 @@ const SettingsPage: React.FC = () => {
                           alt="Profile preview"
                           className="w-full h-full object-cover"
                         />
-                      ) : currentAgentData?.logo ? (
+                      ) : activeBotData?.logo ? (
                         <img
-                          src={currentAgentData.logo}
+                          src={activeBotData.logo}
                           alt="Current profile"
                           className="w-full h-full object-cover"
                           onError={(e) => {

@@ -149,8 +149,8 @@ export default function PublicChat({
   // fetch config on mount/params change
   React.useEffect(() => {
     if (!previewConfig) {
-      if (botUsername) fetchConfig(botUsername);
-      if (agentUsernamePlayground) fetchConfig(agentUsernamePlayground);
+      if (botUsername) fetchConfig(botUsername, true);
+      if (agentUsernamePlayground) fetchConfig(agentUsernamePlayground, false);
     }
   }, [botUsername, agentUsernamePlayground, fetchConfig, previewConfig]);
 

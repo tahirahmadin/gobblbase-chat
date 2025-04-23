@@ -21,19 +21,14 @@ import SettingsPage from "./components/Settings";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { Toaster } from "react-hot-toast";
 import Products from "./components/Products";
+import { useBotConfig } from "./store/useBotConfig";
 
 function Dashboard() {
   const [activeTab, setActiveTab] = useState("playground");
   const [isCreating, setIsCreating] = useState(false);
-  const {
-    activeAgentId,
-    agents,
-    isLoggedIn,
-    setActiveAgentId,
-    handleGoogleLoginSuccess,
-    handleGoogleLoginError,
-    userRole,
-  } = useUserStore();
+  const { isLoggedIn, handleGoogleLoginSuccess, handleGoogleLoginError } =
+    useUserStore();
+  const { activeBotId, setActiveBotId } = useBotConfig();
 
   // If not logged in, redirect to create tab
   useEffect(() => {
@@ -103,7 +98,7 @@ function Dashboard() {
   }
 
   // If logged in but no agent selected, show agents list
-  if (!activeAgentId) {
+  if (!activeBotId) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -143,28 +138,22 @@ function Dashboard() {
           <div className="w-42 pr-8">
             <div className="mb-4">
               <button
-                onClick={() => setActiveAgentId(null)}
+                onClick={() => setActiveBotId(null)}
                 className="flex items-center text-gray-600 hover:text-gray-900"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Agents
               </button>
             </div>
-            <Tabs
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-              userRole={userRole}
-            />
+            <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
           </div>
           <div className="flex-1">
-            {activeTab === "playground" && (
-              <Playground agentId={activeAgentId} />
-            )}
+            {activeTab === "playground" && <Playground agentId={activeBotId} />}
             {activeTab === "activity" && <Activity />}
             {activeTab === "integration" && <Integration />}
             {activeTab === "services" && <Services />}
             {activeTab === "settings" && <SettingsPage />}
-            {activeTab === "products" && userRole === "admin" && <Products />}
+            {activeTab === "products" && <Products />}
           </div>
         </div>
       </div>
@@ -173,15 +162,15 @@ function Dashboard() {
 }
 
 function CustomerBookingPage() {
-  const { activeAgentId } = useUserStore();
-  
+  const { activeBotId } = useBotConfig();
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <CustomerBooking 
-          businessId={activeAgentId || "default"} 
-          serviceName="Consultation" 
+        <CustomerBooking
+          businessId={activeBotId || "default"}
+          serviceName="Consultation"
         />
       </div>
     </div>

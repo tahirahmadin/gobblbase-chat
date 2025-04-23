@@ -1,5 +1,5 @@
 import axios from "axios";
-import { CreateNewAgentResponse } from "../types";
+import { AdminAgent, CreateNewAgentResponse } from "../types";
 
 interface QueryDocumentResponse {
   context: any; // You might want to define a more specific type based on the actual response
@@ -179,7 +179,9 @@ export async function signUpUser(
   }
 }
 
-export async function fetchClientAgents(clientId: string): Promise<Agent[]> {
+export async function fetchClientAgents(
+  clientId: string
+): Promise<AdminAgent[]> {
   try {
     const response = await axios.get(
       `https://rag.gobbl.ai/client/agents/${clientId}`
@@ -195,26 +197,23 @@ export async function fetchClientAgents(clientId: string): Promise<Agent[]> {
 }
 
 export async function getAgentDetails(
-  agentId: string | null,
-  username: string | null
+  inputParam: string | null,
+  isfetchByUsername: boolean
 ) {
   try {
     // Check if we have at least one parameter
-    if (!agentId && !username) {
+    if (!inputParam) {
       throw new Error("Either agentId or username must be provided");
     }
-    
+
     const response = await axios.get(
-      `https://rag.gobbl.ai/client/getAgentDetails`,
-      {
-        params: { agentId, username }
-      }
+      `https://rag.gobbl.ai/client/getAgentDetails?inputParam=${inputParam}&isfetchByUsername=${isfetchByUsername}`
     );
-    
+
     if (response.data.error) {
       throw new Error(response.data.result || "Error fetching agent details");
     }
-    
+
     return response.data.result;
   } catch (error) {
     console.error("Error fetching agent details:", error);
@@ -273,7 +272,7 @@ export async function updateAgentDetails(
   }
 }
 
-export async function deleteAgent(agentId: string) {
+export async function deleteAgent(agentId: string): Promise<void> {
   try {
     const response = await axios.delete(
       `https://rag.gobbl.ai/client/deleteAgent/${agentId}`
@@ -282,7 +281,6 @@ export async function deleteAgent(agentId: string) {
     if (response.data.error) {
       throw new Error("Error deleting agent");
     }
-    return response.data.result;
   } catch (error) {
     console.error("Error deleting agent:", error);
     throw error;
@@ -769,4 +767,13 @@ export async function getUserDetails(userId: string): Promise<UserDetails> {
     console.error("Error fetching user details:", error);
     throw error;
   }
+}
+
+export interface AdminUser {
+  _id: string;
+  email: string;
+  name?: string;
+  role: "user" | "admin";
+  createdAt: string;
+  lastLogin: string;
 }

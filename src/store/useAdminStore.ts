@@ -1,29 +1,46 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { signUpClient } from "../lib/serverActions";
+import {
+  fetchClientAgents,
+  deleteAgent,
+  signUpClient,
+} from "../lib/serverActions";
 import { toast } from "react-hot-toast";
+import { AdminAgent } from "../types";
 
 interface AdminState {
-  isAdminLoggedIn: boolean;
-  adminEmail: string | null;
+  // Admin data state
   adminId: string | null;
-  setAdminEmail: (email: string) => void;
-  setAdminId: (id: string) => void;
-  setIsAdminLoggedIn: (status: boolean) => void;
-  handleGoogleLoginSuccess: (credentialResponse: any) => Promise<void>;
-  handleGoogleLoginError: () => void;
+  adminEmail: string | null;
+  isAdminLoggedIn: boolean;
+  agents: AdminAgent[];
+  isLoading: boolean;
+  error: string | null;
+  setError: (error: string | null) => void;
+  // Admin operations
+  fetchAllAgents: () => Promise<void>;
+  deleteAgent: (agentId: string) => Promise<void>;
   adminLogout: () => void;
+  handleGoogleLoginError: () => void;
+  handleGoogleLoginSuccess: (credentialResponse: any) => Promise<void>;
 }
 
 export const useAdminStore = create<AdminState>()(
   persist(
     (set, get) => ({
-      isAdminLoggedIn: false,
-      adminEmail: null,
+      // Initial state
       adminId: null,
-      setAdminEmail: (email) => set({ adminEmail: email }),
-      setAdminId: (id) => set({ adminId: id }),
-      setIsAdminLoggedIn: (status) => set({ isAdminLoggedIn: status }),
+      adminEmail: null,
+      isAdminLoggedIn: false,
+      agents: [],
+
+      isLoading: false,
+      error: null,
+
+      // Basic setters
+      setError: (error) => set({ error }),
+
+      // Complex actions
       handleGoogleLoginSuccess: async (credentialResponse: any) => {
         try {
           // Decode the JWT token to get user info
@@ -41,40 +58,64 @@ export const useAdminStore = create<AdminState>()(
           const userInfo = JSON.parse(jsonPayload);
           set({ adminEmail: userInfo.email, isAdminLoggedIn: true });
 
-          // Call the signUpClient API
+          // Call the signUpUser API
           const response = await signUpClient("google", userInfo.email);
 
           if (response.error) {
-            toast.error("Failed to complete admin signup process");
-            console.error("Admin signup failed:", response.result);
+            toast.error("Failed to complete signup process");
+            console.error("Signup failed:", response.result);
           } else {
-            // Store the adminId from the response
+            // Store the userId from the response
             if (typeof response.result !== "string" && response.result._id) {
-              set({ adminId: response.result._id });
+              const adminId = response.result._id;
+              set({ adminId });
             }
-            toast.success("Successfully signed in as admin!");
-            console.log("Admin signed in successfully:", response.result);
+            toast.success(`Successfully signed in!`);
           }
         } catch (error) {
-          console.error("Error during admin Google login:", error);
-          toast.error("An error occurred during admin login");
+          console.error("Error during Google login:", error);
+          toast.error("An error occurred during login");
         }
       },
+
       handleGoogleLoginError: () => {
-        console.log("Admin Login Failed");
-        toast.error("Google login failed for admin");
+        console.log("Login Failed");
+        toast.error("Google login failed");
+      },
+
+      // Admin operations
+      fetchAllAgents: async () => {
+        try {
+          set({ isLoading: true, error: null });
+          if (!get().adminId) {
+            throw new Error("Admin ID is not set");
+          }
+          const agents = await fetchClientAgents(get().adminId);
+          set({ agents, isLoading: false });
+        } catch (error) {
+          set({ error: (error as Error).message, isLoading: false });
+          toast.error("Failed to fetch agents");
+        }
+      },
+
+      deleteAgent: async (agentId: string) => {
+        try {
+          set({ isLoading: true, error: null });
+          await deleteAgent(agentId);
+          const agents = await fetchClientAgents(agentId);
+          set({ agents, isLoading: false });
+          toast.success("Agent deleted successfully");
+        } catch (error) {
+          set({ error: (error as Error).message, isLoading: false });
+          toast.error("Failed to delete agent");
+        }
       },
       adminLogout: () => {
-        set({
-          isAdminLoggedIn: false,
-          adminEmail: null,
-          adminId: null,
-        });
-        toast.success("Admin logged out successfully");
+        set({ adminId: null, adminEmail: null, isAdminLoggedIn: false });
       },
     }),
     {
-      name: "admin-storage", // unique name for localStorage key
+      name: "admin-storage",
     }
   )
 );

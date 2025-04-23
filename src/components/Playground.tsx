@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { RefreshCw, Send, Save, Plus, Bot } from "lucide-react";
+import { Save, Plus, Bot } from "lucide-react";
 import { ChatMessage } from "../types";
 import {
   queryDocument,
-  getAgentDetails,
   updateAgentDetails,
   updateUserLogs,
 } from "../lib/serverActions";
 import OpenAI from "openai";
-import PersonalityAnalyzer, { PERSONALITY_TYPES } from "./PersonalityAnalyzer";
-import { useUserStore } from "../store/useUserStore";
 import PublicChat from "./PublicChat";
 import { toast } from "react-hot-toast";
+import { useBotConfig } from "../store/useBotConfig";
+import { useAdminStore } from "../store/useAdminStore";
 
 interface PersonalityAnalysis {
   dominantTrait: string;
@@ -45,6 +44,7 @@ interface PersonalityData {
 }
 
 interface Theme {
+  id: string;
   headerColor: string;
   headerTextColor: string;
   headerNavColor: string;
@@ -157,6 +157,7 @@ const AVAILABLE_THEMES = [
     description: "Modern crypto-inspired design",
     palette: ["#000000", "#F0B90A", "#1E2026", "#FFFFFF"],
     theme: {
+      id: "crypto",
       headerColor: "#000000",
       headerTextColor: "#F0B90A",
       headerNavColor: "#bdbdbd",
@@ -181,6 +182,7 @@ const AVAILABLE_THEMES = [
     description: "Sleek dark theme with high contrast",
     palette: ["#000000", "#1A1A1A", "#333333", "#FFFFFF"],
     theme: {
+      id: "modern-dark",
       headerColor: "#000000",
       headerTextColor: "#FFFFFF",
       headerNavColor: "#bdbdbd",
@@ -205,6 +207,7 @@ const AVAILABLE_THEMES = [
     description: "Clean, minimal light design",
     palette: ["#FFFFFF", "#F3F4F6", "#E5E7EB", "#111827"],
     theme: {
+      id: "light-minimal",
       headerColor: "#FFFFFF",
       headerTextColor: "#111827",
       headerNavColor: "#bdbdbd",
@@ -229,6 +232,7 @@ const AVAILABLE_THEMES = [
     description: "Natural green color scheme",
     palette: ["#064E3B", "#065F46", "#059669", "#ECFDF5"],
     theme: {
+      id: "forest",
       headerColor: "#064E3B",
       headerTextColor: "#ECFDF5",
       headerNavColor: "#bdbdbd",
@@ -317,6 +321,10 @@ const openai = new OpenAI({
 });
 
 export default function Playground({ agentId }: PlaygroundProps) {
+  const { fetchBotData, activeBotData } = useBotConfig();
+  const { adminEmail } = useAdminStore();
+
+  const [activeTab, setActiveTab] = useState("model");
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -326,23 +334,16 @@ export default function Playground({ agentId }: PlaygroundProps) {
       sender: "agent",
     },
   ]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [status] = useState("Trained");
+
+  const [agentName, setAgentName] = useState("");
+  const [activeAgentUsername, setActiveAgentUsername] = useState("");
+  const [calendlyUrl, setCalendlyUrl] = useState("");
+  const [logo, setLogo] = useState("");
+
   const [model, setModel] = useState("gpt-4o-mini");
-  const [temperature, setTemperature] = useState(0.5);
   const [systemPrompt, setSystemPrompt] = useState(
     "You are a helpful assistant that provides accurate and concise information."
   );
-  const [agentName, setAgentName] = useState("");
-  const [logo, setLogo] = useState("");
-  const {
-    activeAgentUsername,
-    setActiveAgentUsername,
-    calendlyUrl,
-    setCalendlyUrl,
-    currentAgentData,
-    setCurrentAgentData,
-  } = useUserStore();
   const [selectedPromptTemplate, setSelectedPromptTemplate] =
     useState("educational");
   const [isCustomPrompt, setIsCustomPrompt] = useState(false);
@@ -355,56 +356,48 @@ export default function Playground({ agentId }: PlaygroundProps) {
     lastContent: "",
     extractedPlatform: null,
   });
+  const [theme, setTheme] = useState<Theme>(AVAILABLE_THEMES[0].theme);
+
   const [sessionId] = useState(
     `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   );
-  const [userId, setUserId] = useState("");
-  const [activeTab, setActiveTab] = useState("model");
-  const [theme, setTheme] = useState<Theme>(AVAILABLE_THEMES[0].theme);
+
+  const userId = adminEmail;
 
   useEffect(() => {
     async function fetchAgentDetails() {
-      try {
-        const agentDetails = await getAgentDetails(agentId, null);
-        setModel(agentDetails.model);
-        setSystemPrompt(agentDetails.systemPrompt);
-        setTheme(agentDetails.themeColors);
-        setCurrentAgentData(agentDetails);
-        setAgentName(agentDetails.name);
-        setActiveAgentUsername(agentDetails.username || null);
-        setLogo(agentDetails.logo || "");
-        setCalendlyUrl(agentDetails.calendlyUrl || "");
-        if (agentDetails.personalityType) {
-          setPersonalityData({
-            type: agentDetails.personalityType as PersonalityType,
-            isCustom: agentDetails.personalityType === "custom-personality",
-            customPrompt: agentDetails.customPersonalityPrompt || "",
-            analysis: agentDetails.personalityAnalysis,
-            lastUrl: agentDetails.lastPersonalityUrl || "",
-            lastContent: agentDetails.lastPersonalityContent || "",
-            extractedPlatform: null,
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching agent details:", error);
-      }
+      await fetchBotData(agentId, false);
     }
     fetchAgentDetails();
-  }, [agentId, setActiveAgentUsername, setCalendlyUrl]);
+  }, [agentId]);
 
   useEffect(() => {
-    async function fetchUserIP() {
-      try {
-        const response = await fetch("https://api.ipify.org?format=json");
-        const data = await response.json();
-        setUserId(data.ip);
-      } catch (error) {
-        console.error("Error fetching IP:", error);
-        setUserId(`user_${Math.random().toString(36).substr(2, 9)}`);
+    if (activeBotData) {
+      setModel(activeBotData.model);
+      setSystemPrompt(activeBotData.systemPrompt);
+      setTheme(activeBotData.themeColors);
+      setModel(activeBotData.model);
+      setSystemPrompt(activeBotData.systemPrompt);
+      setTheme(activeBotData.themeColors);
+
+      setAgentName(activeBotData.name);
+
+      setLogo(activeBotData.logo || "");
+      setActiveAgentUsername(activeBotData.username);
+      setCalendlyUrl(activeBotData.calendlyUrl || "");
+      if (activeBotData.personalityType) {
+        setPersonalityData({
+          type: activeBotData.personalityType as PersonalityType,
+          isCustom: activeBotData.personalityType === "custom-personality",
+          customPrompt: activeBotData.customPersonalityPrompt || "",
+          analysis: activeBotData.personalityAnalysis,
+          lastUrl: activeBotData.lastPersonalityUrl || "",
+          lastContent: activeBotData.lastPersonalityContent || "",
+          extractedPlatform: null,
+        });
       }
     }
-    fetchUserIP();
-  }, []);
+  }, [activeBotData]);
 
   useEffect(() => {
     if (!isCustomPrompt) {
@@ -484,7 +477,6 @@ export default function Playground({ agentId }: PlaygroundProps) {
 
     setMessages((prev) => [...prev, newMessage]);
     setMessage("");
-    setIsLoading(true);
 
     try {
       // Call RAG API to get context using the server action
@@ -566,7 +558,6 @@ The personality instructions above should take precedence over other style guide
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
-      setIsLoading(false);
     }
   };
 
@@ -580,7 +571,6 @@ The personality instructions above should take precedence over other style guide
   const handleSaveSettings = async () => {
     console.log("Saving settings:", {
       model,
-      temperature,
       systemPrompt,
       personalityType: personalityData.type,
       isCustomPersonality: personalityData.isCustom,
@@ -613,21 +603,21 @@ The personality instructions above should take precedence over other style guide
       });
 
       // Show additional toasts for specific changes only if they were modified
-      if (currentAgentData?.name !== agentName) {
+      if (activeBotData?.name !== agentName) {
         toast.success(`Agent name updated to ${agentName}`, {
           duration: 3000,
           position: "top-right",
         });
       }
 
-      if (currentAgentData?.calendlyUrl !== calendlyUrl) {
+      if (activeBotData?.calendlyUrl !== calendlyUrl) {
         toast.success("Calendly URL updated successfully", {
           duration: 3000,
           position: "top-right",
         });
       }
 
-      if (currentAgentData?.personalityType !== personalityData.type) {
+      if (activeBotData?.personalityType !== personalityData.type) {
         toast.success(`Personality set to ${personalityData.type}`, {
           duration: 3000,
           position: "top-right",
@@ -635,7 +625,7 @@ The personality instructions above should take precedence over other style guide
       }
 
       if (
-        JSON.stringify(currentAgentData?.themeColors) !== JSON.stringify(theme)
+        JSON.stringify(activeBotData?.themeColors) !== JSON.stringify(theme)
       ) {
         toast.success("Theme updated successfully", {
           duration: 3000,

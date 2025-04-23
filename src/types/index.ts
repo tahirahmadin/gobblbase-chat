@@ -55,3 +55,10 @@ export interface Agent {
   personalityType?: string;
   personalityPrompt?: string;
 }
+
+export interface AdminAgent {
+  agentId: string;
+  username: string;
+  logo: string;
+  name: string;
+}

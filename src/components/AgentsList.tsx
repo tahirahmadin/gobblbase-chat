@@ -1,27 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { Bot, Plus, Trash2 } from "lucide-react";
-import { useUserStore } from "../store/useUserStore";
 import { deleteAgent } from "../lib/serverActions";
+import { useAdminStore } from "../store/useAdminStore";
+import { useBotConfig } from "../store/useBotConfig";
 
 interface AgentsListProps {
   onStartCreating?: () => void;
 }
 
 export default function AgentsList({ onStartCreating }: AgentsListProps) {
-  const {
-    agents,
-    activeAgentId,
-    setActiveAgentId,
-    clientId,
-    fetchAndSetAgents,
-  } = useUserStore();
+  const { agents, adminId, fetchAllAgents } = useAdminStore();
+  const { activeBotId, setActiveBotId } = useBotConfig();
   const [agentToDelete, setAgentToDelete] = useState<string | null>(null);
 
   useEffect(() => {
-    if (clientId) {
-      fetchAndSetAgents();
+    if (adminId) {
+      fetchAllAgents();
     }
-  }, [clientId, fetchAndSetAgents]);
+  }, [adminId, fetchAllAgents]);
 
   const handleDeleteAgent = async (agentId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -67,9 +63,9 @@ export default function AgentsList({ onStartCreating }: AgentsListProps) {
         {agents.map((agent) => (
           <div
             key={agent.agentId}
-            onClick={() => setActiveAgentId(agent.agentId)}
+            onClick={() => setActiveBotId(agent.agentId)}
             className={`relative bg-white rounded-xl overflow-hidden cursor-pointer transition-all duration-300 transform hover:scale-[1.02] border border-gray-100 ${
-              activeAgentId === agent.agentId
+              activeBotId === agent.agentId
                 ? "ring-2 ring-gray-900 shadow-lg"
                 : "shadow-sm hover:shadow-md"
             }`}
@@ -98,17 +94,6 @@ export default function AgentsList({ onStartCreating }: AgentsListProps) {
                       ? `@${agent.username}`
                       : `ID: ${agent.agentId}`}
                   </p>
-                  {agent.calendlyUrl && (
-                    <a
-                      href={agent.calendlyUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-2 inline-flex items-center text-xs font-medium text-gray-700 hover:text-gray-900 transition-colors"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      Schedule a meeting
-                    </a>
-                  )}
                 </div>
               </div>
             </div>

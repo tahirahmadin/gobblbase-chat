@@ -1,11 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import {
-  fetchClientAgents,
-  signUpUser,
-  getUserDetails,
-} from "../lib/serverActions";
-import { Agent } from "../types";
+import { signUpUser, getUserDetails } from "../lib/serverActions";
+
 import { toast } from "react-hot-toast";
 
 interface UserDetails {
@@ -24,30 +20,13 @@ interface UserState {
   isLoggedIn: boolean;
   userEmail: string | null;
   userId: string | null;
-  userRole: "user" | "admin" | null;
   userDetails: UserDetails | null;
-
-  // Agent related state
-  activeAgentId: string | null;
-  currentAgentData: Agent | null;
-  activeAgentUsername: string | null;
-  calendlyUrl: string;
-  agents: Agent[];
 
   // Actions
   setUserEmail: (email: string) => void;
   setUserId: (id: string) => void;
   setIsLoggedIn: (status: boolean) => void;
-  setUserRole: (role: "user" | "admin" | null) => void;
   setUserDetails: (details: UserDetails | null) => void;
-
-  // Agent related actions
-  setActiveAgentId: (id: string | null) => void;
-  setActiveAgentUsername: (username: string | null) => void;
-  setCalendlyUrl: (url: string) => void;
-  setCurrentAgentData: (data: Agent | null) => void;
-  addAgent: (agent: Omit<Agent, "agentId">) => void;
-  fetchAndSetAgents: () => Promise<void>;
 
   // Auth actions
   handleGoogleLoginSuccess: (credentialResponse: any) => Promise<void>;
@@ -61,33 +40,16 @@ export const useUserStore = create<UserState>()(
     (set, get) => ({
       // Initial state
       isLoggedIn: false,
-      userEmail: null,
       userId: null,
       userRole: null,
+      userEmail: null,
       userDetails: null,
-      activeAgentId: null,
-      currentAgentData: null,
-      activeAgentUsername: null,
-      calendlyUrl: "",
-      agents: [],
 
       // Basic setters
       setUserEmail: (email) => set({ userEmail: email }),
       setUserId: (id) => set({ userId: id }),
       setIsLoggedIn: (status) => set({ isLoggedIn: status }),
-      setUserRole: (role) => set({ userRole: role }),
       setUserDetails: (details) => set({ userDetails: details }),
-      setActiveAgentId: (id) => {
-        const agent = get().agents.find((a) => a.agentId === id);
-        set({
-          activeAgentId: id,
-          activeAgentUsername: agent?.username || null,
-        });
-      },
-      setActiveAgentUsername: (username) =>
-        set({ activeAgentUsername: username }),
-      setCalendlyUrl: (url) => set({ calendlyUrl: url }),
-      setCurrentAgentData: (data) => set({ currentAgentData: data }),
 
       // Complex actions
       handleGoogleLoginSuccess: async (credentialResponse: any) => {
@@ -153,41 +115,12 @@ export const useUserStore = create<UserState>()(
         }
       },
 
-      addAgent: (agent) =>
-        set((state) => ({
-          agents: [
-            ...state.agents,
-            {
-              ...agent,
-              agentId: Date.now().toString(),
-            },
-          ],
-        })),
-
-      fetchAndSetAgents: async () => {
-        const { userId } = get();
-        if (!userId) return;
-
-        try {
-          const agents = await fetchClientAgents(userId);
-          set({ agents });
-        } catch (error) {
-          console.error("Failed to fetch agents:", error);
-        }
-      },
-
       logout: () =>
         set({
           isLoggedIn: false,
           userEmail: null,
           userId: null,
-          userRole: null,
           userDetails: null,
-          activeAgentId: null,
-          activeAgentUsername: null,
-          calendlyUrl: "",
-          agents: [],
-          currentAgentData: null,
         }),
     }),
     {
