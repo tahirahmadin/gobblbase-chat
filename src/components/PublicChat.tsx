@@ -89,7 +89,7 @@ export default function PublicChat({
   previewConfig?: PreviewConfig;
 }) {
   const { botUsername } = useParams();
-  const { config, isLoading: isConfigLoading, fetchConfig } = useBotConfig();
+  const { activeBotData: config, isLoading: isConfigLoading, fetchBotData, activeBotId } = useBotConfig();
   const {
     isLoggedIn,
     handleGoogleLoginSuccess: storeHandleGoogleLoginSuccess,
@@ -149,10 +149,10 @@ export default function PublicChat({
   // fetch config on mount/params change
   React.useEffect(() => {
     if (!previewConfig) {
-      if (botUsername) fetchConfig(botUsername, true);
-      if (agentUsernamePlayground) fetchConfig(agentUsernamePlayground, false);
+      if (botUsername) fetchBotData(botUsername, true);
+      if (agentUsernamePlayground) fetchBotData(agentUsernamePlayground, false); 
     }
-  }, [botUsername, agentUsernamePlayground, fetchConfig, previewConfig]);
+  }, [botUsername, agentUsernamePlayground, fetchBotData, previewConfig]);
 
   // update personality when config arrives
   // React.useEffect(() => {
