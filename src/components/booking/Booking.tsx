@@ -78,6 +78,21 @@ const DEFAULT_MEETING_LOCATIONS = [
   { id: "in_person", name: "In-person", icon: <MapPin className="h-5 w-5" />, selected: true },
 ];
 
+const COMMON_TIMEZONES = [
+  { value: "UTC", label: "UTC (Coordinated Universal Time)" },
+  { value: "America/New_York", label: "Eastern Time (US & Canada)" },
+  { value: "America/Chicago", label: "Central Time (US & Canada)" },
+  { value: "America/Denver", label: "Mountain Time (US & Canada)" },
+  { value: "America/Los_Angeles", label: "Pacific Time (US & Canada)" },
+  { value: "Europe/London", label: "London" },
+  { value: "Europe/Paris", label: "Paris" },
+  { value: "Europe/Berlin", label: "Berlin" },
+  { value: "Asia/Tokyo", label: "Tokyo" },
+  { value: "Asia/Shanghai", label: "Shanghai" },
+  { value: "Asia/Kolkata", label: "India" },
+  { value: "Australia/Sydney", label: "Sydney" },
+];
+
 const Booking: React.FC<BookingProps> = ({ onSetupComplete, isEditMode = false }) => {
   const { activeAgentId } = useUserStore();
   const [currentStep, setCurrentStep] = useState<
@@ -93,6 +108,11 @@ const Booking: React.FC<BookingProps> = ({ onSetupComplete, isEditMode = false }
   const [lunchTimeEnd, setLunchTimeEnd] = useState("13:00");
   const [availability, setAvailability] = useState<AvailabilityDay[]>(DEFAULT_AVAILABILITY);
   const [meetingLocations, setMeetingLocations] = useState<MeetingLocation[]>(DEFAULT_MEETING_LOCATIONS);
+
+  // Add timezone state
+  const [timezone, setTimezone] = useState<string>(
+    Intl.DateTimeFormat().resolvedOptions().timeZone
+  );
   
   // Loading states
   const [isLoading, setIsLoading] = useState(false);
@@ -131,6 +151,10 @@ const Booking: React.FC<BookingProps> = ({ onSetupComplete, isEditMode = false }
               selected: settings.locations.includes(loc.id)
             }));
             setMeetingLocations(updatedLocations);
+          }
+
+          if (settings.timezone) {
+            setTimezone(settings.timezone);
           }
         }
       } catch (error) {
@@ -222,6 +246,7 @@ const Booking: React.FC<BookingProps> = ({ onSetupComplete, isEditMode = false }
       lunchBreak: { start: lunchTimeStart, end: lunchTimeEnd },
       availability,
       locations: meetingLocations.filter((l) => l.selected).map((l) => l.id),
+      timezone,
     };
 
     console.log("Saving booking settings:", payload);
@@ -421,12 +446,40 @@ const Booking: React.FC<BookingProps> = ({ onSetupComplete, isEditMode = false }
     </div>
   );
 
+  const renderTimezoneStep = () => (
+    <div className="border border-gray-200 rounded-lg p-6">
+      <div className="flex items-center mb-4">
+        <Clock className="h-5 w-5 text-gray-600 mr-2" />
+        <h3 className="font-medium">Timezone</h3>
+      </div>
+      
+      <p className="text-sm text-gray-600 mb-4">
+        Set your business timezone. Your availability will be displayed in this timezone,
+        but customers will see times converted to their local timezone.
+      </p>
+      
+      <select
+        value={timezone}
+        onChange={(e) => setTimezone(e.target.value)}
+        className="w-full p-2 border border-gray-200 rounded-md"
+      >
+        {COMMON_TIMEZONES.map((tz) => (
+          <option key={tz.value} value={tz.value}>
+            {tz.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+
   // Render duration step
   const renderDurationStep = () => (
     <div className="space-y-6">
       <div className="text-sm text-gray-700 mb-8">
         Configure the duration of your appointments and add buffer time between meetings to help you prepare.
       </div>
+
+      {renderTimezoneStep()}
 
       <div className="border border-gray-200 rounded-lg p-6 mb-6">
         <div className="flex items-center mb-4">
@@ -720,6 +773,13 @@ const Booking: React.FC<BookingProps> = ({ onSetupComplete, isEditMode = false }
               <span className="font-medium">
                 {availability.filter(day => day.available).length} days
               </span>
+            </div>
+
+            <div className="flex justify-between pb-2 border-b border-green-100">
+              <span className="text-gray-600">Timezone:</span>
+              <span className="font-medium">{
+                COMMON_TIMEZONES.find(tz => tz.value === timezone)?.label || timezone
+              }</span>
             </div>
             
             <div className="flex justify-between pb-2 border-b border-green-100">

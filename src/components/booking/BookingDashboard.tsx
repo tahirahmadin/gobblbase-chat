@@ -16,7 +16,8 @@ import {
   RefreshCw,
   AlertCircle,
   Check,
-  X
+  X,
+  Globe
 } from "lucide-react";
 import { useUserStore } from "../../store/useUserStore";
 import { getAppointmentSettings, getBookings, cancelBooking } from "../../lib/serverActions";
@@ -33,6 +34,7 @@ interface Meeting {
   statusLabel: string;
   location: string;
   meetingLink?: string;
+  userTimezone?: string; // Add user timezone field
 }
 
 interface BookingDashboardProps {
@@ -47,6 +49,7 @@ interface BookingSettings {
   lunchBreak: { start: string; end: string };
   availability: AvailabilityDay[];
   locations: string[];
+  timezone: string; // Add timezone field
 }
 
 interface FilterOptions {
@@ -71,6 +74,24 @@ const formatTimeLabel = (minutes: number) => {
   return `${hours} ${hours === 1 ? "hour" : "hours"} ${remainingMinutes} minutes`;
 };
 
+// Format timezone for display
+const formatTimezone = (tz: string): string => {
+  try {
+    const date = new Date();
+    const options: Intl.DateTimeFormatOptions = {
+      timeZone: tz,
+      timeZoneName: 'short'
+    };
+    const tzName = new Intl.DateTimeFormat('en-US', options)
+      .formatToParts(date)
+      .find(part => part.type === 'timeZoneName')?.value || tz;
+    
+    return tzName;
+  } catch (e) {
+    return tz;
+  }
+};
+
 const BookingDashboard: React.FC<BookingDashboardProps> = ({ onEditSettings }) => {
   const { activeAgentId } = useUserStore();
   const [activeTab, setActiveTab] = useState<"upcoming" | "past" | "settings" | "schedule">("upcoming");
@@ -91,6 +112,11 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({ onEditSettings }) =
   const [filtersApplied, setFiltersApplied] = useState(false);
   const filterMenuRef = useRef<HTMLDivElement>(null);
   
+  // Get business timezone
+  const [businessTimezone, setBusinessTimezone] = useState<string>(
+    Intl.DateTimeFormat().resolvedOptions().timeZone
+  );
+  
   // Fetch booking settings from API
   useEffect(() => {
     const fetchBookingSettings = async () => {
@@ -99,6 +125,11 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({ onEditSettings }) =
       try {
         const settings = await getAppointmentSettings(activeAgentId);
         setBookingSettings(settings);
+        
+        // Set business timezone from settings
+        if (settings.timezone) {
+          setBusinessTimezone(settings.timezone);
+        }
       } catch (error) {
         console.error("Error fetching booking settings:", error);
       }
@@ -170,6 +201,14 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({ onEditSettings }) =
       day: 'numeric',
       year: 'numeric'
     }).format(date);
+  };
+
+  // Format time for display
+  const fmtTime = (t: string) => {
+    const [h, m] = t.split(":").map(Number);
+    const ap = h < 12 ? "AM" : "PM";
+    const hr = h % 12 === 0 ? 12 : h % 12;
+    return `${hr}:${m.toString().padStart(2, "0")} ${ap}`;
   };
 
   // Check if a meeting is within the selected date range
@@ -387,7 +426,15 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({ onEditSettings }) =
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{formatDate(meeting.date)}</div>
-                      <div className="text-sm text-gray-500">{meeting.startTime} - {meeting.endTime}</div>
+                      <div className="flex items-center text-sm text-gray-500">
+                        {fmtTime(meeting.startTime)} - {fmtTime(meeting.endTime)}
+                        {meeting.userTimezone && meeting.userTimezone !== businessTimezone && (
+                          <div className="ml-2 flex items-center" title={`Customer timezone: ${meeting.userTimezone}`}>
+                            <Globe className="h-3 w-3 text-gray-400 mr-1" />
+                            <span className="text-xs">{formatTimezone(meeting.userTimezone)}</span>
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDuration(durationMinutes)}
@@ -468,6 +515,10 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({ onEditSettings }) =
         <div className="flex items-center space-x-2 mb-4 sm:mb-0">
           <Calendar className="h-6 w-6 text-gray-700" />
           <h1 className="text-2xl font-semibold text-gray-800">Booking Dashboard</h1>
+          <div className="ml-2 flex items-center px-2 py-1 bg-gray-100 rounded-md text-xs text-gray-600">
+            <Globe className="h-3 w-3 text-gray-400 mr-1" />
+            {formatTimezone(businessTimezone)}
+          </div>
         </div>
         
         <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
@@ -805,12 +856,16 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({ onEditSettings }) =
                 
                 <div className="border border-gray-200 rounded-lg p-4">
                   <h3 className="font-medium text-gray-800 flex items-center mb-3">
-                    <Calendar className="h-5 w-5 mr-2 text-gray-500" />
-                    Meeting Locations
+                    <Globe className="h-5 w-5 mr-2 text-gray-500" />
+                    Timezone & Locations
                   </h3>
+                  <p className="text-gray-600 flex items-center mb-2">
+                    <span className="mr-1">Timezone:</span> {formatTimezone(bookingSettings.timezone || businessTimezone)}
+                  </p>
                   <div className="space-y-1">
+                    <p className="text-sm font-medium text-gray-700">Meeting Locations:</p>
                     {bookingSettings.locations.map((locId) => (
-                      <p key={locId} className="text-gray-600 flex items-center">
+                      <p key={locId} className="text-sm text-gray-600 flex items-center">
                         {locId === "google_meet" ? (
                           <>
                             <Video className="h-4 w-4 mr-2 text-gray-400" />

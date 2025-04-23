@@ -423,6 +423,7 @@ export async function updateAppointmentSettings(payload: {
   lunchBreak: { start: string; end: string };
   availability: AvailabilityDay[];
   locations: string[];
+  timezone: string;
 }) {
   try {
     const response = await axios.post(
@@ -456,12 +457,13 @@ export interface TimeSlot {
 }
 export async function getAvailableSlots(
   agentId: string,
-  date: string
+  date: string,
+  userTimezone?: string
 ): Promise<TimeSlot[]> {
   const response = await axios.get(
     `https://rag.gobbl.ai/appointment/available-slots`,
     {
-      params: { agentId, date },
+      params: { agentId, date, userTimezone }, 
     }
   );
   if (response.data.error) {
@@ -478,6 +480,7 @@ export interface BookingPayload {
   startTime: string;
   endTime: string;
   location: string;
+  userTimezone?: string;
 }
 
 export async function bookAppointment(payload: BookingPayload): Promise<any> {
@@ -739,5 +742,24 @@ export async function getUserDetails(userId: string): Promise<UserDetails> {
   } catch (error) {
     console.error("Error fetching user details:", error);
     throw error;
+  }
+}
+
+export async function getDayWiseAvailability(
+  agentId: string, 
+  userTimezone?: string
+): Promise<Record<string, boolean>> {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/appointment/day-wise-availability`,
+      {
+        params: { agentId, userTimezone },
+      }
+    );
+    if (response.data.error) throw new Error(response.data.error);
+    return response.data.result || {};
+  } catch (error) {
+    console.error("Error fetching day-wise availability:", error);
+    return {};
   }
 }

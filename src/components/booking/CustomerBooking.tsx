@@ -14,6 +14,7 @@ import {
   Check,
   Video,
   MapPin,
+  Globe,
 } from "lucide-react";
 import { getAvailableSlots, bookAppointment, getAppointmentSettings } from "../../lib/serverActions";
 
@@ -47,6 +48,7 @@ interface AppointmentSettings {
   lunchBreak: { start: string; end: string };
   meetingDuration: number;
   bufferTime: number;
+  timezone: string; // Add timezone field
 }
 
 const CustomerBooking: React.FC<CustomerBookingProps> = ({
@@ -57,18 +59,14 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
   const businessId = propId || agentId || "";
 
   // Steps & data
-  const [step, setStep] = useState<"date" | "time" | "details" | "confirmation">(
-    "date"
-  );
+  const [step, setStep] = useState<"date" | "time" | "details" | "confirmation">("date");
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [now, setNow] = useState(new Date());         // <-- for live "now"
+  const [now, setNow] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
-  const [selectedLocation, setSelectedLocation] = useState<
-    "google_meet" | "in_person"
-  >("google_meet");
+  const [selectedLocation, setSelectedLocation] = useState<"google_meet" | "in_person">("google_meet");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -79,6 +77,13 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
   const [settings, setSettings] = useState<AppointmentSettings | null>(null);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [unavailableDates, setUnavailableDates] = useState<Record<string, UnavailableDate>>({});
+  
+  // Timezone data
+  const [userTimezone, setUserTimezone] = useState<string>(
+    Intl.DateTimeFormat().resolvedOptions().timeZone
+  );
+  const [businessTimezone, setBusinessTimezone] = useState<string>("UTC");
+  const [showTimezoneInfo, setShowTimezoneInfo] = useState<boolean>(false);
 
   // Refresh `now` every minute so today's slots refresh live
   useEffect(() => {
@@ -97,16 +102,19 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
         console.log("Loaded settings:", data);
         setSettings(data);
         
+        // Set business timezone from settings
+        if (data.timezone) {
+          setBusinessTimezone(data.timezone);
+        }
+        
         // Create a lookup map for unavailable dates
         const unavailableLookup: Record<string, UnavailableDate> = {};
         if (data.unavailableDates && Array.isArray(data.unavailableDates)) {
           data.unavailableDates.forEach(date => {
             unavailableLookup[date.date] = date;
-            console.log(`Date ${date.date} - allDay: ${date.allDay}`);
           });
         }
         setUnavailableDates(unavailableLookup);
-        console.log("Unavailable dates map:", unavailableLookup);
       } catch (error) {
         console.error("Failed to load appointment settings:", error);
       } finally {
@@ -116,6 +124,97 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     
     loadSettings();
   }, [businessId]);
+
+  // Timezone conversion utilities
+  const convertTimeToBusinessTZ = (time: string, date: Date): string => {
+    // Convert a time from user timezone to business timezone
+    const [hours, minutes] = time.split(':').map(Number);
+    
+    // Create a date in user's timezone with the specified time
+    const userDate = new Date(date);
+    userDate.setHours(hours, minutes, 0, 0);
+    
+    // Convert to business timezone
+    const options: Intl.DateTimeFormatOptions = { 
+      hour: 'numeric', 
+      minute: 'numeric', 
+      hour12: false,
+      timeZone: businessTimezone 
+    };
+    
+    const businessTime = new Intl.DateTimeFormat('en-US', options).format(userDate);
+    return businessTime.replace(/\s/g, '').padStart(5, '0');
+  };
+
+  const convertTimeToUserTZ = (time: string, date: Date): string => {
+    // Convert a time from business timezone to user timezone
+    const [hours, minutes] = time.split(':').map(Number);
+    
+    // Create a date in business timezone with the specified time
+    const businessDate = new Date(date);
+    
+    // Need to create a date string that specifies the timezone
+    const dateStr = businessDate.toISOString().split('T')[0];
+    const timeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+    
+    // Create a date object that represents the time in business timezone
+    const dateTimeStr = `${dateStr}T${timeStr}`;
+    const tzDate = new Date(dateTimeStr);
+    
+    // This handles the timezone difference
+    const options: Intl.DateTimeFormatOptions = { 
+      hour: 'numeric', 
+      minute: 'numeric', 
+      hour12: false,
+      timeZone: userTimezone 
+    };
+    
+    const userTime = new Intl.DateTimeFormat('en-US', options).format(tzDate);
+    return userTime.replace(/\s/g, '').padStart(5, '0');
+  };
+
+  // Format timezone for display
+  const formatTimezone = (tz: string): string => {
+    try {
+      const date = new Date();
+      const options: Intl.DateTimeFormatOptions = {
+        timeZone: tz,
+        timeZoneName: 'short'
+      };
+      const tzName = new Intl.DateTimeFormat('en-US', options)
+        .formatToParts(date)
+        .find(part => part.type === 'timeZoneName')?.value || tz;
+      
+      return tzName;
+    } catch (e) {
+      return tz;
+    }
+  };
+
+  // Calculate current time difference
+  const getTimezoneDifference = (): string => {
+    if (businessTimezone === userTimezone) return "same timezone";
+    
+    const now = new Date();
+    
+    // Get offset in minutes for both timezones
+    const userOffset = -now.getTimezoneOffset();
+    
+    // Need to get business timezone offset
+    const businessDate = new Date(now.toLocaleString('en-US', { timeZone: businessTimezone }));
+    const businessOffset = businessDate.getTimezoneOffset() + 
+      (now.getTime() - businessDate.getTime()) / 60000;
+    
+    // Calculate difference in hours
+    const diffHours = (userOffset - businessOffset) / 60;
+    
+    if (diffHours === 0) return "same time";
+    
+    const diffFormatted = Math.abs(diffHours).toFixed(1).replace(/\.0$/, '');
+    return diffHours > 0 
+      ? `${diffFormatted} hour${Math.abs(diffHours) !== 1 ? 's' : ''} ahead` 
+      : `${diffFormatted} hour${Math.abs(diffHours) !== 1 ? 's' : ''} behind`;
+  };
 
   // Helpers
   const daysInMonth = (y: number, m: number) => new Date(y, m + 1, 0).getDate();
@@ -197,7 +296,8 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     startTime: string,
     endTime: string,
     meetingDuration: number,
-    bufferTime: number
+    bufferTime: number,
+    date: Date
   ): Slot[] => {
     const slots: Slot[] = [];
     
@@ -218,12 +318,19 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
       const formatTimeString = (mins: number) => {
         const hours = Math.floor(mins / 60);
         const minutes = mins % 60;
-        return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
       };
       
+      const businessSlotStart = formatTimeString(slotStart);
+      const businessSlotEnd = formatTimeString(slotEnd);
+      
+      // Convert times to user's timezone
+      const userSlotStart = convertTimeToUserTZ(businessSlotStart, date);
+      const userSlotEnd = convertTimeToUserTZ(businessSlotEnd, date);
+      
       slots.push({
-        startTime: formatTimeString(slotStart),
-        endTime: formatTimeString(slotEnd),
+        startTime: userSlotStart,
+        endTime: userSlotEnd,
         available: true
       });
     }
@@ -246,7 +353,8 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
         dateEntry.startTime,
         dateEntry.endTime,
         meetingDuration,
-        bufferTime
+        bufferTime,
+        date
       );
     }
     
@@ -263,7 +371,8 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
           window.startTime,
           window.endTime,
           meetingDuration,
-          bufferTime
+          bufferTime,
+          date
         );
         allSlots = [...allSlots, ...windowSlots];
       });
@@ -272,7 +381,7 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     }
     
     // Default slots if no specific rules
-    return generateSlotsFromTimeWindow("09:00", "17:00", meetingDuration, bufferTime);
+    return generateSlotsFromTimeWindow("09:00", "17:00", meetingDuration, bufferTime, date);
   }
 
   // Calendar nav
@@ -317,7 +426,14 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
           console.log("API returned slots:", raw);
           
           if (raw && raw.length > 0) {
-            setSlots(raw.map((r) => ({ ...r, available: true })));
+            // Convert API slots to user timezone
+            const userSlots = raw.map(slot => ({
+              ...slot,
+              startTime: convertTimeToUserTZ(slot.startTime, d),
+              endTime: convertTimeToUserTZ(slot.endTime, d),
+              available: true
+            }));
+            setSlots(userSlots);
           } else {
             // If API returns empty, generate slots from settings
             const generatedSlots = generateTimeSlots(d);
@@ -349,14 +465,20 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     e.preventDefault();
     if (!selectedDate || !selectedSlot) return;
     setSubmitting(true);
+    
     try {
+      // Convert selected slot times back to business timezone for storage
+      const businessStartTime = convertTimeToBusinessTZ(selectedSlot.startTime, selectedDate);
+      const businessEndTime = convertTimeToBusinessTZ(selectedSlot.endTime, selectedDate);
+      
       await bookAppointment({
         agentId: businessId,
         userId: email,
         date: fmtApiDate(selectedDate),
-        startTime: selectedSlot.startTime,
-        endTime: selectedSlot.endTime,
+        startTime: businessStartTime, // Send in business timezone
+        endTime: businessEndTime,     // Send in business timezone
         location: selectedLocation,
+        userTimezone: userTimezone,   // Store user's timezone for reference
       });
       setStep("confirmation");
     } catch (e) {
@@ -387,6 +509,25 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     );
   }
 
+  // Timezone information display
+  const renderTimezoneInfo = () => (
+    <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-4">
+      <div className="flex items-start">
+        <Globe className="h-5 w-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
+        <div>
+          <p className="text-sm text-blue-800">
+            Times are displayed in your local timezone: <strong>{formatTimezone(userTimezone)}</strong>
+          </p>
+          {businessTimezone !== userTimezone && (
+            <p className="text-xs text-blue-600 mt-1">
+              The business is in {formatTimezone(businessTimezone)} ({getTimezoneDifference()})
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   // === Step: DATE ===
   if (step === "date") {
     const y = currentMonth.getFullYear(),
@@ -398,6 +539,8 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
       `Book ${serviceName}`,
       "Select a date for your appointment",
       <div className="p-6">
+        {renderTimezoneInfo()}
+        
         <div className="flex items-center justify-between mb-4">
           <button onClick={prevMonth} className="p-2 rounded-full hover:bg-gray-100">
             <ChevronLeft className="h-5 w-5 text-gray-600" />
@@ -453,7 +596,7 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
 
   // === Step: TIME ===
   if (step === "time" && selectedDate) {
-    // Filter out any past‐time if today
+    // Filter out any past-time if today
     const todayStr = selectedDate.toDateString();
     const availableSlots = slots.filter((s) => {
       if (!s.available) return false;
@@ -463,6 +606,13 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
       const slotDate = new Date(now);
       slotDate.setHours(h, m, 0, 0);
       return slotDate > now;
+    });
+
+    // Sort slots by start time
+    availableSlots.sort((a, b) => {
+      const [aHour, aMin] = a.startTime.split(':').map(Number);
+      const [bHour, bMin] = b.startTime.split(':').map(Number);
+      return (aHour * 60 + aMin) - (bHour * 60 + bMin);
     });
 
     return layout(
@@ -476,6 +626,8 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
           <ArrowLeft className="h-4 w-4 mr-1" />
           Back to calendar
         </button>
+
+        {renderTimezoneInfo()}
 
         {loadingSlots ? (
           <div className="flex justify-center py-12">
@@ -517,6 +669,20 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
           <ArrowLeft className="h-4 w-4 mr-1" />
           Back to time selection
         </button>
+
+        <div className="bg-gray-50 rounded-lg p-4 mb-6 border border-gray-200">
+          <h3 className="font-medium text-gray-800 mb-2 flex items-center">
+            <Calendar className="h-4 w-4 mr-2 text-gray-500" />
+            Appointment Details
+          </h3>
+          <p className="text-gray-700">
+            {fmtDateFull(selectedDate)} at {fmtTime(selectedSlot.startTime)} - {fmtTime(selectedSlot.endTime)}
+          </p>
+          <p className="text-sm text-gray-500 mt-1">
+            Time shown in your local timezone: {formatTimezone(userTimezone)}
+          </p>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name */}
           <div>
@@ -640,6 +806,44 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
             </p>
           </div>
         </div>
+
+        {selectedDate && selectedSlot && (
+          <div className="mb-6 p-4 border border-gray-200 rounded-lg">
+            <h3 className="font-medium text-gray-800 mb-3">Appointment Details</h3>
+            <div className="space-y-2">
+              <div className="flex">
+                <Calendar className="h-5 w-5 text-gray-400 mr-2" />
+                <div>
+                  <p className="text-gray-800">{fmtDateFull(selectedDate)}</p>
+                </div>
+              </div>
+              <div className="flex">
+                <Clock className="h-5 w-5 text-gray-400 mr-2" />
+                <div>
+                  <p className="text-gray-800">
+                    {fmtTime(selectedSlot.startTime)} - {fmtTime(selectedSlot.endTime)}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Time shown in your local timezone: {formatTimezone(userTimezone)}
+                  </p>
+                </div>
+              </div>
+              <div className="flex">
+                {selectedLocation === "google_meet" ? (
+                  <Video className="h-5 w-5 text-gray-400 mr-2" />
+                ) : (
+                  <MapPin className="h-5 w-5 text-gray-400 mr-2" />
+                )}
+                <p className="text-gray-800">
+                  {selectedLocation === "google_meet" 
+                    ? "Google Meet (link will be sent by email)" 
+                    : "In-person"}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <button
           onClick={() => window.location.reload()}
           className="text-gray-600 hover:text-gray-800 font-medium"
