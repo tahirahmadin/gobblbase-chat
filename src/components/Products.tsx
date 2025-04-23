@@ -23,6 +23,7 @@ import {
 } from "../lib/serverActions";
 import { useUserStore } from "../store/useUserStore";
 import { toast } from "react-hot-toast";
+import { useBotConfig } from "../store/useBotConfig";
 
 interface Product {
   _id?: string;
@@ -41,7 +42,7 @@ interface SubTab {
 }
 
 const Products: React.FC = () => {
-  const { activeAgentId } = useUserStore();
+  const { activeBotId, fetchBotData } = useBotConfig();
   const [activeSubTab, setActiveSubTab] = useState<string>("products");
   const [products, setProducts] = useState<Product[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,11 +93,11 @@ const Products: React.FC = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      if (!activeAgentId) return;
+      if (!activeBotId) return;
 
       try {
         setIsLoading(true);
-        const response = await getProducts(activeAgentId);
+        const response = await getProducts(activeBotId);
         console.log(response);
         setProducts(response);
       } catch (error) {
@@ -108,19 +109,19 @@ const Products: React.FC = () => {
     };
 
     fetchProducts();
-  }, [activeAgentId]);
+  }, [activeBotId]);
 
   useEffect(() => {
-    if (activeSubTab === "transactions" && activeAgentId) {
+    if (activeSubTab === "transactions" && activeBotId) {
       fetchTransactions();
     }
-  }, [activeSubTab, activeAgentId]);
+  }, [activeSubTab, activeBotId]);
 
   useEffect(() => {
     const fetchAgentDetails = async () => {
-      if (!activeAgentId) return;
+      if (!activeBotId) return;
       try {
-        const details = await getAgentDetails(activeAgentId, null);
+        const details = await fetchBotData(activeBotId, false);
         if (details.stripeAccountId) {
           setStripeConfig((prev) => ({
             ...prev,
@@ -136,16 +137,16 @@ const Products: React.FC = () => {
       }
     };
 
-    if (activeSubTab === "payments" && activeAgentId) {
+    if (activeSubTab === "payments" && activeBotId) {
       fetchAgentDetails();
     }
-  }, [activeSubTab, activeAgentId]);
+  }, [activeSubTab, activeBotId]);
 
   const fetchTransactions = async () => {
-    if (!activeAgentId) return;
+    if (!activeBotId) return;
     try {
       setIsLoadingTransactions(true);
-      const data = await getTransactions(activeAgentId);
+      const data = await getTransactions(activeBotId);
       setTransactions(data);
     } catch (error) {
       console.error("Error fetching transactions:", error);
@@ -157,12 +158,12 @@ const Products: React.FC = () => {
 
   const handleStripeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeAgentId) return;
+    if (!activeBotId) return;
     try {
       setStripeIdLoading(true);
       setStripeIdError(null);
       await updateStripeAccountIdCurrency({
-        agentId: activeAgentId,
+        agentId: activeBotId,
         stripeAccountId: stripeConfig.sellerId,
         currency: selectedCurrency,
       });
@@ -176,12 +177,12 @@ const Products: React.FC = () => {
   };
 
   const handleCurrencyUpdate = async () => {
-    if (!activeAgentId) return;
+    if (!activeBotId) return;
     try {
       setCurrencyLoading(true);
       setCurrencyError(null);
       await updateStripeAccountIdCurrency({
-        agentId: activeAgentId,
+        agentId: activeBotId,
         stripeAccountId: stripeConfig.sellerId,
         currency: selectedCurrency,
       });
@@ -208,14 +209,14 @@ const Products: React.FC = () => {
   };
 
   const handleImageUpdate = async (productId: string) => {
-    if (!selectedFile || !activeAgentId) return;
+    if (!selectedFile || !activeBotId) return;
 
     try {
       setIsUpdatingImage(true);
       setError(null);
       const result = await updateProductImage({
         file: selectedFile,
-        agentId: activeAgentId,
+        agentId: activeBotId,
         productId,
       });
 
@@ -241,7 +242,7 @@ const Products: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeAgentId) {
+    if (!activeBotId) {
       setError("Missing required fields");
       return;
     }
@@ -257,7 +258,7 @@ const Products: React.FC = () => {
           description: newProduct.description,
           price: newProduct.price,
           about: newProduct.about,
-          agentId: activeAgentId,
+          agentId: activeBotId,
         });
       } else {
         await addProduct({
@@ -267,12 +268,12 @@ const Products: React.FC = () => {
           image: newProduct.image,
           price: newProduct.price,
           about: newProduct.about || newProduct.description,
-          agentId: activeAgentId,
+          agentId: activeBotId,
         });
       }
 
       // Refresh products after update/add
-      const updatedProducts = await getProducts(activeAgentId);
+      const updatedProducts = await getProducts(activeBotId);
       setProducts(updatedProducts);
 
       // Reset form
@@ -297,10 +298,10 @@ const Products: React.FC = () => {
   };
 
   const handleRemove = async (id: string) => {
-    if (!activeAgentId) return;
+    if (!activeBotId) return;
 
     try {
-      await deleteProduct(id, activeAgentId);
+      await deleteProduct(id, activeBotId);
       setProducts(products.filter((product) => product._id !== id));
       setProductToDelete(null);
     } catch (error) {

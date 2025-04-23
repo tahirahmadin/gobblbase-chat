@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { updateUserLogs } from "../lib/serverActions";
-import { useUserStore } from "../store/useUserStore";
+import { useBotConfig } from "../store/useBotConfig";
 
 interface ChatMessage {
   role: string;
@@ -9,7 +9,7 @@ interface ChatMessage {
 }
 
 export function useChatLogs() {
-  const { activeAgentId } = useUserStore();
+  const { activeBotId } = useBotConfig();
   const [sessionId, setSessionId] = useState<string>("");
   const [userId, setUserId] = useState<string>("");
   const [chatLogs, setChatLogs] = useState<ChatMessage[]>([]);
@@ -42,12 +42,12 @@ export function useChatLogs() {
     const newLogs = [...chatLogs, message];
     setChatLogs(newLogs);
 
-    if (activeAgentId && userId && sessionId) {
+    if (activeBotId && userId && sessionId) {
       try {
         await updateUserLogs({
           userId,
           sessionId,
-          agentId: activeAgentId,
+          agentId: activeBotId,
           newUserLogs: newLogs,
         });
       } catch (error) {

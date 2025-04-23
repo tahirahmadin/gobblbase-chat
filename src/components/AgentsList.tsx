@@ -29,9 +29,9 @@ export default function AgentsList({ onStartCreating }: AgentsListProps) {
 
     try {
       await deleteAgent(agentToDelete);
-      await fetchAndSetAgents();
-      if (activeAgentId === agentToDelete) {
-        setActiveAgentId(null);
+      await fetchAllAgents();
+      if (activeBotId === agentToDelete) {
+        setActiveBotId(null);
       }
     } catch (error) {
       console.error("Failed to delete agent:", error);

@@ -9,6 +9,7 @@ import {
 import { getChatLogs } from "../lib/serverActions";
 import { useUserStore } from "../store/useUserStore";
 import { ChatLog } from "../types";
+import { useBotConfig } from "../store/useBotConfig";
 
 interface ActivityTab {
   id: string;
@@ -21,7 +22,7 @@ export default function Activity() {
   const [chatLogs, setChatLogs] = React.useState<ChatLog[]>([]);
   const [selectedChat, setSelectedChat] = React.useState<ChatLog | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
-  const { activeAgentId } = useUserStore();
+  const { activeBotId } = useBotConfig();
 
   const tabs: ActivityTab[] = [
     {
@@ -33,11 +34,11 @@ export default function Activity() {
   ];
 
   const fetchChatLogs = async () => {
-    if (!activeAgentId) return;
+    if (!activeBotId) return;
 
     setIsLoading(true);
     try {
-      const logs = await getChatLogs(activeAgentId);
+      const logs = await getChatLogs(activeBotId);
       setChatLogs(logs);
     } catch (error) {
       console.error("Error fetching chat logs:", error);
@@ -48,7 +49,7 @@ export default function Activity() {
 
   React.useEffect(() => {
     fetchChatLogs();
-  }, [activeAgentId]);
+  }, [activeBotId]);
 
   const handleRefresh = () => {
     fetchChatLogs();

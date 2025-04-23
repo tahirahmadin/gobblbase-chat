@@ -3,7 +3,6 @@ import {
   Upload,
   FileText,
   Globe,
-  HelpCircle,
   Book,
   X,
   Loader2,
@@ -12,9 +11,10 @@ import {
 } from "lucide-react";
 import mammoth from "mammoth";
 import * as pdfjsLib from "pdfjs-dist";
-import { useUserStore } from "../store/useUserStore";
 import { toast } from "react-hot-toast";
-import { createNewAgent, getAgentDetails } from "../lib/serverActions";
+import { createNewAgent } from "../lib/serverActions";
+import { useBotConfig } from "../store/useBotConfig";
+import { useAdminStore } from "../store/useAdminStore";
 
 // Set the PDF worker source
 pdfjsLib.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
@@ -47,7 +47,8 @@ export default function FileUpload({ onCancel }: FileUploadProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { clientId, addAgent, setActiveAgentId } = useUserStore();
+  const { activeBotId, setActiveBotId, fetchBotData } = useBotConfig();
+  const { adminId } = useAdminStore();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -144,43 +145,20 @@ export default function FileUpload({ onCancel }: FileUploadProps) {
         setUploadProgress(100);
       }
 
-      if (!clientId) {
+      if (!adminId) {
         throw new Error("Client ID is required");
       }
 
-      const response = await createNewAgent(clientId, agentName, content);
+      const response = await createNewAgent(adminId, agentName, content);
 
       if (!response.error) {
         let output = response.result;
-        const newAgent = {
-          name: agentName,
-          collectionName: output.collectionName,
-          id: output.agentId,
-        };
-        addAgent(newAgent);
-
-        // Fetch agent details after creating the agent
-        try {
-          const agentDetails = await getAgentDetails(output.agentId, null);
-          const updatedAgent = {
-            ...newAgent,
-            username: agentDetails.username,
-            logo: agentDetails.logo,
-            calendlyUrl: agentDetails.calendlyUrl,
-            systemPrompt: agentDetails.systemPrompt,
-            model: agentDetails.model,
-            personalityType: agentDetails.personalityType,
-            personalityPrompt: agentDetails.personalityPrompt,
-          };
-          addAgent(updatedAgent);
-        } catch (error) {
-          console.error("Error fetching agent details:", error);
-        }
+        await fetchBotData(output.agentId, false);
 
         setStatus("success");
         toast.success("Agent created successfully!");
         setTimeout(() => {
-          setActiveAgentId(output.agentId);
+          setActiveBotId(output.agentId);
           onCancel();
         }, 1500);
       } else {

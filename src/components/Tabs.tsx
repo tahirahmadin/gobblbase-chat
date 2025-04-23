@@ -1,5 +1,12 @@
 import React from "react";
-import { Activity, Code2, Settings, ShoppingBag, Wrench, Calendar } from "lucide-react";
+import {
+  Activity,
+  Code2,
+  Settings,
+  ShoppingBag,
+  Wrench,
+  Calendar,
+} from "lucide-react";
 
 export interface TabsProps {
   activeTab: string;
@@ -28,11 +35,11 @@ const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab }) => {
       name: "Integration",
       icon: <Wrench className="h-5 w-5" />,
     },
-    {
-      id: "services",
-      name: "Services",
-      icon: <ShoppingBag className="h-5 w-5" />,
-    },
+    // {
+    //   id: "services",
+    //   name: "Services",
+    //   icon: <ShoppingBag className="h-5 w-5" />,
+    // },
     {
       id: "settings",
       name: "Settings",
