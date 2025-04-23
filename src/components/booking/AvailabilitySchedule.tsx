@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   Calendar as CalendarIcon,
@@ -18,25 +19,25 @@ import {
 interface ScheduleProps {}
 
 type ScheduleDay = {
-  apiDate: string;
-  dateObj: Date;
-  formattedDate: string;
-  available: boolean;
-  timeSlot: string;
-  isApiUnavailable: boolean;
-  isDisabled: boolean;
-  hasCustomHours: boolean;
-  isModified: boolean;
-  originalTimeSlot: string;
-  originalAvailable: boolean;
-  allDay: boolean;
-  startTime: string;
-  endTime: string;
+  apiDate: string;            
+  dateObj: Date;              
+  formattedDate: string;      
+  available: boolean;         
+  timeSlot: string;           
+  isApiUnavailable: boolean;  
+  isDisabled: boolean;        
+  hasCustomHours: boolean;    
+  isModified: boolean;        
+  originalTimeSlot: string;   
+  originalAvailable: boolean; 
+  allDay: boolean;            
+  startTime: string;          
+  endTime: string;            
 };
 
 const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
-  const { activeBotData, activeBotId } = useBotConfig();
-  const activeAgentId = activeBotId;
+  const { activeBotData } = useBotConfig();
+  const activeAgentId = activeBotData?.agentId; 
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [scheduleDays, setScheduleDays] = useState<ScheduleDay[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,71 +55,25 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
   });
 
   const timePresets = [
-    {
-      label: "Morning",
-      time: "9:00am - 12:00pm",
-      start: "9:00",
-      end: "12:00",
-      ampmStart: "am",
-      ampmEnd: "pm",
-    },
-    {
-      label: "Afternoon",
-      time: "1:00pm - 5:00pm",
-      start: "1:00",
-      end: "5:00",
-      ampmStart: "pm",
-      ampmEnd: "pm",
-    },
-    {
-      label: "Evening",
-      time: "6:00pm - 9:00pm",
-      start: "6:00",
-      end: "9:00",
-      ampmStart: "pm",
-      ampmEnd: "pm",
-    },
-    {
-      label: "Full day",
-      time: "9:00am - 5:00pm",
-      start: "9:00",
-      end: "5:00",
-      ampmStart: "am",
-      ampmEnd: "pm",
-    },
+    { label: "Morning",    time: "9:00am - 12:00pm", start: "9:00", end: "12:00", ampmStart: "am", ampmEnd: "pm" },
+    { label: "Afternoon",  time: "1:00pm - 5:00pm",   start: "1:00", end: "5:00",  ampmStart: "pm", ampmEnd: "pm" },
+    { label: "Evening",    time: "6:00pm - 9:00pm",   start: "6:00", end: "9:00",  ampmStart: "pm", ampmEnd: "pm" },
+    { label: "Full day",   time: "9:00am - 5:00pm",   start: "9:00", end: "5:00",  ampmStart: "am", ampmEnd: "pm" },
   ];
 
+  
   const formatDateForApi = (d: Date) => {
     const day = d.getDate().toString().padStart(2, "0");
-    const months = [
-      "JAN",
-      "FEB",
-      "MAR",
-      "APR",
-      "MAY",
-      "JUN",
-      "JUL",
-      "AUG",
-      "SEP",
-      "OCT",
-      "NOV",
-      "DEC",
-    ];
+    const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
     return `${day}-${months[d.getMonth()]}-${d.getFullYear()}`;
   };
-
+  
   const formatDateForDisplay = (d: Date) =>
-    new Intl.DateTimeFormat("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    }).format(d);
-
+    new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric" }).format(d);
+  
   const formatMonthYear = (d: Date) =>
-    new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(
-      d
-    );
-
+    new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(d);
+  
   const formatTime12 = (t24: string) => {
     const [h, m] = t24.split(":").map((x) => parseInt(x, 10));
     const suffix = h >= 12 ? "pm" : "am";
@@ -126,49 +81,49 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
     return `${hr12}:${m.toString().padStart(2, "0")}${suffix}`;
   };
 
+  
   const convertTo24Hour = (time: string, ampm: string) => {
-    let [hours, minutes] = time.split(":").map((part) => parseInt(part, 10));
-    if (ampm.toLowerCase() === "pm" && hours < 12) {
+    let [hours, minutes] = time.split(':').map(part => parseInt(part, 10));
+    if (ampm.toLowerCase() === 'pm' && hours < 12) {
       hours += 12;
-    } else if (ampm.toLowerCase() === "am" && hours === 12) {
+    } else if (ampm.toLowerCase() === 'am' && hours === 12) {
       hours = 0;
     }
-    return `${hours.toString().padStart(2, "0")}:${minutes
-      .toString()
-      .padStart(2, "0")}`;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   };
 
+  
   const convertTo12Hour = (time24h: string) => {
     if (!time24h) return { time: "9:00", ampm: "am" };
-
-    const [hours, minutes] = time24h
-      .split(":")
-      .map((part) => parseInt(part, 10));
-    const ampm = hours >= 12 ? "pm" : "am";
+    
+    const [hours, minutes] = time24h.split(':').map(part => parseInt(part, 10));
+    const ampm = hours >= 12 ? 'pm' : 'am';
     const hours12 = hours % 12 || 12;
-    const time = `${hours12}:${minutes.toString().padStart(2, "0")}`;
-
+    const time = `${hours12}:${minutes.toString().padStart(2, '0')}`;
+    
     return { time, ampm };
   };
 
+  
   const parseTimeSlot = (timeSlot: string) => {
-    const parts = timeSlot.split(" - ");
+    const parts = timeSlot.split(' - ');
     if (parts.length !== 2) return { startTime: "09:00", endTime: "17:00" };
-
+    
     const startPart = parts[0];
     const endPart = parts[1];
-
-    const startTime = startPart.replace(/[^0-9:]/g, "");
-    const startAmPm = startPart.replace(/[0-9:]/g, "");
-    const endTime = endPart.replace(/[^0-9:]/g, "");
-    const endAmPm = endPart.replace(/[0-9:]/g, "");
-
+    
+    const startTime = startPart.replace(/[^0-9:]/g, '');
+    const startAmPm = startPart.replace(/[0-9:]/g, '');
+    const endTime = endPart.replace(/[^0-9:]/g, '');
+    const endAmPm = endPart.replace(/[0-9:]/g, '');
+    
     return {
       startTime: convertTo24Hour(startTime, startAmPm),
-      endTime: convertTo24Hour(endTime, endAmPm),
+      endTime: convertTo24Hour(endTime, endAmPm)
     };
   };
 
+  
   const getSelectedDayFormatted = () => {
     if (!selectedDay) return "";
     return new Intl.DateTimeFormat("en-US", {
@@ -178,6 +133,7 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
     }).format(selectedDay.dateObj);
   };
 
+  
   const loadScheduleData = async () => {
     if (!activeAgentId) return;
     setIsLoading(true);
@@ -187,31 +143,25 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
       const weekly = settings.availability;
 
       const days: ScheduleDay[] = [];
-      const startOfCalendar = new Date(
-        currentMonth.getFullYear(),
-        currentMonth.getMonth(),
-        1
-      );
+      const startOfCalendar = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
       const totalCells = 42;
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const today = new Date(); today.setHours(0,0,0,0);
 
       for (let i = 0; i < totalCells; i++) {
         const dateObj = new Date(startOfCalendar);
         dateObj.setDate(startOfCalendar.getDate() + i);
         const apiDate = formatDateForApi(dateObj);
-        const dayName = new Intl.DateTimeFormat("en-US", {
-          weekday: "long",
-        }).format(dateObj);
+        const dayName = new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(dateObj);
         const rule = weekly.find((w: any) => w.day === dayName);
 
         let available = true;
-        let timeSlot = "9:00am - 5:00pm";
+        let timeSlot = "9:00am - 5:00pm"; 
         let startTime = "09:00";
         let endTime = "17:00";
         let isApiUnavailable = false;
         let allDay = false;
-
+        
+        
         if (rule) {
           if (rule.available && rule.timeSlots.length > 0) {
             const slot = rule.timeSlots[0];
@@ -223,15 +173,18 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
             isApiUnavailable = true;
           }
         }
-
+        
+        
         const unavailableData = unavailableDatesData.find(
           (item: any) => item.date === apiDate
         );
-
+        
         if (unavailableData) {
+          
+          
           allDay = !!unavailableData.allDay;
           available = !allDay;
-
+          
           if (unavailableData.startTime && unavailableData.endTime) {
             startTime = unavailableData.startTime;
             endTime = unavailableData.endTime;
@@ -245,17 +198,17 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
           apiDate,
           dateObj,
           formattedDate: formatDateForDisplay(dateObj),
-          available,
-          timeSlot,
+          available, 
+          timeSlot, 
           isApiUnavailable,
           isDisabled: isPast || isApiUnavailable,
-          hasCustomHours: (unavailableData && !allDay) || false,
-          isModified: false,
-          originalTimeSlot: timeSlot,
-          originalAvailable: available,
+          hasCustomHours: (unavailableData && !allDay) || false, 
+          isModified: false, 
+          originalTimeSlot: timeSlot, 
+          originalAvailable: available, 
           allDay: allDay,
           startTime,
-          endTime,
+          endTime
         });
       }
 
@@ -267,17 +220,19 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
     }
   };
 
+  
   useEffect(() => {
     loadScheduleData();
   }, [activeAgentId, currentMonth]);
 
+  
   const prevMonth = () =>
-    setCurrentMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1));
+    setCurrentMonth(m => new Date(m.getFullYear(), m.getMonth() - 1, 1));
   const nextMonth = () =>
-    setCurrentMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1));
-  const daysInMonth = (y: number, mo: number) =>
-    new Date(y, mo + 1, 0).getDate();
+    setCurrentMonth(m => new Date(m.getFullYear(), m.getMonth() + 1, 1));
+  const daysInMonth = (y: number, mo: number) => new Date(y, mo + 1, 0).getDate();
 
+  
   const getCalendarDays = () => {
     const cells: any[] = [];
     const year = currentMonth.getFullYear();
@@ -287,12 +242,13 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
     for (let d = 1; d <= daysInMonth(year, mo); d++) {
       const dateObj = new Date(year, mo, d);
       const apiDate = formatDateForApi(dateObj);
-      const c = scheduleDays.find((s) => s.apiDate === apiDate);
+      const c = scheduleDays.find(s => s.apiDate === apiDate);
       cells.push({ ...c, empty: false, dayNum: d });
     }
     return cells;
   };
 
+  
   const handleDaySelect = (day: ScheduleDay) => {
     if (day.isDisabled) return;
     if (selectedDay?.apiDate === day.apiDate) {
@@ -303,33 +259,34 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
   };
 
   const toggleDayAvailability = (apiDate: string) => {
-    setScheduleDays((prev) =>
-      prev.map((d) => {
+    setScheduleDays(prev =>
+      prev.map(d => {
         if (d.apiDate === apiDate) {
-          const newAvailable = !d.available;
-          return {
-            ...d,
+          
+          const newAvailable = !d.available; 
+          return { 
+            ...d, 
             available: newAvailable,
-            allDay: !newAvailable,
-            isModified: true,
-            hasCustomHours: newAvailable && d.timeSlot !== d.originalTimeSlot,
+            allDay: !newAvailable, 
+            isModified: true, 
+            hasCustomHours: newAvailable && d.timeSlot !== d.originalTimeSlot 
           };
         }
         return d;
       })
     );
-
+    
     if (selectedDay?.apiDate === apiDate) {
-      setSelectedDay((d) => {
+      setSelectedDay(d => {
         if (d) {
           const newAvailable = !d.available;
-
-          return {
-            ...d,
+          
+          return { 
+            ...d, 
             available: newAvailable,
-            allDay: !newAvailable,
-            isModified: true,
-            hasCustomHours: newAvailable && d.timeSlot !== d.originalTimeSlot,
+            allDay: !newAvailable, 
+            isModified: true, 
+            hasCustomHours: newAvailable && d.timeSlot !== d.originalTimeSlot 
           };
         }
         return d;
@@ -339,30 +296,30 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
 
   const markDayUnavailable = (day: ScheduleDay) => {
     if (day.isDisabled) return;
-    setScheduleDays((prev) =>
-      prev.map((d) => {
+    setScheduleDays(prev =>
+      prev.map(d => {
         if (d.apiDate === day.apiDate) {
-          return {
-            ...d,
+          return { 
+            ...d, 
             available: false,
-            allDay: true,
-            isModified: true,
-            hasCustomHours: false,
+            allDay: true, 
+            isModified: true, 
+            hasCustomHours: false 
           };
         }
         return d;
       })
     );
-
+    
     if (selectedDay?.apiDate === day.apiDate) {
-      setSelectedDay((d) => {
+      setSelectedDay(d => {
         if (d) {
-          return {
-            ...d,
+          return { 
+            ...d, 
             available: false,
-            allDay: true,
-            isModified: true,
-            hasCustomHours: false,
+            allDay: true, 
+            isModified: true, 
+            hasCustomHours: false 
           };
         }
         return d;
@@ -372,30 +329,30 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
 
   const markDayAvailable = (day: ScheduleDay) => {
     if (day.isDisabled) return;
-    setScheduleDays((prev) =>
-      prev.map((d) => {
+    setScheduleDays(prev =>
+      prev.map(d => {
         if (d.apiDate === day.apiDate) {
-          return {
-            ...d,
+          return { 
+            ...d, 
             available: true,
-            allDay: false,
-            isModified: true,
-            hasCustomHours: d.timeSlot !== d.originalTimeSlot,
+            allDay: false, 
+            isModified: true, 
+            hasCustomHours: d.timeSlot !== d.originalTimeSlot 
           };
         }
         return d;
       })
     );
-
+    
     if (selectedDay?.apiDate === day.apiDate) {
-      setSelectedDay((d) => {
+      setSelectedDay(d => {
         if (d) {
-          return {
-            ...d,
+          return { 
+            ...d, 
             available: true,
-            allDay: false,
-            isModified: true,
-            hasCustomHours: d.timeSlot !== d.originalTimeSlot,
+            allDay: false, 
+            isModified: true, 
+            hasCustomHours: d.timeSlot !== d.originalTimeSlot 
           };
         }
         return d;
@@ -423,45 +380,45 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
     const slot = `${timeInput.start}${timeInput.ampmStart} - ${timeInput.end}${timeInput.ampmEnd}`;
     const startTime24 = convertTo24Hour(timeInput.start, timeInput.ampmStart);
     const endTime24 = convertTo24Hour(timeInput.end, timeInput.ampmEnd);
-
-    setScheduleDays((prev) =>
-      prev.map((d) => {
+    
+    setScheduleDays(prev =>
+      prev.map(d => {
         if (d.apiDate === selectedDate) {
           const isCustom = slot !== d.originalTimeSlot;
-          return {
-            ...d,
-            available: true,
-            allDay: false,
+          return { 
+            ...d, 
+            available: true, 
+            allDay: false, 
             timeSlot: slot,
             startTime: startTime24,
             endTime: endTime24,
-            isModified: true,
-            hasCustomHours: isCustom,
+            isModified: true, 
+            hasCustomHours: isCustom 
           };
         }
         return d;
       })
     );
-
+    
     if (selectedDay?.apiDate === selectedDate) {
-      setSelectedDay((d) => {
+      setSelectedDay(d => {
         if (d) {
           const isCustom = slot !== d.originalTimeSlot;
-          return {
-            ...d,
-            available: true,
-            allDay: false,
+          return { 
+            ...d, 
+            available: true, 
+            allDay: false, 
             timeSlot: slot,
             startTime: startTime24,
             endTime: endTime24,
-            isModified: true,
-            hasCustomHours: isCustom,
+            isModified: true, 
+            hasCustomHours: isCustom 
           };
         }
         return d;
       });
     }
-
+    
     setShowTimeModal(false);
     setSelectedDate(null);
   };
@@ -471,20 +428,22 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
     setIsSaving(true);
     setSaveError(null);
     try {
+      
       const unavailableDates = scheduleDays
-        .filter((d) => d.isModified)
-        .map((d) => ({
+        .filter(d => d.isModified)
+        .map(d => ({
           date: d.apiDate,
           startTime: d.startTime,
           endTime: d.endTime,
-          allDay: !d.available || d.allDay,
+          allDay: !d.available || d.allDay 
         }));
-
+      
       await updateUnavailableDates(activeAgentId, unavailableDates);
       setSaveSuccess(true);
-
+      
+      
       await loadScheduleData();
-
+      
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch {
       setSaveError("Failed to update your schedule. Please try again.");
@@ -569,7 +528,7 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
           <div className="p-2 bg-white">
             {/* Weekdays */}
             <div className="grid grid-cols-7 mb-1">
-              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((wd) => (
+              {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((wd) => (
                 <div
                   key={wd}
                   className="text-center py-1.5 text-xs font-medium text-gray-600"
@@ -583,42 +542,24 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
               {getCalendarDays().map((c, i) => (
                 <div
                   key={i}
-                  className={`aspect-square overflow-hidden ${
-                    c.empty ? "invisible" : ""
-                  }`}
+                  className={`aspect-square overflow-hidden ${c.empty ? "invisible" : ""}`}
                 >
                   {!c.empty && (
                     <div
-                      onClick={() => {
-                        if (!c.isDisabled) handleDaySelect(c);
-                      }}
+                      onClick={() => { if (!c.isDisabled) handleDaySelect(c); }}
                       className={`
                         w-full h-full p-1 transition-colors flex flex-col
-                        ${
-                          c.isDisabled
-                            ? "bg-gray-100 opacity-70 cursor-not-allowed"
-                            : c.allDay
-                            ? "bg-red-50 hover:bg-red-100 cursor-pointer"
-                            : !c.available
-                            ? "bg-gray-100 hover:bg-gray-200 cursor-pointer"
-                            : c.hasCustomHours
-                            ? "bg-blue-50 hover:bg-blue-100 cursor-pointer"
-                            : "bg-white hover:bg-gray-50 cursor-pointer"
-                        }
-                        ${
-                          c.isToday
-                            ? "ring-1 ring-gray-800"
-                            : "border border-gray-200"
-                        }
+                        ${c.isDisabled ? "bg-gray-100 opacity-70 cursor-not-allowed"
+                          : c.allDay ? "bg-red-50 hover:bg-red-100 cursor-pointer"
+                          : !c.available ? "bg-gray-100 hover:bg-gray-200 cursor-pointer"
+                          : c.hasCustomHours ? "bg-blue-50 hover:bg-blue-100 cursor-pointer"
+                          : "bg-white hover:bg-gray-50 cursor-pointer"}
+                        ${c.isToday ? "ring-1 ring-gray-800" : "border border-gray-200"}
                         rounded-md
                       `}
                     >
                       <div className="flex justify-between items-center mb-1">
-                        <span
-                          className={`text-xs font-medium ${
-                            c.isToday ? "text-black" : "text-gray-700"
-                          }`}
-                        >
+                        <span className={`text-xs font-medium ${c.isToday ? "text-black" : "text-gray-700"}`}>
                           {c.dayNum}
                         </span>
                         {!c.isDisabled && (
@@ -648,25 +589,17 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
                         )}
                       </div>
                       {c.available && !c.isDisabled && (
-                        <div
-                          className={`text-xs truncate mt-auto ${
-                            c.hasCustomHours
-                              ? "text-blue-600 font-medium"
-                              : "text-gray-600"
-                          }`}
-                        >
+                        <div className={`text-xs truncate mt-auto ${
+                          c.hasCustomHours ? "text-blue-600 font-medium" : "text-gray-600"
+                        }`}>
                           {c.timeSlot}
                         </div>
                       )}
                       {!c.available && !c.isDisabled && (
-                        <div
-                          className={`text-xs mt-auto flex items-center ${
-                            c.allDay
-                              ? "text-red-500 font-medium"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          <X className="h-3 w-3 mr-1" />
+                        <div className={`text-xs mt-auto flex items-center ${
+                          c.allDay ? "text-red-500 font-medium" : "text-gray-500"
+                        }`}>
+                          <X className="h-3 w-3 mr-1" /> 
                           {c.allDay ? "Off duty" : "Unavailable"}
                         </div>
                       )}
@@ -715,23 +648,9 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
                     <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">
                       Working Hours
                     </div>
-                    <div
-                      className={`flex items-center ${
-                        selectedDay.hasCustomHours
-                          ? "text-blue-600"
-                          : "text-gray-800"
-                      }`}
-                    >
-                      <Clock
-                        className={`h-4 w-4 mr-2 ${
-                          selectedDay.hasCustomHours
-                            ? "text-blue-500"
-                            : "text-gray-500"
-                        }`}
-                      />
-                      <span className="font-medium">
-                        {selectedDay.timeSlot}
-                      </span>
+                    <div className={`flex items-center ${selectedDay.hasCustomHours ? "text-blue-600" : "text-gray-800"}`}>
+                      <Clock className={`h-4 w-4 mr-2 ${selectedDay.hasCustomHours ? "text-blue-500" : "text-gray-500"}`} />
+                      <span className="font-medium">{selectedDay.timeSlot}</span>
                     </div>
                   </div>
                 )}
@@ -771,12 +690,10 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
               <div className="text-gray-500">
                 <CalendarIcon className="h-10 w-10 mx-auto mb-2 text-gray-400" />
                 <p className="font-medium mb-1">Select a date</p>
-                <p className="text-xs text-gray-400">
-                  Click on any date to view and edit
-                </p>
+                <p className="text-xs text-gray-400">Click on any date to view and edit</p>
               </div>
             </div>
-          )}
+          )}  
         </div>
       </div>
 
@@ -785,82 +702,61 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
         <div className="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-4 m-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">
-                Set Working Hours
-              </h3>
-              <button
+              <h3 className="text-lg font-semibold text-gray-800">Set Working Hours</h3>
+              <button 
                 onClick={() => setShowTimeModal(false)}
                 className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
-
+            
             <div className="mb-5">
               <p className="text-sm text-gray-600">
-                {selectedDay ? getSelectedDayFormatted() : ""}
+                {selectedDay ? getSelectedDayFormatted() : ''}
               </p>
             </div>
-
+            
             <div className="space-y-4">
               {/* Quick Select */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Quick select
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Quick select</label>
                 <div className="grid grid-cols-2 gap-2">
                   {timePresets.map((preset, idx) => (
                     <button
                       key={idx}
-                      onClick={() =>
-                        setTimeInput({
-                          start: preset.start,
-                          end: preset.end,
-                          ampmStart: preset.ampmStart,
-                          ampmEnd: preset.ampmEnd,
-                        })
-                      }
+                      onClick={() => setTimeInput({
+                        start: preset.start,
+                        end: preset.end,
+                        ampmStart: preset.ampmStart,
+                        ampmEnd: preset.ampmEnd
+                      })}
                       className="flex items-center justify-between py-2 px-3 border border-gray-200 rounded-md hover:bg-gray-50 text-left"
                     >
-                      <span className="text-sm font-medium text-gray-800">
-                        {preset.label}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {preset.time}
-                      </span>
+                      <span className="text-sm font-medium text-gray-800">{preset.label}</span>
+                      <span className="text-xs text-gray-500">{preset.time}</span>
                     </button>
                   ))}
                 </div>
               </div>
-
+              
               {/* Custom Time */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Custom hours
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Custom hours</label>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">
-                      Start Time
-                    </label>
+                    <label className="block text-xs text-gray-500 mb-1">Start Time</label>
                     <div className="flex">
                       <input
                         type="text"
                         value={timeInput.start}
-                        onChange={(e) =>
-                          setTimeInput((t) => ({ ...t, start: e.target.value }))
-                        }
+                        onChange={e => setTimeInput(t => ({ ...t, start: e.target.value }))}
                         placeholder="9:00"
                         className="flex-1 rounded-l-md border-gray-300 focus:border-gray-500 focus:ring-gray-500 text-sm"
                       />
                       <select
                         value={timeInput.ampmStart}
-                        onChange={(e) =>
-                          setTimeInput((t) => ({
-                            ...t,
-                            ampmStart: e.target.value,
-                          }))
-                        }
+                        onChange={e => setTimeInput(t => ({ ...t, ampmStart: e.target.value }))}
                         className="rounded-r-md border-l-0 border-gray-300 text-sm bg-gray-50"
                       >
                         <option value="am">AM</option>
@@ -869,27 +765,18 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">
-                      End Time
-                    </label>
+                    <label className="block text-xs text-gray-500 mb-1">End Time</label>
                     <div className="flex">
                       <input
                         type="text"
                         value={timeInput.end}
-                        onChange={(e) =>
-                          setTimeInput((t) => ({ ...t, end: e.target.value }))
-                        }
+                        onChange={e => setTimeInput(t => ({ ...t, end: e.target.value }))}
                         placeholder="5:00"
                         className="flex-1 rounded-l-md border-gray-300 focus:border-gray-500 focus:ring-gray-500 text-sm"
                       />
                       <select
                         value={timeInput.ampmEnd}
-                        onChange={(e) =>
-                          setTimeInput((t) => ({
-                            ...t,
-                            ampmEnd: e.target.value,
-                          }))
-                        }
+                        onChange={e => setTimeInput(t => ({ ...t, ampmEnd: e.target.value }))}
                         className="rounded-r-md border-l-0 border-gray-300 text-sm bg-gray-50"
                       >
                         <option value="am">AM</option>
@@ -899,7 +786,7 @@ const AvailabilitySchedule: React.FC<ScheduleProps> = () => {
                   </div>
                 </div>
               </div>
-
+              
               {/* Actions */}
               <div className="pt-4 flex justify-end space-x-3 border-t border-gray-200">
                 <button
