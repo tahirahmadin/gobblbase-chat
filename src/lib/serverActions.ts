@@ -272,15 +272,19 @@ export async function updateAgentDetails(
   }
 }
 
+
 export async function deleteAgent(agentId: string): Promise<void> {
   try {
-    const response = await axios.delete(
-      `https://rag.gobbl.ai/client/deleteAgent/${agentId}`
+    // Use POST instead of DELETE to avoid CORS issues
+    const response = await axios.post(
+      `https://rag.gobbl.ai/client/deleteAgentPost/${agentId}`
     );
 
     if (response.data.error) {
       throw new Error(response.data.result || "Error deleting agent");
     }
+
+    console.log("Agent deleted successfully:", response.data.result);
     return response.data.result;
   } catch (error) {
     console.error("Error deleting agent:", error);
