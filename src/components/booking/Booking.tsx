@@ -79,7 +79,7 @@ const DEFAULT_MEETING_LOCATIONS = [
   { id: "in_person", name: "In-person", icon: <MapPin className="h-5 w-5" />, selected: true },
 ];
 
-const COMMON_TIMEZONES = [
+const DEFAULT_TIMEZONES = [
   { value: "UTC", label: "UTC (Coordinated Universal Time)" },
   { value: "America/New_York", label: "Eastern Time (US & Canada)" },
   { value: "America/Chicago", label: "Central Time (US & Canada)" },
@@ -97,12 +97,45 @@ const COMMON_TIMEZONES = [
 const Booking: React.FC<BookingProps> = ({ onSetupComplete, isEditMode = false, agentId: propAgentId }) => {
   const { activeBotData, activeBotId } = useBotConfig();
   const activeAgentId = propAgentId || activeBotId || activeBotData?.agentId;
+  const [timezones, setTimezones] = useState(DEFAULT_TIMEZONES);
+  const [detectedTimezoneInList, setDetectedTimezoneInList] = useState(false);
 
   useEffect(() => {
     console.log("Booking Component - Using agentId:", activeAgentId);
     console.log("Booking Component - Prop agentId:", propAgentId);
     console.log("Booking Component - Store activeBotId:", activeBotId);
   }, [activeAgentId, propAgentId, activeBotId]);
+
+  useEffect(() => {
+    if (!isEditMode) {
+      const detectedTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      
+      setTimezone(detectedTz);
+  
+      const alreadyInList = DEFAULT_TIMEZONES.find(tz => tz.value === detectedTz);
+      setDetectedTimezoneInList(!!alreadyInList);
+      
+      if (!alreadyInList && detectedTz) {
+        try {
+          const tzOffset = new Intl.DateTimeFormat('en', {
+            timeZone: detectedTz,
+            timeZoneName: 'short',
+          }).formatToParts().find(part => part.type === 'timeZoneName')?.value || '';
+  
+          const detectedTzEntry = {
+            value: detectedTz,
+            label: `${detectedTz} (${tzOffset})`,
+          };
+  
+          setTimezones(prev => [detectedTzEntry, ...prev.filter(tz => tz.value !== detectedTz)]);
+        } catch (e) {
+          console.error("Error formatting timezone offset:", e);
+        }
+      } else {
+        setTimezones(DEFAULT_TIMEZONES);
+      }
+    }
+  }, [isEditMode]);
 
   const [currentStep, setCurrentStep] = useState<
     "booking-type" | "duration" | "availability" | "locations" | "complete"
@@ -164,6 +197,26 @@ const Booking: React.FC<BookingProps> = ({ onSetupComplete, isEditMode = false, 
 
           if (settings.timezone) {
             setTimezone(settings.timezone);
+            
+            // If saved timezone is not in default list, add it
+            const tzInList = DEFAULT_TIMEZONES.find(tz => tz.value === settings.timezone);
+            if (!tzInList) {
+              try {
+                const tzOffset = new Intl.DateTimeFormat('en', {
+                  timeZone: settings.timezone,
+                  timeZoneName: 'short',
+                }).formatToParts().find(part => part.type === 'timeZoneName')?.value || '';
+                
+                const savedTzEntry = {
+                  value: settings.timezone,
+                  label: `${settings.timezone} (${tzOffset})`,
+                };
+                
+                setTimezones(prev => [savedTzEntry, ...prev.filter(tz => tz.value !== settings.timezone)]);
+              } catch (e) {
+                console.error("Error formatting saved timezone offset:", e);
+              }
+            }
           }
         }
       } catch (error) {
@@ -454,32 +507,42 @@ const Booking: React.FC<BookingProps> = ({ onSetupComplete, isEditMode = false, 
       )}
     </div>
   );
-
-  const renderTimezoneStep = () => (
-    <div className="border border-gray-200 rounded-lg p-6">
-      <div className="flex items-center mb-4">
-        <Clock className="h-5 w-5 text-gray-600 mr-2" />
-        <h3 className="font-medium">Timezone</h3>
+  // In your renderTimezoneStep function
+  const renderTimezoneStep = () => {
+    const displayLabel = timezones.find(tz => tz.value === timezone)?.label || timezone;
+  
+    return (
+      <div className="border border-gray-200 rounded-lg p-6">
+        <div className="mb-4 bg-blue-50 border border-blue-100 rounded-lg p-3 flex items-start">
+          <div className="text-blue-500 mr-2 mt-0.5">
+            <Check className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="text-sm text-blue-800">
+              We've automatically detected your timezone as <strong>{displayLabel}</strong>
+            </p>
+          </div>
+        </div>
+  
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Business Timezone
+        </label>
+        <select
+          value={timezone}
+          onChange={(e) => setTimezone(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded-md"
+        >
+          {timezones.map((tz) => (
+            <option key={tz.value} value={tz.value}>
+              {tz.label}
+            </option>
+          ))}
+        </select>
       </div>
-      
-      <p className="text-sm text-gray-600 mb-4">
-        Set your business timezone. Your availability will be displayed in this timezone,
-        but customers will see times converted to their local timezone.
-      </p>
-      
-      <select
-        value={timezone}
-        onChange={(e) => setTimezone(e.target.value)}
-        className="w-full p-2 border border-gray-200 rounded-md"
-      >
-        {COMMON_TIMEZONES.map((tz) => (
-          <option key={tz.value} value={tz.value}>
-            {tz.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
+    );
+  };
+
+  
 
   // Render duration step
   const renderDurationStep = () => (
@@ -787,7 +850,7 @@ const Booking: React.FC<BookingProps> = ({ onSetupComplete, isEditMode = false, 
             <div className="flex justify-between pb-2 border-b border-green-100">
               <span className="text-gray-600">Timezone:</span>
               <span className="font-medium">{
-                COMMON_TIMEZONES.find(tz => tz.value === timezone)?.label || timezone
+                timezones.find(tz => tz.value === timezone)?.label || timezone
               }</span>
             </div>
             
