@@ -21,6 +21,8 @@ import Drawer from "./BrowseComponent/Drawer";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { useUserStore } from "../store/useUserStore";
 import { toast } from "react-hot-toast";
+import StreamingText from "./StreamingText";
+import LoadingPhrases from "./LoadingPhrases";
 
 interface PersonalityAnalysis {
   dominantTrait: string;
@@ -51,8 +53,8 @@ const openai = new OpenAI({
 });
 
 const QUERY_CUES: string[][] = [
-  ["Tell me about you ?", "Most popular items ?"],
-  ["Best courses available?", "Your education ?"],
+  ["Tell me about you ?", "Summarise your services ?"],
+  ["Book meeting", "Free services"],
 ];
 
 type Screen = "chat" | "book" | "browse" | "cart";
@@ -120,10 +122,12 @@ export default function PublicChat({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Personality
-  const [personalityType, setPersonalityType] = useState<PersonalityType | null>(null);
+  const [personalityType, setPersonalityType] =
+    useState<PersonalityType | null>(null);
   const [isCustomPersonality, setIsCustomPersonality] = useState(false);
   const [customPersonalityPrompt, setCustomPersonalityPrompt] = useState("");
-  const [personalityAnalysis, setPersonalityAnalysis] = useState<PersonalityAnalysis | null>(null);
+  const [personalityAnalysis, setPersonalityAnalysis] =
+    useState<PersonalityAnalysis | null>(null);
 
   const { getTotalItems } = useCartStore();
 
@@ -149,6 +153,23 @@ export default function PublicChat({
     inputTextColor: "#ffffff",
   };
 
+  // Enhanced scroll to bottom function
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Scroll to bottom when loading state changes (for streaming text)
+  useEffect(() => {
+    if (!isLoading) {
+      scrollToBottom();
+    }
+  }, [isLoading]);
+
   // fetch config on mount/params change
   useEffect(() => {
     if (!previewConfig) {
@@ -156,11 +177,6 @@ export default function PublicChat({
       if (agentUsernamePlayground) fetchBotData(agentUsernamePlayground, false);
     }
   }, [botUsername, agentUsernamePlayground, fetchBotData, previewConfig]);
-
-  // scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   // Function to handle redirection to admin dashboard
   const handleRedirectToAdmin = () => {
@@ -170,13 +186,13 @@ export default function PublicChat({
       if (config?.agentId) {
         localStorage.setItem("redirectToAgentBooking", config.agentId);
       }
-      
+
       // Redirect to admin dashboard
       window.location.href = "/"; // This will redirect to dashboard home
     } else {
       // If we're already in admin/playground context, just change the tab
       // Assuming you have a parent function to call
-      if (typeof window.parent.setActiveAdminTab === 'function') {
+      if (typeof window.parent.setActiveAdminTab === "function") {
         window.parent.setActiveAdminTab("booking");
       } else {
         console.error("Admin redirect function not available");
@@ -200,13 +216,15 @@ export default function PublicChat({
     return "";
   };
 
-  const handleSendMessage = async () => {
-    if (!message.trim() || !config?.agentId) return;
+  const handleSendMessage = async (inputMessage?: string) => {
+    let msgToSend = inputMessage ? inputMessage : message;
+
+    if (!msgToSend.trim() || !config?.agentId) return;
 
     // user message
     const userMsg: ExtendedChatMessage = {
       id: Date.now().toString(),
-      content: message,
+      content: msgToSend,
       timestamp: new Date(),
       sender: "user",
     };
@@ -214,9 +232,10 @@ export default function PublicChat({
     setMessage("");
     setIsLoading(true);
     setShowCues(false);
+    scrollToBottom(); // Scroll immediately after user message
 
     // detect booking intent
-    const text = message.toLowerCase();
+    const text = msgToSend.toLowerCase();
     const isBookingRequest = [
       "book",
       "appointment",
@@ -240,7 +259,7 @@ export default function PublicChat({
 
     try {
       // fetch RAG context
-      const context = await queryDocument(config.agentId, message);
+      const context = await queryDocument(config.agentId, msgToSend);
       let systemPrompt = `You are a concise AI assistant. Use context when relevant:\n${JSON.stringify(
         context
       )}`;
@@ -254,7 +273,7 @@ export default function PublicChat({
         model: "gpt-4o-mini",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: message },
+          { role: "user", content: msgToSend },
         ],
         temperature: 0.6,
       });
@@ -294,7 +313,8 @@ export default function PublicChat({
   const handleCueClick = (cue: string) => {
     setMessage(cue);
     setShowCues(false);
-    setTimeout(handleSendMessage, 100);
+    handleSendMessage(cue);
+    // setTimeout(handleSendMessage, 500);
   };
 
   const handleGoogleLoginSuccess = async (credentialResponse: any) => {
@@ -399,13 +419,14 @@ export default function PublicChat({
             className="flex items-center space-x-3"
             style={{ color: theme.headerTextColor }}
           >
-            {currentConfig?.logo && (
-              <img
-                src={currentConfig.logo}
-                alt="Logo"
-                className="w-8 h-8 rounded-full object-cover"
-              />
-            )}
+            <img
+              src={
+                currentConfig?.logo ||
+                "https://thumbs.dreamstime.com/b/generative-ai-young-smiling-man-avatar-man-brown-beard-mustache-hair-wearing-yellow-sweater-sweatshirt-d-vector-people-279560903.jpg"
+              }
+              alt="Logo"
+              className="w-8 h-8 rounded-full object-cover"
+            />
             <div className="text-lg font-bold">
               {currentConfig?.name || "KiFor Bot"}
             </div>
@@ -481,7 +502,10 @@ export default function PublicChat({
       {/* content */}
       <div
         className="flex-1 overflow-y-auto p-2"
-        style={{ backgroundColor: theme.chatBackgroundColor }}
+        style={{
+          backgroundColor: theme.chatBackgroundColor,
+          paddingBottom: "150px",
+        }}
       >
         {activeScreen === "chat" &&
           messages.map((msg) =>
@@ -496,7 +520,7 @@ export default function PublicChat({
             ) : (
               <div
                 key={msg.id}
-                className={`flex ${
+                className={`mb-2 flex ${
                   msg.sender === "agent" ? "justify-start" : "justify-end"
                 }`}
               >
@@ -522,11 +546,17 @@ export default function PublicChat({
                       />
                     )}
                     <div>
-                      <p className="text-[13px]">{msg.content}</p>
+                      <p className="text-[13px]">
+                        {msg.sender === "agent" ? (
+                          <StreamingText text={msg.content} speed={15} />
+                        ) : (
+                          msg.content
+                        )}
+                      </p>
                     </div>
                   </div>
                   <div
-                    className="mt-1 text-xs opacity-70 text-right"
+                    className="mt-1 text-xs opacity-70 text-left"
                     style={{
                       color:
                         msg.sender === "agent"
@@ -543,6 +573,23 @@ export default function PublicChat({
               </div>
             )
           )}
+
+        {isLoading && (
+          <div className="mb-4 flex justify-start px-2">
+            <div className="flex items-start space-x-2">
+              {currentConfig?.logo && (
+                <img
+                  src={currentConfig.logo}
+                  alt="Bot Logo"
+                  className="w-6 h-6 rounded-full object-cover opacity-70"
+                />
+              )}
+              <div className="mt-1">
+                <LoadingPhrases textColor="#9ca3af" />
+              </div>
+            </div>
+          </div>
+        )}
 
         {activeScreen === "book" && (
           <CustomerBookingWrapper
@@ -569,6 +616,9 @@ export default function PublicChat({
             setActiveScreen={setActiveScreen}
           />
         )}
+
+        <div style={{ minHeight: "100px" }} />
+        <div ref={messagesEndRef} />
       </div>
 
       {/* cues */}
@@ -635,8 +685,6 @@ export default function PublicChat({
 
       {/* Drawer component */}
       <Drawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
-
-      <div ref={messagesEndRef} />
     </div>
   );
 }

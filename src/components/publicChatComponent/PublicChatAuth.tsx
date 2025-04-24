@@ -3,6 +3,7 @@ import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { useBotConfig } from "../../store/useBotConfig";
 import PublicChat from "../PublicChat";
 import { Bot } from "lucide-react";
+import { useUserStore } from "../../store/useUserStore";
 
 interface PublicChatAuthProps {
   agentUsernamePlayground: string | null;
@@ -12,13 +13,13 @@ export default function PublicChatAuth({
   agentUsernamePlayground,
 }: PublicChatAuthProps) {
   const {
-    isBotUserLoggedIn,
-    botUserEmail,
+    isLoggedIn,
+    userEmail,
     handleGoogleLoginSuccess,
     handleGoogleLoginError,
-  } = useBotConfig();
+  } = useUserStore();
 
-  if (!isBotUserLoggedIn) {
+  if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="max-w-md w-full mx-auto px-4">
