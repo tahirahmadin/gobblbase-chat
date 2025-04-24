@@ -24,12 +24,52 @@ import Products from "./components/Products";
 import { useBotConfig } from "./store/useBotConfig";
 import BookingTab from "./components/BookingTab";
 
+// Add type definition for window
+declare global {
+  interface Window {
+    setActiveAdminTab?: (tab: string) => void;
+  }
+}
+
 function Dashboard() {
   const [activeTab, setActiveTab] = useState("playground");
   const [isCreating, setIsCreating] = useState(false);
   const { isLoggedIn, handleGoogleLoginSuccess, handleGoogleLoginError } =
     useUserStore();
   const { activeBotId, setActiveBotId } = useBotConfig();
+
+  // Check for redirect from public chat
+  useEffect(() => {
+    // Check if we have a redirect parameter in localStorage
+    const redirectAgentId = localStorage.getItem("redirectToAgentBooking");
+    if (redirectAgentId) {
+      console.log("Redirecting to booking tab for agent:", redirectAgentId);
+      
+      // Set the active bot ID 
+      setActiveBotId(redirectAgentId);
+      
+      // Set the active tab to booking
+      setActiveTab("booking");
+      
+      // Clear the localStorage item
+      localStorage.removeItem("redirectToAgentBooking");
+    }
+  }, [setActiveBotId]);
+
+  // Make setActiveTab function available to children through window
+  useEffect(() => {
+    // Add the function to window so it can be called from within iframes
+    window.setActiveAdminTab = (tab) => {
+      if (tab === "booking") {
+        setActiveTab("booking");
+      }
+    };
+
+    // Clean up
+    return () => {
+      delete window.setActiveAdminTab;
+    };
+  }, []);
 
   // If not logged in, redirect to create tab
   useEffect(() => {

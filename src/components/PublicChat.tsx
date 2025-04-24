@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { ChatMessage } from "../types";
 import { queryDocument, signUpUser } from "../lib/serverActions";
@@ -10,10 +10,11 @@ import {
   Search,
   MenuIcon,
   ShoppingCart,
+  ArrowLeft,
 } from "lucide-react";
 import { useBotConfig } from "../store/useBotConfig";
 import { PERSONALITY_TYPES } from "./PersonalityAnalyzer";
-import CustomerBooking from "./booking/CustomerBooking";
+import CustomerBookingWrapper from "./CustomerBookingWrapper";
 import Browse from "./BrowseComponent/Browse";
 import { useCartStore } from "../store/useCartStore";
 import Drawer from "./BrowseComponent/Drawer";
@@ -95,9 +96,9 @@ export default function PublicChat({
     handleGoogleLoginSuccess: storeHandleGoogleLoginSuccess,
     handleGoogleLoginError: storeHandleGoogleLoginError,
   } = useUserStore();
-  const [showSignInOverlay, setShowSignInOverlay] = React.useState(!isLoggedIn);
-  const [message, setMessage] = React.useState("");
-  const [messages, setMessages] = React.useState<ExtendedChatMessage[]>([
+  const [showSignInOverlay, setShowSignInOverlay] = useState(!isLoggedIn);
+  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState<ExtendedChatMessage[]>([
     {
       id: "1",
       content:
@@ -107,20 +108,17 @@ export default function PublicChat({
     },
   ]);
 
-  const [activeScreen, setActiveScreen] = React.useState<Screen>("chat");
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [showCues, setShowCues] = React.useState(true);
+  const [activeScreen, setActiveScreen] = useState<Screen>("chat");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showCues, setShowCues] = useState(true);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Personality
-  const [personalityType, setPersonalityType] =
-    React.useState<PersonalityType | null>(null);
-  const [isCustomPersonality, setIsCustomPersonality] = React.useState(false);
-  const [customPersonalityPrompt, setCustomPersonalityPrompt] =
-    React.useState("");
-  const [personalityAnalysis, setPersonalityAnalysis] =
-    React.useState<PersonalityAnalysis | null>(null);
+  const [personalityType, setPersonalityType] = useState<PersonalityType | null>(null);
+  const [isCustomPersonality, setIsCustomPersonality] = useState(false);
+  const [customPersonalityPrompt, setCustomPersonalityPrompt] = useState("");
+  const [personalityAnalysis, setPersonalityAnalysis] = useState<PersonalityAnalysis | null>(null);
 
   const { getTotalItems } = useCartStore();
 
@@ -147,28 +145,39 @@ export default function PublicChat({
   };
 
   // fetch config on mount/params change
-  React.useEffect(() => {
+  useEffect(() => {
     if (!previewConfig) {
       if (botUsername) fetchBotData(botUsername, true);
       if (agentUsernamePlayground) fetchBotData(agentUsernamePlayground, false); 
     }
   }, [botUsername, agentUsernamePlayground, fetchBotData, previewConfig]);
 
-  // update personality when config arrives
-  // React.useEffect(() => {
-  //   if (currentConfig) {
-  //     const pt = currentConfig.personalityType;
-  //     setPersonalityType(pt ?? null);
-  //     setIsCustomPersonality(pt === "custom-personality");
-  //     setCustomPersonalityPrompt(currentConfig.customPersonalityPrompt || "");
-  //     setPersonalityAnalysis(currentConfig.personalityAnalysis || null);
-  //   }
-  // }, [currentConfig]);
-
   // scroll to bottom when messages change
-  React.useEffect(() => {
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Function to handle redirection to admin dashboard
+  const handleRedirectToAdmin = () => {
+    // Check if we're in the right environment
+    if (window.location.pathname.includes("/chatbot/")) {
+      // Save agent ID to local storage so admin page knows which agent to focus
+      if (config?.agentId) {
+        localStorage.setItem("redirectToAgentBooking", config.agentId);
+      }
+      
+      // Redirect to admin dashboard
+      window.location.href = "/"; // This will redirect to dashboard home
+    } else {
+      // If we're already in admin/playground context, just change the tab
+      // Assuming you have a parent function to call
+      if (typeof window.parent.setActiveAdminTab === 'function') {
+        window.parent.setActiveAdminTab("booking");
+      } else {
+        console.error("Admin redirect function not available");
+      }
+    }
+  };
 
   // build personality prompt
   const getPersonalityPrompt = () => {
@@ -281,20 +290,6 @@ export default function PublicChat({
     setMessage(cue);
     setShowCues(false);
     setTimeout(handleSendMessage, 100);
-  };
-
-  const handleBookingComplete = (bookingDetails: any) => {
-    // Add a confirmation message after booking is complete
-    setMessages((m) => [
-      ...m,
-      {
-        id: Date.now().toString(),
-        content: `Great! Your appointment has been confirmed for ${bookingDetails.date} at ${bookingDetails.startTime}. 
-        I've sent all the details to your email.`,
-        timestamp: new Date(),
-        sender: "agent",
-      },
-    ]);
   };
 
   const handleGoogleLoginSuccess = async (credentialResponse: any) => {
@@ -487,9 +482,10 @@ export default function PublicChat({
           messages.map((msg) =>
             msg.type === "booking" ? (
               <div key={msg.id} className="w-full">
-                <CustomerBooking
+                <CustomerBookingWrapper
                   businessId={config?.agentId}
                   serviceName={currentConfig?.name || "Consultation"}
+                  onRedirectToAdmin={handleRedirectToAdmin}
                 />
               </div>
             ) : (
@@ -544,9 +540,10 @@ export default function PublicChat({
           )}
 
         {activeScreen === "book" && (
-          <CustomerBooking
+          <CustomerBookingWrapper
             businessId={config?.agentId}
             serviceName={currentConfig?.name || "Consultation"}
+            onRedirectToAdmin={handleRedirectToAdmin}
           />
         )}
 
