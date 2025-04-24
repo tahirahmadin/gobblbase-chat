@@ -40,6 +40,7 @@ interface MeetingLocation {
 interface BookingProps {
   onSetupComplete?: () => void;
   isEditMode?: boolean;
+  agentId?: string;
 }
 
 const DURATION_OPTIONS = [
@@ -93,9 +94,16 @@ const COMMON_TIMEZONES = [
   { value: "Australia/Sydney", label: "Sydney" },
 ];
 
-const Booking: React.FC<BookingProps> = ({ onSetupComplete, isEditMode = false }) => {
-  const { activeBotData } = useBotConfig();
-  const activeAgentId = activeBotData?.agentId;
+const Booking: React.FC<BookingProps> = ({ onSetupComplete, isEditMode = false, agentId: propAgentId }) => {
+  const { activeBotData, activeBotId } = useBotConfig();
+  const activeAgentId = propAgentId || activeBotId || activeBotData?.agentId;
+
+  useEffect(() => {
+    console.log("Booking Component - Using agentId:", activeAgentId);
+    console.log("Booking Component - Prop agentId:", propAgentId);
+    console.log("Booking Component - Store activeBotId:", activeBotId);
+  }, [activeAgentId, propAgentId, activeBotId]);
+
   const [currentStep, setCurrentStep] = useState<
     "booking-type" | "duration" | "availability" | "locations" | "complete"
   >("booking-type");
@@ -129,7 +137,7 @@ const Booking: React.FC<BookingProps> = ({ onSetupComplete, isEditMode = false }
         const settings = await getAppointmentSettings(activeAgentId);
         
         if (settings) {
-          console.log("Fetched settings:", settings);
+          console.log("Fetched settings for agent:", activeAgentId, settings);
           
           // Update form state with fetched settings
           setIsTeamBooking(settings.bookingType === "group");
@@ -250,7 +258,7 @@ const Booking: React.FC<BookingProps> = ({ onSetupComplete, isEditMode = false }
       timezone,
     };
 
-    console.log("Saving booking settings:", payload);
+    console.log("Saving booking settings for agent:", activeAgentId, payload);
 
     try {
       await updateAppointmentSettings(payload);

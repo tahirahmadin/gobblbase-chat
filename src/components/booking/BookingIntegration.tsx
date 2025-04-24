@@ -10,32 +10,54 @@ interface BookingIntegrationProps {
   /** If 'setup', start in booking setup (edit) mode; if 'dashboard', start in dashboard view */
   initialView?: "setup" | "dashboard";
   isEditMode: boolean;
+  agentId?: string; // Accept explicit agentId prop
 }
 
-const BookingIntegration: React.FC<BookingIntegrationProps> = ({ onSetupComplete, initialView = 'dashboard', isEditMode, }) => {
-  const { activeBotData } = useBotConfig();
-  const activeAgentId = activeBotData?.agentId;
+const BookingIntegration: React.FC<BookingIntegrationProps> = ({
+  onSetupComplete,
+  initialView = 'dashboard',
+  isEditMode,
+  agentId: propAgentId, // Accept the explicit agentId prop
+}) => {
+  const { activeBotId, activeBotData } = useBotConfig();
+  
+  // Use explicitly passed agentId if available, otherwise fall back to store values
+  const activeAgentId = propAgentId || activeBotId || activeBotData?.agentId;
+  
   const [view, setView] = useState<"setup" | "dashboard">(initialView);
   
-  const handleLocalSetupComplete = () => onSetupComplete();
+  // Add debug logging to track agentId values
+  useEffect(() => {
+    console.log("BookingIntegration - Active AgentId:", activeAgentId);
+    console.log("BookingIntegration - Prop AgentId:", propAgentId);
+    console.log("BookingIntegration - ActiveBotId from store:", activeBotId);
+    console.log("BookingIntegration - ActiveBotData.agentId from store:", activeBotData?.agentId);
+  }, [activeAgentId, propAgentId, activeBotId, activeBotData]);
 
+  const handleLocalSetupComplete = () => onSetupComplete();
+  
   const handleEditSettings = () => {
     setView('setup');
   };
-
+  
   return (
     <div>
-        {view === 'setup' ? (
-            <Booking
-            key={isEditMode ? 'edit' : 'new'}
-            onSetupComplete={handleLocalSetupComplete}
-            isEditMode={isEditMode}
-            />
+      {/* Display current agentId for debugging (can be removed in production) */}      
+      {view === 'setup' ? (
+        <Booking
+          key={`${activeAgentId}-${isEditMode ? 'edit' : 'new'}`} // Include agentId in key to force re-render
+          onSetupComplete={handleLocalSetupComplete}
+          isEditMode={isEditMode}
+          agentId={activeAgentId} // Pass agentId explicitly
+        />
       ) : (
-         <BookingDashboard onEditSettings={handleEditSettings} />
-       )}
-     </div>
-   );
- };
+        <BookingDashboard 
+          onEditSettings={handleEditSettings} 
+          agentId={activeAgentId} // Pass agentId explicitly
+        />
+      )}
+    </div>
+  );
+};
 
 export default BookingIntegration;

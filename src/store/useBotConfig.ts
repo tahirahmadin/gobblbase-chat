@@ -74,7 +74,55 @@ export const useBotConfig = create<BotConfigState>()(
       isLoading: false,
       error: null,
 
-      setActiveBotId: (id) => set({ activeBotId: id }),
+      setActiveBotId: async (id) => {
+        console.log("Setting activeBotId to:", id);
+        
+        set({ activeBotId: id });
+        
+        if (id) {
+          try {
+            set({ isLoading: true, error: null });
+            console.log("Fetching data for bot ID:", id);
+            
+            // Fetch the bot data
+            let response = await getAgentDetails(id, false);
+            
+            // Extract only the required fields from the response
+            const cleanConfig: BotConfig = {
+              agentId: response.agentId,
+              username: response.username,
+              name: response.name,
+              logo: response.logo,
+              calendlyUrl: response.calendlyUrl,
+              stripeAccountId: response.stripeAccountId,
+              currency: response.currency,
+              model: response.model,
+              systemPrompt: response.systemPrompt,
+              personalityType: response.personalityType,
+              themeColors: response.themeColors,
+              customPersonalityPrompt: response.customPersonalityPrompt,
+              isCustomPersonality: response.isCustomPersonality,
+              lastPersonalityContent: response.lastPersonalityContent,
+              lastPersonalityUrl: response.lastPersonalityUrl,
+              personalityAnalysis: response.personalityAnalysis,
+            };
+            
+            if (get().activeBotId === id) {
+              console.log("Setting activeBotData for ID:", id, cleanConfig);
+              set({ activeBotData: cleanConfig, isLoading: false });
+            }
+          } catch (error) {
+            console.error("Error fetching bot data:", error);
+            if (get().activeBotId === id) {
+              set({ error: (error as Error).message, isLoading: false });
+              toast.error("Failed to fetch bot configuration");
+            }
+          }
+        } else {
+          set({ activeBotData: null });
+        }
+      },
+
       setActiveBotData: (data) => set({ activeBotData: data }),
 
       fetchBotData: async (
@@ -88,7 +136,6 @@ export const useBotConfig = create<BotConfigState>()(
             isFetchByUsername
           );
 
-          // Extract only the required fields from the response
           const cleanConfig: BotConfig = {
             agentId: response.agentId,
             username: response.username,
@@ -107,12 +154,18 @@ export const useBotConfig = create<BotConfigState>()(
             lastPersonalityUrl: response.lastPersonalityUrl,
             personalityAnalysis: response.personalityAnalysis,
           };
-          set({ activeBotData: cleanConfig, isLoading: false });
+          
+          set({ 
+            activeBotId: response.agentId, 
+            activeBotData: cleanConfig, 
+            isLoading: false 
+          });
         } catch (error) {
           set({ error: (error as Error).message, isLoading: false });
           toast.error("Failed to fetch bot configuration");
         }
       },
+      
       updateBotUsernameViaStore: async (
         inputBotId: string,
         inputUsername: string

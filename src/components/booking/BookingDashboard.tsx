@@ -39,6 +39,7 @@ interface Meeting {
 
 interface BookingDashboardProps {
   onEditSettings?: () => void;
+  agentId?: string;
 }
 
 interface BookingSettings {
@@ -92,9 +93,14 @@ const formatTimezone = (tz: string): string => {
   }
 };
 
-const BookingDashboard: React.FC<BookingDashboardProps> = ({ onEditSettings }) => {
-  const { activeBotData } = useBotConfig();
-  const activeAgentId = activeBotData?.agentId;
+const BookingDashboard: React.FC<BookingDashboardProps> = ({ onEditSettings, agentId: propAgentId }) => {
+  const { activeBotData, activeBotId } = useBotConfig();
+  const activeAgentId = propAgentId || activeBotId || activeBotData?.agentId;
+  useEffect(() => {
+    console.log("BookingDashboard - Using agent ID:", activeAgentId);
+    console.log("BookingDashboard - Prop agent ID:", propAgentId);
+    console.log("BookingDashboard - Store activeBotId:", activeBotId);
+  }, [activeAgentId, propAgentId, activeBotId]);
   const [activeTab, setActiveTab] = useState<"upcoming" | "past" | "settings" | "schedule">("upcoming");
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -128,7 +134,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({ onEditSettings }) =
         setBookingSettings(settings);
         
         // Set business timezone from settings
-        if (settings.timezone) {
+        if (settings && settings.timezone) {
           setBusinessTimezone(settings.timezone);
         }
       } catch (error) {

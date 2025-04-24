@@ -9,18 +9,24 @@ import { useBotConfig } from "../store/useBotConfig";
 import BookingIntegration from "./booking/BookingIntegration";
 
 const BookingTab: React.FC = () => {
-  const { activeBotData } = useBotConfig();
-  const agentId = activeBotData?.agentId;
+  const { activeBotId, activeBotData } = useBotConfig();
+  const agentId = activeBotId || activeBotData?.agentId;
 
   const [isLoading, setIsLoading] = useState(true);
   const [showBookingIntegration, setShowBookingIntegration] = useState(false);
   const [bookingMode, setBookingMode] = useState<"setup" | "dashboard">("dashboard");
   const [bookingConfigured, setBookingConfigured] = useState(false);
+  const [currentAgentId, setCurrentAgentId] = useState<string | null>(null);
 
   // Check if booking is already configured using the API
   useEffect(() => {
     const checkBookingConfig = async () => {
       if (!agentId) return;
+
+      if (currentAgentId !== agentId) {
+        setBookingConfigured(false);
+        setCurrentAgentId(agentId);
+      }
 
       setIsLoading(true);
       try {
@@ -37,7 +43,7 @@ const BookingTab: React.FC = () => {
     };
 
     checkBookingConfig();
-  }, [agentId, showBookingIntegration]);
+  }, [agentId, showBookingIntegration, currentAgentId]);
 
   const handleCloseConfiguration = () => {
     setShowBookingIntegration(false);
@@ -67,6 +73,7 @@ const BookingTab: React.FC = () => {
           initialView={bookingMode}
           isEditMode={bookingConfigured}
           onSetupComplete={handleCloseConfiguration}
+          agentId={agentId}
         />
       </div>
     );
