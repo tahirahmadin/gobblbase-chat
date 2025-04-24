@@ -279,8 +279,9 @@ export async function deleteAgent(agentId: string): Promise<void> {
     );
 
     if (response.data.error) {
-      throw new Error("Error deleting agent");
+      throw new Error(response.data.result || "Error deleting agent");
     }
+    return response.data.result;
   } catch (error) {
     console.error("Error deleting agent:", error);
     throw error;
