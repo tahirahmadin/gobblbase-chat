@@ -1074,7 +1074,7 @@ The personality instructions above should take precedence over other style guide
         </div>
 
         {/* Chat Preview Panel */}
-        <div className="col-span-1 h-[calc(100vh-185px)]">
+        <div className="col-span-1 h-full">
           <PublicChat
             agentUsernamePlayground={activeAgentUsername}
             previewConfig={{
