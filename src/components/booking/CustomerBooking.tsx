@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import {
   Calendar,
@@ -15,8 +15,20 @@ import {
   Video,
   MapPin,
   Globe,
+  AlertCircle,
+  ChevronDown,
 } from "lucide-react";
 import { getAvailableSlots, bookAppointment, getAppointmentSettings } from "../../lib/serverActions";
+import { 
+  COUNTRY_CODES, 
+  detectCountryCode, 
+  formatPhoneNumber, 
+  validatePhone,
+  createInternationalPhone
+} from "../../utils/phoneUtils";
+
+// Validation patterns
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 interface CustomerBookingProps {
   businessId?: string;
@@ -48,7 +60,7 @@ interface AppointmentSettings {
   lunchBreak: { start: string; end: string };
   meetingDuration: number;
   bufferTime: number;
-  timezone: string; // Add timezone field
+  timezone: string;
 }
 
 const CustomerBooking: React.FC<CustomerBookingProps> = ({
@@ -69,9 +81,14 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
   const [selectedLocation, setSelectedLocation] = useState<"google_meet" | "in_person">("google_meet");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [phone, setPhone] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [selectedCountryCode, setSelectedCountryCode] = useState("+1");
+  const [showCountryCodes, setShowCountryCodes] = useState(false);
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
   
   // Settings data
   const [settings, setSettings] = useState<AppointmentSettings | null>(null);
@@ -83,13 +100,93 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     Intl.DateTimeFormat().resolvedOptions().timeZone
   );
   const [businessTimezone, setBusinessTimezone] = useState<string>("UTC");
-  const [showTimezoneInfo, setShowTimezoneInfo] = useState<boolean>(false);
+
+  // Email validation
+  const validateEmail = (value: string): boolean => {
+    if (!value) {
+      setEmailError("Email is required");
+      return false;
+    }
+    if (!EMAIL_REGEX.test(value)) {
+      setEmailError("Please enter a valid email address");
+      return false;
+    }
+    setEmailError("");
+    return true;
+  };
+
+  // Handle email input change
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+    validateEmail(value);
+  };
+
+  // Handle phone input change with country detection
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value;
+    
+    // Auto-detect country code for new input
+    if (rawValue) {
+      const detectedCode = detectCountryCode(rawValue, selectedCountryCode);
+      if (detectedCode !== selectedCountryCode) {
+        setSelectedCountryCode(detectedCode);
+      }
+    }
+    
+    // Check if user is deleting characters
+    if (rawValue.length < phone.length) {
+      setPhone(rawValue);
+      return;
+    }
+    
+    // Format the phone number according to the detected country
+    const formattedValue = formatPhoneNumber(rawValue, selectedCountryCode);
+    setPhone(formattedValue);
+    
+    // Validate and set error if needed
+    const validation = validatePhone(formattedValue, selectedCountryCode);
+    setPhoneError(validation.errorMessage);
+  };
+
+  // Handle country code selection
+  const selectCountryCode = (code: string) => {
+    setSelectedCountryCode(code);
+    setShowCountryCodes(false);
+    
+    // If there's already a phone number, reformat it according to the new country code
+    if (phone) {
+      const digitsOnly = phone.replace(/\D/g, '');
+      const reformatted = formatPhoneNumber(digitsOnly, code);
+      setPhone(reformatted);
+    }
+    
+    // Focus back on the phone input
+    if (phoneInputRef.current) {
+      phoneInputRef.current.focus();
+    }
+  };
 
   // Refresh `now` every minute so today's slots refresh live
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(id);
   }, []);
+
+  // Close country code dropdown when clicking outside
+  useEffect(() => {
+    if (showCountryCodes) {
+      const handleOutsideClick = (e: MouseEvent) => {
+        const target = e.target as HTMLElement;
+        if (!target.closest('.country-code-dropdown')) {
+          setShowCountryCodes(false);
+        }
+      };
+      
+      document.addEventListener('mousedown', handleOutsideClick);
+      return () => document.removeEventListener('mousedown', handleOutsideClick);
+    }
+  }, [showCountryCodes]);
 
   // Load appointment settings
   useEffect(() => {
@@ -464,12 +561,26 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedDate || !selectedSlot) return;
+    
+    // Validate form before submission
+    const isEmailValid = validateEmail(email);
+    const validation = validatePhone(phone, selectedCountryCode);
+    const isPhoneValid = validation.isValid;
+    
+    if (!isEmailValid || !isPhoneValid) {
+      setPhoneError(validation.errorMessage);
+      return;
+    }
+    
     setSubmitting(true);
     
     try {
       // Convert selected slot times back to business timezone for storage
       const businessStartTime = convertTimeToBusinessTZ(selectedSlot.startTime, selectedDate);
       const businessEndTime = convertTimeToBusinessTZ(selectedSlot.endTime, selectedDate);
+      
+      // Format the phone number properly with country code for storage
+      const formattedPhone = phone ? createInternationalPhone(phone, selectedCountryCode) : '';
       
       await bookAppointment({
         agentId: businessId,
@@ -478,6 +589,9 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
         startTime: businessStartTime, // Send in business timezone
         endTime: businessEndTime,     // Send in business timezone
         location: selectedLocation,
+        name: name,
+        phone: formattedPhone,
+        notes: notes,
         userTimezone: userTimezone,   // Store user's timezone for reference
       });
       setStep("confirmation");
@@ -488,6 +602,7 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     }
   };
 
+  // Component layout wrapper
   const layout = (title: string, subtitle: string, content: React.ReactNode) => (
     <div className="bg-white rounded-xl shadow-md overflow-hidden max-w-4xl mx-auto">
       <div className="bg-gray-800 text-white p-6">
@@ -701,6 +816,7 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
               />
             </div>
           </div>
+          
           {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -712,28 +828,83 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
                 type="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleEmailChange}
+                onBlur={() => validateEmail(email)}
                 placeholder="you@example.com"
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500"
+                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 ${
+                  emailError ? "border-red-300 focus:ring-red-500" : "focus:ring-gray-500"
+                }`}
               />
             </div>
+            {emailError && (
+              <div className="mt-1 flex items-center text-red-500 text-sm">
+                <AlertCircle className="h-4 w-4 mr-1" />
+                {emailError}
+              </div>
+            )}
           </div>
+          
           {/* Phone */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Phone
             </label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="Optional"
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500"
-              />
+            <div className="flex">
+              {/* Country code dropdown */}
+              <div className="relative country-code-dropdown">
+                <button
+                  type="button"
+                  onClick={() => setShowCountryCodes(!showCountryCodes)}
+                  className="flex items-center justify-between w-20 bg-gray-50 border rounded-l-lg py-2 px-3 text-sm focus:ring-2 focus:ring-gray-500"
+                >
+                  <span>{selectedCountryCode}</span>
+                  <ChevronDown className="h-4 w-4 ml-1 text-gray-400" />
+                </button>
+                
+                {/* Country code list */}
+                {showCountryCodes && (
+                  <div className="absolute z-10 mt-1 bg-white border rounded-lg shadow-lg w-48 max-h-60 overflow-y-auto">
+                    {COUNTRY_CODES.map((country) => (
+                      <button
+                        key={country.code}
+                        type="button"
+                        onClick={() => selectCountryCode(country.code)}
+                        className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm flex items-center"
+                      >
+                        <span className="font-medium mr-2">{country.code}</span>
+                        <span className="text-gray-600">{country.country}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {/* Phone input */}
+              <div className="relative flex-1">
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={handlePhoneChange}
+                  ref={phoneInputRef}
+                  placeholder="(555) 123-4567"
+                  className={`w-full pl-10 pr-4 py-2 border border-l-0 rounded-r-lg focus:ring-2 ${
+                    phoneError ? "border-red-300 focus:ring-red-500" : "focus:ring-gray-500"
+                  }`}
+                />
+              </div>
             </div>
+            {phoneError && (
+              <div className="mt-1 flex items-center text-red-500 text-sm">
+                <AlertCircle className="h-4 w-4 mr-1" />
+                {phoneError}
+              </div>
+            )}
+            <p className="text-xs text-gray-500 mt-1">
+              Optional. Include country code for international numbers.
+            </p>
           </div>
+          
           {/* Notes */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -749,48 +920,59 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
               />
             </div>
           </div>
+          
           {/* Location */}
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setSelectedLocation("google_meet")}
-              className={`flex items-center p-3 border rounded-lg ${
-                selectedLocation === "google_meet"
-                  ? "border-gray-800 bg-gray-50"
-                  : "border-gray-200"
-              }`}
-            >
-              <Video className="h-5 w-5 mr-2" /> Google Meet
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedLocation("in_person")}
-              className={`flex items-center p-3 border rounded-lg ${
-                selectedLocation === "in_person"
-                  ? "border-gray-800 bg-gray-50"
-                  : "border-gray-200"
-              }`}
-            >
-              <MapPin className="h-5 w-5 mr-2" /> In‑person
-            </button>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Meeting Location
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setSelectedLocation("google_meet")}
+                className={`flex items-center justify-center p-3 border rounded-lg ${
+                  selectedLocation === "google_meet"
+                    ? "border-gray-800 bg-gray-50"
+                    : "border-gray-200"
+                }`}
+              >
+                <Video className="h-5 w-5 mr-2" /> Google Meet
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedLocation("in_person")}
+                className={`flex items-center justify-center p-3 border rounded-lg ${
+                  selectedLocation === "in_person"
+                    ? "border-gray-800 bg-gray-50"
+                    : "border-gray-200"
+                }`}
+              >
+                <MapPin className="h-5 w-5 mr-2" /> In‑person
+              </button>
+            </div>
           </div>
+          
           {/* Submit */}
           <button
             type="submit"
-            disabled={submitting || !name || !email}
-            className={`w-full py-3 rounded-lg text-white font-medium ${
-              submitting || !name || !email
+            disabled={submitting || !name || !email || emailError || phoneError}
+            className={`w-full py-3 rounded-lg text-white font-medium mt-6 ${
+              submitting || !name || !email || emailError || phoneError
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-gray-800 hover:bg-gray-900"
             }`}
           >
-            {submitting ? "Booking..." : "Confirm Booking"}
+            {submitting ? (
+              <span className="flex items-center justify-center">
+                <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                Booking...
+              </span>
+            ) : "Confirm Booking"}
           </button>
         </form>
       </div>
     );
   }
-
   // === Step: CONFIRMATION ===
   if (step === "confirmation") {
     return layout(
@@ -840,6 +1022,18 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
                     : "In-person"}
                 </p>
               </div>
+              {name && (
+                <div className="flex">
+                  <User className="h-5 w-5 text-gray-400 mr-2" />
+                  <p className="text-gray-800">{name}</p>
+                </div>
+              )}
+              {phone && (
+                <div className="flex">
+                  <Phone className="h-5 w-5 text-gray-400 mr-2" />
+                  <p className="text-gray-800">{createInternationalPhone(phone, selectedCountryCode)}</p>
+                </div>
+              )}
             </div>
           </div>
         )}
