@@ -1,5 +1,4 @@
 import React from "react";
-import { useUserStore } from "../store/useUserStore";
 import {
   Copy,
   ExternalLink,
@@ -13,20 +12,22 @@ import {
   Clock,
   Calendar,
 } from "lucide-react";
+import { useBeforeUnload } from "react-router-dom";
+import { useBotConfig } from "../store/useBotConfig";
 
 export default function Integration() {
-  const { activeAgentUsername } = useUserStore();
+  const { activeBotData } = useBotConfig();
   const [copied, setCopied] = React.useState(false);
   const [urlCopied, setUrlCopied] = React.useState(false);
 
   const iframeCode = `<iframe
-  src="https://KiFor.ai/#/chatbot/${activeAgentUsername}"
+  src="https://KiFor.ai/${activeBotData?.username}"
   width="100%"
-  style="height: 100%; min-height: 700px"
+  style="height: 100%; min-height: 600px"
   frameborder="0"
 ></iframe>`;
 
-  const chatbotUrl = `https://KiFor.ai/#/chatbot/${activeAgentUsername}`;
+  const chatbotUrl = `https://KiFor.ai/${activeBotData?.username}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(iframeCode);

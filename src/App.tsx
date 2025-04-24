@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  HashRouter as Router,
+  BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
@@ -179,7 +179,10 @@ function Dashboard() {
           <div className="w-42 pr-8">
             <div className="mb-4">
               <button
-                onClick={() => setActiveBotId(null)}
+                onClick={() => {
+                  setActiveBotId(null);
+                  setActiveTab("playground");
+                }}
                 className="flex items-center text-gray-600 hover:text-gray-900"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -224,13 +227,13 @@ function App() {
     <Router>
       <Toaster position="top-right" />
       <Routes>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/book/:agentId" element={<CustomerBookingPage />} />
         <Route
-          path="/chatbot/:botUsername"
+          path="/:botUsername"
           element={<PublicChat agentUsernamePlayground={null} />}
         />
-        <Route path="/book/:agentId" element={<CustomerBookingPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/admin" element={<Dashboard />} />
+        <Route path="/" element={<Navigate to="/admin" replace />} />
       </Routes>
     </Router>
   );

@@ -20,20 +20,22 @@ interface BrowseProps {
   showCart?: boolean;
   onShowCart?: () => void;
   onOpenDrawer?: () => void;
+  setActiveScreen: (screen: "chat" | "book" | "browse" | "cart") => void;
 }
 
 const Browse: React.FC<BrowseProps> = ({
   showCart = false,
   onShowCart,
   onOpenDrawer,
+  setActiveScreen,
 }) => {
   const navigate = useNavigate();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [justAddedToCart, setJustAddedToCart] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
-  const { config, activeBotId, products, isProductsLoading } = useBotConfig();
-  const { getProductsInventory } = useCartStore();
+  const { activeBotData, activeBotId } = useBotConfig();
+  const { getProductsInventory, isProductsLoading, products } = useCartStore();
 
   const {
     items,
@@ -105,40 +107,69 @@ const Browse: React.FC<BrowseProps> = ({
 
   if (selectedProduct) {
     return (
-      <div className="container py-2">
+      <div className="container py-2 px-2">
         <div className="flex items-center space-x-2 mb-4">
           <button
             onClick={() => setSelectedProduct(null)}
-            className="text-gray-600 hover:text-gray-800"
+            style={{
+              color: activeBotData?.themeColors?.headerIconColor,
+            }}
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h2 className="text-lg font-semibold">Back</h2>
+          <h2
+            className="text-lg font-semibold"
+            style={{
+              color: activeBotData?.themeColors?.headerIconColor,
+            }}
+          >
+            Back
+          </h2>
         </div>
 
-        <div className="bg-white rounded-lg p-4 mb-4">
+        <div
+          className="bg-white rounded-lg p-4 mb-4"
+          style={{
+            backgroundColor: activeBotData?.themeColors?.bubbleAgentBgColor,
+            color: activeBotData?.themeColors?.bubbleAgentTextColor,
+          }}
+        >
           <img
             src={selectedProduct.image}
             alt={selectedProduct.title}
             className="w-full h-48 object-cover rounded-md mb-4"
           />
           <h3 className="text-lg font-medium mb-2">{selectedProduct.title}</h3>
-          <p className="text-gray-600 mb-4">{selectedProduct.description}</p>
+          <p className="mb-4">{selectedProduct.description}</p>
+          <p className="mb-4">{selectedProduct.about}</p>
           <div className="flex justify-between items-center mb-4">
-            <span className="text-lg font-semibold">
+            <span
+              className="text-lg font-semibold"
+              style={{
+                color: activeBotData?.themeColors?.headerIconColor,
+              }}
+            >
               USD {selectedProduct.price}
             </span>
             <div className="flex items-center space-x-4">
               <button
                 onClick={decrementQuantity}
-                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200"
+                className="p-2 rounded-full"
+                style={{
+                  backgroundColor: activeBotData?.themeColors?.headerColor,
+                  color: activeBotData?.themeColors?.headerIconColor,
+                }}
               >
                 <Minus className="h-4 w-4" />
               </button>
               <span className="text-lg font-medium">{quantity}</span>
               <button
                 onClick={incrementQuantity}
-                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200"
+                className="p-2 rounded-full"
+                style={{
+                  backgroundColor: activeBotData?.themeColors?.headerColor,
+                  color: activeBotData?.themeColors?.headerIconColor,
+                }}
               >
                 <Plus className="h-4 w-4" />
               </button>
@@ -147,6 +178,10 @@ const Browse: React.FC<BrowseProps> = ({
           <button
             onClick={justAddedToCart ? handleViewCart : handleAddToCart}
             className="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 transition-colors flex items-center justify-center space-x-2"
+            style={{
+              backgroundColor: activeBotData?.themeColors?.headerIconColor,
+              color: activeBotData?.themeColors?.headerColor,
+            }}
           >
             <ShoppingCart className="h-5 w-5" />
             <span>
@@ -160,7 +195,11 @@ const Browse: React.FC<BrowseProps> = ({
 
   if (showPayment) {
     return (
-      <Payment onBack={handleBackFromPayment} onOpenDrawer={onOpenDrawer} />
+      <Payment
+        onBack={handleBackFromPayment}
+        onOpenDrawer={onOpenDrawer}
+        setActiveScreen={setActiveScreen}
+      />
     );
   }
 
@@ -182,15 +221,6 @@ const Browse: React.FC<BrowseProps> = ({
 
   return (
     <div className="container py-2">
-      {/* <div className="mb-8">
-        <h1 className="text-2xl font-medium text-gray-900">
-          Creative tools for
-        </h1>
-        <h2 className="text-2xl font-medium text-gray-900">
-          endless imagination
-        </h2>
-      </div> */}
-
       {isProductsLoading ? (
         <div className="flex justify-center items-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-gray-600" />
@@ -204,10 +234,14 @@ const Browse: React.FC<BrowseProps> = ({
           {products.map((product) => (
             <div
               key={product._id}
-              className="group cursor-pointer bg-white p-2 rounded-md"
+              className="group cursor-pointer  p-2 rounded-md"
               onClick={() => handleProductClick(product)}
+              style={{
+                backgroundColor: activeBotData?.themeColors?.bubbleAgentBgColor,
+                color: activeBotData?.themeColors?.bubbleAgentTextColor,
+              }}
             >
-              <div className="bg-gray-500 rounded-md overflow-hidden mb-3">
+              <div className="rounded-md overflow-hidden mb-3">
                 <img
                   src={product.image}
                   alt={product.title}
@@ -216,12 +250,16 @@ const Browse: React.FC<BrowseProps> = ({
               </div>
 
               <div className="px-1">
-                <h2 className="text-xs font-semibold text-gray-900 mb-1">
-                  {product.title}
-                </h2>
+                <h2 className="text-xs font-semibold  mb-1">{product.title}</h2>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-orange-500 font-semibold">
-                    {product.price} {config?.currency}
+                  <span
+                    className="text-sm font-semibold"
+                    style={{
+                      color:
+                        activeBotData?.themeColors?.bubbleAgentTimeTextColor,
+                    }}
+                  >
+                    {product.price} {activeBotData?.currency}
                   </span>
                 </div>
               </div>

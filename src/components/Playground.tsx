@@ -948,7 +948,7 @@ The personality instructions above should take precedence over other style guide
                           key={themeOption.id}
                           onClick={() => setTheme(themeOption.theme)}
                           className={`group relative overflow-hidden rounded-lg border-2 transition-all ${
-                            theme === themeOption.theme
+                            theme.id === themeOption.theme.id
                               ? "border-black"
                               : "border-gray-200 hover:border-gray-300"
                           }`}

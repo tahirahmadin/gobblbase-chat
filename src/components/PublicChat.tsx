@@ -90,7 +90,12 @@ export default function PublicChat({
   previewConfig?: PreviewConfig;
 }) {
   const { botUsername } = useParams();
-  const { activeBotData: config, isLoading: isConfigLoading, fetchBotData, activeBotId } = useBotConfig();
+  const {
+    activeBotData: config,
+    isLoading: isConfigLoading,
+    fetchBotData,
+    activeBotId,
+  } = useBotConfig();
   const {
     isLoggedIn,
     handleGoogleLoginSuccess: storeHandleGoogleLoginSuccess,
@@ -148,7 +153,7 @@ export default function PublicChat({
   useEffect(() => {
     if (!previewConfig) {
       if (botUsername) fetchBotData(botUsername, true);
-      if (agentUsernamePlayground) fetchBotData(agentUsernamePlayground, false); 
+      if (agentUsernamePlayground) fetchBotData(agentUsernamePlayground, false);
     }
   }, [botUsername, agentUsernamePlayground, fetchBotData, previewConfig]);
 
@@ -549,8 +554,10 @@ export default function PublicChat({
 
         {activeScreen === "browse" && (
           <Browse
+            showCart={false}
             onShowCart={() => setActiveScreen("cart")}
             onOpenDrawer={() => setIsDrawerOpen(true)}
+            setActiveScreen={setActiveScreen}
           />
         )}
 
@@ -559,6 +566,7 @@ export default function PublicChat({
             showCart={true}
             onShowCart={() => setActiveScreen("browse")}
             onOpenDrawer={() => setIsDrawerOpen(true)}
+            setActiveScreen={setActiveScreen}
           />
         )}
       </div>

@@ -616,6 +616,7 @@ export const updateProduct = async (data: {
   price: string;
   about?: string;
   agentId: string;
+  stock: number;
 }) => {
   try {
     const response = await axios.put(

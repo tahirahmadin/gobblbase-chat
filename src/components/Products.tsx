@@ -19,9 +19,7 @@ import {
   updateProductImage,
   updateStripeAccountIdCurrency,
   getTransactions,
-  getAgentDetails,
 } from "../lib/serverActions";
-import { useUserStore } from "../store/useUserStore";
 import { toast } from "react-hot-toast";
 import { useBotConfig } from "../store/useBotConfig";
 
@@ -33,6 +31,8 @@ interface Product {
   currency: string;
   description: string;
   about?: string;
+  stock: number;
+  sold: number;
 }
 
 interface SubTab {
@@ -41,8 +41,18 @@ interface SubTab {
   icon: React.ReactNode;
 }
 
+interface TransactionItem {
+  id: string;
+  title: string;
+  image: string;
+  price: number;
+  currency: string;
+  quantity: number;
+  description: string;
+}
+
 const Products: React.FC = () => {
-  const { activeBotId, fetchBotData } = useBotConfig();
+  const { activeBotId, fetchBotData, activeBotData } = useBotConfig();
   const [activeSubTab, setActiveSubTab] = useState<string>("products");
   const [products, setProducts] = useState<Product[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,10 +65,11 @@ const Products: React.FC = () => {
     currency: "USD",
     description: "",
     about: "",
+    stock: 0,
+    sold: 0,
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [isFormVisible, setIsFormVisible] = useState(false);
@@ -68,7 +79,6 @@ const Products: React.FC = () => {
     sellerId: string;
   }>({ isEnabled: false, sellerId: "" });
   const [transactions, setTransactions] = useState<any[]>([]);
-  const [isLoadingStripe, setIsLoadingStripe] = useState(false);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
   const [stripeError, setStripeError] = useState<string | null>(null);
   const [selectedCurrency, setSelectedCurrency] = useState("INR");
@@ -76,6 +86,9 @@ const Products: React.FC = () => {
   const [currencyLoading, setCurrencyLoading] = useState(false);
   const [stripeIdError, setStripeIdError] = useState<string | null>(null);
   const [currencyError, setCurrencyError] = useState<string | null>(null);
+  const [expandedTransactionId, setExpandedTransactionId] = useState<
+    string | null
+  >(null);
 
   const subTabs: SubTab[] = [
     { id: "products", name: "Products", icon: <Package className="h-5 w-5" /> },
@@ -118,29 +131,14 @@ const Products: React.FC = () => {
   }, [activeSubTab, activeBotId]);
 
   useEffect(() => {
-    const fetchAgentDetails = async () => {
-      if (!activeBotId) return;
-      try {
-        const details = await fetchBotData(activeBotId, false);
-        if (details.stripeAccountId) {
-          setStripeConfig((prev) => ({
-            ...prev,
-            sellerId: details.stripeAccountId,
-          }));
-        }
-        if (details.currency) {
-          setSelectedCurrency(details.currency);
-        }
-      } catch (error) {
-        console.error("Error fetching agent details:", error);
-        setStripeError("Failed to load Stripe configuration");
-      }
-    };
-
-    if (activeSubTab === "payments" && activeBotId) {
-      fetchAgentDetails();
+    if (activeBotData) {
+      setStripeConfig({
+        isEnabled: activeBotData.stripeAccountId ? true : false,
+        sellerId: activeBotData.stripeAccountId || "",
+      });
+      setSelectedCurrency(activeBotData.currency);
     }
-  }, [activeSubTab, activeBotId]);
+  }, [activeBotData]);
 
   const fetchTransactions = async () => {
     if (!activeBotId) return;
@@ -259,6 +257,7 @@ const Products: React.FC = () => {
           price: newProduct.price,
           about: newProduct.about,
           agentId: activeBotId,
+          stock: newProduct.stock,
         });
       } else {
         await addProduct({
@@ -284,6 +283,8 @@ const Products: React.FC = () => {
         currency: "USD",
         description: "",
         about: "",
+        stock: 100,
+        sold: 0,
       });
       setSelectedFile(null);
       setImagePreview(null);
@@ -357,6 +358,8 @@ const Products: React.FC = () => {
                       currency: "USD",
                       description: "",
                       about: "",
+                      stock: 0,
+                      sold: 0,
                     });
                   }}
                   className="flex items-center space-x-2 bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors"
@@ -401,6 +404,8 @@ const Products: React.FC = () => {
                                 currency: product.currency,
                                 description: product.description,
                                 about: product.about || "",
+                                stock: product.stock,
+                                sold: product.sold,
                               });
                             }}
                             className="bg-white text-gray-600 p-1.5 rounded-md hover:bg-gray-100 transition-colors shadow-sm"
@@ -425,6 +430,9 @@ const Products: React.FC = () => {
                         <div className="flex justify-between items-center">
                           <span className="text-lg font-medium text-gray-900">
                             {product.price} INR
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            Sold: {product.sold || 0}/{product.stock || 0}
                           </span>
                         </div>
                       </div>
@@ -558,6 +566,24 @@ const Products: React.FC = () => {
                           setNewProduct({
                             ...newProduct,
                             price: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                        required
+                      />
+                    </div>
+
+                    <div className="border border-gray-200 rounded-lg p-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Stock Available
+                      </label>
+                      <input
+                        type="number"
+                        value={newProduct.stock}
+                        onChange={(e) =>
+                          setNewProduct({
+                            ...newProduct,
+                            stock: parseInt(e.target.value) || 0,
                           })
                         }
                         className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
@@ -796,7 +822,7 @@ const Products: React.FC = () => {
       )}
 
       {activeSubTab === "transactions" && (
-        <div className=" mx-auto">
+        <div className="mx-auto">
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">
@@ -817,15 +843,24 @@ const Products: React.FC = () => {
                 {transactions.map((transaction) => (
                   <div
                     key={transaction.id}
-                    className="px-6 py-4 hover:bg-gray-50 transition-colors"
+                    className="px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() =>
+                      setExpandedTransactionId(
+                        expandedTransactionId === transaction.id
+                          ? null
+                          : transaction.id
+                      )
+                    }
                   >
+                    {/* Preview Card */}
                     <div className="flex justify-between items-center">
                       <div>
                         <h3 className="text-sm font-medium text-gray-900">
-                          {transaction.items.map((item) => {
-                            return <div>{item.title}</div>;
-                          })}
+                          {transaction.items[0]?.title || "Multiple Items"}
                         </h3>
+                        <p className="text-sm text-gray-500">
+                          {transaction.userEmail || "No email provided"}
+                        </p>
                         <p className="text-sm text-gray-500">
                           {new Date(transaction.createdAt).toLocaleDateString()}
                         </p>
@@ -836,15 +871,88 @@ const Products: React.FC = () => {
                         </p>
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            transaction.status === "completed"
+                            transaction.status === "COMPLETED"
                               ? "bg-green-100 text-green-800"
                               : "bg-yellow-100 text-yellow-800"
                           }`}
                         >
-                          {transaction.status}
+                          PAID
                         </span>
                       </div>
                     </div>
+
+                    {/* Expanded View */}
+                    {expandedTransactionId === transaction.id && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-sm font-medium text-gray-500">
+                                Order ID
+                              </p>
+                              <p className="text-sm text-gray-900">
+                                {transaction.orderId}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-500">
+                                Payment ID
+                              </p>
+                              <p className="text-sm text-gray-900">
+                                {transaction.paymentId}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div>
+                            <p className="text-sm font-medium text-gray-500 mb-2">
+                              Items
+                            </p>
+                            <div className="space-y-2">
+                              {transaction.items.map(
+                                (item: TransactionItem, index: number) => (
+                                  <div
+                                    key={index}
+                                    className="flex justify-between items-center"
+                                  >
+                                    <div className="flex items-center space-x-3">
+                                      <img
+                                        src={item.image}
+                                        alt={item.title}
+                                        className="w-10 h-10 object-cover rounded-md"
+                                      />
+                                      <div>
+                                        <p className="text-sm font-medium">
+                                          {item.title}
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                          {item.currency} {item.price}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <p className="text-sm text-gray-900">
+                                      x {item.quantity}
+                                    </p>
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="pt-2 border-t border-gray-200">
+                            <div className="flex justify-between items-center">
+                              <p className="text-sm font-medium text-gray-900">
+                                Subtotal
+                              </p>
+                              <p className="text-sm text-gray-900">
+                                {transaction.totalAmount / 100}{" "}
+                                {transaction.currency}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

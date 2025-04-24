@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 import { getProducts } from "../lib/serverActions";
 
 interface Product {
-  id: string;
+  _id: string;
   title: string;
   image: string;
   price: string;
@@ -25,6 +25,7 @@ interface CartStore {
   getTotalItems: () => number;
   getTotalPrice: () => number;
   getProductsInventory: (inputAgentId: string) => Promise<void>;
+  isProductsLoading: boolean;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -32,6 +33,7 @@ export const useCartStore = create<CartStore>()(
     (set, get) => ({
       items: [],
       products: [],
+      isProductsLoading: false,
       addItem: (product) => {
         set((state) => {
           const existingItem = state.items.find(

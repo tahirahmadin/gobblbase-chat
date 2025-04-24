@@ -6,6 +6,7 @@ import {
   ShoppingBag,
   Wrench,
   Calendar,
+  Link,
 } from "lucide-react";
 
 export interface TabsProps {
@@ -31,9 +32,14 @@ const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab }) => {
       icon: <Calendar className="h-5 w-5" />,
     },
     {
+      id: "products",
+      name: "Products",
+      icon: <ShoppingBag className="h-5 w-5" />,
+    },
+    {
       id: "integration",
-      name: "Integration",
-      icon: <Wrench className="h-5 w-5" />,
+      name: "Embedded",
+      icon: <Link className="h-5 w-5" />,
     },
     // {
     //   id: "services",
@@ -45,11 +51,6 @@ const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab }) => {
       name: "Settings",
       icon: <Settings className="h-5 w-5" />,
     },
-    {
-      id: "products",
-      name: "Products",
-      icon: <ShoppingBag className="h-5 w-5" />,
-    },
   ];
 
   return (
@@ -60,13 +61,13 @@ const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab }) => {
           onClick={() => setActiveTab(tab.id)}
           className={`${
             activeTab === tab.id
-              ? "bg-gray-100 text-gray-900"
+              ? "bg-gray-900 text-gray-100"
               : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
           } flex items-center px-3 py-2 text-sm font-medium rounded-md w-full`}
         >
           <span
             className={`${
-              activeTab === tab.id ? "text-gray-500" : "text-gray-400"
+              activeTab === tab.id ? "text-gray-100" : "text-gray-400"
             } mr-3`}
           >
             {tab.icon}
