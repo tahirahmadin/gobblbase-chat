@@ -27,7 +27,6 @@ import {
   createInternationalPhone
 } from "../../utils/phoneUtils";
 
-// Validation patterns
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 interface CustomerBookingProps {
@@ -69,8 +68,6 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
 }) => {
   const { agentId } = useParams<{ agentId: string }>();
   const businessId = propId || agentId || "";
-
-  // Steps & data
   const [step, setStep] = useState<"date" | "time" | "details" | "confirmation">("date");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [now, setNow] = useState(new Date());
@@ -89,19 +86,13 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const phoneInputRef = useRef<HTMLInputElement>(null);
-  
-  // Settings data
   const [settings, setSettings] = useState<AppointmentSettings | null>(null);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [unavailableDates, setUnavailableDates] = useState<Record<string, UnavailableDate>>({});
-  
-  // Timezone data
   const [userTimezone, setUserTimezone] = useState<string>(
     Intl.DateTimeFormat().resolvedOptions().timeZone
   );
   const [businessTimezone, setBusinessTimezone] = useState<string>("UTC");
-
-  // Email validation
   const validateEmail = (value: string): boolean => {
     if (!value) {
       setEmailError("Email is required");
@@ -114,19 +105,13 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     setEmailError("");
     return true;
   };
-
-  // Handle email input change
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setEmail(value);
     validateEmail(value);
   };
-
-  // Handle phone input change with country detection
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
-    
-    // Auto-detect country code for new input
     if (rawValue) {
       const detectedCode = detectCountryCode(rawValue, selectedCountryCode);
       if (detectedCode !== selectedCountryCode) {
@@ -134,46 +119,37 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
       }
     }
     
-    // Check if user is deleting characters
     if (rawValue.length < phone.length) {
       setPhone(rawValue);
       return;
     }
-    
-    // Format the phone number according to the detected country
     const formattedValue = formatPhoneNumber(rawValue, selectedCountryCode);
     setPhone(formattedValue);
     
-    // Validate and set error if needed
     const validation = validatePhone(formattedValue, selectedCountryCode);
     setPhoneError(validation.errorMessage);
   };
 
-  // Handle country code selection
   const selectCountryCode = (code: string) => {
     setSelectedCountryCode(code);
     setShowCountryCodes(false);
     
-    // If there's already a phone number, reformat it according to the new country code
     if (phone) {
       const digitsOnly = phone.replace(/\D/g, '');
       const reformatted = formatPhoneNumber(digitsOnly, code);
       setPhone(reformatted);
     }
     
-    // Focus back on the phone input
     if (phoneInputRef.current) {
       phoneInputRef.current.focus();
     }
   };
 
-  // Refresh `now` every minute so today's slots refresh live
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(id);
   }, []);
 
-  // Close country code dropdown when clicking outside
   useEffect(() => {
     if (showCountryCodes) {
       const handleOutsideClick = (e: MouseEvent) => {
@@ -188,7 +164,6 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     }
   }, [showCountryCodes]);
 
-  // Load appointment settings
   useEffect(() => {
     const loadSettings = async () => {
       if (!businessId) return;
@@ -199,12 +174,10 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
         console.log("Loaded settings:", data);
         setSettings(data);
         
-        // Set business timezone from settings
         if (data.timezone) {
           setBusinessTimezone(data.timezone);
         }
         
-        // Create a lookup map for unavailable dates
         const unavailableLookup: Record<string, UnavailableDate> = {};
         if (data.unavailableDates && Array.isArray(data.unavailableDates)) {
           data.unavailableDates.forEach(date => {
@@ -222,16 +195,10 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     loadSettings();
   }, [businessId]);
 
-  // Timezone conversion utilities
   const convertTimeToBusinessTZ = (time: string, date: Date): string => {
-    // Convert a time from user timezone to business timezone
     const [hours, minutes] = time.split(':').map(Number);
-    
-    // Create a date in user's timezone with the specified time
     const userDate = new Date(date);
     userDate.setHours(hours, minutes, 0, 0);
-    
-    // Convert to business timezone
     const options: Intl.DateTimeFormatOptions = { 
       hour: 'numeric', 
       minute: 'numeric', 
@@ -244,21 +211,12 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
   };
 
   const convertTimeToUserTZ = (time: string, date: Date): string => {
-    // Convert a time from business timezone to user timezone
     const [hours, minutes] = time.split(':').map(Number);
-    
-    // Create a date in business timezone with the specified time
     const businessDate = new Date(date);
-    
-    // Need to create a date string that specifies the timezone
     const dateStr = businessDate.toISOString().split('T')[0];
     const timeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
-    
-    // Create a date object that represents the time in business timezone
     const dateTimeStr = `${dateStr}T${timeStr}`;
     const tzDate = new Date(dateTimeStr);
-    
-    // This handles the timezone difference
     const options: Intl.DateTimeFormatOptions = { 
       hour: 'numeric', 
       minute: 'numeric', 
@@ -270,7 +228,6 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     return userTime.replace(/\s/g, '').padStart(5, '0');
   };
 
-  // Format timezone for display
   const formatTimezone = (tz: string): string => {
     try {
       const date = new Date();
@@ -288,21 +245,15 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     }
   };
 
-  // Calculate current time difference
   const getTimezoneDifference = (): string => {
     if (businessTimezone === userTimezone) return "same timezone";
     
     const now = new Date();
-    
-    // Get offset in minutes for both timezones
     const userOffset = -now.getTimezoneOffset();
-    
-    // Need to get business timezone offset
     const businessDate = new Date(now.toLocaleString('en-US', { timeZone: businessTimezone }));
     const businessOffset = businessDate.getTimezoneOffset() + 
       (now.getTime() - businessDate.getTime()) / 60000;
     
-    // Calculate difference in hours
     const diffHours = (userOffset - businessOffset) / 60;
     
     if (diffHours === 0) return "same time";
@@ -313,7 +264,6 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
       : `${diffFormatted} hour${Math.abs(diffHours) !== 1 ? 's' : ''} behind`;
   };
 
-  // Helpers
   const daysInMonth = (y: number, m: number) => new Date(y, m + 1, 0).getDate();
   const firstWeekday = (y: number, m: number) => new Date(y, m, 1).getDay();
   const isWeekend = (d: Date) => [0, 6].includes(d.getDay());
@@ -329,7 +279,6 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
   const fmtMonthYear = (d: Date) =>
     new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(d);
 
-  // Format date for API in the exact format needed: "DD-MMM-YYYY"
   const fmtApiDate = (d: Date) => {
     const day = d.getDate().toString().padStart(2, "0");
     const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -353,13 +302,11 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     return `${hr}:${m.toString().padStart(2, "0")} ${ap}`;
   };
 
-  // Check if a date is unavailable (allDay=true)
   const isDateFullyUnavailable = (date: Date): boolean => {
     if (isBeforeToday(date)) return true;
     
     if (!settings) return false;
     
-    // Check if date is marked as allDay=true in unavailable dates
     const apiDate = fmtApiDate(date);
     const unavailableDate = unavailableDates[apiDate];
     
@@ -367,7 +314,6 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
       return true;
     }
     
-    // Check weekly availability
     const dayName = new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(date);
     const dayRule = settings.availability.find(rule => rule.day === dayName);
     
@@ -378,7 +324,6 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     return false;
   }
 
-  // Check if a date has modified hours (allDay=false)
   const hasModifiedHours = (date: Date): boolean => {
     if (!settings) return false;
     
@@ -388,7 +333,6 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     return unavailableDate && unavailableDate.allDay === false;
   }
 
-  // Generate time slots from a start and end time
   const generateSlotsFromTimeWindow = (
     startTime: string,
     endTime: string,
@@ -398,17 +342,12 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
   ): Slot[] => {
     const slots: Slot[] = [];
     
-    // Convert times to minutes since midnight
     const [startHour, startMinute] = startTime.split(":").map(Number);
     const [endHour, endMinute] = endTime.split(":").map(Number);
     
     const startMins = startHour * 60 + startMinute;
     const endMins = endHour * 60 + endMinute;
-    
-    // Duration of each slot (meeting + buffer)
     const slotDuration = meetingDuration + bufferTime;
-    
-    // Create slots
     for (let slotStart = startMins; slotStart + meetingDuration <= endMins; slotStart += slotDuration) {
       const slotEnd = slotStart + meetingDuration;
       
@@ -421,7 +360,6 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
       const businessSlotStart = formatTimeString(slotStart);
       const businessSlotEnd = formatTimeString(slotEnd);
       
-      // Convert times to user's timezone
       const userSlotStart = convertTimeToUserTZ(businessSlotStart, date);
       const userSlotEnd = convertTimeToUserTZ(businessSlotEnd, date);
       
@@ -435,7 +373,6 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     return slots;
   };
 
-  // Generate available time slots based on settings
   const generateTimeSlots = (date: Date): Slot[] => {
     if (!settings) return [];
     
@@ -443,8 +380,7 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     const bufferTime = settings.bufferTime || 10;
     const apiDate = fmtApiDate(date);
     const dateEntry = unavailableDates[apiDate];
-    
-    // If it has modified hours (allDay: false), use those times
+  
     if (dateEntry && dateEntry.allDay === false) {
       return generateSlotsFromTimeWindow(
         dateEntry.startTime,
@@ -455,14 +391,12 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
       );
     }
     
-    // Otherwise use the weekly schedule
     const dayName = new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(date);
     const dayRule = settings.availability.find(rule => rule.day === dayName);
     
     if (dayRule && dayRule.available && dayRule.timeSlots.length > 0) {
       let allSlots: Slot[] = [];
       
-      // Generate slots for each time window in the schedule
       dayRule.timeSlots.forEach(window => {
         const windowSlots = generateSlotsFromTimeWindow(
           window.startTime,
@@ -477,11 +411,9 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
       return allSlots;
     }
     
-    // Default slots if no specific rules
     return generateSlotsFromTimeWindow("09:00", "17:00", meetingDuration, bufferTime, date);
   }
 
-  // Calendar nav
   const prevMonth = () =>
     setCurrentMonth((d) => {
       const x = new Date(d);
@@ -495,7 +427,6 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
       return x;
     });
 
-  // When picking a date, fetch slots
   const selectDate = async (d: Date) => {
     setSelectedDate(d);
     setStep("time");
@@ -505,25 +436,21 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     console.log("Selecting date:", apiDate);
     
     try {
-      // Check if this date has modified hours or using standard availability
       const dateEntry = unavailableDates[apiDate];
       console.log("Date entry from unavailableDates:", dateEntry);
       
       if (dateEntry && dateEntry.allDay === false) {
         console.log("Using modified hours:", dateEntry.startTime, "-", dateEntry.endTime);
-        // Generate slots from the modified hours
         const generatedSlots = generateTimeSlots(d);
         console.log("Generated slots from modified hours:", generatedSlots);
         setSlots(generatedSlots);
       } else {
         console.log("Fetching slots from API");
-        // Try to get slots from the API
         try {
           const raw = await getAvailableSlots(businessId, apiDate, userTimezone);
           console.log("API returned slots:", raw);
           
           if (raw && raw.length > 0) {
-            // Convert API slots to user timezone
             const userSlots = raw.map(slot => ({
               ...slot,
               startTime: convertTimeToUserTZ(slot.startTime, d),
@@ -532,14 +459,12 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
             }));
             setSlots(userSlots);
           } else {
-            // If API returns empty, generate slots from settings
             const generatedSlots = generateTimeSlots(d);
             console.log("API returned empty, using generated slots:", generatedSlots);
             setSlots(generatedSlots);
           }
         } catch (e) {
           console.error("Error fetching slots from API, using generated slots:", e);
-          // If API fails, use generated slots from settings
           const generatedSlots = generateTimeSlots(d);
           console.log("Generated slots due to API error:", generatedSlots);
           setSlots(generatedSlots);
@@ -561,8 +486,6 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedDate || !selectedSlot) return;
-    
-    // Validate form before submission
     const isEmailValid = validateEmail(email);
     const validation = validatePhone(phone, selectedCountryCode);
     const isPhoneValid = validation.isValid;
@@ -575,24 +498,21 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     setSubmitting(true);
     
     try {
-      // Convert selected slot times back to business timezone for storage
       const businessStartTime = convertTimeToBusinessTZ(selectedSlot.startTime, selectedDate);
       const businessEndTime = convertTimeToBusinessTZ(selectedSlot.endTime, selectedDate);
-      
-      // Format the phone number properly with country code for storage
       const formattedPhone = phone ? createInternationalPhone(phone, selectedCountryCode) : '';
       
       await bookAppointment({
         agentId: businessId,
         userId: email,
         date: fmtApiDate(selectedDate),
-        startTime: businessStartTime, // Send in business timezone
-        endTime: businessEndTime,     // Send in business timezone
+        startTime: businessStartTime,
+        endTime: businessEndTime,    
         location: selectedLocation,
         name: name,
         phone: formattedPhone,
         notes: notes,
-        userTimezone: userTimezone,   // Store user's timezone for reference
+        userTimezone: userTimezone,  
       });
       setStep("confirmation");
     } catch (e) {
@@ -602,7 +522,6 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     }
   };
 
-  // Component layout wrapper
   const layout = (title: string, subtitle: string, content: React.ReactNode) => (
     <div className="bg-white rounded-xl shadow-md overflow-hidden max-w-4xl mx-auto">
       <div className="bg-gray-800 text-white p-6">
@@ -613,7 +532,6 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     </div>
   );
 
-  // If still loading settings
   if (loadingSettings) {
     return layout(
       `Book ${serviceName}`,
@@ -624,7 +542,6 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     );
   }
 
-  // Timezone information display
   const renderTimezoneInfo = () => (
     <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-4">
       <div className="flex items-start">
@@ -643,7 +560,6 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     </div>
   );
 
-  // === Step: DATE ===
   if (step === "date") {
     const y = currentMonth.getFullYear(),
       m = currentMonth.getMonth();
@@ -683,8 +599,6 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
             const dn = i + 1;
             const date = new Date(y, m, dn);
             const apiDate = fmtApiDate(date);
-            
-            // Check if date is fully unavailable (past or allDay=true)
             const isUnavailable = isDateFullyUnavailable(date);
             
             return (
@@ -709,21 +623,17 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     );
   }
 
-  // === Step: TIME ===
   if (step === "time" && selectedDate) {
-    // Filter out any past-time if today
     const todayStr = selectedDate.toDateString();
     const availableSlots = slots.filter((s) => {
       if (!s.available) return false;
       if (selectedDate.toDateString() !== now.toDateString()) return true;
-      // build a Date for slot start
       const [h, m] = s.startTime.split(":").map(Number);
       const slotDate = new Date(now);
       slotDate.setHours(h, m, 0, 0);
       return slotDate > now;
     });
 
-    // Sort slots by start time
     availableSlots.sort((a, b) => {
       const [aHour, aMin] = a.startTime.split(':').map(Number);
       const [bHour, bMin] = b.startTime.split(':').map(Number);
@@ -771,7 +681,6 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     );
   }
 
-  // === Step: DETAILS ===
   if (step === "details" && selectedSlot) {
     return layout(
       `Book ${serviceName}`,
@@ -973,7 +882,7 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
       </div>
     );
   }
-  // === Step: CONFIRMATION ===
+
   if (step === "confirmation") {
     return layout(
       "Booking Confirmed",
