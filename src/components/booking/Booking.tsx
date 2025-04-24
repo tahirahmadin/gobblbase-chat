@@ -244,23 +244,23 @@ const Booking: React.FC<BookingProps> = ({ onSetupComplete, isEditMode = false, 
     });
   };
 
-  const addTimeSlot = (dayIndex: number) => {
-    setAvailability((prev) => {
-      const updated = [...prev];
-      const slots = updated[dayIndex].timeSlots;
-      const last = slots[slots.length - 1];
-      slots.push({ startTime: last?.startTime || "09:00", endTime: last?.endTime || "17:00" });
-      return updated;
-    });
-  };
+  // const addTimeSlot = (dayIndex: number) => {
+  //   setAvailability((prev) => {
+  //     const updated = [...prev];
+  //     const slots = updated[dayIndex].timeSlots;
+  //     const last = slots[slots.length - 1];
+  //     slots.push({ startTime: last?.startTime || "09:00", endTime: last?.endTime || "17:00" });
+  //     return updated;
+  //   });
+  // };
 
-  const removeTimeSlot = (dayIndex: number, slotIndex: number) => {
-    setAvailability((prev) => {
-      const updated = [...prev];
-      updated[dayIndex].timeSlots.splice(slotIndex, 1);
-      return updated;
-    });
-  };
+  // const removeTimeSlot = (dayIndex: number, slotIndex: number) => {
+  //   setAvailability((prev) => {
+  //     const updated = [...prev];
+  //     updated[dayIndex].timeSlots.splice(slotIndex, 1);
+  //     return updated;
+  //   });
+  // };
 
   const updateTimeSlot = (
     dayIndex: number,
@@ -728,22 +728,22 @@ const Booking: React.FC<BookingProps> = ({ onSetupComplete, isEditMode = false, 
                       </select>
                     </div>
                     
-                    <button
+                    {/* <button
                       onClick={() => removeTimeSlot(dayIndex, slotIndex)}
                       className="text-gray-400 hover:text-gray-700"
                       disabled={day.timeSlots.length === 1}
                     >
                       <Trash2 className="h-4 w-4" />
-                    </button>
+                    </button> */}
                   </div>
                 ))}
                 
-                <button
+                {/* <button
                   onClick={() => addTimeSlot(dayIndex)}
                   className="flex items-center text-sm text-gray-600 hover:text-gray-800"
                 >
                   <Plus className="h-4 w-4 mr-1" /> Add Time Range
-                </button>
+                </button> */}
               </div>
             )}
           </div>
