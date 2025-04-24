@@ -25,14 +25,6 @@ const BookingIntegration: React.FC<BookingIntegrationProps> = ({
   const activeAgentId = propAgentId || activeBotId || activeBotData?.agentId;
   
   const [view, setView] = useState<"setup" | "dashboard">(initialView);
-  
-  // Add debug logging to track agentId values
-  useEffect(() => {
-    console.log("BookingIntegration - Active AgentId:", activeAgentId);
-    console.log("BookingIntegration - Prop AgentId:", propAgentId);
-    console.log("BookingIntegration - ActiveBotId from store:", activeBotId);
-    console.log("BookingIntegration - ActiveBotData.agentId from store:", activeBotData?.agentId);
-  }, [activeAgentId, propAgentId, activeBotId, activeBotData]);
 
   const handleLocalSetupComplete = () => onSetupComplete();
   
