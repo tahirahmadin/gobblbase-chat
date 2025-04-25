@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { ChatMessage } from "../types";
 import { queryDocument, signUpUser } from "../lib/serverActions";
 import OpenAI from "openai";
+import ReactMarkdown from "react-markdown";
 import {
   Send,
   MessageSquare,
@@ -267,7 +268,16 @@ export default function PublicChat({
       if (personalityPrompt) {
         systemPrompt += `\nPERSONALITY INSTRUCTIONS (MUST FOLLOW):\n${personalityPrompt}`;
       }
-      systemPrompt += `\nRules: answer in 1–2 sentences. No extra greetings or formatting.`;
+      systemPrompt += `\nRules: 
+      - Use markdown formatting for better readability:
+        * Use **bold** for emphasis
+        * Use *italic* for subtle emphasis
+        * Use bullet points (-) for lists
+        * Use [link text](url) for links
+        * Use \`code\` for code snippets
+        * Use > for quotes
+      - Keep responses concise (1-2 sentences)
+      - No extra greetings or formatting`;
 
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
@@ -332,6 +342,30 @@ export default function PublicChat({
     storeHandleGoogleLoginError();
     toast.error("Google login failed. Please try again.");
   };
+
+  // Add scroll effect when switching tabs
+  useEffect(() => {
+    if (activeScreen === "chat") {
+      scrollToBottom();
+    }
+  }, [activeScreen]);
+
+  // Add scroll effect when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Add scroll effect when loading state changes
+  useEffect(() => {
+    if (!isLoading) {
+      scrollToBottom();
+    }
+  }, [isLoading]);
+
+  // Add scroll effect when component mounts
+  useEffect(() => {
+    scrollToBottom();
+  }, []);
 
   if (currentIsLoading) {
     return (
@@ -545,18 +579,28 @@ export default function PublicChat({
                         className="w-6 h-6 rounded-full object-cover"
                       />
                     )}
-                    <div>
-                      <p className="text-[13px]">
-                        {msg.sender === "agent" ? (
-                          <StreamingText text={msg.content} speed={15} />
-                        ) : (
-                          msg.content
-                        )}
-                      </p>
+                    <div
+                      className="prose prose-sm max-w-none [&>*]:text-inherit prose-headings:text-inherit prose-ul:text-inherit prose-li:text-inherit prose-li:marker:text-inherit prose-strong:text-inherit"
+                      style={{
+                        color:
+                          msg.sender === "agent"
+                            ? theme.bubbleAgentTextColor
+                            : theme.bubbleUserTextColor,
+                      }}
+                    >
+                      {msg.sender === "agent" ? (
+                        <StreamingText
+                          text={msg.content}
+                          speed={15}
+                          messageId={msg.id}
+                        />
+                      ) : (
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      )}
                     </div>
                   </div>
                   <div
-                    className="mt-1 text-xs opacity-70 text-left"
+                    className="mt-1 text-xs text-left"
                     style={{
                       color:
                         msg.sender === "agent"
