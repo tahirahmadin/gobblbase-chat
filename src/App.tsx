@@ -23,6 +23,7 @@ import { Toaster } from "react-hot-toast";
 import Products from "./components/Products";
 import { useBotConfig } from "./store/useBotConfig";
 import BookingTab from "./components/BookingTab";
+import Integrations from "./components/Integrations";
 
 // Add type definition for window
 declare global {
@@ -44,13 +45,13 @@ function Dashboard() {
     const redirectAgentId = localStorage.getItem("redirectToAgentBooking");
     if (redirectAgentId) {
       console.log("Redirecting to booking tab for agent:", redirectAgentId);
-      
-      // Set the active bot ID 
+
+      // Set the active bot ID
       setActiveBotId(redirectAgentId);
-      
+
       // Set the active tab to booking
       setActiveTab("booking");
-      
+
       // Clear the localStorage item
       localStorage.removeItem("redirectToAgentBooking");
     }
@@ -199,6 +200,7 @@ function Dashboard() {
             {activeTab === "services" && <Services />}
             {activeTab === "settings" && <SettingsPage />}
             {activeTab === "products" && <Products />}
+            {activeTab === "integrations" && <Integrations />}
           </div>
         </div>
       </div>

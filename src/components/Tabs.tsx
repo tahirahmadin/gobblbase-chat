@@ -7,6 +7,7 @@ import {
   Wrench,
   Calendar,
   Link,
+  Puzzle,
 } from "lucide-react";
 
 export interface TabsProps {
@@ -40,6 +41,11 @@ const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab }) => {
       id: "integration",
       name: "Embedded",
       icon: <Link className="h-5 w-5" />,
+    },
+    {
+      id: "integrations",
+      name: "Integrations",
+      icon: <Puzzle className="h-5 w-5" />,
     },
     // {
     //   id: "services",
