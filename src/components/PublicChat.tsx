@@ -469,7 +469,7 @@ export default function PublicChat({
               <MessageSquare className="h-4 w-4" />
               <span>Chat</span>
             </button>
-            <button
+            {/* <button
               onClick={() => setActiveScreen("book")}
               className="flex items-center space-x-1 px-4 py-2 rounded-lg font-medium"
               style={{
@@ -481,7 +481,7 @@ export default function PublicChat({
             >
               <Calendar className="h-4 w-4" />
               <span>BOOK</span>
-            </button>
+            </button> */}
             <button
               onClick={() => setActiveScreen("browse")}
               className="flex items-center space-x-1 px-4 py-2 rounded-lg font-medium"
