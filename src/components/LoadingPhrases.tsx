@@ -4,7 +4,7 @@ const LOADING_PHRASES = [
   "Finding best options",
   "Thinking it through",
   "Cooking up ideas",
-  "Searching recipes",
+  "Searching results",
   "Almost ready",
   "Processing request",
 ];

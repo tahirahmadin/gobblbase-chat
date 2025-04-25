@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 interface StreamingTextProps {
   text: string;
@@ -7,20 +7,37 @@ interface StreamingTextProps {
 
 const StreamingText: React.FC<StreamingTextProps> = ({ text, speed = 15 }) => {
   const [displayedText, setDisplayedText] = useState("");
+  const intervalRef = useRef<NodeJS.Timeout>();
+  const currentIndexRef = useRef(0);
 
   useEffect(() => {
+    // Reset state when text changes
     setDisplayedText("");
-    let currentIndex = 0;
-    const interval = setInterval(() => {
-      if (currentIndex < text.length - 1) {
-        setDisplayedText((prev) => prev + text[currentIndex]);
-        currentIndex++;
+    currentIndexRef.current = 0;
+
+    // Clear any existing interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    // Start new interval
+    intervalRef.current = setInterval(() => {
+      if (currentIndexRef.current < text.length) {
+        setDisplayedText(text.substring(0, currentIndexRef.current + 1));
+        currentIndexRef.current++;
       } else {
-        clearInterval(interval);
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
       }
     }, speed);
 
-    return () => clearInterval(interval);
+    // Cleanup
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
   }, [text, speed]);
 
   return <span>{displayedText}</span>;
