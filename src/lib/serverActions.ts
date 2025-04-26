@@ -131,7 +131,7 @@ export async function queryDocument(
       }
     );
 
-    return response.data;
+    return response.data.result;
   } catch (error) {
     console.error("Error querying document:", error);
     throw new Error("Failed to query document");
@@ -271,7 +271,6 @@ export async function updateAgentDetails(
     throw error;
   }
 }
-
 
 export async function deleteAgent(agentId: string): Promise<void> {
   try {
@@ -665,9 +664,9 @@ export const deleteProduct = async (id: string, agentId: string) => {
 
 export const getProducts = async (agentId: string) => {
   try {
-    const response = await axios.get(
-      `https://rag.gobbl.ai/product/getProducts?agentId=${agentId}`
-    );
+    let url = `https://rag.gobbl.ai/zoho/items?agentId=${agentId}`;
+    // let url = `https://rag.gobbl.ai/product/getProducts?agentId=${agentId}`;
+    const response = await axios.get(url);
 
     if (response.data.error) {
       throw new Error("Failed to fetch products");

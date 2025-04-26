@@ -54,8 +54,10 @@ const openai = new OpenAI({
 });
 
 const QUERY_CUES: string[][] = [
-  ["Tell me about you ?", "Summarise your services ?"],
-  ["Book meeting", "Free services"],
+  [
+    "Pizza hut se meri call ki sales pitch btao?",
+    "Bamboo Spoons kitni stock mein hain abhi?",
+  ],
 ];
 
 type Screen = "chat" | "book" | "browse" | "cart";
@@ -99,6 +101,7 @@ export default function PublicChat({
     fetchBotData,
     activeBotId,
   } = useBotConfig();
+  const { products } = useCartStore();
   const {
     isLoggedIn,
     handleGoogleLoginSuccess: storeHandleGoogleLoginSuccess,
@@ -260,7 +263,19 @@ export default function PublicChat({
 
     try {
       // fetch RAG context
+      let productContext = "";
+      if (products.length > 0) {
+        productContext = `Here are the products available: ${JSON.stringify(
+          products
+        )}`;
+      }
       const context = await queryDocument(config.agentId, msgToSend);
+      let basePrompt = `${
+        config.systemPrompt
+      } and Use context when relevant:\n${JSON.stringify(
+        context
+      )} and also use product context when relevant:\n${productContext}`;
+
       let systemPrompt = `You are a concise AI assistant. Use context when relevant:\n${JSON.stringify(
         context
       )}`;
@@ -268,7 +283,7 @@ export default function PublicChat({
       if (personalityPrompt) {
         systemPrompt += `\nPERSONALITY INSTRUCTIONS (MUST FOLLOW):\n${personalityPrompt}`;
       }
-      systemPrompt += `\nRules: 
+      basePrompt += `\nRules: 
       - Use markdown formatting for better readability:
         * Use **bold** for emphasis
         * Use *italic* for subtle emphasis
@@ -282,7 +297,7 @@ export default function PublicChat({
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: basePrompt },
           { role: "user", content: msgToSend },
         ],
         temperature: 0.6,

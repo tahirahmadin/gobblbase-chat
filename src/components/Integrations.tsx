@@ -42,6 +42,24 @@ const Integrations: React.FC = () => {
   const [pollingTimeout, setPollingTimeout] = useState<NodeJS.Timeout | null>(
     null
   );
+  const [showEditConfig, setShowEditConfig] = useState(false);
+
+  // Check initial ZOHO status
+  useEffect(() => {
+    const checkZohoStatus = async () => {
+      if (!activeBotId) return;
+      try {
+        const agentDetails = await getAgentDetails(activeBotId, false);
+        setIsAuthenticated(
+          agentDetails?.services?.includes("ZOHO_INVENTORY") || false
+        );
+      } catch (error) {
+        console.error("Error checking ZOHO status:", error);
+      }
+    };
+
+    checkZohoStatus();
+  }, [activeBotId]);
 
   const integrations: Integration[] = [
     {
@@ -50,7 +68,7 @@ const Integrations: React.FC = () => {
       description:
         "Connect your ZOHO Books account to manage invoices and payments",
       icon: <Building2 className="h-6 w-6" />,
-      isConnected: false,
+      isConnected: isAuthenticated,
     },
   ];
   //   https://api-console.zoho.in/
@@ -116,8 +134,8 @@ const Integrations: React.FC = () => {
       }
 
       try {
-        const agentDetails = await getAgentDetails(activeBotId || "", true);
-        if (agentDetails?.services?.includes("ZOHO")) {
+        const agentDetails = await getAgentDetails(activeBotId || "", false);
+        if (agentDetails?.services?.includes("ZOHO_INVENTORY")) {
           setIsAuthenticated(true);
           setIsPolling(false);
           if (pollingTimeout) clearTimeout(pollingTimeout);
@@ -158,16 +176,27 @@ const Integrations: React.FC = () => {
     };
   }, [pollingTimeout]);
 
+  const handleEditConfig = () => {
+    setShowEditConfig(true);
+    setCurrentStep(1);
+    setIsConfigSubmitted(false);
+    setIsAuthenticated(false);
+  };
+
   const renderZohoIntegration = () => {
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
             <h2 className="text-xl font-semibold text-gray-800">
-              ZOHO Books Integration
+              {showEditConfig
+                ? "Edit ZOHO Books Configuration"
+                : "ZOHO Books Integration"}
             </h2>
             <p className="mt-2 text-gray-600">
-              Follow these steps to connect your ZOHO Books account
+              {showEditConfig
+                ? "Update your ZOHO Books configuration"
+                : "Follow these steps to connect your ZOHO Books account"}
             </p>
           </div>
           <div className="p-6">
@@ -259,7 +288,9 @@ const Integrations: React.FC = () => {
                     onClick={handleConfigSubmit}
                     className="mt-4 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900"
                   >
-                    Submit Configuration
+                    {showEditConfig
+                      ? "Update Configuration"
+                      : "Submit Configuration"}
                   </button>
                 </div>
               )}
@@ -397,18 +428,18 @@ const Integrations: React.FC = () => {
                 </div>
                 <div className="flex items-center space-x-2">
                   {integration.isConnected ? (
-                    <>
+                    <div className="flex items-center space-x-4">
                       <span className="flex items-center text-green-600">
                         <CheckCircle2 className="h-5 w-5 mr-1" />
                         Connected
                       </span>
                       <button
-                        onClick={() => handleDisconnect(integration.id)}
-                        className="px-3 py-1 text-sm text-red-600 hover:text-red-700"
+                        onClick={handleEditConfig}
+                        className="px-3 py-1 text-sm text-blue-600 hover:text-blue-700 border border-blue-200 rounded-md hover:bg-blue-50"
                       >
-                        Disconnect
+                        Edit Configuration
                       </button>
-                    </>
+                    </div>
                   ) : (
                     <button
                       onClick={() => setActiveIntegration(integration.id)}
@@ -424,7 +455,8 @@ const Integrations: React.FC = () => {
         </div>
       </div>
 
-      {activeIntegration === "zoho-books" && renderZohoIntegration()}
+      {(activeIntegration === "zoho-books" || showEditConfig) &&
+        renderZohoIntegration()}
     </div>
   );
 };

@@ -243,7 +243,11 @@ const Browse: React.FC<BrowseProps> = ({
             >
               <div className="rounded-md overflow-hidden mb-3">
                 <img
-                  src={product.image}
+                  src={
+                    product.image != ""
+                      ? product.image
+                      : "https://image.made-in-china.com/202f0j00vYDGElfRmuko/Customize-9cm-Small-Tea-Spoon-Natural-Bamboo-Spoon.webp"
+                  }
                   alt={product.title}
                   className="w-full h-24 object-cover"
                 />
