@@ -448,29 +448,54 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({ onEditSettings, age
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex items-center">
-                        {meeting.location === "google_meet" ? (
-                          <>
-                            <Video className="h-4 w-4 text-gray-400 mr-2" />
-                            <span>Google Meet</span>
-                          </>
-                        ) : (
-                          <>
-                            <MapPin className="h-4 w-4 text-gray-400 mr-2" />
-                            <span>In-person</span>
-                          </>
-                        )}
+                        {(() => {
+                          switch (meeting.location) {
+                            case 'google_meet':
+                              return (
+                                <>
+                                  <Video className="h-4 w-4 text-gray-400 mr-2" />
+                                  <span>Google Meet</span>
+                                </>
+                              );
+                            case 'zoom':
+                              return (
+                                <>
+                                  {/* swap in a Zoom icon if you have one */}
+                                  <Video className="h-4 w-4 text-gray-400 mr-2" />
+                                  <span>Zoom</span>
+                                </>
+                              );
+                            case 'teams':
+                              return (
+                                <>
+                                  {/* swap in a Teams icon */}
+                                  <Video className="h-4 w-4 text-gray-400 mr-2" />
+                                  <span>Microsoft Teams</span>
+                                </>
+                              );
+                            default:
+                              return (
+                                <>
+                                  <MapPin className="h-4 w-4 text-gray-400 mr-2" />
+                                  <span>In-person</span>
+                                </>
+                              );
+                          }
+                        })()}
                       </div>
-                      {meeting.location === "google_meet" && meeting.meetingLink && (
+
+                      {meeting.meetingLink && (
                         <a
                           href={meeting.meetingLink}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:underline text-xs mt-1 inline-block"
                         >
-                          Meeting link
+                          Join link
                         </a>
                       )}
                     </td>
+
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         meeting.statusLabel === "upcoming"
@@ -639,39 +664,27 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({ onEditSettings, age
                     <div className="mb-4">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
                       <div className="space-y-2">
-                        <div className="flex items-center">
-                          <input
-                            type="radio"
-                            id="location-all"
-                            name="location"
-                            checked={filters.location === null}
-                            onChange={() => setFilters(prev => ({ ...prev, location: null }))}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <label htmlFor="location-all" className="ml-2 block text-sm text-gray-700">All locations</label>
-                        </div>
-                        <div className="flex items-center">
-                          <input
-                            type="radio"
-                            id="location-online"
-                            name="location"
-                            checked={filters.location === "google_meet"}
-                            onChange={() => setFilters(prev => ({ ...prev, location: "google_meet" }))}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <label htmlFor="location-online" className="ml-2 block text-sm text-gray-700">Google Meet</label>
-                        </div>
-                        <div className="flex items-center">
-                          <input
-                            type="radio"
-                            id="location-inperson"
-                            name="location"
-                            checked={filters.location === "in_person"}
-                            onChange={() => setFilters(prev => ({ ...prev, location: "in_person" }))}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <label htmlFor="location-inperson" className="ml-2 block text-sm text-gray-700">In-person</label>
-                        </div>
+                        {[
+                          { id: null, label: 'All locations' },
+                          { id: 'google_meet', label: 'Google Meet' },
+                          { id: 'zoom', label: 'Zoom' },
+                          { id: 'teams', label: 'Microsoft Teams' },
+                          { id: 'in_person', label: 'In-person' },
+                        ].map(({ id, label }) => (
+                          <div key={label} className="flex items-center">
+                            <input
+                              type="radio"
+                              id={`location-${label}`}
+                              name="location"
+                              checked={filters.location === id}
+                              onChange={() => setFilters(prev => ({ ...prev, location: id }))}
+                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <label htmlFor={`location-${label}`} className="ml-2 block text-sm text-gray-700">
+                              {label}
+                            </label>
+                          </div>
+                        ))}
                       </div>
                     </div>
                     
@@ -871,21 +884,24 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({ onEditSettings, age
                   </p>
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-gray-700">Meeting Locations:</p>
-                    {bookingSettings.locations.map((locId) => (
-                      <p key={locId} className="text-sm text-gray-600 flex items-center">
-                        {locId === "google_meet" ? (
-                          <>
-                            <Video className="h-4 w-4 mr-2 text-gray-400" />
-                            Google Meet
-                          </>
-                        ) : (
-                          <>
-                            <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                            In-person
-                          </>
-                        )}
-                      </p>
-                    ))}
+                    {bookingSettings.locations.map(locId => {
+                      let icon, label;
+                      switch (locId) {
+                        case 'google_meet':
+                          icon = <Video className="h-4 w-4 mr-2 text-gray-400" />; label = 'Google Meet'; break;
+                        case 'zoom':
+                          icon = <Video className="h-4 w-4 mr-2 text-gray-400" />; label = 'Zoom'; break;
+                        case 'teams':
+                          icon = <Video className="h-4 w-4 mr-2 text-gray-400" />; label = 'Microsoft Teams'; break;
+                        default:
+                          icon = <MapPin className="h-4 w-4 mr-2 text-gray-400" />; label = 'In-person'; break;
+                      }
+                      return (
+                        <p key={locId} className="text-sm text-gray-600 flex items-center">
+                          {icon}{label}
+                        </p>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

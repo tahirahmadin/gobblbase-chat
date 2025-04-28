@@ -76,6 +76,8 @@ const DEFAULT_AVAILABILITY = [
 
 const DEFAULT_MEETING_LOCATIONS = [
   { id: "google_meet", name: "Google Meet", icon: <Video className="h-5 w-5" />, selected: true },
+  { id: "zoom", name: "Zoom", icon: <Video className="h-5 w-5" />, selected: false },
+  { id: "teams", name: "Microsoft Teams", icon: <Video className="h-5 w-5" />, selected: false },
   { id: "in_person", name: "In-person", icon: <MapPin className="h-5 w-5" />, selected: true },
 ];
 
@@ -760,37 +762,33 @@ const Booking: React.FC<BookingProps> = ({ onSetupComplete, isEditMode = false, 
       </div>
 
       <div className="grid grid-cols-1 gap-4">
-        {meetingLocations.map((location) => (
-          <div
-            key={location.id}
-            onClick={() => toggleMeetingLocation(location.id)}
-            className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors ${
-              location.selected
-                ? "border-gray-800 bg-gray-50"
-                : "border-gray-200 hover:border-gray-300"
-            }`}
-          >
-            <div className="flex items-center space-x-3">
-              <div
-                className={`flex items-center justify-center p-2 rounded-lg ${
-                  location.selected ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-500"
-                }`}
-              >
-                {location.icon}
-              </div>
-              <span className="font-medium">{location.name}</span>
-            </div>
+      {meetingLocations.map(loc => (
+        <div
+          key={loc.id}
+          onClick={() => toggleMeetingLocation(loc.id)}
+          className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors ${
+            loc.selected
+              ? "border-gray-800 bg-gray-50"
+              : "border-gray-200 hover:border-gray-300"
+          }`}
+        >
+          <div className="flex items-center space-x-3">
             <div
-              className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                location.selected
-                  ? "border-gray-800 bg-gray-800"
-                  : "border-gray-300"
+              className={`flex items-center justify-center p-2 rounded-lg ${
+                loc.selected ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-500"
               }`}
             >
-              {location.selected && <Check className="h-3 w-3 text-white" />}
+              {loc.icon}
             </div>
+            <span className="font-medium">{loc.name}</span>
           </div>
-        ))}
+          {loc.selected && (
+            <div className="w-5 h-5 rounded-full bg-gray-800 flex items-center justify-center">
+              <Check className="h-3 w-3 text-white" />
+            </div>
+          )}
+        </div>
+      ))}
       </div>
     </div>
   );
