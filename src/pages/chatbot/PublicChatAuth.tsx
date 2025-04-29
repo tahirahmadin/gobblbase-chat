@@ -1,9 +1,9 @@
 import React from "react";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
-import { useBotConfig } from "../../store/useBotConfig";
+import { useBotConfig } from "../../../store/useBotConfig";
 import PublicChat from "../PublicChat";
 import { Bot } from "lucide-react";
-import { useUserStore } from "../../store/useUserStore";
+import { useUserStore } from "../../../store/useUserStore";
 
 interface PublicChatAuthProps {
   agentUsernamePlayground: string | null;

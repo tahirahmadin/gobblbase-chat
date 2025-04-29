@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Cart from "./Cart";
 import Payment from "./Payment";
-import { useCartStore } from "../../store/useCartStore";
+import { useCartStore } from "../../../store/useCartStore";
 import { ArrowLeft, Plus, Minus, ShoppingCart, Loader2 } from "lucide-react";
-import { useBotConfig } from "../../store/useBotConfig";
+import { useBotConfig } from "../../../store/useBotConfig";
 import toast from "react-hot-toast";
 
 interface Product {
@@ -60,7 +60,7 @@ const Browse: React.FC<BrowseProps> = ({
     if (selectedProduct) {
       for (let i = 0; i < quantity; i++) {
         addItem({
-          id: selectedProduct._id,
+          _id: selectedProduct._id,
           title: selectedProduct.title,
           image: selectedProduct.image,
           price: selectedProduct.price,

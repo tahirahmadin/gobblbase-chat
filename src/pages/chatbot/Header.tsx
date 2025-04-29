@@ -1,7 +1,7 @@
 import { User, LogOut } from "lucide-react";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { Link } from "react-router-dom";
-import { useAdminStore } from "../store/useAdminStore";
+import { useAdminStore } from "../../store/useAdminStore";
 
 export default function Header() {
   const {

@@ -6,10 +6,9 @@ import {
   MessageSquare,
   Users,
 } from "lucide-react";
-import { getChatLogs } from "../lib/serverActions";
-import { useUserStore } from "../store/useUserStore";
-import { ChatLog } from "../types";
-import { useBotConfig } from "../store/useBotConfig";
+import { getChatLogs } from "../../lib/serverActions";
+import { ChatLog } from "../../types";
+import { useBotConfig } from "../../store/useBotConfig";
 
 interface ActivityTab {
   id: string;

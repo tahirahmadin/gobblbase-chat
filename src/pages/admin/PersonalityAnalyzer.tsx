@@ -8,11 +8,10 @@ import {
   Instagram,
   FileText,
   ChevronRight,
-  ArrowLeft
+  ArrowLeft,
 } from "lucide-react";
-import OpenAI from "openai";
 
-import { extractContentFromURL } from "../lib/serverActions";
+import { extractContentFromURL } from "../../lib/serverActions";
 
 interface PersonalityAnalysis {
   dominantTrait: string;
@@ -85,9 +84,12 @@ export const PERSONALITY_TYPES = [
 ];
 
 const URL_PATTERNS = {
-  youtube: /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})(\S*)?$/,
-  twitter: /^(https?:\/\/)?(www\.)?(twitter\.com|x\.com)\/[a-zA-Z0-9_]+\/status\/[0-9]+(\S*)?$/,
-  instagram: /^(https?:\/\/)?(www\.)?(instagram\.com)\/(p|reel)\/([a-zA-Z0-9_-]+)(\S*)?$/,
+  youtube:
+    /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})(\S*)?$/,
+  twitter:
+    /^(https?:\/\/)?(www\.)?(twitter\.com|x\.com)\/[a-zA-Z0-9_]+\/status\/[0-9]+(\S*)?$/,
+  instagram:
+    /^(https?:\/\/)?(www\.)?(instagram\.com)\/(p|reel)\/([a-zA-Z0-9_-]+)(\S*)?$/,
   blog: /^(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+\/([\w-\/]*)$/,
 };
 
@@ -156,7 +158,11 @@ interface PersonalityAnalyzerProps {
     lastUrl: string,
     lastContent: string
   ) => void;
-  initialPersonality?: { type: string; isCustom: boolean; customPrompt: string };
+  initialPersonality?: {
+    type: string;
+    isCustom: boolean;
+    customPrompt: string;
+  };
   initialUrl?: string;
   initialContent?: string;
   initialAnalysis?: PersonalityAnalysis | null;
@@ -186,33 +192,44 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
   const [customPersonalityPrompt, setCustomPersonalityPrompt] = useState(
     initialPersonality.customPrompt
   );
-  
+
   // UI state
   const [showPersonalitySection, setShowPersonalitySection] = useState(true);
-  
+
   // Custom personality flow state
   const [customPersonalityStep, setCustomPersonalityStep] = useState<
-    "select-method" | "write-instructions" | "analyze-content" | "review-analysis"
-  >(initialPersonality.isCustom && initialPersonality.customPrompt ? "write-instructions" : "select-method");
-  
+    | "select-method"
+    | "write-instructions"
+    | "analyze-content"
+    | "review-analysis"
+  >(
+    initialPersonality.isCustom && initialPersonality.customPrompt
+      ? "write-instructions"
+      : "select-method"
+  );
+
   // Content state
   const [personalityUrl, setPersonalityUrl] = useState(initialUrl);
   const [personalityText, setPersonalityText] = useState(initialContent);
   const [contentSource, setContentSource] = useState<"manual" | "url">(
     initialUrl ? "url" : "manual"
   );
-  const [isContentFromUrl, setIsContentFromUrl] = useState(initialUrl ? true : false);
-  const [extractedPlatform, setExtractedPlatform] = useState<string | null>(initialExtractedPlatform);
-  
+  const [isContentFromUrl, setIsContentFromUrl] = useState(
+    initialUrl ? true : false
+  );
+  const [extractedPlatform, setExtractedPlatform] = useState<string | null>(
+    initialExtractedPlatform
+  );
+
   // Loading and error states
   const [isUrlLoading, setIsUrlLoading] = useState(false);
   const [urlError, setUrlError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Analysis result
   const [personalityAnalysis, setPersonalityAnalysis] =
     useState<PersonalityAnalysis | null>(initialAnalysis);
-  
+
   // Backend service state
   const [backendStatus, setBackendStatus] = useState<
     "unknown" | "online" | "offline"
@@ -249,7 +266,7 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
     } else {
       setCustomPersonalityStep("select-method");
     }
-    
+
     setIsContentFromUrl(initialUrl ? true : false);
   }, [initialPersonality, initialAnalysis, initialUrl]);
 
@@ -290,7 +307,7 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
     if (URL_PATTERNS.blog.test(url)) return "blog";
     return "unknown";
   }
-  
+
   function getUrlPlatformIcon() {
     switch (getPlatformType(personalityUrl)) {
       case "youtube":
@@ -311,7 +328,7 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
     const custom = id === "custom-personality";
     setIsCustomPersonality(custom);
     setSelectedPersonality(id);
-    
+
     // Reset custom method when switching away from custom
     if (!custom) {
       setCustomPersonalityStep("select-method");
@@ -319,11 +336,11 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
     }
 
     onPersonalityChange(
-      id, 
-      custom, 
-      custom ? customPersonalityPrompt : "", 
-      custom ? personalityAnalysis : null, 
-      personalityUrl, 
+      id,
+      custom,
+      custom ? customPersonalityPrompt : "",
+      custom ? personalityAnalysis : null,
+      personalityUrl,
       personalityText
     );
   };
@@ -458,7 +475,9 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
               }
               onChange={(e) => handlePersonalityChange(e.target.value)}
               className="w-full p-2 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              disabled={isCustomPersonality && customPersonalityStep !== "select-method"}
+              disabled={
+                isCustomPersonality && customPersonalityStep !== "select-method"
+              }
             >
               {PERSONALITY_TYPES.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -481,13 +500,12 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
           {/* Custom Personality Section */}
           {isCustomPersonality && (
             <div className="space-y-4 border-t border-gray-100 pt-3">
-              
               {/* Progress indicator for custom personality */}
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-indigo-600">
                   {getCustomStepProgress()}
                 </span>
-                
+
                 {customPersonalityStep !== "select-method" && (
                   <button
                     onClick={handleBackToCustomOptions}
@@ -498,38 +516,46 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
                   </button>
                 )}
               </div>
-              
+
               {/* Step 2 - Option Selection: Choose custom personality method */}
               {customPersonalityStep === "select-method" && (
                 <div className="space-y-4">
                   <p className="text-sm font-medium text-gray-700">
                     How would you like to create your custom personality?
                   </p>
-                  
+
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <button
                       onClick={() => handleSetCustomMethod("manual")}
                       className="flex flex-col items-start p-4 bg-gray-50 rounded-md border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors text-left"
                     >
                       <div className="flex justify-between w-full mb-2">
-                        <span className="text-sm font-medium text-gray-700">Write instructions</span>
+                        <span className="text-sm font-medium text-gray-700">
+                          Write instructions
+                        </span>
                         <ChevronRight className="h-4 w-4 text-gray-400" />
                       </div>
-                      <p className="text-xs text-gray-500">Manually specify how the AI should respond</p>
+                      <p className="text-xs text-gray-500">
+                        Manually specify how the AI should respond
+                      </p>
                     </button>
-                    
+
                     <button
                       onClick={() => handleSetCustomMethod("analyze")}
                       className="flex flex-col items-start p-4 bg-gray-50 rounded-md border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors text-left"
                     >
                       <div className="flex justify-between w-full mb-2">
-                        <span className="text-sm font-medium text-gray-700">Analyze existing content</span>
+                        <span className="text-sm font-medium text-gray-700">
+                          Analyze existing content
+                        </span>
                         <ChevronRight className="h-4 w-4 text-gray-400" />
                       </div>
-                      <p className="text-xs text-gray-500">Create a personality based on writing samples</p>
+                      <p className="text-xs text-gray-500">
+                        Create a personality based on writing samples
+                      </p>
                     </button>
                   </div>
-                  
+
                   <button
                     onClick={() => handlePersonalityChange("professional")}
                     className="text-xs text-gray-500 hover:text-gray-700 flex items-center mt-2"
@@ -555,7 +581,7 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
                       Write Custom Instructions
                     </p>
                   </div>
-                  
+
                   <textarea
                     value={customPersonalityPrompt}
                     onChange={(e) =>
@@ -564,11 +590,15 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
                     className="w-full p-3 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 h-36 resize-none"
                     placeholder="Describe how the AI should respond..."
                   />
-                  
+
                   <div className="bg-blue-50 p-3 rounded-md">
-                    <p className="text-xs text-blue-700 font-medium mb-1">Tips for effective instructions:</p>
+                    <p className="text-xs text-blue-700 font-medium mb-1">
+                      Tips for effective instructions:
+                    </p>
                     <ul className="text-xs text-blue-700 list-disc ml-4 space-y-1">
-                      <li>Specify language style (formal, casual, technical)</li>
+                      <li>
+                        Specify language style (formal, casual, technical)
+                      </li>
                       <li>Describe tone (enthusiastic, calm, authoritative)</li>
                       <li>Include example phrases or speech patterns</li>
                       <li>Mention specific vocabulary or terminology to use</li>
@@ -592,9 +622,11 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
                       Analyze Content
                     </p>
                   </div>
-                  
+
                   <div className="text-xs text-gray-600 mb-1">
-                    Provide content to analyze. The AI will detect writing style, speech patterns, and vocabulary to create a matching personality.
+                    Provide content to analyze. The AI will detect writing
+                    style, speech patterns, and vocabulary to create a matching
+                    personality.
                   </div>
 
                   {/* Backend status warning */}
@@ -616,12 +648,14 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
                       </svg>
                       <span>
                         Content extraction service is{" "}
-                        {backendStatus === "offline" ? "offline" : "not connected"}
+                        {backendStatus === "offline"
+                          ? "offline"
+                          : "not connected"}
                         . URL extraction may not work.
                       </span>
                     </div>
                   )}
-                  
+
                   {/* Content Input Card */}
                   <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
                     {/* URL Input Section */}
@@ -664,45 +698,55 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
                           )}
                         </button>
                       </div>
-                      {urlError && <p className="text-xs text-red-500 mt-1">{urlError}</p>}
-                      
-                      {/* Extraction success message */}
-                      {isContentFromUrl && contentSource === "url" && personalityText && (
-                        <div className="text-xs text-green-600 flex items-center gap-1 mt-2">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4 text-green-500"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                          {extractedPlatform ? (
-                            <span className="font-medium">
-                              Content extracted from{" "}
-                              {`${extractedPlatform.charAt(0).toUpperCase()}${extractedPlatform.slice(1)}`}
-                            </span>
-                          ) : (
-                            <span className="font-medium">Content successfully extracted</span>
-                          )}
-                        </div>
+                      {urlError && (
+                        <p className="text-xs text-red-500 mt-1">{urlError}</p>
                       )}
+
+                      {/* Extraction success message */}
+                      {isContentFromUrl &&
+                        contentSource === "url" &&
+                        personalityText && (
+                          <div className="text-xs text-green-600 flex items-center gap-1 mt-2">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4 text-green-500"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                            {extractedPlatform ? (
+                              <span className="font-medium">
+                                Content extracted from{" "}
+                                {`${extractedPlatform
+                                  .charAt(0)
+                                  .toUpperCase()}${extractedPlatform.slice(1)}`}
+                              </span>
+                            ) : (
+                              <span className="font-medium">
+                                Content successfully extracted
+                              </span>
+                            )}
+                          </div>
+                        )}
                     </div>
 
                     {/* Text Input Section */}
                     <div className="p-3">
                       <div className="flex justify-between items-center mb-2">
                         <label className="block text-xs font-medium text-gray-700">
-                          {isContentFromUrl ? "Review extracted content" : "Or paste content directly"}
+                          {isContentFromUrl
+                            ? "Review extracted content"
+                            : "Or paste content directly"}
                         </label>
                         {isContentFromUrl && (
-                          <button 
+                          <button
                             onClick={() => {
                               setPersonalityText("");
                               setIsContentFromUrl(false);
@@ -724,7 +768,7 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
                       />
                     </div>
                   </div>
-                  
+
                   {/* Analyze button */}
                   <button
                     onClick={handleAnalyzePersonality}
@@ -744,116 +788,148 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
               )}
 
               {/* Step 3 - Review Analysis: Analysis results & apply */}
-              {customPersonalityStep === "review-analysis" && personalityAnalysis && (
-                <div className="space-y-4">
-                  <div className="flex items-center">
-                    <button
-                      onClick={() => setCustomPersonalityStep("analyze-content")}
-                      className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center mr-3"
-                    >
-                      <ArrowLeft className="h-3 w-3 mr-1" />
-                      Back
-                    </button>
-                    <p className="text-sm font-medium text-gray-700">
-                      Analysis Results
-                    </p>
-                  </div>
-                  
-                  <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-                    <div className="p-4 bg-indigo-50 border-b border-indigo-100">
-                      <div className="flex items-start">
-                        <UserCircle className="h-8 w-8 text-indigo-600 mr-3 mt-1" />
-                        <div>
-                          <h3 className="text-sm font-semibold text-gray-800">
-                            {personalityAnalysis.dominantTrait.charAt(0).toUpperCase() +
-                              personalityAnalysis.dominantTrait.slice(1)} Style
-                            {personalityAnalysis.confidence > 0 &&
-                              ` (${Math.round(personalityAnalysis.confidence * 100)}% confidence)`}
-                          </h3>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {personalityAnalysis.briefDescription}
-                          </p>
-                        </div>
-                      </div>
+              {customPersonalityStep === "review-analysis" &&
+                personalityAnalysis && (
+                  <div className="space-y-4">
+                    <div className="flex items-center">
+                      <button
+                        onClick={() =>
+                          setCustomPersonalityStep("analyze-content")
+                        }
+                        className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center mr-3"
+                      >
+                        <ArrowLeft className="h-3 w-3 mr-1" />
+                        Back
+                      </button>
+                      <p className="text-sm font-medium text-gray-700">
+                        Analysis Results
+                      </p>
                     </div>
-                    
-                    <div className="p-4">
-                      <div className="space-y-3">
-                        <div>
-                          <h4 className="text-xs font-medium text-gray-700 mb-1">Key Speech Patterns</h4>
-                          <ul className="text-sm text-gray-600 list-disc pl-5 space-y-1">
-                            {personalityAnalysis.speechPatterns.map((pattern, idx) => (
-                              <li key={idx}>{pattern}</li>
-                            ))}
-                          </ul>
-                        </div>
-                        
-                        <div className="pt-2">
-                          <h4 className="text-xs font-medium text-gray-700 mb-1">Vocabulary Style</h4>
-                          <p className="text-sm text-gray-600">{personalityAnalysis.vocabularyStyle}</p>
-                        </div>
-                        
-                        <div className="pt-2">
-                          <h4 className="text-xs font-medium text-gray-700 mb-1">Emotional Tone</h4>
-                          <p className="text-sm text-gray-600">{personalityAnalysis.emotionalTone}</p>
-                        </div>
-                        
-                        <details className="pt-2">
-                          <summary className="text-xs font-medium text-indigo-600 cursor-pointer">
-                            View More Details
-                          </summary>
-                          <div className="mt-2 space-y-3 pl-2 border-l-2 border-gray-100">
-                            <div>
-                              <h4 className="text-xs font-medium text-gray-700 mb-1">Sentence Structure</h4>
-                              <p className="text-sm text-gray-600">{personalityAnalysis.sentenceStructure}</p>
-                            </div>
-                            
-                            {personalityAnalysis.uniqueMannerisms && (
-                              <div>
-                                <h4 className="text-xs font-medium text-gray-700 mb-1">Unique Mannerisms</h4>
-                                <p className="text-sm text-gray-600">{personalityAnalysis.uniqueMannerisms}</p>
-                              </div>
-                            )}
+
+                    <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                      <div className="p-4 bg-indigo-50 border-b border-indigo-100">
+                        <div className="flex items-start">
+                          <UserCircle className="h-8 w-8 text-indigo-600 mr-3 mt-1" />
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-800">
+                              {personalityAnalysis.dominantTrait
+                                .charAt(0)
+                                .toUpperCase() +
+                                personalityAnalysis.dominantTrait.slice(1)}{" "}
+                              Style
+                              {personalityAnalysis.confidence > 0 &&
+                                ` (${Math.round(
+                                  personalityAnalysis.confidence * 100
+                                )}% confidence)`}
+                            </h3>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {personalityAnalysis.briefDescription}
+                            </p>
                           </div>
-                        </details>
+                        </div>
+                      </div>
+
+                      <div className="p-4">
+                        <div className="space-y-3">
+                          <div>
+                            <h4 className="text-xs font-medium text-gray-700 mb-1">
+                              Key Speech Patterns
+                            </h4>
+                            <ul className="text-sm text-gray-600 list-disc pl-5 space-y-1">
+                              {personalityAnalysis.speechPatterns.map(
+                                (pattern, idx) => (
+                                  <li key={idx}>{pattern}</li>
+                                )
+                              )}
+                            </ul>
+                          </div>
+
+                          <div className="pt-2">
+                            <h4 className="text-xs font-medium text-gray-700 mb-1">
+                              Vocabulary Style
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              {personalityAnalysis.vocabularyStyle}
+                            </p>
+                          </div>
+
+                          <div className="pt-2">
+                            <h4 className="text-xs font-medium text-gray-700 mb-1">
+                              Emotional Tone
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              {personalityAnalysis.emotionalTone}
+                            </p>
+                          </div>
+
+                          <details className="pt-2">
+                            <summary className="text-xs font-medium text-indigo-600 cursor-pointer">
+                              View More Details
+                            </summary>
+                            <div className="mt-2 space-y-3 pl-2 border-l-2 border-gray-100">
+                              <div>
+                                <h4 className="text-xs font-medium text-gray-700 mb-1">
+                                  Sentence Structure
+                                </h4>
+                                <p className="text-sm text-gray-600">
+                                  {personalityAnalysis.sentenceStructure}
+                                </p>
+                              </div>
+
+                              {personalityAnalysis.uniqueMannerisms && (
+                                <div>
+                                  <h4 className="text-xs font-medium text-gray-700 mb-1">
+                                    Unique Mannerisms
+                                  </h4>
+                                  <p className="text-sm text-gray-600">
+                                    {personalityAnalysis.uniqueMannerisms}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </details>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Apply button */}
-                  <button
-                    onClick={() => {
-                      // Apply the analysis by updating the custom prompt
-                      if (personalityAnalysis.mimicryInstructions) {
-                        setCustomPersonalityPrompt(personalityAnalysis.mimicryInstructions);
-                        // Switch to manual editing mode after applying
-                        setCustomPersonalityStep("write-instructions");
-                        
-                        // Also update parent component
-                        onPersonalityChange(
-                          selectedPersonality,
-                          true,
-                          personalityAnalysis.mimicryInstructions,
-                          personalityAnalysis,
-                          personalityUrl,
-                          personalityText
-                        );
+
+                    {/* Apply button */}
+                    <button
+                      onClick={() => {
+                        // Apply the analysis by updating the custom prompt
+                        if (personalityAnalysis.mimicryInstructions) {
+                          setCustomPersonalityPrompt(
+                            personalityAnalysis.mimicryInstructions
+                          );
+                          // Switch to manual editing mode after applying
+                          setCustomPersonalityStep("write-instructions");
+
+                          // Also update parent component
+                          onPersonalityChange(
+                            selectedPersonality,
+                            true,
+                            personalityAnalysis.mimicryInstructions,
+                            personalityAnalysis,
+                            personalityUrl,
+                            personalityText
+                          );
+                        }
+                      }}
+                      disabled={!personalityAnalysis.mimicryInstructions}
+                      className="w-full bg-green-600 text-white px-4 py-3 rounded-md text-sm font-medium hover:bg-green-700 transition-colors"
+                    >
+                      Apply This Personality
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        setCustomPersonalityStep("analyze-content")
                       }
-                    }}
-                    disabled={!personalityAnalysis.mimicryInstructions}
-                    className="w-full bg-green-600 text-white px-4 py-3 rounded-md text-sm font-medium hover:bg-green-700 transition-colors"
-                  >
-                    Apply This Personality
-                  </button>
-                  
-                  <button
-                    onClick={() => setCustomPersonalityStep("analyze-content")}
-                    className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-200 transition-colors"
-                  >
-                    Try with Different Content
-                  </button>
-                </div>
-              )}
+                      className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-200 transition-colors"
+                    >
+                      Try with Different Content
+                    </button>
+                  </div>
+                )}
             </div>
           )}
         </div>

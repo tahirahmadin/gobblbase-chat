@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { ArrowLeft } from "lucide-react";
+import React, { useState } from "react";
 import Booking from "./Booking";
 import BookingDashboard from "./BookingDashboard";
-import { useBotConfig } from "../../store/useBotConfig";
+import { useBotConfig } from "../../../store/useBotConfig";
 
 interface BookingIntegrationProps {
   /** Called to close the integration view */
@@ -15,36 +14,36 @@ interface BookingIntegrationProps {
 
 const BookingIntegration: React.FC<BookingIntegrationProps> = ({
   onSetupComplete,
-  initialView = 'dashboard',
+  initialView = "dashboard",
   isEditMode,
   agentId: propAgentId, // Accept the explicit agentId prop
 }) => {
   const { activeBotId, activeBotData } = useBotConfig();
-  
+
   // Use explicitly passed agentId if available, otherwise fall back to store values
   const activeAgentId = propAgentId || activeBotId || activeBotData?.agentId;
-  
+
   const [view, setView] = useState<"setup" | "dashboard">(initialView);
 
   const handleLocalSetupComplete = () => onSetupComplete();
-  
+
   const handleEditSettings = () => {
-    setView('setup');
+    setView("setup");
   };
-  
+
   return (
     <div>
-      {/* Display current agentId for debugging (can be removed in production) */}      
-      {view === 'setup' ? (
+      {/* Display current agentId for debugging (can be removed in production) */}
+      {view === "setup" ? (
         <Booking
-          key={`${activeAgentId}-${isEditMode ? 'edit' : 'new'}`} // Include agentId in key to force re-render
+          key={`${activeAgentId}-${isEditMode ? "edit" : "new"}`} // Include agentId in key to force re-render
           onSetupComplete={handleLocalSetupComplete}
           isEditMode={isEditMode}
           agentId={activeAgentId} // Pass agentId explicitly
         />
       ) : (
-        <BookingDashboard 
-          onEditSettings={handleEditSettings} 
+        <BookingDashboard
+          onEditSettings={handleEditSettings}
           agentId={activeAgentId} // Pass agentId explicitly
         />
       )}

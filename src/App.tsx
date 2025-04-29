@@ -5,25 +5,26 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import Header from "./components/Header";
-import Tabs from "./components/Tabs";
-import FileUpload from "./components/FileUpload";
-import Activity from "./components/Activity";
-import Integration from "./components/Integration";
-import Playground from "./components/Playground";
-import AgentsList from "./components/AgentsList";
-import PublicChat from "./components/PublicChat";
-import CustomerBooking from "./components/booking/CustomerBooking";
-import Services from "./components/Services";
+import Header from "./pages/chatbot/Header";
+import Tabs from "./pages/admin/Tabs";
+import FileUpload from "./pages/admin/FileUpload";
+import Activity from "./pages/admin/Activity";
+import Integration from "./pages/admin/Integration";
+import Playground from "./pages/admin/Playground";
+import AgentsList from "./pages/admin/AgentsList";
+import PublicChat from "./pages/chatbot/PublicChat";
+import CustomerBooking from "./components/adminComponents/bookingComponents/CustomerBooking";
 import { useUserStore } from "./store/useUserStore";
 import { ArrowLeft, Bot } from "lucide-react";
-import SettingsPage from "./components/Settings";
+import SettingsPage from "./pages/admin/Settings";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { Toaster } from "react-hot-toast";
-import Products from "./components/Products";
+import Products from "./pages/admin/Products";
 import { useBotConfig } from "./store/useBotConfig";
-import BookingTab from "./components/BookingTab";
-import Integrations from "./components/Integrations";
+import BookingTab from "./pages/chatbot/BookingTab";
+import Integrations from "./pages/admin/Integrations";
+import Leads from "./pages/admin/Leads";
+import Directory from "./pages/admin/Directory";
 
 // Add type definition for window
 declare global {
@@ -196,11 +197,12 @@ function Dashboard() {
             {activeTab === "playground" && <Playground agentId={activeBotId} />}
             {activeTab === "activity" && <Activity />}
             {activeTab === "booking" && <BookingTab />}
-            {activeTab === "integration" && <Integration />}
-            {activeTab === "services" && <Services />}
+            {activeTab === "publish" && <Integration />}
             {activeTab === "settings" && <SettingsPage />}
             {activeTab === "products" && <Products />}
             {activeTab === "integrations" && <Integrations />}
+            {activeTab === "leads" && <Leads />}
+            {activeTab === "directory" && <Directory />}
           </div>
         </div>
       </div>

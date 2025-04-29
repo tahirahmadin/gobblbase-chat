@@ -1,29 +1,30 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { ChatMessage } from "../types";
-import { queryDocument, signUpUser } from "../lib/serverActions";
+import { ChatMessage } from "../../types";
+import { queryDocument } from "../../lib/serverActions";
 import OpenAI from "openai";
 import ReactMarkdown from "react-markdown";
 import {
   Send,
   MessageSquare,
-  Calendar,
   Search,
   MenuIcon,
   ShoppingCart,
   ArrowLeft,
+  ClipboardList,
 } from "lucide-react";
-import { useBotConfig } from "../store/useBotConfig";
-import { PERSONALITY_TYPES } from "./PersonalityAnalyzer";
-import CustomerBookingWrapper from "./CustomerBookingWrapper";
-import Browse from "./BrowseComponent/Browse";
-import { useCartStore } from "../store/useCartStore";
-import Drawer from "./BrowseComponent/Drawer";
+import { useBotConfig } from "../../store/useBotConfig";
+import { PERSONALITY_TYPES } from "../admin/PersonalityAnalyzer";
+import CustomerBookingWrapper from "../../components/CustomerBookingWrapper";
+import Browse from "../../components/chatbotComponents/BrowseComponent/Browse";
+import { useCartStore } from "../../store/useCartStore";
+import Drawer from "../../components/chatbotComponents/BrowseComponent/Drawer";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
-import { useUserStore } from "../store/useUserStore";
+import { useUserStore } from "../../store/useUserStore";
 import { toast } from "react-hot-toast";
 import StreamingText from "./StreamingText";
 import LoadingPhrases from "./LoadingPhrases";
+import QueryCollection from "./LoadingPhrases";
 
 interface PersonalityAnalysis {
   dominantTrait: string;
@@ -220,8 +221,10 @@ export default function PublicChat({
     return "";
   };
 
-  const handleSendMessage = async (inputMessage?: string) => {
-    let msgToSend = inputMessage ? inputMessage : message;
+  const handleSendMessage = async (
+    inputMessage?: string | React.MouseEvent<HTMLButtonElement>
+  ) => {
+    let msgToSend = typeof inputMessage === "string" ? inputMessage : message;
 
     if (!msgToSend.trim() || !config?.agentId) return;
 
@@ -381,6 +384,8 @@ export default function PublicChat({
   useEffect(() => {
     scrollToBottom();
   }, []);
+
+  const [showLeadForm, setShowLeadForm] = useState(false);
 
   if (currentIsLoading) {
     return (
@@ -556,97 +561,118 @@ export default function PublicChat({
           paddingBottom: "150px",
         }}
       >
-        {activeScreen === "chat" &&
-          messages.map((msg) =>
-            msg.type === "booking" ? (
-              <div key={msg.id} className="w-full">
-                <CustomerBookingWrapper
-                  businessId={config?.agentId}
-                  serviceName={currentConfig?.name || "Consultation"}
-                  onRedirectToAdmin={handleRedirectToAdmin}
-                />
-              </div>
-            ) : (
-              <div
-                key={msg.id}
-                className={`mb-2 flex ${
-                  msg.sender === "agent" ? "justify-start" : "justify-end"
-                }`}
-              >
+        {activeScreen === "chat" && !showLeadForm && (
+          <>
+            {messages.map((msg) =>
+              msg.type === "booking" ? (
+                <div key={msg.id} className="w-full">
+                  <CustomerBookingWrapper
+                    businessId={config?.agentId}
+                    serviceName={currentConfig?.name || "Consultation"}
+                    onRedirectToAdmin={handleRedirectToAdmin}
+                  />
+                </div>
+              ) : (
                 <div
-                  className="max-w-[90%] rounded-lg p-2"
-                  style={{
-                    backgroundColor:
-                      msg.sender === "agent"
-                        ? theme.bubbleAgentBgColor
-                        : theme.bubbleUserBgColor,
-                    color:
-                      msg.sender === "agent"
-                        ? theme.bubbleAgentTextColor
-                        : theme.bubbleUserTextColor,
-                  }}
+                  key={msg.id}
+                  className={`mb-2 flex ${
+                    msg.sender === "agent" ? "justify-start" : "justify-end"
+                  }`}
                 >
-                  <div className="flex items-start space-x-2">
-                    {msg.sender === "agent" && currentConfig?.logo && (
-                      <img
-                        src={currentConfig.logo}
-                        alt="Bot Logo"
-                        className="w-6 h-6 rounded-full object-cover"
-                      />
-                    )}
+                  <div
+                    className="max-w-[90%] rounded-lg p-2"
+                    style={{
+                      backgroundColor:
+                        msg.sender === "agent"
+                          ? theme.bubbleAgentBgColor
+                          : theme.bubbleUserBgColor,
+                      color:
+                        msg.sender === "agent"
+                          ? theme.bubbleAgentTextColor
+                          : theme.bubbleUserTextColor,
+                    }}
+                  >
+                    <div className="flex items-start space-x-2">
+                      {msg.sender === "agent" && currentConfig?.logo && (
+                        <img
+                          src={currentConfig.logo}
+                          alt="Bot Logo"
+                          className="w-6 h-6 rounded-full object-cover"
+                        />
+                      )}
+                      <div
+                        className="prose prose-sm max-w-none [&>*]:text-inherit prose-headings:text-inherit prose-ul:text-inherit prose-li:text-inherit prose-li:marker:text-inherit prose-strong:text-inherit"
+                        style={{
+                          color:
+                            msg.sender === "agent"
+                              ? theme.bubbleAgentTextColor
+                              : theme.bubbleUserTextColor,
+                        }}
+                      >
+                        {msg.sender === "agent" ? (
+                          <StreamingText
+                            text={msg.content}
+                            speed={15}
+                            messageId={msg.id}
+                          />
+                        ) : (
+                          <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        )}
+                      </div>
+                    </div>
                     <div
-                      className="prose prose-sm max-w-none [&>*]:text-inherit prose-headings:text-inherit prose-ul:text-inherit prose-li:text-inherit prose-li:marker:text-inherit prose-strong:text-inherit"
+                      className="mt-1 text-xs text-left"
                       style={{
                         color:
                           msg.sender === "agent"
-                            ? theme.bubbleAgentTextColor
-                            : theme.bubbleUserTextColor,
+                            ? theme.bubbleAgentTimeTextColor
+                            : theme.bubbleUserTimeTextColor,
                       }}
                     >
-                      {msg.sender === "agent" ? (
-                        <StreamingText
-                          text={msg.content}
-                          speed={15}
-                          messageId={msg.id}
-                        />
-                      ) : (
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
-                      )}
+                      {msg.timestamp.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </div>
                   </div>
-                  <div
-                    className="mt-1 text-xs text-left"
-                    style={{
-                      color:
-                        msg.sender === "agent"
-                          ? theme.bubbleAgentTimeTextColor
-                          : theme.bubbleUserTimeTextColor,
-                    }}
-                  >
-                    {msg.timestamp.toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                </div>
+              )
+            )}
+
+            {isLoading && (
+              <div className="mb-4 flex justify-start px-2">
+                <div className="flex items-start space-x-2">
+                  {currentConfig?.logo && (
+                    <img
+                      src={currentConfig.logo}
+                      alt="Bot Logo"
+                      className="w-6 h-6 rounded-full object-cover opacity-70"
+                    />
+                  )}
+                  <div className="mt-1">
+                    <LoadingPhrases textColor="#9ca3af" />
                   </div>
                 </div>
               </div>
-            )
-          )}
+            )}
+          </>
+        )}
 
-        {isLoading && (
-          <div className="mb-4 flex justify-start px-2">
-            <div className="flex items-start space-x-2">
-              {currentConfig?.logo && (
-                <img
-                  src={currentConfig.logo}
-                  alt="Bot Logo"
-                  className="w-6 h-6 rounded-full object-cover opacity-70"
-                />
-              )}
-              <div className="mt-1">
-                <LoadingPhrases textColor="#9ca3af" />
-              </div>
+        {activeScreen === "chat" && showLeadForm && (
+          <div className="p-4">
+            <div className="flex items-center mb-4">
+              <button
+                onClick={() => setShowLeadForm(false)}
+                className="flex items-center text-gray-500 hover:text-gray-700 mr-4"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Chat
+              </button>
             </div>
+            <QueryCollection
+              agentId={config?.agentId || ""}
+              onClose={() => setShowLeadForm(false)}
+            />
           </div>
         )}
 
@@ -681,7 +707,7 @@ export default function PublicChat({
       </div>
 
       {/* cues */}
-      {showCues && activeScreen === "chat" && (
+      {showCues && activeScreen === "chat" && !showLeadForm && (
         <div
           className="p-2 grid grid-cols-1 gap-1"
           style={{ backgroundColor: theme.inputCardColor }}
@@ -708,7 +734,7 @@ export default function PublicChat({
       )}
 
       {/* input */}
-      {activeScreen === "chat" && (
+      {activeScreen === "chat" && !showLeadForm && (
         <div className="p-2" style={{ backgroundColor: theme.inputCardColor }}>
           <div className="relative flex items-center">
             <input
@@ -740,6 +766,20 @@ export default function PublicChat({
             </button>
           </div>
         </div>
+      )}
+
+      {/* Lead Form Button */}
+      {activeScreen === "chat" && !showLeadForm && (
+        <button
+          onClick={() => setShowLeadForm(true)}
+          className="absolute bottom-24 right-4 p-3 rounded-full shadow-lg"
+          style={{
+            backgroundColor: theme.headerTextColor,
+            color: theme.headerColor,
+          }}
+        >
+          <ClipboardList className="h-6 w-6" />
+        </button>
       )}
 
       {/* Drawer component */}

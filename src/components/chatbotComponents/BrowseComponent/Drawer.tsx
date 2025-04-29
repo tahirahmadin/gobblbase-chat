@@ -1,6 +1,6 @@
 import React from "react";
-import { X, User, Calendar, ShoppingBag, LogOut } from "lucide-react";
-import { useUserStore } from "../../store/useUserStore";
+import { X, User, LogOut } from "lucide-react";
+import { useUserStore } from "../../../store/useUserStore";
 
 interface DrawerProps {
   isOpen: boolean;

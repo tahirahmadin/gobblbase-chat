@@ -9,11 +9,8 @@ import {
   Linkedin,
   Facebook,
   MessageSquare,
-  Clock,
-  Calendar,
 } from "lucide-react";
-import { useBeforeUnload } from "react-router-dom";
-import { useBotConfig } from "../store/useBotConfig";
+import { useBotConfig } from "../../store/useBotConfig";
 
 export default function Integration() {
   const { activeBotData } = useBotConfig();

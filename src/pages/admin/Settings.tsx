@@ -9,8 +9,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { uploadProfilePicture } from "../lib/serverActions";
-import { useBotConfig } from "../store/useBotConfig";
+import { useBotConfig } from "../../store/useBotConfig";
 
 interface Plan {
   name: string;
@@ -172,9 +171,9 @@ const SettingsPage: React.FC = () => {
         );
       case "services":
         return (
-          <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-4 space-y-6">
             {/* Username Section */}
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="col-span-1  bg-white rounded-lg border border-gray-200 ">
               <div className="p-6">
                 <div className="flex items-center space-x-3 mb-4">
                   <User className="h-6 w-6 text-gray-900" />
@@ -184,7 +183,7 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <p className="text-gray-600 mb-6">
                   Choose a unique handle for your bot. This will be used in your
-                  bot's URL: KiFor.ai/#chat/
+                  bot's URL: KiFor.ai/
                   <span className="font-mono text-gray-900">
                     {agentUsername || "your-handle"}
                   </span>
@@ -239,7 +238,7 @@ const SettingsPage: React.FC = () => {
             </div>
 
             {/* Profile Picture Section */}
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="col-span-1 bg-white rounded-lg border border-gray-200 h-full">
               <div className="p-6">
                 <div className="flex items-center space-x-3 mb-4">
                   <Bot className="h-6 w-6 text-gray-900" />

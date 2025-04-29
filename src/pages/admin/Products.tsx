@@ -19,9 +19,9 @@ import {
   updateProductImage,
   updateStripeAccountIdCurrency,
   getTransactions,
-} from "../lib/serverActions";
+} from "../../lib/serverActions";
 import { toast } from "react-hot-toast";
-import { useBotConfig } from "../store/useBotConfig";
+import { useBotConfig } from "../../store/useBotConfig";
 
 interface Product {
   _id?: string;

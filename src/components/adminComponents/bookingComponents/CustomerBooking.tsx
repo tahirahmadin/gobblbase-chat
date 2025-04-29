@@ -18,14 +18,18 @@ import {
   AlertCircle,
   ChevronDown,
 } from "lucide-react";
-import { getAvailableSlots, bookAppointment, getAppointmentSettings } from "../../lib/serverActions";
-import { 
-  COUNTRY_CODES, 
-  detectCountryCode, 
-  formatPhoneNumber, 
+import {
+  getAvailableSlots,
+  bookAppointment,
+  getAppointmentSettings,
+} from "../../../lib/serverActions";
+import {
+  COUNTRY_CODES,
+  detectCountryCode,
+  formatPhoneNumber,
   validatePhone,
-  createInternationalPhone
-} from "../../utils/phoneUtils";
+  createInternationalPhone,
+} from "../../../utils/phoneUtils";
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -68,14 +72,18 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
 }) => {
   const { agentId } = useParams<{ agentId: string }>();
   const businessId = propId || agentId || "";
-  const [step, setStep] = useState<"date" | "time" | "details" | "confirmation">("date");
+  const [step, setStep] = useState<
+    "date" | "time" | "details" | "confirmation"
+  >("date");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [now, setNow] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
-  const [selectedLocation, setSelectedLocation] = useState<"google_meet" | "in_person">("google_meet");
+  const [selectedLocation, setSelectedLocation] = useState<
+    "google_meet" | "in_person"
+  >("google_meet");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -88,7 +96,9 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
   const phoneInputRef = useRef<HTMLInputElement>(null);
   const [settings, setSettings] = useState<AppointmentSettings | null>(null);
   const [loadingSettings, setLoadingSettings] = useState(true);
-  const [unavailableDates, setUnavailableDates] = useState<Record<string, UnavailableDate>>({});
+  const [unavailableDates, setUnavailableDates] = useState<
+    Record<string, UnavailableDate>
+  >({});
   const [userTimezone, setUserTimezone] = useState<string>(
     Intl.DateTimeFormat().resolvedOptions().timeZone
   );
@@ -118,14 +128,14 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
         setSelectedCountryCode(detectedCode);
       }
     }
-    
+
     if (rawValue.length < phone.length) {
       setPhone(rawValue);
       return;
     }
     const formattedValue = formatPhoneNumber(rawValue, selectedCountryCode);
     setPhone(formattedValue);
-    
+
     const validation = validatePhone(formattedValue, selectedCountryCode);
     setPhoneError(validation.errorMessage);
   };
@@ -133,13 +143,13 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
   const selectCountryCode = (code: string) => {
     setSelectedCountryCode(code);
     setShowCountryCodes(false);
-    
+
     if (phone) {
-      const digitsOnly = phone.replace(/\D/g, '');
+      const digitsOnly = phone.replace(/\D/g, "");
       const reformatted = formatPhoneNumber(digitsOnly, code);
       setPhone(reformatted);
     }
-    
+
     if (phoneInputRef.current) {
       phoneInputRef.current.focus();
     }
@@ -154,33 +164,34 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     if (showCountryCodes) {
       const handleOutsideClick = (e: MouseEvent) => {
         const target = e.target as HTMLElement;
-        if (!target.closest('.country-code-dropdown')) {
+        if (!target.closest(".country-code-dropdown")) {
           setShowCountryCodes(false);
         }
       };
-      
-      document.addEventListener('mousedown', handleOutsideClick);
-      return () => document.removeEventListener('mousedown', handleOutsideClick);
+
+      document.addEventListener("mousedown", handleOutsideClick);
+      return () =>
+        document.removeEventListener("mousedown", handleOutsideClick);
     }
   }, [showCountryCodes]);
 
   useEffect(() => {
     const loadSettings = async () => {
       if (!businessId) return;
-      
+
       setLoadingSettings(true);
       try {
         const data = await getAppointmentSettings(businessId);
         console.log("Loaded settings:", data);
         setSettings(data);
-        
+
         if (data.timezone) {
           setBusinessTimezone(data.timezone);
         }
-        
+
         const unavailableLookup: Record<string, UnavailableDate> = {};
         if (data.unavailableDates && Array.isArray(data.unavailableDates)) {
-          data.unavailableDates.forEach(date => {
+          data.unavailableDates.forEach((date) => {
             unavailableLookup[date.date] = date;
           });
         }
@@ -191,41 +202,45 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
         setLoadingSettings(false);
       }
     };
-    
+
     loadSettings();
   }, [businessId]);
 
   const convertTimeToBusinessTZ = (time: string, date: Date): string => {
-    const [hours, minutes] = time.split(':').map(Number);
+    const [hours, minutes] = time.split(":").map(Number);
     const userDate = new Date(date);
     userDate.setHours(hours, minutes, 0, 0);
-    const options: Intl.DateTimeFormatOptions = { 
-      hour: 'numeric', 
-      minute: 'numeric', 
+    const options: Intl.DateTimeFormatOptions = {
+      hour: "numeric",
+      minute: "numeric",
       hour12: false,
-      timeZone: businessTimezone 
+      timeZone: businessTimezone,
     };
-    
-    const businessTime = new Intl.DateTimeFormat('en-US', options).format(userDate);
-    return businessTime.replace(/\s/g, '').padStart(5, '0');
+
+    const businessTime = new Intl.DateTimeFormat("en-US", options).format(
+      userDate
+    );
+    return businessTime.replace(/\s/g, "").padStart(5, "0");
   };
 
   const convertTimeToUserTZ = (time: string, date: Date): string => {
-    const [hours, minutes] = time.split(':').map(Number);
+    const [hours, minutes] = time.split(":").map(Number);
     const businessDate = new Date(date);
-    const dateStr = businessDate.toISOString().split('T')[0];
-    const timeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+    const dateStr = businessDate.toISOString().split("T")[0];
+    const timeStr = `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}:00`;
     const dateTimeStr = `${dateStr}T${timeStr}`;
     const tzDate = new Date(dateTimeStr);
-    const options: Intl.DateTimeFormatOptions = { 
-      hour: 'numeric', 
-      minute: 'numeric', 
+    const options: Intl.DateTimeFormatOptions = {
+      hour: "numeric",
+      minute: "numeric",
       hour12: false,
-      timeZone: userTimezone 
+      timeZone: userTimezone,
     };
-    
-    const userTime = new Intl.DateTimeFormat('en-US', options).format(tzDate);
-    return userTime.replace(/\s/g, '').padStart(5, '0');
+
+    const userTime = new Intl.DateTimeFormat("en-US", options).format(tzDate);
+    return userTime.replace(/\s/g, "").padStart(5, "0");
   };
 
   const formatTimezone = (tz: string): string => {
@@ -233,12 +248,13 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
       const date = new Date();
       const options: Intl.DateTimeFormatOptions = {
         timeZone: tz,
-        timeZoneName: 'short'
+        timeZoneName: "short",
       };
-      const tzName = new Intl.DateTimeFormat('en-US', options)
-        .formatToParts(date)
-        .find(part => part.type === 'timeZoneName')?.value || tz;
-      
+      const tzName =
+        new Intl.DateTimeFormat("en-US", options)
+          .formatToParts(date)
+          .find((part) => part.type === "timeZoneName")?.value || tz;
+
       return tzName;
     } catch (e) {
       return tz;
@@ -247,26 +263,28 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
 
   const getTimezoneDifference = (): string => {
     if (businessTimezone === userTimezone) return "same timezone";
-    
+
     const now = new Date();
     const userOffset = -now.getTimezoneOffset();
-    const businessDate = new Date(now.toLocaleString('en-US', { timeZone: businessTimezone }));
-    const businessOffset = businessDate.getTimezoneOffset() + 
+    const businessDate = new Date(
+      now.toLocaleString("en-US", { timeZone: businessTimezone })
+    );
+    const businessOffset =
+      businessDate.getTimezoneOffset() +
       (now.getTime() - businessDate.getTime()) / 60000;
-    
+
     const diffHours = (userOffset - businessOffset) / 60;
-    
+
     if (diffHours === 0) return "same time";
-    
-    const diffFormatted = Math.abs(diffHours).toFixed(1).replace(/\.0$/, '');
-    return diffHours > 0 
-      ? `${diffFormatted} hour${Math.abs(diffHours) !== 1 ? 's' : ''} ahead` 
-      : `${diffFormatted} hour${Math.abs(diffHours) !== 1 ? 's' : ''} behind`;
+
+    const diffFormatted = Math.abs(diffHours).toFixed(1).replace(/\.0$/, "");
+    return diffHours > 0
+      ? `${diffFormatted} hour${Math.abs(diffHours) !== 1 ? "s" : ""} ahead`
+      : `${diffFormatted} hour${Math.abs(diffHours) !== 1 ? "s" : ""} behind`;
   };
 
   const daysInMonth = (y: number, m: number) => new Date(y, m + 1, 0).getDate();
   const firstWeekday = (y: number, m: number) => new Date(y, m, 1).getDay();
-  const isWeekend = (d: Date) => [0, 6].includes(d.getDay());
 
   const isBeforeToday = (d: Date) => {
     const check = new Date(d);
@@ -277,11 +295,26 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
   };
 
   const fmtMonthYear = (d: Date) =>
-    new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(d);
+    new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(
+      d
+    );
 
   const fmtApiDate = (d: Date) => {
     const day = d.getDate().toString().padStart(2, "0");
-    const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+    const monthNames = [
+      "JAN",
+      "FEB",
+      "MAR",
+      "APR",
+      "MAY",
+      "JUN",
+      "JUL",
+      "AUG",
+      "SEP",
+      "OCT",
+      "NOV",
+      "DEC",
+    ];
     const month = monthNames[d.getMonth()];
     const year = d.getFullYear();
     return `${day}-${month}-${year}`;
@@ -304,34 +337,36 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
 
   const isDateFullyUnavailable = (date: Date): boolean => {
     if (isBeforeToday(date)) return true;
-    
+
     if (!settings) return false;
-    
+
     const apiDate = fmtApiDate(date);
     const unavailableDate = unavailableDates[apiDate];
-    
+
     if (unavailableDate && unavailableDate.allDay === true) {
       return true;
     }
-    
-    const dayName = new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(date);
-    const dayRule = settings.availability.find(rule => rule.day === dayName);
-    
+
+    const dayName = new Intl.DateTimeFormat("en-US", {
+      weekday: "long",
+    }).format(date);
+    const dayRule = settings.availability.find((rule) => rule.day === dayName);
+
     if (dayRule && !dayRule.available) {
       return true;
     }
-    
+
     return false;
-  }
+  };
 
   const hasModifiedHours = (date: Date): boolean => {
     if (!settings) return false;
-    
+
     const apiDate = fmtApiDate(date);
     const unavailableDate = unavailableDates[apiDate];
-    
+
     return unavailableDate && unavailableDate.allDay === false;
-  }
+  };
 
   const generateSlotsFromTimeWindow = (
     startTime: string,
@@ -341,46 +376,52 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     date: Date
   ): Slot[] => {
     const slots: Slot[] = [];
-    
+
     const [startHour, startMinute] = startTime.split(":").map(Number);
     const [endHour, endMinute] = endTime.split(":").map(Number);
-    
+
     const startMins = startHour * 60 + startMinute;
     const endMins = endHour * 60 + endMinute;
     const slotDuration = meetingDuration + bufferTime;
-    for (let slotStart = startMins; slotStart + meetingDuration <= endMins; slotStart += slotDuration) {
+    for (
+      let slotStart = startMins;
+      slotStart + meetingDuration <= endMins;
+      slotStart += slotDuration
+    ) {
       const slotEnd = slotStart + meetingDuration;
-      
+
       const formatTimeString = (mins: number) => {
         const hours = Math.floor(mins / 60);
         const minutes = mins % 60;
-        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        return `${hours.toString().padStart(2, "0")}:${minutes
+          .toString()
+          .padStart(2, "0")}`;
       };
-      
+
       const businessSlotStart = formatTimeString(slotStart);
       const businessSlotEnd = formatTimeString(slotEnd);
-      
+
       const userSlotStart = convertTimeToUserTZ(businessSlotStart, date);
       const userSlotEnd = convertTimeToUserTZ(businessSlotEnd, date);
-      
+
       slots.push({
         startTime: userSlotStart,
         endTime: userSlotEnd,
-        available: true
+        available: true,
       });
     }
-    
+
     return slots;
   };
 
   const generateTimeSlots = (date: Date): Slot[] => {
     if (!settings) return [];
-    
+
     const meetingDuration = settings.meetingDuration || 45;
     const bufferTime = settings.bufferTime || 10;
     const apiDate = fmtApiDate(date);
     const dateEntry = unavailableDates[apiDate];
-  
+
     if (dateEntry && dateEntry.allDay === false) {
       return generateSlotsFromTimeWindow(
         dateEntry.startTime,
@@ -390,14 +431,16 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
         date
       );
     }
-    
-    const dayName = new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(date);
-    const dayRule = settings.availability.find(rule => rule.day === dayName);
-    
+
+    const dayName = new Intl.DateTimeFormat("en-US", {
+      weekday: "long",
+    }).format(date);
+    const dayRule = settings.availability.find((rule) => rule.day === dayName);
+
     if (dayRule && dayRule.available && dayRule.timeSlots.length > 0) {
       let allSlots: Slot[] = [];
-      
-      dayRule.timeSlots.forEach(window => {
+
+      dayRule.timeSlots.forEach((window) => {
         const windowSlots = generateSlotsFromTimeWindow(
           window.startTime,
           window.endTime,
@@ -407,12 +450,18 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
         );
         allSlots = [...allSlots, ...windowSlots];
       });
-      
+
       return allSlots;
     }
-    
-    return generateSlotsFromTimeWindow("09:00", "17:00", meetingDuration, bufferTime, date);
-  }
+
+    return generateSlotsFromTimeWindow(
+      "09:00",
+      "17:00",
+      meetingDuration,
+      bufferTime,
+      date
+    );
+  };
 
   const prevMonth = () =>
     setCurrentMonth((d) => {
@@ -431,40 +480,55 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     setSelectedDate(d);
     setStep("time");
     setLoadingSlots(true);
-    
+
     const apiDate = fmtApiDate(d);
     console.log("Selecting date:", apiDate);
-    
+
     try {
       const dateEntry = unavailableDates[apiDate];
       console.log("Date entry from unavailableDates:", dateEntry);
-      
+
       if (dateEntry && dateEntry.allDay === false) {
-        console.log("Using modified hours:", dateEntry.startTime, "-", dateEntry.endTime);
+        console.log(
+          "Using modified hours:",
+          dateEntry.startTime,
+          "-",
+          dateEntry.endTime
+        );
         const generatedSlots = generateTimeSlots(d);
         console.log("Generated slots from modified hours:", generatedSlots);
         setSlots(generatedSlots);
       } else {
         console.log("Fetching slots from API");
         try {
-          const raw = await getAvailableSlots(businessId, apiDate, userTimezone);
+          const raw = await getAvailableSlots(
+            businessId,
+            apiDate,
+            userTimezone
+          );
           console.log("API returned slots:", raw);
-          
+
           if (raw && raw.length > 0) {
-            const userSlots = raw.map(slot => ({
+            const userSlots = raw.map((slot) => ({
               ...slot,
               startTime: convertTimeToUserTZ(slot.startTime, d),
               endTime: convertTimeToUserTZ(slot.endTime, d),
-              available: true
+              available: true,
             }));
             setSlots(userSlots);
           } else {
             const generatedSlots = generateTimeSlots(d);
-            console.log("API returned empty, using generated slots:", generatedSlots);
+            console.log(
+              "API returned empty, using generated slots:",
+              generatedSlots
+            );
             setSlots(generatedSlots);
           }
         } catch (e) {
-          console.error("Error fetching slots from API, using generated slots:", e);
+          console.error(
+            "Error fetching slots from API, using generated slots:",
+            e
+          );
           const generatedSlots = generateTimeSlots(d);
           console.log("Generated slots due to API error:", generatedSlots);
           setSlots(generatedSlots);
@@ -489,30 +553,38 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     const isEmailValid = validateEmail(email);
     const validation = validatePhone(phone, selectedCountryCode);
     const isPhoneValid = validation.isValid;
-    
+
     if (!isEmailValid || !isPhoneValid) {
       setPhoneError(validation.errorMessage);
       return;
     }
-    
+
     setSubmitting(true);
-    
+
     try {
-      const businessStartTime = convertTimeToBusinessTZ(selectedSlot.startTime, selectedDate);
-      const businessEndTime = convertTimeToBusinessTZ(selectedSlot.endTime, selectedDate);
-      const formattedPhone = phone ? createInternationalPhone(phone, selectedCountryCode) : '';
-      
+      const businessStartTime = convertTimeToBusinessTZ(
+        selectedSlot.startTime,
+        selectedDate
+      );
+      const businessEndTime = convertTimeToBusinessTZ(
+        selectedSlot.endTime,
+        selectedDate
+      );
+      const formattedPhone = phone
+        ? createInternationalPhone(phone, selectedCountryCode)
+        : "";
+
       await bookAppointment({
         agentId: businessId,
         userId: email,
         date: fmtApiDate(selectedDate),
         startTime: businessStartTime,
-        endTime: businessEndTime,    
+        endTime: businessEndTime,
         location: selectedLocation,
         name: name,
         phone: formattedPhone,
         notes: notes,
-        userTimezone: userTimezone,  
+        userTimezone: userTimezone,
       });
       setStep("confirmation");
     } catch (e) {
@@ -522,7 +594,11 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     }
   };
 
-  const layout = (title: string, subtitle: string, content: React.ReactNode) => (
+  const layout = (
+    title: string,
+    subtitle: string,
+    content: React.ReactNode
+  ) => (
     <div className="bg-white rounded-xl shadow-md overflow-hidden max-w-4xl mx-auto">
       <div className="bg-gray-800 text-white p-6">
         <h1 className="text-xl font-semibold">{title}</h1>
@@ -548,11 +624,13 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
         <Globe className="h-5 w-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
         <div>
           <p className="text-sm text-blue-800">
-            Times are displayed in your local timezone: <strong>{formatTimezone(userTimezone)}</strong>
+            Times are displayed in your local timezone:{" "}
+            <strong>{formatTimezone(userTimezone)}</strong>
           </p>
           {businessTimezone !== userTimezone && (
             <p className="text-xs text-blue-600 mt-1">
-              The business is in {formatTimezone(businessTimezone)} ({getTimezoneDifference()})
+              The business is in {formatTimezone(businessTimezone)} (
+              {getTimezoneDifference()})
             </p>
           )}
         </div>
@@ -571,15 +649,21 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
       "Select a date for your appointment",
       <div className="p-6">
         {renderTimezoneInfo()}
-        
+
         <div className="flex items-center justify-between mb-4">
-          <button onClick={prevMonth} className="p-2 rounded-full hover:bg-gray-100">
+          <button
+            onClick={prevMonth}
+            className="p-2 rounded-full hover:bg-gray-100"
+          >
             <ChevronLeft className="h-5 w-5 text-gray-600" />
           </button>
           <h2 className="text-lg font-medium text-gray-800">
             {fmtMonthYear(currentMonth)}
           </h2>
-          <button onClick={nextMonth} className="p-2 rounded-full hover:bg-gray-100">
+          <button
+            onClick={nextMonth}
+            className="p-2 rounded-full hover:bg-gray-100"
+          >
             <ChevronRight className="h-5 w-5 text-gray-600" />
           </button>
         </div>
@@ -600,7 +684,7 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
             const date = new Date(y, m, dn);
             const apiDate = fmtApiDate(date);
             const isUnavailable = isDateFullyUnavailable(date);
-            
+
             return (
               <button
                 key={dn}
@@ -608,9 +692,10 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
                 disabled={isUnavailable}
                 className={`
                   h-12 flex items-center justify-center rounded-lg text-sm relative
-                  ${isUnavailable 
-                    ? "text-gray-300 cursor-not-allowed bg-gray-100" 
-                    : "hover:bg-gray-100 text-gray-800"
+                  ${
+                    isUnavailable
+                      ? "text-gray-300 cursor-not-allowed bg-gray-100"
+                      : "hover:bg-gray-100 text-gray-800"
                   }
                 `}
               >
@@ -635,9 +720,9 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
     });
 
     availableSlots.sort((a, b) => {
-      const [aHour, aMin] = a.startTime.split(':').map(Number);
-      const [bHour, bMin] = b.startTime.split(':').map(Number);
-      return (aHour * 60 + aMin) - (bHour * 60 + bMin);
+      const [aHour, aMin] = a.startTime.split(":").map(Number);
+      const [bHour, bMin] = b.startTime.split(":").map(Number);
+      return aHour * 60 + aMin - (bHour * 60 + bMin);
     });
 
     return layout(
@@ -700,7 +785,8 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
             Appointment Details
           </h3>
           <p className="text-gray-700">
-            {fmtDateFull(selectedDate)} at {fmtTime(selectedSlot.startTime)} - {fmtTime(selectedSlot.endTime)}
+            {fmtDateFull(selectedDate)} at {fmtTime(selectedSlot.startTime)} -{" "}
+            {fmtTime(selectedSlot.endTime)}
           </p>
           <p className="text-sm text-gray-500 mt-1">
             Time shown in your local timezone: {formatTimezone(userTimezone)}
@@ -725,7 +811,7 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
               />
             </div>
           </div>
-          
+
           {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -741,7 +827,9 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
                 onBlur={() => validateEmail(email)}
                 placeholder="you@example.com"
                 className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 ${
-                  emailError ? "border-red-300 focus:ring-red-500" : "focus:ring-gray-500"
+                  emailError
+                    ? "border-red-300 focus:ring-red-500"
+                    : "focus:ring-gray-500"
                 }`}
               />
             </div>
@@ -752,7 +840,7 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
               </div>
             )}
           </div>
-          
+
           {/* Phone */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -769,7 +857,7 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
                   <span>{selectedCountryCode}</span>
                   <ChevronDown className="h-4 w-4 ml-1 text-gray-400" />
                 </button>
-                
+
                 {/* Country code list */}
                 {showCountryCodes && (
                   <div className="absolute z-10 mt-1 bg-white border rounded-lg shadow-lg w-48 max-h-60 overflow-y-auto">
@@ -787,7 +875,7 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
                   </div>
                 )}
               </div>
-              
+
               {/* Phone input */}
               <div className="relative flex-1">
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -798,7 +886,9 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
                   ref={phoneInputRef}
                   placeholder="(555) 123-4567"
                   className={`w-full pl-10 pr-4 py-2 border border-l-0 rounded-r-lg focus:ring-2 ${
-                    phoneError ? "border-red-300 focus:ring-red-500" : "focus:ring-gray-500"
+                    phoneError
+                      ? "border-red-300 focus:ring-red-500"
+                      : "focus:ring-gray-500"
                   }`}
                 />
               </div>
@@ -813,7 +903,7 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
               Optional. Include country code for international numbers.
             </p>
           </div>
-          
+
           {/* Notes */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -829,7 +919,7 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
               />
             </div>
           </div>
-          
+
           {/* Location */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -860,7 +950,7 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
               </button>
             </div>
           </div>
-          
+
           {/* Submit */}
           <button
             type="submit"
@@ -876,7 +966,9 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
                 <Loader2 className="animate-spin h-5 w-5 mr-2" />
                 Booking...
               </span>
-            ) : "Confirm Booking"}
+            ) : (
+              "Confirm Booking"
+            )}
           </button>
         </form>
       </div>
@@ -900,7 +992,9 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
 
         {selectedDate && selectedSlot && (
           <div className="mb-6 p-4 border border-gray-200 rounded-lg">
-            <h3 className="font-medium text-gray-800 mb-3">Appointment Details</h3>
+            <h3 className="font-medium text-gray-800 mb-3">
+              Appointment Details
+            </h3>
             <div className="space-y-2">
               <div className="flex">
                 <Calendar className="h-5 w-5 text-gray-400 mr-2" />
@@ -912,10 +1006,12 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
                 <Clock className="h-5 w-5 text-gray-400 mr-2" />
                 <div>
                   <p className="text-gray-800">
-                    {fmtTime(selectedSlot.startTime)} - {fmtTime(selectedSlot.endTime)}
+                    {fmtTime(selectedSlot.startTime)} -{" "}
+                    {fmtTime(selectedSlot.endTime)}
                   </p>
                   <p className="text-xs text-gray-500">
-                    Time shown in your local timezone: {formatTimezone(userTimezone)}
+                    Time shown in your local timezone:{" "}
+                    {formatTimezone(userTimezone)}
                   </p>
                 </div>
               </div>
@@ -926,8 +1022,8 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
                   <MapPin className="h-5 w-5 text-gray-400 mr-2" />
                 )}
                 <p className="text-gray-800">
-                  {selectedLocation === "google_meet" 
-                    ? "Google Meet (link will be sent by email)" 
+                  {selectedLocation === "google_meet"
+                    ? "Google Meet (link will be sent by email)"
                     : "In-person"}
                 </p>
               </div>
@@ -940,13 +1036,15 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
               {phone && (
                 <div className="flex">
                   <Phone className="h-5 w-5 text-gray-400 mr-2" />
-                  <p className="text-gray-800">{createInternationalPhone(phone, selectedCountryCode)}</p>
+                  <p className="text-gray-800">
+                    {createInternationalPhone(phone, selectedCountryCode)}
+                  </p>
                 </div>
               )}
             </div>
           </div>
         )}
-        
+
         <button
           onClick={() => window.location.reload()}
           className="text-gray-600 hover:text-gray-800 font-medium"

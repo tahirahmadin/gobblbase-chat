@@ -78,6 +78,11 @@ interface Transaction {
   productName: string;
 }
 
+interface DirectoryLink {
+  label: string;
+  url: string;
+}
+
 export async function extractContentFromURL(
   url: string
 ): Promise<ExtractContentResponse> {
@@ -782,4 +787,20 @@ export interface AdminUser {
   role: "user" | "admin";
   createdAt: string;
   lastLogin: string;
+}
+
+export async function updateSocialHandles(
+  agentId: string,
+  socials: Record<string, string>
+) {
+  try {
+    await axios.post("https://rag.gobbl.ai/client/updateSocialHandles", {
+      agentId,
+      socials,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error updating social handles:", error);
+    throw new Error("Failed to update social handles");
+  }
 }

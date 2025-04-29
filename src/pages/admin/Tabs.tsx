@@ -4,10 +4,11 @@ import {
   Code2,
   Settings,
   ShoppingBag,
-  Wrench,
   Calendar,
   Link,
   Puzzle,
+  ClipboardList,
+  List,
 } from "lucide-react";
 
 export interface TabsProps {
@@ -33,29 +34,34 @@ const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab }) => {
       icon: <Calendar className="h-5 w-5" />,
     },
     {
+      id: "leads",
+      name: "Leads",
+      icon: <ClipboardList className="h-5 w-5" />,
+    },
+    {
       id: "products",
       name: "Products",
       icon: <ShoppingBag className="h-5 w-5" />,
     },
     {
-      id: "integration",
-      name: "Embedded",
-      icon: <Link className="h-5 w-5" />,
+      id: "directory",
+      name: "Directory",
+      icon: <List className="h-5 w-5" />,
     },
     {
       id: "integrations",
       name: "Integrations",
       icon: <Puzzle className="h-5 w-5" />,
     },
-    // {
-    //   id: "services",
-    //   name: "Services",
-    //   icon: <ShoppingBag className="h-5 w-5" />,
-    // },
     {
       id: "settings",
       name: "Settings",
       icon: <Settings className="h-5 w-5" />,
+    },
+    {
+      id: "publish",
+      name: "Publish",
+      icon: <Link className="h-5 w-5" />,
     },
   ];
 

@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from "react";
-import {
-  CalendarIcon,
-  ArrowLeft,
-  CheckCircle2
-} from "lucide-react";
-import { getAppointmentSettings } from "../lib/serverActions";
-import { useBotConfig } from "../store/useBotConfig";
-import BookingIntegration from "./booking/BookingIntegration";
+import { CalendarIcon, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { getAppointmentSettings } from "../../lib/serverActions";
+import { useBotConfig } from "../../store/useBotConfig";
+import BookingIntegration from "./../../components/adminComponents/bookingComponents/BookingIntegration";
 
 const BookingTab: React.FC = () => {
   const { activeBotId, activeBotData } = useBotConfig();
@@ -14,7 +10,9 @@ const BookingTab: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [showBookingIntegration, setShowBookingIntegration] = useState(false);
-  const [bookingMode, setBookingMode] = useState<"setup" | "dashboard">("dashboard");
+  const [bookingMode, setBookingMode] = useState<"setup" | "dashboard">(
+    "dashboard"
+  );
   const [bookingConfigured, setBookingConfigured] = useState(false);
   const [currentAgentId, setCurrentAgentId] = useState<string | null>(null);
 
@@ -91,7 +89,8 @@ const BookingTab: React.FC = () => {
             </h2>
           </div>
           <p className="mt-2 text-gray-600">
-            Set up your own appointment booking system with customizable time slots
+            Set up your own appointment booking system with customizable time
+            slots
           </p>
         </div>
         <div className="p-6">
@@ -104,7 +103,9 @@ const BookingTab: React.FC = () => {
               <div className="bg-green-50 border border-green-100 rounded-lg p-4 flex items-start">
                 <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-green-800">Booking system is configured!</p>
+                  <p className="font-medium text-green-800">
+                    Booking system is configured!
+                  </p>
                   <p className="text-green-700 text-sm mt-1">
                     Your booking system is ready to accept appointments.
                   </p>
@@ -128,7 +129,8 @@ const BookingTab: React.FC = () => {
           ) : (
             <div className="space-y-4">
               <p className="text-gray-700">
-                Create a personalized booking experience for your clients. Configure your:
+                Create a personalized booking experience for your clients.
+                Configure your:
               </p>
               <ul className="list-disc pl-5 text-gray-700 space-y-1">
                 <li>Booking type (individual or team)</li>

@@ -8,9 +8,9 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import toast from "react-hot-toast";
-import { useCartStore } from "../../store/useCartStore";
-import { useBotConfig } from "../../store/useBotConfig";
-import { useUserStore } from "../../store/useUserStore";
+import { useCartStore } from "../../../store/useCartStore";
+import { useBotConfig } from "../../../store/useBotConfig";
+import { useUserStore } from "../../../store/useUserStore";
 
 interface PaymentProps {
   onBack: () => void;
@@ -132,7 +132,7 @@ const Payment: React.FC<PaymentProps> = ({
             },
             body: JSON.stringify({
               lineItems: items.map((item) => ({
-                id: item.id,
+                id: item._id,
                 quantity: item.quantity,
               })),
               agentId: activeBotId,

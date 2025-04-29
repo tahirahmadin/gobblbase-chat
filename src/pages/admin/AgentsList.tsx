@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Bot, Plus, Trash2 } from "lucide-react";
-import { deleteAgent } from "../lib/serverActions";
-import { useAdminStore } from "../store/useAdminStore";
-import { useBotConfig } from "../store/useBotConfig";
+import { deleteAgent } from "../../lib/serverActions";
+import { useAdminStore } from "../../store/useAdminStore";
+import { useBotConfig } from "../../store/useBotConfig";
 
 interface AgentsListProps {
   onStartCreating?: () => void;

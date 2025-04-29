@@ -1,24 +1,15 @@
 import React from "react";
-import {
-  X,
-  ShoppingCart,
-  ArrowLeft,
-  Plus,
-  Minus,
-  CreditCard,
-} from "lucide-react";
-import { useCartStore } from "../../store/useCartStore";
-import { CartProps } from "../../types/cart";
-import { useBotConfig } from "../../store/useBotConfig";
+import { X, ArrowLeft, Plus, Minus, CreditCard } from "lucide-react";
+import { useCartStore } from "../../../store/useCartStore";
+import { CartProps } from "../../../types/cart";
+import { useBotConfig } from "../../../store/useBotConfig";
 
 const Cart: React.FC<CartProps> = ({
   items,
   onRemoveItem,
   onCheckout,
-  totalItems,
   totalPrice,
   onBack,
-  onOpenDrawer,
 }) => {
   const { updateQuantity } = useCartStore();
   const { activeBotData } = useBotConfig();
