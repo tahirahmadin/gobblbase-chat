@@ -1,6 +1,6 @@
 import React from "react";
 import { ModelOption } from "./types";
-import { MODEL_PRESETS } from "./constants";
+import { MODEL_PRESETS } from "./../../../utils/constants";
 
 interface ModelSelectorProps {
   model: string;

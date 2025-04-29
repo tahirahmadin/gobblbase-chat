@@ -64,31 +64,46 @@ export interface AdminAgent {
 }
 
 //Theme Types
+
 export interface Theme {
-  headerBgColor: string;
-  headerIconBgColor: string;
-  headerIconTextColor: string;
-  headerTextColor: string;
-  headerAdStripBgColor: string;
-  headerAdStripColor: string;
-  headerTabActiveColor: string;
-  headerTabInactiveColor: string;
+  isDark: boolean;
+  mainDarkColor: string;
+  mainLightColor: string;
+  highlightColor: string;
+}
 
-  chatBackgroundColor: string;
-  chatTimeTextColor: string;
+export interface ThemeOption {
+  id: string;
+  name: string;
+  image: string;
+  description: string;
+  palette: string[];
+  theme: Theme;
+}
 
-  bubbleAgentBgColor: string;
-  bubbleAgentTextColor: string;
+export interface ModelOption {
+  id: string;
+  name: string;
+  image: string;
+  contextWindow: string;
+  description: string;
+  traits: string[];
+  details: string;
+}
 
-  bubbleUserBgColor: string;
-  bubbleUserTextColor: string;
+export interface SystemPromptTemplate {
+  id: string;
+  name: string;
+  image: string;
+  description: string;
+  prompt: string;
+}
 
-  inputCardColor: string;
-  inputBackgroundColor: string;
-  inputTextColor: string;
-
-  mainLightBackgroundColor: string;
-  mainLightTextColor: string;
-  mainDarkBackgroundColor: string;
-  mainDarkTextColor: string;
+export interface TonePreset {
+  id: string;
+  name: string;
+  image: string;
+  description: string;
+  traits: string[];
+  prompt: string;
 }

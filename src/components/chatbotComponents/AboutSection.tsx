@@ -24,7 +24,10 @@ export default function AboutSection({
   return (
     <div
       className="flex flex-col items-center h-full"
-      style={{ backgroundColor: theme.chatBackgroundColor }}
+      style={{
+        backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
+        color: theme.isDark ? "white" : "black",
+      }}
     >
       <div className="shadow-lg">
         {/* Profile Section */}
@@ -74,8 +77,8 @@ export default function AboutSection({
           <div
             className="rounded-xl p-4"
             style={{
-              backgroundColor: theme.mainDarkBackgroundColor,
-              color: theme.mainDarkTextColor,
+              backgroundColor: !theme.isDark ? "white" : "black",
+              color: theme.isDark ? "white" : "black",
             }}
           >
             <p className="text-sm text-center">

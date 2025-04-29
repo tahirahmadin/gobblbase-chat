@@ -29,7 +29,7 @@ export default function ChatSection({
     <div
       className="flex-1 overflow-y-auto p-2"
       style={{
-        backgroundColor: theme.chatBackgroundColor,
+        backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
         paddingBottom: "150px",
       }}
     >
@@ -37,8 +37,8 @@ export default function ChatSection({
         <>
           {/* Date Header */}
           <div
-            className="text-xs text-gray-400 text-center my-4"
-            style={{ color: theme.chatTimeTextColor }}
+            className="text-xs text-center my-4"
+            style={{ color: theme.highlightColor }}
           >
             JAN 01, 2025 AT 09:00
           </div>
@@ -55,12 +55,18 @@ export default function ChatSection({
                 style={{
                   backgroundColor:
                     msg.sender === "agent"
-                      ? theme.bubbleAgentBgColor
-                      : theme.bubbleUserBgColor,
+                      ? theme.isDark
+                        ? "black"
+                        : "white"
+                      : theme.mainDarkColor,
                   color:
                     msg.sender === "agent"
-                      ? theme.bubbleAgentTextColor
-                      : theme.bubbleUserTextColor,
+                      ? !theme.isDark
+                        ? "black"
+                        : "white"
+                      : theme.isDark
+                      ? "black"
+                      : "white",
                 }}
               >
                 <div className="prose prose-sm max-w-none text-inherit">

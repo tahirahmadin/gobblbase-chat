@@ -28,8 +28,6 @@ export default function HeaderSection({
   currentConfig,
   activeScreen,
   setActiveScreen,
-  onGoogleLoginSuccess,
-  onGoogleLoginError,
 }: HeaderSectionProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
 
@@ -42,27 +40,18 @@ export default function HeaderSection({
   } = useUserStore();
 
   const handleLoginSuccess = (response: any) => {
-    if (isAdminView) {
-      userGoogleLoginSuccess(response);
-    } else if (onGoogleLoginSuccess) {
-      onGoogleLoginSuccess(response);
-    } else {
-      userGoogleLoginSuccess(response);
-    }
+    userGoogleLoginSuccess(response);
   };
 
   const handleLoginError = () => {
-    if (isAdminView) {
-      userGoogleLoginError();
-    } else if (onGoogleLoginError) {
-      onGoogleLoginError();
-    } else {
-      userGoogleLoginError();
-    }
+    userGoogleLoginError();
   };
 
   const UserDropdownMenu = () => (
-    <div className="absolute right-0 top-full mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+    <div
+      className="absolute right-0 top-full mt-2 w-48 rounded-md shadow-lg ring-1 ring-black ring-opacity-5"
+      style={{ backgroundColor: theme.mainLightColor }}
+    >
       <div className="py-1" role="menu" aria-orientation="vertical">
         <div className="px-4 py-2 text-sm text-gray-700 border-b">
           {userEmail}
@@ -84,7 +73,7 @@ export default function HeaderSection({
       <div
         className="flex justify-between items-center px-4 py-3"
         style={{
-          backgroundColor: theme.headerBgColor,
+          backgroundColor: theme.mainDarkColor,
         }}
       >
         <div className="flex items-center space-x-2">
@@ -98,7 +87,7 @@ export default function HeaderSection({
               className="w-10 h-10 object-cover"
             />
           </div>
-          <div style={{ color: theme.headerTextColor }}>
+          <div style={{ color: theme.isDark ? "white" : "black" }}>
             <div className="text-md font-bold mb-[-4px]">
               {currentConfig.name}
             </div>
@@ -110,7 +99,8 @@ export default function HeaderSection({
             <button
               className="p-2 rounded-full hover:bg-opacity-10 hover:bg-white"
               style={{
-                color: theme.headerIconColor,
+                backgroundColor: theme.highlightColor,
+                color: !theme.isDark ? "white" : "black",
               }}
               onClick={() => {
                 /* Handle order history click */
@@ -122,7 +112,8 @@ export default function HeaderSection({
               <button
                 className="p-2 rounded-full hover:bg-opacity-10 hover:bg-white"
                 style={{
-                  color: theme.headerTextColor,
+                  backgroundColor: theme.highlightColor,
+                  color: !theme.isDark ? "white" : "black",
                 }}
                 onClick={() => setShowUserMenu(!showUserMenu)}
               >
@@ -142,25 +133,30 @@ export default function HeaderSection({
         )}
       </div>
       {/* Ad Strip */}
-      <div className="flex justify-center items-center px-4 py-3">
+      <div
+        className="flex justify-center items-center px-4 py-3"
+        style={{
+          backgroundColor: theme.isDark ? "white" : "black",
+          color: theme.isDark ? "black" : "white",
+        }}
+      >
         <div className="text-sm">
           New batches will be available by 1st June.
         </div>
       </div>
       {/* Navigation Bar */}
-      <div className="flex justify-around py-2">
+      <div
+        className="flex justify-around pt-2"
+        style={{ backgroundColor: theme.isDark ? "black" : "white" }}
+      >
         <button
           onClick={() => setActiveScreen("about")}
-          className={`text-xs font-medium px-4 py-1 flex items-center space-x-1`}
+          className={`text-xs font-medium px-4 py-1 flex items-center space-x-1 pb-2`}
           style={{
-            color:
-              activeScreen === "about"
-                ? theme.headerTabActiveColor
-                : theme.headerTabInactiveColor,
-
+            color: activeScreen === "about" ? theme.highlightColor : "#bfbfbf",
             borderBlockEnd:
               activeScreen === "about"
-                ? `4px solid ${theme.headerIconBgColor}`
+                ? `4px solid ${theme.highlightColor}`
                 : "none",
           }}
         >
@@ -169,9 +165,7 @@ export default function HeaderSection({
             style={{
               marginRight: 3,
               color:
-                activeScreen === "about"
-                  ? theme.headerTabActiveColor
-                  : theme.headerTabInactiveColor,
+                activeScreen === "about" ? theme.highlightColor : "#bfbfbf",
             }}
           />
           ABOUT
@@ -180,14 +174,10 @@ export default function HeaderSection({
           onClick={() => setActiveScreen("chat")}
           className={`text-xs font-medium px-4 py-1 relative flex items-center space-x-1`}
           style={{
-            color:
-              activeScreen === "chat"
-                ? theme.headerTabActiveColor
-                : theme.headerTabInactiveColor,
-
+            color: activeScreen === "chat" ? theme.highlightColor : "#bfbfbf",
             borderBlockEnd:
               activeScreen === "chat"
-                ? `4px solid ${theme.headerIconBgColor}`
+                ? `4px solid ${theme.highlightColor}`
                 : "none",
           }}
         >
@@ -195,10 +185,7 @@ export default function HeaderSection({
             className="h-3.5 w-3.5"
             style={{
               marginRight: 3,
-              color:
-                activeScreen === "chat"
-                  ? theme.headerTabActiveColor
-                  : theme.headerTabInactiveColor,
+              color: activeScreen === "chat" ? theme.highlightColor : "#bfbfbf",
             }}
           />{" "}
           CHAT
@@ -207,14 +194,10 @@ export default function HeaderSection({
           onClick={() => setActiveScreen("browse")}
           className={`text-xs font-medium px-4 py-1 flex items-center space-x-1`}
           style={{
-            color:
-              activeScreen === "browse"
-                ? theme.headerTabActiveColor
-                : theme.headerTabInactiveColor,
-
+            color: activeScreen === "browse" ? theme.highlightColor : "#bfbfbf",
             borderBlockEnd:
               activeScreen === "browse"
-                ? `4px solid ${theme.headerIconBgColor}`
+                ? `4px solid ${theme.highlightColor}`
                 : "none",
           }}
         >
@@ -223,9 +206,7 @@ export default function HeaderSection({
             style={{
               marginRight: 3,
               color:
-                activeScreen === "chat"
-                  ? theme.headerTabActiveColor
-                  : theme.headerTabInactiveColor,
+                activeScreen === "browse" ? theme.highlightColor : "#bfbfbf",
             }}
           />{" "}
           BROWSE

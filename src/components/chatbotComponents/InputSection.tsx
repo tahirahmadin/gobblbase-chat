@@ -22,7 +22,7 @@ export default function InputSection({
   return (
     <div
       className="p-4 space-y-4"
-      style={{ backgroundColor: theme.chatBackgroundColor }}
+      style={{ backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9" }}
     >
       {/* Input Field */}
       <div className="relative flex items-center">
@@ -33,22 +33,31 @@ export default function InputSection({
           onChange={(e) => setMessage(e.target.value)}
           onKeyPress={handleKeyPress}
           disabled={isLoading}
-          style={{ backgroundColor: "#4b68ec", color: "white" }}
+          style={{
+            backgroundColor: theme.mainLightColor,
+            color: theme.isDark ? "white" : "black",
+          }}
         />
         <button
-          className="absolute right-2 p-2"
+          className="absolute right-2 p-2 rounded-full"
           onClick={handleSendMessage}
           disabled={isLoading}
+          style={{
+            backgroundColor: theme.highlightColor,
+            color: theme.isDark ? "white" : "black",
+          }}
         >
-          <Mic
-            className="h-5 w-5"
-            style={{ color: "white", backgroundColor: "#4b68ec" }}
-          />
+          <Mic className="h-5 w-5" />
         </button>
       </div>
 
       {/* Powered by */}
-      <div className="text-center text-xs text-gray-500">Powered by Kifor</div>
+      <div
+        className="text-center text-xs"
+        style={{ color: theme.highlightColor }}
+      >
+        Powered by Kifor
+      </div>
     </div>
   );
 }

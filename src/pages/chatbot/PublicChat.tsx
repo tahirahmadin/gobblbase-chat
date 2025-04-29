@@ -113,54 +113,31 @@ export default function PublicChat({
   const currentIsLoading = previewConfig ? false : isConfigLoading;
 
   // safe themeColors fallback
-  // const theme = currentConfig?.themeColors ?? {
-  //   headerColor: "#000000",
-  //   headerTextColor: "#F0B90A",
-  //   headerNavColor: "#bdbdbd",
-  //   headerIconColor: "#F0B90A",
-  //   chatBackgroundColor: "#313131",
-  //   bubbleAgentBgColor: "#1E2026",
-  //   bubbleAgentTextColor: "#ffffff",
-  //   bubbleAgentTimeTextColor: "#F0B90A",
-  //   bubbleUserBgColor: "#F0B90A",
-  //   bubbleUserTextColor: "#000000",
-  //   bubbleUserTimeTextColor: "#000000",
-  //   inputCardColor: "#27282B",
-  //   inputBackgroundColor: "#212121",
-  //   inputTextColor: "#ffffff",
-  // };
-  const theme = {
-    headerBgColor: "#abc3ff",
-    headerIconBgColor: "#001c9a",
-    headerIconTextColor: "#ffffff",
-    headerTextColor: "#000000",
-    headerAdStripBgColor: "#000000",
-    headerAdStripColor: "#000000",
-    headerTabActiveColor: "#000000",
-    headerTabInactiveColor: "#414141",
-
-    chatBackgroundColor: "#e9e9e9",
-    chatTimeTextColor: "#001c9a",
-
-    bubbleAgentBgColor: "#ffffff",
-    bubbleAgentTextColor: "#000000",
-
-    bubbleUserBgColor: "#abc3ff",
+  const theme = currentConfig?.themeColors ?? {
+    headerColor: "#000000",
+    headerTextColor: "#F0B90A",
+    headerNavColor: "#bdbdbd",
+    headerIconColor: "#F0B90A",
+    chatBackgroundColor: "#313131",
+    bubbleAgentBgColor: "#1E2026",
+    bubbleAgentTextColor: "#ffffff",
+    bubbleAgentTimeTextColor: "#F0B90A",
+    bubbleUserBgColor: "#F0B90A",
     bubbleUserTextColor: "#000000",
-
-    cuesBgColor: "#e9e9e9",
-    cuesTextColor: "#000000",
+    bubbleUserTimeTextColor: "#000000",
     inputCardColor: "#27282B",
     inputBackgroundColor: "#212121",
     inputTextColor: "#ffffff",
-
-    mainLightBackgroundColor: "#e9e9e9",
-    mainLightTextColor: "#000000",
-    mainDarkBackgroundColor: "#616161",
-    mainDarkTextColor: "#ffffff",
   };
+  // const theme = {
+  //   isDark: true,
+  //   mainDarkColor: "#4220cd",
+  //   mainLightColor: "#91a3ff",
+  //   highlightColor: "#ffcc16",
+  // };
 
   // Enhanced scroll to bottom function
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -469,7 +446,7 @@ export default function PublicChat({
           {showCues && (
             <div
               className="p-2 grid grid-cols-1 gap-1"
-              style={{ backgroundColor: theme.chatBackgroundColor }}
+              style={{ backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9" }}
             >
               {QUERY_CUES.map((row, i) => (
                 <div key={i} className="grid grid-cols-2 gap-2">
@@ -480,9 +457,9 @@ export default function PublicChat({
                       disabled={isLoading}
                       className="px-2 py-1 rounded-xl text-xs font-medium"
                       style={{
-                        backgroundColor: theme.cuesBgColor,
-                        color: theme.cuesTextColor,
-                        border: "1px solid #001c9a",
+                        backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
+                        color: theme.isDark ? "white" : "black",
+                        border: `1px solid ${theme.isDark ? "white" : "black"}`,
                         borderRadius: "20px",
                       }}
                     >
