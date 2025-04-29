@@ -62,3 +62,33 @@ export interface AdminAgent {
   logo: string;
   name: string;
 }
+
+//Theme Types
+export interface Theme {
+  headerBgColor: string;
+  headerIconBgColor: string;
+  headerIconTextColor: string;
+  headerTextColor: string;
+  headerAdStripBgColor: string;
+  headerAdStripColor: string;
+  headerTabActiveColor: string;
+  headerTabInactiveColor: string;
+
+  chatBackgroundColor: string;
+  chatTimeTextColor: string;
+
+  bubbleAgentBgColor: string;
+  bubbleAgentTextColor: string;
+
+  bubbleUserBgColor: string;
+  bubbleUserTextColor: string;
+
+  inputCardColor: string;
+  inputBackgroundColor: string;
+  inputTextColor: string;
+
+  mainLightBackgroundColor: string;
+  mainLightTextColor: string;
+  mainDarkBackgroundColor: string;
+  mainDarkTextColor: string;
+}

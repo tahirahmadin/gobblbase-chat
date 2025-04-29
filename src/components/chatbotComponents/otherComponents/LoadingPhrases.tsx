@@ -27,7 +27,7 @@ const LoadingPhrases: React.FC<LoadingPhrasesProps> = ({
   }, []);
 
   return (
-    <div className="flex items-center" style={{ color: textColor }}>
+    <div className="flex items-center" style={{ color: "#000000" }}>
       <span className="italic">{LOADING_PHRASES[currentPhraseIndex]}</span>
       <span className="ml-1">
         <span className="animate-pulse">.</span>

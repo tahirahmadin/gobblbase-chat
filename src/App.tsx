@@ -5,7 +5,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import Header from "./pages/chatbot/Header";
+import Header from "./components/adminComponents/Header";
 import Tabs from "./pages/admin/Tabs";
 import FileUpload from "./pages/admin/FileUpload";
 import Activity from "./pages/admin/Activity";

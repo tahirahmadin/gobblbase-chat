@@ -1,30 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { ChatMessage } from "../../types";
+import { ChatMessage, Theme } from "../../types";
 import { queryDocument } from "../../lib/serverActions";
 import OpenAI from "openai";
-import ReactMarkdown from "react-markdown";
-import {
-  Send,
-  MessageSquare,
-  Search,
-  MenuIcon,
-  ShoppingCart,
-  ArrowLeft,
-  ClipboardList,
-} from "lucide-react";
 import { useBotConfig } from "../../store/useBotConfig";
 import { PERSONALITY_TYPES } from "../admin/PersonalityAnalyzer";
-import CustomerBookingWrapper from "../../components/CustomerBookingWrapper";
-import Browse from "../../components/chatbotComponents/BrowseComponent/Browse";
 import { useCartStore } from "../../store/useCartStore";
-import Drawer from "../../components/chatbotComponents/BrowseComponent/Drawer";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { useUserStore } from "../../store/useUserStore";
 import { toast } from "react-hot-toast";
-import StreamingText from "./StreamingText";
-import LoadingPhrases from "./LoadingPhrases";
-import QueryCollection from "./LoadingPhrases";
+import HeaderSection from "../../components/chatbotComponents/HeaderSection";
+import ChatSection from "../../components/chatbotComponents/ChatSection";
+import InputSection from "../../components/chatbotComponents/InputSection";
+import AboutSection from "../../components/chatbotComponents/AboutSection";
+import BrowseSection from "../../components/chatbotComponents/BrowseSection";
 
 interface PersonalityAnalysis {
   dominantTrait: string;
@@ -61,28 +50,13 @@ const QUERY_CUES: string[][] = [
   ],
 ];
 
-type Screen = "chat" | "book" | "browse" | "cart";
+type Screen = "about" | "chat" | "browse";
 
 interface PreviewConfig {
   name?: string;
   logo?: string;
   calendlyUrl?: string;
-  themeColors?: {
-    headerColor: string;
-    headerTextColor: string;
-    headerNavColor: string;
-    headerIconColor: string;
-    chatBackgroundColor: string;
-    bubbleAgentBgColor: string;
-    bubbleAgentTextColor: string;
-    bubbleAgentTimeTextColor: string;
-    bubbleUserBgColor: string;
-    bubbleUserTextColor: string;
-    bubbleUserTimeTextColor: string;
-    inputCardColor: string;
-    inputBackgroundColor: string;
-    inputTextColor: string;
-  };
+  themeColors?: Theme;
   personalityType?: PersonalityType;
   customPersonalityPrompt?: string;
   personalityAnalysis?: PersonalityAnalysis | null;
@@ -134,28 +108,56 @@ export default function PublicChat({
   const [personalityAnalysis, setPersonalityAnalysis] =
     useState<PersonalityAnalysis | null>(null);
 
-  const { getTotalItems } = useCartStore();
-
   // use preview or fetched config
   const currentConfig = previewConfig || config;
   const currentIsLoading = previewConfig ? false : isConfigLoading;
 
   // safe themeColors fallback
-  const theme = currentConfig?.themeColors ?? {
-    headerColor: "#000000",
-    headerTextColor: "#F0B90A",
-    headerNavColor: "#bdbdbd",
-    headerIconColor: "#F0B90A",
-    chatBackgroundColor: "#313131",
-    bubbleAgentBgColor: "#1E2026",
-    bubbleAgentTextColor: "#ffffff",
-    bubbleAgentTimeTextColor: "#F0B90A",
-    bubbleUserBgColor: "#F0B90A",
+  // const theme = currentConfig?.themeColors ?? {
+  //   headerColor: "#000000",
+  //   headerTextColor: "#F0B90A",
+  //   headerNavColor: "#bdbdbd",
+  //   headerIconColor: "#F0B90A",
+  //   chatBackgroundColor: "#313131",
+  //   bubbleAgentBgColor: "#1E2026",
+  //   bubbleAgentTextColor: "#ffffff",
+  //   bubbleAgentTimeTextColor: "#F0B90A",
+  //   bubbleUserBgColor: "#F0B90A",
+  //   bubbleUserTextColor: "#000000",
+  //   bubbleUserTimeTextColor: "#000000",
+  //   inputCardColor: "#27282B",
+  //   inputBackgroundColor: "#212121",
+  //   inputTextColor: "#ffffff",
+  // };
+  const theme = {
+    headerBgColor: "#abc3ff",
+    headerIconBgColor: "#001c9a",
+    headerIconTextColor: "#ffffff",
+    headerTextColor: "#000000",
+    headerAdStripBgColor: "#000000",
+    headerAdStripColor: "#000000",
+    headerTabActiveColor: "#000000",
+    headerTabInactiveColor: "#414141",
+
+    chatBackgroundColor: "#e9e9e9",
+    chatTimeTextColor: "#001c9a",
+
+    bubbleAgentBgColor: "#ffffff",
+    bubbleAgentTextColor: "#000000",
+
+    bubbleUserBgColor: "#abc3ff",
     bubbleUserTextColor: "#000000",
-    bubbleUserTimeTextColor: "#000000",
+
+    cuesBgColor: "#e9e9e9",
+    cuesTextColor: "#000000",
     inputCardColor: "#27282B",
     inputBackgroundColor: "#212121",
     inputTextColor: "#ffffff",
+
+    mainLightBackgroundColor: "#e9e9e9",
+    mainLightTextColor: "#000000",
+    mainDarkBackgroundColor: "#616161",
+    mainDarkTextColor: "#ffffff",
   };
 
   // Enhanced scroll to bottom function
@@ -342,7 +344,6 @@ export default function PublicChat({
     setMessage(cue);
     setShowCues(false);
     handleSendMessage(cue);
-    // setTimeout(handleSendMessage, 500);
   };
 
   const handleGoogleLoginSuccess = async (credentialResponse: any) => {
@@ -360,30 +361,6 @@ export default function PublicChat({
     storeHandleGoogleLoginError();
     toast.error("Google login failed. Please try again.");
   };
-
-  // Add scroll effect when switching tabs
-  useEffect(() => {
-    if (activeScreen === "chat") {
-      scrollToBottom();
-    }
-  }, [activeScreen]);
-
-  // Add scroll effect when messages change
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  // Add scroll effect when loading state changes
-  useEffect(() => {
-    if (!isLoading) {
-      scrollToBottom();
-    }
-  }, [isLoading]);
-
-  // Add scroll effect when component mounts
-  useEffect(() => {
-    scrollToBottom();
-  }, []);
 
   const [showLeadForm, setShowLeadForm] = useState(false);
 
@@ -459,331 +436,74 @@ export default function PublicChat({
         </div>
       )}
 
-      {/* Header */}
-      <div
-        className="shadow-sm"
-        style={{
-          backgroundColor: theme.headerColor,
-          borderTopLeftRadius: 10,
-          borderTopRightRadius: 10,
-        }}
-      >
-        <div className="px-4 pt-3 flex items-center justify-between mb-2">
-          <div
-            className="flex items-center space-x-3"
-            style={{ color: theme.headerTextColor }}
-          >
-            <img
-              src={
-                currentConfig?.logo ||
-                "https://thumbs.dreamstime.com/b/generative-ai-young-smiling-man-avatar-man-brown-beard-mustache-hair-wearing-yellow-sweater-sweatshirt-d-vector-people-279560903.jpg"
-              }
-              alt="Logo"
-              className="w-8 h-8 rounded-full object-cover"
-            />
-            <div className="text-lg font-bold">
-              {currentConfig?.name || "KiFor Bot"}
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="relative" onClick={() => setActiveScreen("cart")}>
-              <ShoppingCart
-                className="h-5 w-5"
-                style={{ color: theme.headerIconColor }}
-              />
-              {getTotalItems() > 0 && (
-                <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {getTotalItems()}
-                </span>
-              )}
-            </div>
-            <button
-              onClick={() => setIsDrawerOpen(true)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <MenuIcon
-                className="h-5 w-5"
-                style={{ color: theme.headerIconColor }}
-              />
-            </button>
-          </div>
-        </div>
-        <div className="border-t border-gray-200">
-          <div className="flex justify-around py-1 text-xs">
-            <button
-              onClick={() => setActiveScreen("chat")}
-              className="flex items-center space-x-1 px-4 py-2 rounded-lg font-medium"
-              style={{
-                color:
-                  activeScreen === "chat"
-                    ? theme.headerTextColor
-                    : theme.headerNavColor,
-              }}
-            >
-              <MessageSquare className="h-4 w-4" />
-              <span>Chat</span>
-            </button>
-            {/* <button
-              onClick={() => setActiveScreen("book")}
-              className="flex items-center space-x-1 px-4 py-2 rounded-lg font-medium"
-              style={{
-                color:
-                  activeScreen === "book"
-                    ? theme.headerTextColor
-                    : theme.headerNavColor,
-              }}
-            >
-              <Calendar className="h-4 w-4" />
-              <span>BOOK</span>
-            </button> */}
-            <button
-              onClick={() => setActiveScreen("browse")}
-              className="flex items-center space-x-1 px-4 py-2 rounded-lg font-medium"
-              style={{
-                color:
-                  activeScreen === "browse"
-                    ? theme.headerTextColor
-                    : theme.headerNavColor,
-              }}
-            >
-              <Search className="h-4 w-4" />
-              <span>BROWSE</span>
-            </button>
-          </div>
-        </div>
-      </div>
+      <HeaderSection
+        theme={theme}
+        currentConfig={currentConfig || { name: "KiFor Bot" }}
+        activeScreen={activeScreen}
+        setActiveScreen={setActiveScreen}
+      />
 
-      {/* content */}
-      <div
-        className="flex-1 overflow-y-auto p-2"
-        style={{
-          backgroundColor: theme.chatBackgroundColor,
-          paddingBottom: "150px",
-        }}
-      >
-        {activeScreen === "chat" && !showLeadForm && (
-          <>
-            {messages.map((msg) =>
-              msg.type === "booking" ? (
-                <div key={msg.id} className="w-full">
-                  <CustomerBookingWrapper
-                    businessId={config?.agentId}
-                    serviceName={currentConfig?.name || "Consultation"}
-                    onRedirectToAdmin={handleRedirectToAdmin}
-                  />
-                </div>
-              ) : (
-                <div
-                  key={msg.id}
-                  className={`mb-2 flex ${
-                    msg.sender === "agent" ? "justify-start" : "justify-end"
-                  }`}
-                >
-                  <div
-                    className="max-w-[90%] rounded-lg p-2"
-                    style={{
-                      backgroundColor:
-                        msg.sender === "agent"
-                          ? theme.bubbleAgentBgColor
-                          : theme.bubbleUserBgColor,
-                      color:
-                        msg.sender === "agent"
-                          ? theme.bubbleAgentTextColor
-                          : theme.bubbleUserTextColor,
-                    }}
-                  >
-                    <div className="flex items-start space-x-2">
-                      {msg.sender === "agent" && currentConfig?.logo && (
-                        <img
-                          src={currentConfig.logo}
-                          alt="Bot Logo"
-                          className="w-6 h-6 rounded-full object-cover"
-                        />
-                      )}
-                      <div
-                        className="prose prose-sm max-w-none [&>*]:text-inherit prose-headings:text-inherit prose-ul:text-inherit prose-li:text-inherit prose-li:marker:text-inherit prose-strong:text-inherit"
-                        style={{
-                          color:
-                            msg.sender === "agent"
-                              ? theme.bubbleAgentTextColor
-                              : theme.bubbleUserTextColor,
-                        }}
-                      >
-                        {msg.sender === "agent" ? (
-                          <StreamingText
-                            text={msg.content}
-                            speed={15}
-                            messageId={msg.id}
-                          />
-                        ) : (
-                          <ReactMarkdown>{msg.content}</ReactMarkdown>
-                        )}
-                      </div>
-                    </div>
-                    <div
-                      className="mt-1 text-xs text-left"
+      {activeScreen === "about" && (
+        <AboutSection
+          theme={theme}
+          currentConfig={currentConfig || { name: "KiFor Bot" }}
+        />
+      )}
+
+      {activeScreen === "browse" && (
+        <BrowseSection currentConfig={currentConfig || { name: "KiFor Bot" }} />
+      )}
+
+      {activeScreen === "chat" && (
+        <>
+          <ChatSection
+            theme={theme}
+            messages={messages}
+            isLoading={isLoading}
+            activeScreen={activeScreen}
+            currentConfig={currentConfig || { name: "KiFor Bot" }}
+            messagesEndRef={messagesEndRef}
+          />
+
+          {/* cues */}
+          {showCues && (
+            <div
+              className="p-2 grid grid-cols-1 gap-1"
+              style={{ backgroundColor: theme.chatBackgroundColor }}
+            >
+              {QUERY_CUES.map((row, i) => (
+                <div key={i} className="grid grid-cols-2 gap-2">
+                  {row.map((cue) => (
+                    <button
+                      key={cue}
+                      onClick={() => handleCueClick(cue)}
+                      disabled={isLoading}
+                      className="px-2 py-1 rounded-xl text-xs font-medium"
                       style={{
-                        color:
-                          msg.sender === "agent"
-                            ? theme.bubbleAgentTimeTextColor
-                            : theme.bubbleUserTimeTextColor,
+                        backgroundColor: theme.cuesBgColor,
+                        color: theme.cuesTextColor,
+                        border: "1px solid #001c9a",
+                        borderRadius: "20px",
                       }}
                     >
-                      {msg.timestamp.toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </div>
-                  </div>
+                      {cue}
+                    </button>
+                  ))}
                 </div>
-              )
-            )}
-
-            {isLoading && (
-              <div className="mb-4 flex justify-start px-2">
-                <div className="flex items-start space-x-2">
-                  {currentConfig?.logo && (
-                    <img
-                      src={currentConfig.logo}
-                      alt="Bot Logo"
-                      className="w-6 h-6 rounded-full object-cover opacity-70"
-                    />
-                  )}
-                  <div className="mt-1">
-                    <LoadingPhrases textColor="#9ca3af" />
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-        {activeScreen === "chat" && showLeadForm && (
-          <div className="p-4">
-            <div className="flex items-center mb-4">
-              <button
-                onClick={() => setShowLeadForm(false)}
-                className="flex items-center text-gray-500 hover:text-gray-700 mr-4"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Chat
-              </button>
-            </div>
-            <QueryCollection
-              agentId={config?.agentId || ""}
-              onClose={() => setShowLeadForm(false)}
-            />
-          </div>
-        )}
-
-        {activeScreen === "book" && (
-          <CustomerBookingWrapper
-            businessId={config?.agentId}
-            serviceName={currentConfig?.name || "Consultation"}
-            onRedirectToAdmin={handleRedirectToAdmin}
-          />
-        )}
-
-        {activeScreen === "browse" && (
-          <Browse
-            showCart={false}
-            onShowCart={() => setActiveScreen("cart")}
-            onOpenDrawer={() => setIsDrawerOpen(true)}
-            setActiveScreen={setActiveScreen}
-          />
-        )}
-
-        {activeScreen === "cart" && (
-          <Browse
-            showCart={true}
-            onShowCart={() => setActiveScreen("browse")}
-            onOpenDrawer={() => setIsDrawerOpen(true)}
-            setActiveScreen={setActiveScreen}
-          />
-        )}
-
-        <div style={{ minHeight: "100px" }} />
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* cues */}
-      {showCues && activeScreen === "chat" && !showLeadForm && (
-        <div
-          className="p-2 grid grid-cols-1 gap-1"
-          style={{ backgroundColor: theme.inputCardColor }}
-        >
-          {QUERY_CUES.map((row, i) => (
-            <div key={i} className="grid grid-cols-2 gap-2">
-              {row.map((cue) => (
-                <button
-                  key={cue}
-                  onClick={() => handleCueClick(cue)}
-                  disabled={isLoading}
-                  className="px-2 py-1 rounded-xl text-xs font-medium"
-                  style={{
-                    backgroundColor: theme.headerTextColor,
-                    color: theme.headerColor,
-                  }}
-                >
-                  {cue}
-                </button>
               ))}
             </div>
-          ))}
-        </div>
-      )}
+          )}
 
-      {/* input */}
-      {activeScreen === "chat" && !showLeadForm && (
-        <div className="p-2" style={{ backgroundColor: theme.inputCardColor }}>
-          <div className="relative flex items-center">
-            <input
-              className="flex-1 pl-4 pr-12 py-3 rounded-full text-sm focus:outline-none"
-              style={{
-                backgroundColor: theme.inputBackgroundColor,
-                color: theme.inputTextColor,
-              }}
-              placeholder="Ask here..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              disabled={isLoading}
-            />
-            <button
-              className="absolute right-2 p-2"
-              onClick={handleSendMessage}
-              disabled={isLoading || !message.trim()}
-            >
-              <Send
-                className="h-5 w-5"
-                style={{
-                  color:
-                    isLoading || !message.trim()
-                      ? theme.headerNavColor
-                      : theme.headerIconColor,
-                }}
-              />
-            </button>
-          </div>
-        </div>
+          <InputSection
+            theme={theme}
+            message={message}
+            isLoading={isLoading}
+            setMessage={setMessage}
+            handleSendMessage={handleSendMessage}
+            handleKeyPress={handleKeyPress}
+          />
+        </>
       )}
-
-      {/* Lead Form Button */}
-      {activeScreen === "chat" && !showLeadForm && (
-        <button
-          onClick={() => setShowLeadForm(true)}
-          className="absolute bottom-24 right-4 p-3 rounded-full shadow-lg"
-          style={{
-            backgroundColor: theme.headerTextColor,
-            color: theme.headerColor,
-          }}
-        >
-          <ClipboardList className="h-6 w-6" />
-        </button>
-      )}
-
-      {/* Drawer component */}
-      <Drawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
     </div>
   );
 }
