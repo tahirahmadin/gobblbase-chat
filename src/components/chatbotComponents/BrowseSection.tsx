@@ -25,15 +25,15 @@ export default function BrowseSection({ currentConfig }: BrowseSectionProps) {
     <div className="flex flex-col h-full p-4">
       {/* Book Meeting Section */}
       <div className="mb-6">
-        <h2 className="text-sm font-medium mb-2">Book Meeting</h2>
+        <h2 className="text-sm font-medium mb-2 ">Book Session</h2>
         <button className="w-full bg-black rounded-xl p-4 flex items-center justify-between">
           <div>
-            <div className="text-sm">Session Description</div>
-            <div className="text-lg font-medium">
+            <div className="text-sm text-white">Session Description</div>
+            <div className="text-lg font-medium text-white text-left">
               ${currentConfig.sessionPrice || 20}
             </div>
           </div>
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-5 h-5 text-yellow-400" />
         </button>
       </div>
 
