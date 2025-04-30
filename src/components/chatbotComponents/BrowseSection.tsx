@@ -22,9 +22,9 @@ export default function BrowseSection({ currentConfig }: BrowseSectionProps) {
   const { products } = useCartStore();
 
   return (
-    <div className="flex flex-col h-full p-4">
+    <div className="flex flex-col h-full">
       {/* Book Meeting Section */}
-      <div className="mb-6">
+      <div className="mb-6 p-4">
         <h2 className="text-sm font-medium mb-2 ">Book Session</h2>
         <button className="w-full bg-black rounded-xl p-4 flex items-center justify-between">
           <div>
@@ -38,7 +38,7 @@ export default function BrowseSection({ currentConfig }: BrowseSectionProps) {
       </div>
 
       {/* Browse Products Section */}
-      <div>
+      <div className="p-4">
         <h2 className="text-sm font-medium mb-2">Browse</h2>
         <div className="grid grid-cols-2 gap-4">
           {products.map((product, index) => (

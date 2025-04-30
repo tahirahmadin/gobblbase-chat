@@ -59,14 +59,7 @@ export default function ChatSection({
                         ? "black"
                         : "white"
                       : theme.mainDarkColor,
-                  color:
-                    msg.sender === "agent"
-                      ? !theme.isDark
-                        ? "black"
-                        : "white"
-                      : theme.isDark
-                      ? "black"
-                      : "white",
+                  color: !theme.isDark ? "black" : "white",
                 }}
               >
                 <div className="prose prose-sm max-w-none text-inherit">
