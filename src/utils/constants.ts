@@ -25,7 +25,7 @@ export const AVAILABLE_THEMES: ThemeOption[] = [
     id: "lime-green",
     name: "Lime Green",
     image:
-      "https://images.unsplash.com/photo-1610878180933-c1d97663cb9d?w=200&h=200&q=80",
+      "https://images.unsplash.com/photo-1612153018787-4899c6e056d7?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bGltZSUyMGdyZWVuJTIwYmFja2dyb3VuZHxlbnwwfHwwfHx8MA%3D%3D",
     description:
       "Fresh and energetic with vibrant greens — perfect for nature-themed or eco-friendly bots.",
     palette: ["#C2E539", "#A88D16", "#26300B", "#ffffff"],
