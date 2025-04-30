@@ -7,6 +7,81 @@ import {
 
 export const AVAILABLE_THEMES: ThemeOption[] = [
   {
+    id: "light-yellow",
+    name: "Light Yellow",
+    image:
+      "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=200&h=200&q=80",
+    description:
+      "Bright and friendly, this sunny palette brings clarity and optimism to any chat interface.",
+    palette: ["#fff6a0", "#5155CD", "#000000", "#ffffff"],
+    theme: {
+      isDark: false,
+      mainDarkColor: "#EFC715",
+      mainLightColor: "#5155CD",
+      highlightColor: "#000000",
+    },
+  },
+  {
+    id: "lime-green",
+    name: "Lime Green",
+    image:
+      "https://images.unsplash.com/photo-1610878180933-c1d97663cb9d?w=200&h=200&q=80",
+    description:
+      "Fresh and energetic with vibrant greens — perfect for nature-themed or eco-friendly bots.",
+    palette: ["#C2E539", "#A88D16", "#26300B", "#ffffff"],
+    theme: {
+      isDark: false,
+      mainDarkColor: "#C2E539",
+      mainLightColor: "#A88D16",
+      highlightColor: "#26300B",
+    },
+  },
+  {
+    id: "sunset-orange",
+    name: "Sunset Orange",
+    image:
+      "https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?w=200&h=200&q=80",
+    description:
+      "Warm and inviting, this orange theme channels the glow of golden hour.",
+    palette: ["#FF975F", "#70BCDF", "#006587", "#ffffff"],
+    theme: {
+      isDark: false,
+      mainDarkColor: "#FF975F",
+      mainLightColor: "#70BCDF",
+      highlightColor: "#006587",
+    },
+  },
+  {
+    id: "purple-pink",
+    name: "Purple Pink",
+    image:
+      "https://images.unsplash.com/photo-1603984871071-66c79459f19b?w=200&h=200&q=80",
+    description:
+      "Playful and dreamy, blending soft purples and pinks for a whimsical UI.",
+    palette: ["#d16bd7", "#DAAA33", "#EE15C6", "#000000"],
+    theme: {
+      isDark: false,
+      mainDarkColor: "#d16bd7",
+      mainLightColor: "#DAAA33",
+      highlightColor: "#EE15C6",
+    },
+  },
+  {
+    id: "sky-blue",
+    name: "Sky Blue",
+    image:
+      "https://images.unsplash.com/photo-1529676468690-0376b3e4792d?w=200&h=200&q=80",
+    description:
+      "Clean, calm, and professional — inspired by clear skies and open space.",
+    palette: ["#ABC3FF", "#4A68EC", "#001C9A", "#000000"],
+    theme: {
+      isDark: false,
+      mainDarkColor: "#ABC3FF",
+      mainLightColor: "#4A68EC",
+      highlightColor: "#001C9A",
+    },
+  },
+  {
     id: "dark-blue",
     name: "Dark Blue",
     image:
@@ -22,93 +97,18 @@ export const AVAILABLE_THEMES: ThemeOption[] = [
     },
   },
   {
-    id: "light-yellow",
-    name: "Light Yellow",
-    image:
-      "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=200&h=200&q=80",
-    description:
-      "Bright and friendly, this sunny palette brings clarity and optimism to any chat interface.",
-    palette: ["#000000", "#fff6a0", "#ffffff", "#ffcc16"],
-    theme: {
-      isDark: false,
-      mainDarkColor: "#000000",
-      mainLightColor: "#fff6a0",
-      highlightColor: "#ffcc16",
-    },
-  },
-  {
-    id: "lime-green",
-    name: "Lime Green",
-    image:
-      "https://images.unsplash.com/photo-1610878180933-c1d97663cb9d?w=200&h=200&q=80",
-    description:
-      "Fresh and energetic with vibrant greens — perfect for nature-themed or eco-friendly bots.",
-    palette: ["#758a00", "#cbe741", "#ffffff", "#f0da8a"],
-    theme: {
-      isDark: false,
-      mainDarkColor: "#758a00",
-      mainLightColor: "#cbe741",
-      highlightColor: "#f0da8a",
-    },
-  },
-  {
-    id: "sunset-orange",
-    name: "Sunset Orange",
-    image:
-      "https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?w=200&h=200&q=80",
-    description:
-      "Warm and inviting, this orange theme channels the glow of golden hour.",
-    palette: ["#cc5a2b", "#ffab78", "#ffffff", "#f0da8a"],
-    theme: {
-      isDark: false,
-      mainDarkColor: "#cc5a2b",
-      mainLightColor: "#ffab78",
-      highlightColor: "#f0da8a",
-    },
-  },
-  {
-    id: "purple-pink",
-    name: "Purple Pink",
-    image:
-      "https://images.unsplash.com/photo-1603984871071-66c79459f19b?w=200&h=200&q=80",
-    description:
-      "Playful and dreamy, blending soft purples and pinks for a whimsical UI.",
-    palette: ["#d16bd7", "#ffb3e6", "#ffffff", "#f0da8a"],
-    theme: {
-      isDark: false,
-      mainDarkColor: "#d16bd7",
-      mainLightColor: "#ffb3e6",
-      highlightColor: "#f0da8a",
-    },
-  },
-  {
-    id: "sky-blue",
-    name: "Sky Blue",
-    image:
-      "https://images.unsplash.com/photo-1529676468690-0376b3e4792d?w=200&h=200&q=80",
-    description:
-      "Clean, calm, and professional — inspired by clear skies and open space.",
-    palette: ["#1b5c9e", "#9ccaff", "#ffffff", "#f0da8a"],
-    theme: {
-      isDark: false,
-      mainDarkColor: "#1b5c9e",
-      mainLightColor: "#9ccaff",
-      highlightColor: "#f0da8a",
-    },
-  },
-  {
-    id: "night-purple",
-    name: "Night Purple",
+    id: "teal-green",
+    name: "Teal Green",
     image:
       "https://images.unsplash.com/photo-1517816743773-6e0fd518b4a6?w=200&h=200&q=80",
     description:
       "Mystical and bold, this theme evokes starlit skies and late-night coding sessions.",
-    palette: ["#a071f8", "#cabdff", "#ffcc16", "#000000"],
+    palette: ["#16598F", "#B6DFFF", "#D2FF4B", "#000000"],
     theme: {
       isDark: true,
-      mainDarkColor: "#a071f8",
-      mainLightColor: "#cabdff",
-      highlightColor: "#ffcc16",
+      mainDarkColor: "#16598F",
+      mainLightColor: "#B6DFFF",
+      highlightColor: "#D2FF4B",
     },
   },
   {
@@ -118,12 +118,27 @@ export const AVAILABLE_THEMES: ThemeOption[] = [
       "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200&h=200&q=80",
     description:
       "Inspired by ocean depths and coastal calm — ideal for relaxed and focused chats.",
-    palette: ["#4c7c7d", "#b6e3e3", "#91a3ff", "#000000"],
+    palette: ["#004F4A", "#CFFFE0", "#35FFB5", "#000000"],
     theme: {
       isDark: true,
-      mainDarkColor: "#4c7c7d",
-      mainLightColor: "#b6e3e3",
-      highlightColor: "#91a3ff",
+      mainDarkColor: "#004F4A",
+      mainLightColor: "#CFFFE0",
+      highlightColor: "#35FFB5",
+    },
+  },
+  {
+    id: "muted-blue",
+    name: "Muted Blue",
+    image:
+      "https://images.unsplash.com/photo-1603575448363-c3ee33c46e2e?w=200&h=200&q=80",
+    description:
+      "Soft and balanced tones of blue and pink for a modern, relaxed vibe.",
+    palette: ["#003A79", "#A6CBFF", "#398CFF", "#000000"],
+    theme: {
+      isDark: true,
+      mainDarkColor: "#003A79",
+      mainLightColor: "#A6CBFF",
+      highlightColor: "#398CFF",
     },
   },
   {
@@ -133,27 +148,12 @@ export const AVAILABLE_THEMES: ThemeOption[] = [
       "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=200&h=200&q=80",
     description:
       "Grounded in nature, this earthy green palette brings tranquility and focus.",
-    palette: ["#186b57", "#91f0b7", "#ffcc16", "#000000"],
+    palette: ["#12776B", "#C6C6C6", "#FE5D45", "#000000"],
     theme: {
       isDark: true,
-      mainDarkColor: "#186b57",
-      mainLightColor: "#91f0b7",
-      highlightColor: "#ffcc16",
-    },
-  },
-  {
-    id: "muted-cyan",
-    name: "Muted Cyan",
-    image:
-      "https://images.unsplash.com/photo-1603575448363-c3ee33c46e2e?w=200&h=200&q=80",
-    description:
-      "Soft and balanced tones of blue and pink for a modern, relaxed vibe.",
-    palette: ["#6299aa", "#bfe0f2", "#ff6666", "#000000"],
-    theme: {
-      isDark: true,
-      mainDarkColor: "#6299aa",
-      mainLightColor: "#bfe0f2",
-      highlightColor: "#ff6666",
+      mainDarkColor: "#12776B",
+      mainLightColor: "#C6C6C6",
+      highlightColor: "#FE5D45",
     },
   },
 ];

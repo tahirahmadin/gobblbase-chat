@@ -27,7 +27,9 @@ export default function InputSection({
       {/* Input Field */}
       <div className="relative flex items-center">
         <input
-          className="w-full pl-4 pr-12 py-3 rounded-full  text-sm focus:outline-none"
+          className={`w-full pl-4 pr-12 py-3 rounded-full  text-sm focus:outline-none ${
+            theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
+          }`}
           placeholder="Ask away..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -47,7 +49,12 @@ export default function InputSection({
             color: theme.isDark ? "white" : "black",
           }}
         >
-          <Mic className="h-5 w-5" />
+          <Mic
+            className="h-5 w-5"
+            style={{
+              color: !theme.isDark ? "white" : "black",
+            }}
+          />
         </button>
       </div>
 
