@@ -37,7 +37,7 @@ export default function InputSection({
           disabled={isLoading}
           style={{
             backgroundColor: theme.mainLightColor,
-            color: theme.isDark ? "white" : "black",
+            color: theme.isDark ? "black" : "white",
           }}
         />
         <button

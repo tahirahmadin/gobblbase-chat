@@ -89,19 +89,19 @@ export default function HeaderSection({
             />
           </div>
           <div style={{ color: theme.isDark ? "white" : "black" }}>
-            <div className="text-md font-bold mb-[-4px]">
+            <div className="text-md font-semibold mb-[-4px]">
               {currentConfig.name}
             </div>
-            <div className="text-sm">@tahirahmadin</div>
           </div>
         </div>
         {isLoggedIn ? (
-          <div className="flex items-center relative">
+          <div className="flex items-center relative gap-2">
             <button
               className="p-2 rounded-full hover:bg-opacity-10 hover:bg-white"
               style={{
                 backgroundColor: theme.highlightColor,
                 color: !theme.isDark ? "white" : "black",
+                border: "2px solid #ffffff",
               }}
               onClick={() => {
                 /* Handle order history click */
@@ -115,6 +115,7 @@ export default function HeaderSection({
                 style={{
                   backgroundColor: theme.highlightColor,
                   color: !theme.isDark ? "white" : "black",
+                  border: "2px solid #ffffff",
                 }}
                 onClick={() => setShowUserMenu(!showUserMenu)}
               >

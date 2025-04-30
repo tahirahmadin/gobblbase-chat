@@ -90,10 +90,22 @@ export default function AboutSection({
 
         {/* Social Links */}
         <div className="w-full px-6 mt-6 space-y-3 ">
-          <button className="w-full py-3 rounded-full bg-yellow-400 text-black font-medium">
+          <button
+            className="w-full py-3 rounded-full font-medium"
+            style={{
+              backgroundColor: theme.mainDarkColor,
+              color: !theme.isDark ? "white" : "black",
+            }}
+          >
             Social Link 1
           </button>
-          <button className="w-full py-3 rounded-full bg-yellow-400 text-black font-medium">
+          <button
+            className="w-full py-3 rounded-full  font-medium"
+            style={{
+              backgroundColor: theme.mainDarkColor,
+              color: !theme.isDark ? "white" : "black",
+            }}
+          >
             Social Link 2
           </button>
         </div>
