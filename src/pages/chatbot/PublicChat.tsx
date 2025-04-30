@@ -310,7 +310,7 @@ export default function PublicChat({
   }
 
   return (
-    <div className="w-full min-h-screen bg-gray-100 flex items-start justify-center">
+    <div className="w-full  bg-gray-100 flex items-start justify-center">
       {/* Simulated Mobile Frame */}
       <div
         className="w-full max-w-md bg-white shadow-2xl  overflow-hidden flex flex-col relative"
@@ -342,11 +342,7 @@ export default function PublicChat({
           />
         )}
 
-        {activeScreen === "browse" && (
-          <BrowseSection
-            currentConfig={currentConfig || { name: "KiFor Bot" }}
-          />
-        )}
+        {activeScreen === "browse" && <BrowseSection theme={theme} />}
 
         {activeScreen === "chat" && (
           <>

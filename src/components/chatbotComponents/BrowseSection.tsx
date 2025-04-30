@@ -2,63 +2,69 @@ import React from "react";
 import { ChevronRight, Plus } from "lucide-react";
 import { useCartStore } from "../../store/useCartStore";
 import TryFreeBanner from "./TryFreeBanner";
-
-interface Product {
-  name: string;
-  price: number;
-  image: string;
-}
+import { Theme } from "../../types";
 
 interface BrowseSectionProps {
-  currentConfig: {
-    name?: string;
-    sessionPrice?: number;
-    sessionDescription?: string;
-    products?: Product[];
-  };
+  theme: Theme;
 }
 
-export default function BrowseSection({ currentConfig }: BrowseSectionProps) {
+export default function BrowseSection({ theme }: BrowseSectionProps) {
   const { products } = useCartStore();
 
   return (
-    <div className="flex flex-col h-full">
+    <div
+      className="flex flex-col h-full"
+      style={{
+        backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
+      }}
+    >
       {/* Book Meeting Section */}
-      <div className="mb-6 p-4">
+      <div className="mb-6 pt-4 px-4">
         <h2 className="text-sm font-medium mb-2 ">Book Session</h2>
-        <button className="w-full bg-black rounded-xl p-4 flex items-center justify-between">
+        <button
+          className="w-full rounded-xl p-4 flex items-center justify-between"
+          style={{
+            backgroundColor: theme.isDark ? "#000000" : "#ffffff",
+            color: !theme.isDark ? "#000000" : "#ffffff",
+          }}
+        >
           <div>
-            <div className="text-sm text-white">Session Description</div>
-            <div className="text-lg font-medium text-white text-left">
-              ${currentConfig.sessionPrice || 20}
-            </div>
+            <div className="text-sm font-medium">Session Description</div>
+            <div className="text-md font-medium  text-left">$20</div>
           </div>
           <ChevronRight className="w-5 h-5 text-yellow-400" />
         </button>
       </div>
 
       {/* Browse Products Section */}
-      <div className="p-4">
+      <div className="px-4">
         <h2 className="text-sm font-medium mb-2">Browse</h2>
         <div className="grid grid-cols-2 gap-4">
           {products.map((product, index) => (
-            <div key={index} className="bg-black rounded-xl overflow-hidden">
+            <div
+              key={index}
+              className="rounded-xl overflow-hidden"
+              style={{
+                backgroundColor: theme.isDark ? "#000000" : "#ffffff",
+                color: !theme.isDark ? "#000000" : "#ffffff",
+              }}
+            >
               {/* Product Image */}
-              <div className="aspect-square bg-gray-800">
+              <div className="aspect-square">
                 <img
                   src={
                     product.image ||
                     "https://image.made-in-china.com/2f0j00vYDGElfRmuko/Customize-9cm-Small-Tea-Spoon-Natural-Bamboo-Spoon.jpg"
                   }
                   alt={product.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover p-2 rounded-xl"
                 />
               </div>
               {/* Product Info */}
-              <div className="p-3 flex items-center justify-between">
+              <div className="px-3 flex items-center justify-between">
                 <div>
-                  <div className="text-sm text-white">{product.title}</div>
-                  <div className="text-sm font-medium text-yellow-400">
+                  <div className="text-sm line-clamp-2">{product.title}</div>
+                  <div className="text-sm font-semibold py-2">
                     ${product.price}
                   </div>
                 </div>
