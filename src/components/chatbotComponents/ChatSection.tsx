@@ -29,7 +29,8 @@ export default function ChatSection({
       className="flex-1 overflow-y-auto p-2"
       style={{
         backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
-        paddingBottom: "150px",
+        paddingBottom: "100px",
+        height: "calc(100vh - 200px)",
       }}
     >
       {activeScreen === "chat" && (

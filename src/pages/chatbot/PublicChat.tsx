@@ -313,10 +313,11 @@ export default function PublicChat({
     <div className="w-full min-h-screen bg-gray-100 flex items-start justify-center">
       {/* Simulated Mobile Frame */}
       <div
-        className="w-full max-w-md bg-white shadow-2xl  overflow-hidden flex flex-col relative"
+        className="w-full max-w-md bg-white shadow-2xl overflow-hidden flex flex-col relative"
         style={{
-          height: agentUsernamePlayground ? 700 : "100vh",
-          backgroundColor: "white", // white mobile shell
+          height: agentUsernamePlayground ? "700px" : "100dvh", // Using dvh for better mobile support
+          maxHeight: "100dvh", // Ensure it doesn't exceed viewport height
+          backgroundColor: "white",
         }}
       >
         {/* Sign In Overlay */}
