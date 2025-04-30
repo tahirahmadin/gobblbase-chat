@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Save, Plus, Bot } from "lucide-react";
-import { ChatMessage } from "../../types";
+import { ChatMessage, Theme, ThemeOption } from "../../types";
 import {
   queryDocument,
   updateAgentDetails,
@@ -47,24 +47,6 @@ interface PersonalityData {
   lastUrl: string;
   lastContent: string;
   extractedPlatform: string | null;
-}
-
-interface Theme {
-  id: string;
-  headerColor: string;
-  headerTextColor: string;
-  headerNavColor: string;
-  headerIconColor: string;
-  chatBackgroundColor: string;
-  bubbleAgentBgColor: string;
-  bubbleAgentTextColor: string;
-  bubbleAgentTimeTextColor: string;
-  bubbleUserBgColor: string;
-  bubbleUserTextColor: string;
-  bubbleUserTimeTextColor: string;
-  inputCardColor: string;
-  inputBackgroundColor: string;
-  inputTextColor: string;
 }
 
 interface PlaygroundProps {
@@ -702,7 +684,8 @@ The personality instructions above should take precedence over other style guide
                             key={themeOption.id}
                             onClick={() => setTheme(themeOption.theme)}
                             className={`group relative overflow-hidden rounded-lg border-2 transition-all ${
-                              theme.id === themeOption.theme.id
+                              theme.mainDarkColor ===
+                              themeOption.theme.mainDarkColor
                                 ? "border-black"
                                 : "border-gray-200 hover:border-gray-300"
                             }`}
@@ -714,7 +697,8 @@ The personality instructions above should take precedence over other style guide
                                   alt={themeOption.name}
                                   className="w-16 h-16 rounded-full object-cover"
                                 />
-                                {theme === themeOption.theme && (
+                                {theme.mainDarkColor ===
+                                  themeOption.theme.mainDarkColor && (
                                   <div className="absolute -top-1 -right-1 bg-black rounded-full p-1">
                                     <span className="text-white text-xs">
                                       ✓
@@ -723,10 +707,10 @@ The personality instructions above should take precedence over other style guide
                                 )}
                               </div>
                               <div className="flex-1">
-                                <h3 className="font-medium text-gray-900">
+                                <h3 className="font-medium text-gray-900 text-left">
                                   {themeOption.name}
                                 </h3>
-                                <p className="text-sm text-gray-500 mb-3">
+                                <p className="text-sm text-gray-500 mb-3 text-left">
                                   {themeOption.description}
                                 </p>
 
@@ -749,7 +733,7 @@ The personality instructions above should take precedence over other style guide
                                 className="rounded-lg overflow-hidden"
                                 style={{
                                   backgroundColor:
-                                    themeOption.theme.headerColor,
+                                    themeOption.theme.mainDarkColor,
                                 }}
                               >
                                 {/* Bot Header Preview */}
@@ -768,8 +752,9 @@ The personality instructions above should take precedence over other style guide
                                       <h3
                                         className="text-base font-medium"
                                         style={{
-                                          color:
-                                            themeOption.theme.headerTextColor,
+                                          color: !themeOption.theme.isDark
+                                            ? "black"
+                                            : "white",
                                         }}
                                       >
                                         {agentName}
@@ -777,36 +762,13 @@ The personality instructions above should take precedence over other style guide
                                       <p
                                         className="text-xs text-left"
                                         style={{
-                                          color:
-                                            themeOption.theme.headerTextColor,
+                                          color: !themeOption.theme.isDark
+                                            ? "black"
+                                            : "white",
                                         }}
                                       >
                                         @{activeAgentUsername}
                                       </p>
-                                    </div>
-                                  </div>
-
-                                  {/* Status Bar */}
-                                  <div
-                                    className="mt-3 flex items-center justify-between text-xs"
-                                    style={{
-                                      color: themeOption.theme.headerNavColor,
-                                    }}
-                                  >
-                                    <div
-                                      className="flex items-center justify-between space-x-2"
-                                      style={{
-                                        color:
-                                          themeOption.theme.headerTextColor,
-                                      }}
-                                    >
-                                      Chat
-                                    </div>
-                                    <div className="flex items-center justify-between space-x-2">
-                                      Book
-                                    </div>
-                                    <div className="flex items-center justify-between space-x-2">
-                                      Browse
                                     </div>
                                   </div>
                                 </div>

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { useUserStore } from "../../store/useUserStore";
+import { Theme } from "../../types";
 
 interface HeaderSectionProps {
   theme: Theme;

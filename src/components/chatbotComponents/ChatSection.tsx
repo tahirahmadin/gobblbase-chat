@@ -1,5 +1,4 @@
 import React from "react";
-import { ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { ChatMessage, Theme } from "../../types";
 import StreamingText from "./otherComponents/StreamingText";
@@ -68,9 +67,12 @@ export default function ChatSection({
                       text={msg.content}
                       speed={15}
                       messageId={msg.id}
+                      textColor={!theme.isDark ? "black" : "white"}
                     />
                   ) : (
-                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    <div style={{ color: !theme.isDark ? "black" : "white" }}>
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    </div>
                   )}
                 </div>
               </div>

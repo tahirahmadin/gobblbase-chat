@@ -5,12 +5,14 @@ interface StreamingTextProps {
   text: string;
   speed?: number;
   messageId: string;
+  textColor?: string;
 }
 
 const StreamingText: React.FC<StreamingTextProps> = ({
   text,
   speed = 15,
   messageId,
+  textColor,
 }) => {
   const [displayedText, setDisplayedText] = useState(text);
   const intervalRef = useRef<NodeJS.Timeout>();
@@ -56,7 +58,10 @@ const StreamingText: React.FC<StreamingTextProps> = ({
   }, [text, speed, hasAnimated, messageId, animatedKey]);
 
   return (
-    <div className="prose prose-sm max-w-none [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0 [&>blockquote]:m-0 [&>pre]:m-0 [&>*]:text-inherit prose-headings:text-inherit prose-ul:text-inherit prose-li:text-inherit prose-li:marker:text-inherit prose-strong:text-inherit">
+    <div
+      className="prose prose-sm max-w-none [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0 [&>blockquote]:m-0 [&>pre]:m-0 [&>*]:text-inherit prose-headings:text-inherit prose-ul:text-inherit prose-li:text-inherit prose-li:marker:text-inherit prose-strong:text-inherit"
+      style={{ color: textColor }}
+    >
       <ReactMarkdown>{displayedText}</ReactMarkdown>
     </div>
   );

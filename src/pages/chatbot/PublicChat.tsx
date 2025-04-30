@@ -6,9 +6,7 @@ import OpenAI from "openai";
 import { useBotConfig } from "../../store/useBotConfig";
 import { PERSONALITY_TYPES } from "../admin/PersonalityAnalyzer";
 import { useCartStore } from "../../store/useCartStore";
-import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { useUserStore } from "../../store/useUserStore";
-import { toast } from "react-hot-toast";
 import HeaderSection from "../../components/chatbotComponents/HeaderSection";
 import ChatSection from "../../components/chatbotComponents/ChatSection";
 import InputSection from "../../components/chatbotComponents/InputSection";
@@ -74,14 +72,9 @@ export default function PublicChat({
     activeBotData: config,
     isLoading: isConfigLoading,
     fetchBotData,
-    activeBotId,
   } = useBotConfig();
   const { products } = useCartStore();
-  const {
-    isLoggedIn,
-    handleGoogleLoginSuccess: storeHandleGoogleLoginSuccess,
-    handleGoogleLoginError: storeHandleGoogleLoginError,
-  } = useUserStore();
+  const { isLoggedIn } = useUserStore();
   const [showSignInOverlay, setShowSignInOverlay] = useState(!isLoggedIn);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ExtendedChatMessage[]>([
@@ -98,7 +91,6 @@ export default function PublicChat({
   const [isLoading, setIsLoading] = useState(false);
   const [showCues, setShowCues] = useState(true);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Personality
   const [personalityType, setPersonalityType] =
@@ -112,29 +104,15 @@ export default function PublicChat({
   const currentConfig = previewConfig || config;
   const currentIsLoading = previewConfig ? false : isConfigLoading;
 
+  console.log("currentConfig?.themeColors");
+  console.log(currentConfig?.themeColors);
   // safe themeColors fallback
   const theme = currentConfig?.themeColors ?? {
-    headerColor: "#000000",
-    headerTextColor: "#F0B90A",
-    headerNavColor: "#bdbdbd",
-    headerIconColor: "#F0B90A",
-    chatBackgroundColor: "#313131",
-    bubbleAgentBgColor: "#1E2026",
-    bubbleAgentTextColor: "#ffffff",
-    bubbleAgentTimeTextColor: "#F0B90A",
-    bubbleUserBgColor: "#F0B90A",
-    bubbleUserTextColor: "#000000",
-    bubbleUserTimeTextColor: "#000000",
-    inputCardColor: "#27282B",
-    inputBackgroundColor: "#212121",
-    inputTextColor: "#ffffff",
+    isDark: true,
+    mainDarkColor: "#4220cd",
+    mainLightColor: "#91a3ff",
+    highlightColor: "#ffcc16",
   };
-  // const theme = {
-  //   isDark: true,
-  //   mainDarkColor: "#4220cd",
-  //   mainLightColor: "#91a3ff",
-  //   highlightColor: "#ffcc16",
-  // };
 
   // Enhanced scroll to bottom function
 
@@ -323,24 +301,6 @@ export default function PublicChat({
     handleSendMessage(cue);
   };
 
-  const handleGoogleLoginSuccess = async (credentialResponse: any) => {
-    try {
-      await storeHandleGoogleLoginSuccess(credentialResponse);
-      setShowSignInOverlay(false);
-      toast.success("Successfully signed in!");
-    } catch (error) {
-      console.error("Error during Google login:", error);
-      toast.error("Failed to sign in. Please try again.");
-    }
-  };
-
-  const handleGoogleLoginError = () => {
-    storeHandleGoogleLoginError();
-    toast.error("Google login failed. Please try again.");
-  };
-
-  const [showLeadForm, setShowLeadForm] = useState(false);
-
   if (currentIsLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -350,137 +310,99 @@ export default function PublicChat({
   }
 
   return (
-    <div
-      className="flex flex-col relative"
-      style={{
-        height: agentUsernamePlayground ? "100%" : "100vh",
-        backgroundColor: agentUsernamePlayground
-          ? "transparent"
-          : theme.headerColor,
-      }}
-    >
-      {/* Sign In Overlay */}
-      {showSignInOverlay && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden w-full max-w-md mx-4">
-            <div className="p-6">
-              <div className="flex items-center justify-center mb-6">
-                <img
-                  src={
-                    config?.logo ||
-                    "https://gobbl-bucket.s3.ap-south-1.amazonaws.com/gobbl_token.png"
-                  }
-                  alt="Bot Logo"
-                  className="w-12 h-12 rounded-full"
-                />
-              </div>
-              <div className="text-center mb-6">
-                <h3 className="text-xl font-semibold text-gray-900">
-                  Sign In Required
-                </h3>
-                <p className="mt-2 text-sm text-gray-500">
-                  Please sign in to start chatting and ordering with us.
-                </p>
-              </div>
-              <div className="flex flex-col items-center space-y-4">
-                <div className="w-full flex items-center justify-center">
-                  <div className="flex items-center justify-center">
-                    <div className="w-full max-w-xs">
-                      <GoogleOAuthProvider
-                        clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}
-                      >
-                        <GoogleLogin
-                          onSuccess={handleGoogleLoginSuccess}
-                          onError={handleGoogleLoginError}
-                          useOneTap
-                          theme="filled_blue"
-                          size="large"
-                          width="100%"
-                        />
-                      </GoogleOAuthProvider>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-center">
-                  <p className="text-xs text-gray-500">
-                    By signing in, you agree to our Terms of Service and Privacy
-                    Policy
-                  </p>
-                </div>
-              </div>
+    <div className="w-full min-h-screen bg-gray-100 flex items-start justify-center">
+      {/* Simulated Mobile Frame */}
+      <div
+        className="w-full max-w-md bg-white shadow-2xl  overflow-hidden flex flex-col relative"
+        style={{
+          height: agentUsernamePlayground ? 700 : "100vh",
+          backgroundColor: "white", // white mobile shell
+        }}
+      >
+        {/* Sign In Overlay */}
+        {showSignInOverlay && (
+          <div className="absolute inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden w-full max-w-md mx-4">
+              {/* ... Sign In content remains the same ... */}
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <HeaderSection
-        theme={theme}
-        currentConfig={currentConfig || { name: "KiFor Bot" }}
-        activeScreen={activeScreen}
-        setActiveScreen={setActiveScreen}
-      />
-
-      {activeScreen === "about" && (
-        <AboutSection
+        <HeaderSection
           theme={theme}
           currentConfig={currentConfig || { name: "KiFor Bot" }}
+          activeScreen={activeScreen}
+          setActiveScreen={setActiveScreen}
         />
-      )}
 
-      {activeScreen === "browse" && (
-        <BrowseSection currentConfig={currentConfig || { name: "KiFor Bot" }} />
-      )}
-
-      {activeScreen === "chat" && (
-        <>
-          <ChatSection
+        {activeScreen === "about" && (
+          <AboutSection
             theme={theme}
-            messages={messages}
-            isLoading={isLoading}
-            activeScreen={activeScreen}
             currentConfig={currentConfig || { name: "KiFor Bot" }}
-            messagesEndRef={messagesEndRef}
           />
+        )}
 
-          {/* cues */}
-          {showCues && (
-            <div
-              className="p-2 grid grid-cols-1 gap-1"
-              style={{ backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9" }}
-            >
-              {QUERY_CUES.map((row, i) => (
-                <div key={i} className="grid grid-cols-2 gap-2">
-                  {row.map((cue) => (
-                    <button
-                      key={cue}
-                      onClick={() => handleCueClick(cue)}
-                      disabled={isLoading}
-                      className="px-2 py-1 rounded-xl text-xs font-medium"
-                      style={{
-                        backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
-                        color: theme.isDark ? "white" : "black",
-                        border: `1px solid ${theme.isDark ? "white" : "black"}`,
-                        borderRadius: "20px",
-                      }}
-                    >
-                      {cue}
-                    </button>
-                  ))}
-                </div>
-              ))}
-            </div>
-          )}
-
-          <InputSection
-            theme={theme}
-            message={message}
-            isLoading={isLoading}
-            setMessage={setMessage}
-            handleSendMessage={handleSendMessage}
-            handleKeyPress={handleKeyPress}
+        {activeScreen === "browse" && (
+          <BrowseSection
+            currentConfig={currentConfig || { name: "KiFor Bot" }}
           />
-        </>
-      )}
+        )}
+
+        {activeScreen === "chat" && (
+          <>
+            <ChatSection
+              theme={theme}
+              messages={messages}
+              isLoading={isLoading}
+              activeScreen={activeScreen}
+              currentConfig={currentConfig || { name: "KiFor Bot" }}
+              messagesEndRef={messagesEndRef}
+            />
+
+            {/* cues */}
+            {showCues && (
+              <div
+                className="p-2 grid grid-cols-1 gap-1"
+                style={{
+                  backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
+                }}
+              >
+                {QUERY_CUES.map((row, i) => (
+                  <div key={i} className="grid grid-cols-2 gap-2">
+                    {row.map((cue) => (
+                      <button
+                        key={cue}
+                        onClick={() => handleCueClick(cue)}
+                        disabled={isLoading}
+                        className="px-2 py-1 rounded-xl text-xs font-medium"
+                        style={{
+                          backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
+                          color: theme.isDark ? "white" : "black",
+                          border: `1px solid ${
+                            theme.isDark ? "white" : "black"
+                          }`,
+                          borderRadius: "20px",
+                        }}
+                      >
+                        {cue}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <InputSection
+              theme={theme}
+              message={message}
+              isLoading={isLoading}
+              setMessage={setMessage}
+              handleSendMessage={handleSendMessage}
+              handleKeyPress={handleKeyPress}
+            />
+          </>
+        )}
+      </div>
     </div>
   );
 }

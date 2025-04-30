@@ -6,6 +6,7 @@ import {
   uploadProfilePicture,
 } from "../lib/serverActions";
 import { toast } from "react-hot-toast";
+import { Theme } from "../types";
 
 interface BotConfig {
   agentId: string;
@@ -25,22 +26,7 @@ interface BotConfig {
   systemPrompt: string;
   model: string;
 
-  themeColors: {
-    headerColor: string;
-    headerTextColor: string;
-    headerNavColor: string;
-    headerIconColor: string;
-    chatBackgroundColor: string;
-    bubbleAgentBgColor: string;
-    bubbleAgentTextColor: string;
-    bubbleAgentTimeTextColor: string;
-    bubbleUserBgColor: string;
-    bubbleUserTextColor: string;
-    bubbleUserTimeTextColor: string;
-    inputCardColor: string;
-    inputBackgroundColor: string;
-    inputTextColor: string;
-  };
+  themeColors: Theme;
 }
 
 interface BotConfigState {
