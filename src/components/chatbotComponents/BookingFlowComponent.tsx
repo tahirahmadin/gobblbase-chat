@@ -87,6 +87,7 @@ interface AppointmentSettings {
   bufferTime: number;
   timezone: string;
   price?: PriceSettings;
+  locations: Array<"google_meet" | "zoom" | "teams" | "in_person">;
 }
 
 const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
@@ -107,8 +108,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<
-    "google_meet" | "in_person"
-  >("google_meet");
+  "google_meet" | "zoom" | "teams" | "in_person" >("google_meet");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -266,6 +266,12 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
 
     loadSettings();
   }, [businessId]);
+
+  useEffect(() => {
+    if (settings?.locations?.length) {
+      setSelectedLocation(settings.locations[0]);
+    }
+  }, [settings]);
 
   const convertTimeToBusinessTZ = (time: string, date: Date): string => {
     const [hours, minutes] = time.split(":").map(Number);

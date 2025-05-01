@@ -502,20 +502,42 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex items-center">
-                        {meeting.location === "google_meet" ? (
-                          <>
-                            <Video className="h-4 w-4 text-gray-400 mr-2" />
-                            <span>Google Meet</span>
-                          </>
-                        ) : (
-                          <>
-                            <MapPin className="h-4 w-4 text-gray-400 mr-2" />
-                            <span>In-person</span>
-                          </>
-                        )}
+                      {(() => {
+                          switch (meeting.location) {
+                            case 'google_meet':
+                              return (
+                                <>
+                                  <Video className="h-4 w-4 text-gray-400 mr-2" />
+                                  <span>Google Meet</span>
+                                </>
+                              );
+                            case 'zoom':
+                              return (
+                                <>
+                                  {/* swap in a Zoom icon if you have one */}
+                                  <Video className="h-4 w-4 text-gray-400 mr-2" />
+                                  <span>Zoom</span>
+                                </>
+                              );
+                            case 'teams':
+                              return (
+                                <>
+                                  {/* swap in a Teams icon */}
+                                  <Video className="h-4 w-4 text-gray-400 mr-2" />
+                                  <span>Microsoft Teams</span>
+                                </>
+                              );
+                            default:
+                              return (
+                                <>
+                                  <MapPin className="h-4 w-4 text-gray-400 mr-2" />
+                                  <span>In-person</span>
+                                </>
+                              );
+                          }
+                        })()}
                       </div>
-                      {meeting.location === "google_meet" &&
-                        meeting.meetingLink && (
+                      {meeting.meetingLink && (
                           <a
                             href={meeting.meetingLink}
                             target="_blank"
@@ -705,248 +727,101 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
               {showFilterMenu && (
                 <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-10 border border-gray-200">
                   <div className="p-4">
-                    <h3 className="font-medium text-gray-800 mb-3">
-                      Filter By
-                    </h3>
+                    <h3 className="font-medium text-gray-800 mb-3">Filter By</h3>
 
-                    {/* Location filter */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Location
-                      </label>
-                      <div className="space-y-2">
-                        <div className="flex items-center">
-                          <input
-                            type="radio"
-                            id="location-all"
-                            name="location"
-                            checked={filters.location === null}
-                            onChange={() =>
-                              setFilters((prev) => ({
-                                ...prev,
-                                location: null,
-                              }))
-                            }
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <label
-                            htmlFor="location-all"
-                            className="ml-2 block text-sm text-gray-700"
-                          >
-                            All locations
-                          </label>
-                        </div>
-                        <div className="flex items-center">
-                          <input
-                            type="radio"
-                            id="location-online"
-                            name="location"
-                            checked={filters.location === "google_meet"}
-                            onChange={() =>
-                              setFilters((prev) => ({
-                                ...prev,
-                                location: "google_meet",
-                              }))
-                            }
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <label
-                            htmlFor="location-online"
-                            className="ml-2 block text-sm text-gray-700"
-                          >
-                            Google Meet
-                          </label>
-                        </div>
-                        <div className="flex items-center">
-                          <input
-                            type="radio"
-                            id="location-inperson"
-                            name="location"
-                            checked={filters.location === "in_person"}
-                            onChange={() =>
-                              setFilters((prev) => ({
-                                ...prev,
-                                location: "in_person",
-                              }))
-                            }
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <label
-                            htmlFor="location-inperson"
-                            className="ml-2 block text-sm text-gray-700"
-                          >
-                            In-person
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Date range filter */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Date Range
-                      </label>
-                      <div className="space-y-2">
-                        <div className="flex items-center">
-                          <input
-                            type="radio"
-                            id="date-all"
-                            name="date-range"
-                            checked={filters.dateRange === "all"}
-                            onChange={() =>
-                              setFilters((prev) => ({
-                                ...prev,
-                                dateRange: "all",
-                              }))
-                            }
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <label
-                            htmlFor="date-all"
-                            className="ml-2 block text-sm text-gray-700"
-                          >
-                            All dates
-                          </label>
-                        </div>
-                        <div className="flex items-center">
-                          <input
-                            type="radio"
-                            id="date-today"
-                            name="date-range"
-                            checked={filters.dateRange === "today"}
-                            onChange={() =>
-                              setFilters((prev) => ({
-                                ...prev,
-                                dateRange: "today",
-                              }))
-                            }
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <label
-                            htmlFor="date-today"
-                            className="ml-2 block text-sm text-gray-700"
-                          >
-                            Today
-                          </label>
-                        </div>
-                        <div className="flex items-center">
-                          <input
-                            type="radio"
-                            id="date-week"
-                            name="date-range"
-                            checked={filters.dateRange === "week"}
-                            onChange={() =>
-                              setFilters((prev) => ({
-                                ...prev,
-                                dateRange: "week",
-                              }))
-                            }
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <label
-                            htmlFor="date-week"
-                            className="ml-2 block text-sm text-gray-700"
-                          >
-                            Last 7 days
-                          </label>
-                        </div>
-                        <div className="flex items-center">
-                          <input
-                            type="radio"
-                            id="date-month"
-                            name="date-range"
-                            checked={filters.dateRange === "month"}
-                            onChange={() =>
-                              setFilters((prev) => ({
-                                ...prev,
-                                dateRange: "month",
-                              }))
-                            }
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <label
-                            htmlFor="date-month"
-                            className="ml-2 block text-sm text-gray-700"
-                          >
-                            Last 30 days
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Status filter (for past meetings) */}
-                    {activeTab === "past" && (
+                    {/* wrap all filters in a single fragment */}
+                    <>
+                      {/* Location filter */}
                       <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Status
+                          Location
                         </label>
                         <div className="space-y-2">
-                          <div className="flex items-center">
-                            <input
-                              type="radio"
-                              id="status-all"
-                              name="status"
-                              checked={filters.status === null}
-                              onChange={() =>
-                                setFilters((prev) => ({
-                                  ...prev,
-                                  status: null,
-                                }))
-                              }
-                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            />
-                            <label
-                              htmlFor="status-all"
-                              className="ml-2 block text-sm text-gray-700"
-                            >
-                              All
+                          {[
+                            { id: "google_meet", label: "Google Meet" },
+                            { id: "zoom",        label: "Zoom" },
+                            { id: "teams",       label: "Microsoft Teams" },
+                            { id: "in_person",   label: "In-person" },
+                          ].map(({ id, label }) => (
+                            <label key={id} className="flex items-center">
+                              <input
+                                type="radio"
+                                name="location"            
+                                value={id}
+                                checked={filters.location === id}
+                                onChange={() =>
+                                  setFilters(prev => ({ ...prev, location: id }))
+                                }
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                              />
+                              <span className="ml-2 block text-sm text-gray-700">{label}</span>
                             </label>
-                          </div>
-                          <div className="flex items-center">
-                            <input
-                              type="radio"
-                              id="status-completed"
-                              name="status"
-                              checked={filters.status === "confirmed"}
-                              onChange={() =>
-                                setFilters((prev) => ({
-                                  ...prev,
-                                  status: "confirmed",
-                                }))
-                              }
-                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            />
-                            <label
-                              htmlFor="status-completed"
-                              className="ml-2 block text-sm text-gray-700"
-                            >
-                              Completed
-                            </label>
-                          </div>
-                          <div className="flex items-center">
-                            <input
-                              type="radio"
-                              id="status-cancelled"
-                              name="status"
-                              checked={filters.status === "cancelled"}
-                              onChange={() =>
-                                setFilters((prev) => ({
-                                  ...prev,
-                                  status: "cancelled",
-                                }))
-                              }
-                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            />
-                            <label
-                              htmlFor="status-cancelled"
-                              className="ml-2 block text-sm text-gray-700"
-                            >
-                              Cancelled
-                            </label>
-                          </div>
+                          ))}
                         </div>
                       </div>
-                    )}
+
+                      {/* Date range filter */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Date Range
+                        </label>
+                        <div className="space-y-2">
+                          {["all", "today", "week", "month"].map((range) => (
+                            <label key={range} className="flex items-center">
+                              <input
+                                type="radio"
+                                name="dateRange"
+                                value={range}
+                                checked={filters.dateRange === range}
+                                onChange={() =>
+                                  setFilters((prev) => ({ ...prev, dateRange: range as any }))
+                                }
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                              />
+                              <span className="ml-2 text-sm text-gray-700">
+                                {range === "all"
+                                  ? "All dates"
+                                  : range === "today"
+                                  ? "Today"
+                                  : range === "week"
+                                  ? "Last 7 days"
+                                  : "Last 30 days"}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Status filter (only in “past” tab) */}
+                      {activeTab === "past" && (
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Status
+                          </label>
+                          <div className="space-y-2">
+                            {[
+                              { id: null,       label: "All" },
+                              { id: "confirmed", label: "Completed" },
+                              { id: "cancelled", label: "Cancelled" },
+                            ].map(({ id, label }) => (
+                              <label key={String(id)} className="flex items-center">
+                                <input
+                                  type="radio"
+                                  name="status"
+                                  value={String(id)}
+                                  checked={filters.status === id}
+                                  onChange={() =>
+                                    setFilters((prev) => ({ ...prev, status: id }))
+                                  }
+                                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                                <span className="ml-2 text-sm text-gray-700">{label}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
 
                     {/* Filter actions */}
                     <div className="flex justify-between pt-3 border-t border-gray-200 mt-3">
@@ -958,7 +833,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                       </button>
                       <button
                         onClick={handleApplyFilters}
-                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-gray-800 hover:bg-gray-900 focus:outline-none"
+                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-800 hover:bg-gray-900"
                       >
                         Apply
                       </button>
@@ -1060,24 +935,24 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                     <p className="text-sm font-medium text-gray-700">
                       Meeting Locations:
                     </p>
-                    {bookingSettings.locations.map((locId) => (
-                      <p
-                        key={locId}
-                        className="text-sm text-gray-600 flex items-center"
-                      >
-                        {locId === "google_meet" ? (
-                          <>
-                            <Video className="h-4 w-4 mr-2 text-gray-400" />
-                            Google Meet
-                          </>
-                        ) : (
-                          <>
-                            <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                            In-person
-                          </>
-                        )}
-                      </p>
-                    ))}
+                    {bookingSettings.locations.map(locId => {
+                      let icon, label;
+                      switch (locId) {
+                        case 'google_meet':
+                          icon = <Video className="h-4 w-4 mr-2 text-gray-400" />; label = 'Google Meet'; break;
+                        case 'zoom':
+                          icon = <Video className="h-4 w-4 mr-2 text-gray-400" />; label = 'Zoom'; break;
+                        case 'teams':
+                          icon = <Video className="h-4 w-4 mr-2 text-gray-400" />; label = 'Microsoft Teams'; break;
+                        default:
+                          icon = <MapPin className="h-4 w-4 mr-2 text-gray-400" />; label = 'In-person'; break;
+                      }
+                      return (
+                        <p key={locId} className="text-sm text-gray-600 flex items-center">
+                          {icon}{label}
+                        </p>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

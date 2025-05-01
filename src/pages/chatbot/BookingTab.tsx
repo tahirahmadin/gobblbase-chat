@@ -136,7 +136,7 @@ const BookingTab: React.FC = () => {
                 <li>Booking type (individual or team)</li>
                 <li>Meeting duration and buffer times</li>
                 <li>Available days and times</li>
-                <li>Meeting location options (Google Meet, In-person)</li>
+                <li>Meeting location options (Google Meet, In-person, Zoom, Teams)</li>
               </ul>
               <button
                 onClick={openBookingSetup}
