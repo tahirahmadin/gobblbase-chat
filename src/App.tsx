@@ -25,6 +25,13 @@ import BookingTab from "./pages/chatbot/BookingTab";
 import Integrations from "./pages/admin/Integrations";
 import Leads from "./pages/admin/Leads";
 import Directory from "./pages/admin/Directory";
+import AdminLayout from "./components/adminComponents/AdminLayout";
+import Profile from "./pages/admin/Profile";
+import Brain from "./pages/admin/Brain";
+import Voice from "./pages/admin/Voice";
+import Theme from "./pages/admin/Theme";
+import WelcomeText from "./pages/admin/WelcomeText";
+import Prompts from "./pages/admin/Prompts";
 
 // Add type definition for window
 declare global {
@@ -172,41 +179,22 @@ function Dashboard() {
     );
   }
 
-  // If logged in and agent selected, show tabs and content
+  // If logged in and agent selected, show admin layout with content
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex">
-          <div className="w-42 pr-8">
-            <div className="mb-4">
-              <button
-                onClick={() => {
-                  setActiveBotId(null);
-                  setActiveTab("playground");
-                }}
-                className="flex items-center text-gray-600 hover:text-gray-900"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Agents
-              </button>
-            </div>
-            <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
-          </div>
-          <div className="flex-1">
-            {activeTab === "playground" && <Playground agentId={activeBotId} />}
-            {activeTab === "activity" && <Activity />}
-            {activeTab === "booking" && <BookingTab />}
-            {activeTab === "publish" && <Integration />}
-            {activeTab === "settings" && <SettingsPage />}
-            {activeTab === "products" && <Products />}
-            {activeTab === "integrations" && <Integrations />}
-            {activeTab === "leads" && <Leads />}
-            {activeTab === "directory" && <Directory />}
-          </div>
-        </div>
-      </div>
-    </div>
+    <AdminLayout>
+      <Routes>
+        <Route path="dashboard/profile" element={<Profile />} />
+        <Route path="dashboard/brain" element={<Brain />} />
+        <Route path="dashboard/voice" element={<Voice />} />
+        <Route path="dashboard/theme" element={<Theme />} />
+        <Route path="dashboard/welcome" element={<WelcomeText />} />
+        <Route path="dashboard/prompts" element={<Prompts />} />
+        <Route path="business/*" element={<div>Business Component</div>} />
+        <Route path="offerings/*" element={<div>Offerings Component</div>} />
+        <Route path="crm/*" element={<div>CRM Component</div>} />
+        <Route path="*" element={<Navigate to="dashboard/profile" replace />} />
+      </Routes>
+    </AdminLayout>
   );
 }
 
@@ -236,7 +224,7 @@ function App() {
           path="/:botUsername"
           element={<PublicChat agentUsernamePlayground={null} />}
         />
-        <Route path="/admin" element={<Dashboard />} />
+        <Route path="/admin/*" element={<Dashboard />} />
         <Route path="/" element={<Navigate to="/admin" replace />} />
       </Routes>
     </Router>
