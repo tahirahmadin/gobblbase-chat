@@ -934,16 +934,30 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
               <div className="text-sm">Timezone: {formatTimezone(userTimezone)}</div>
             </div>
       
-            <div className="mb-4 flex justify-between">
-              <div className="font-medium">SELECTED DATE</div>
-              <div>{fmtDateFull(selectedDate)}</div>
+            <div className="mb-4 flex justify-between items-center">
+            <div 
+                className="font-medium uppercase"
+                style={{ color: theme.highlightColor }}
+            >
+                SELECTED DATE
             </div>
-            
-            <div className="mb-4 flex justify-between">
-              <div className="font-medium">SELECTED TIME</div>
-              <div>{fmtTime(selectedSlot.startTime)} - {fmtTime(selectedSlot.endTime)}</div>
+            <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
+                {fmtDateFull(selectedDate)}
             </div>
-      
+            </div>
+
+            <div className="mb-4 flex justify-between items-center">
+            <div 
+                className="font-medium uppercase"
+                style={{ color: theme.highlightColor }}
+            >
+                SELECTED TIME
+            </div>
+            <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
+                {fmtTime(selectedSlot.startTime)} - {fmtTime(selectedSlot.endTime)}
+            </div>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-3">
               <div>
                 <div className="relative">
@@ -953,10 +967,12 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="NAME"
-                    className="w-full p-2 rounded"
+                    className={`w-full p-2 rounded ${
+                        theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
+                      }`}
                     style={{ 
                       backgroundColor: theme.mainLightColor,
-                      color: "#000"
+                      color: theme.isDark ? "black" : "white"
                     }}
                   />
                 </div>
@@ -971,10 +987,12 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                     placeholder="EMAIL"
                     onChange={handleEmailChange}
                     onBlur={() => validateEmail(email)}
-                    className={`w-full p-2 rounded`}
+                    className={`w-full p-2 rounded ${
+                        theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
+                      }`}
                     style={{ 
                       backgroundColor: theme.mainLightColor,
-                      color: "#000",
+                      color: theme.isDark ? "black" : "white",
                       borderColor: emailError ? "red" : "transparent"
                     }}
                   />
@@ -992,10 +1010,12 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                     <button
                       type="button"
                       onClick={() => setShowCountryCodes(!showCountryCodes)}
-                      className="flex items-center justify-between h-full px-2 rounded-l"
+                      className={`flex items-center justify-between h-full px-2 rounded-l ${
+                        theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
+                      }`}
                       style={{ 
                         backgroundColor: theme.mainLightColor,
-                        color: "#000"
+                        color: theme.isDark ? "black" : "white"
                       }}
                     >
                       <span>{selectedCountryCode}</span>
@@ -1028,10 +1048,12 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                     placeholder="PHONE"
                     onChange={handlePhoneChange}
                     ref={phoneInputRef}
-                    className="w-full p-2 rounded-r"
+                    className={`w-full p-2 rounded ${
+                        theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
+                      }`}
                     style={{ 
                       backgroundColor: theme.mainLightColor,
-                      color: "#000",
+                      color: theme.isDark ? "black" : "white",
                       borderColor: phoneError ? "red" : "transparent"
                     }}
                   />
@@ -1049,10 +1071,12 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                     value={notes}
                     placeholder="NOTES"
                     onChange={(e) => setNotes(e.target.value)}
-                    className="w-full p-2 rounded h-20 resize-none"
+                    className={`w-full p-2 rounded h-20 resize-none ${
+                        theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
+                      }`}
                     style={{ 
                       backgroundColor: theme.mainLightColor,
-                      color: "#000"
+                      color: theme.isDark ? "black" : "white"
                     }}
                   />
                 </div>
@@ -1064,7 +1088,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                 className="w-full p-3 rounded font-medium mt-4"
                 style={{
                   backgroundColor: theme.highlightColor,
-                  color: "#000",
+                  color: theme.isDark ? "black" : "white",
                   opacity: submitting || !name || !email || emailError || phoneError ? 0.7 : 1
                 }}
               >
@@ -1096,19 +1120,40 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
               <div className="text-sm">Timezone: {formatTimezone(userTimezone)}</div>
             </div>
       
-            <div className="mb-4 flex justify-between">
-              <div className="font-medium">SELECTED DATE</div>
-              <div>{fmtDateFull(selectedDate)}</div>
+            <div className="mb-4 flex justify-between items-center">
+            <div 
+                className="font-medium uppercase"
+                style={{ color: theme.highlightColor }}
+            >
+                SELECTED DATE
             </div>
-            
-            <div className="mb-4 flex justify-between">
-              <div className="font-medium">SELECTED TIME</div>
-              <div>{fmtTime(selectedSlot.startTime)} - {fmtTime(selectedSlot.endTime)}</div>
+            <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
+                {fmtDateFull(selectedDate)}
             </div>
-            
-            <div className="mb-4 flex justify-between">
-              <div className="font-medium">DUE AMOUNT</div>
-              <div>{servicePrice}</div>
+            </div>
+                        
+            <div className="mb-4 flex justify-between items-center">
+            <div 
+                className="font-medium uppercase"
+                style={{ color: theme.highlightColor }}
+            >
+                SELECTED TIME
+            </div>
+            <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
+                {fmtTime(selectedSlot.startTime)} - {fmtTime(selectedSlot.endTime)}
+            </div>
+            </div>
+                        
+            <div className="mb-4 flex justify-between items-center">
+            <div 
+                className="font-medium uppercase"
+                style={{ color: theme.highlightColor }}
+            >
+                DUE AMOUNT
+            </div>
+            <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
+                {servicePrice}
+            </div>
             </div>
             
             {paymentError && (
@@ -1123,10 +1168,10 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                 disabled={stripeProcessing || stablecoinProcessing}
                 className="w-full p-3 rounded-full font-medium"
                 style={{
-                  backgroundColor: theme.mainDarkColor,
-                  color: theme.highlightColor,
-                  opacity: (stripeProcessing || stablecoinProcessing) ? 0.7 : 1
-                }}
+                    backgroundColor: theme.highlightColor,
+                    color: theme.mainDarkColor,
+                    opacity: (stripeProcessing || stablecoinProcessing) ? 0.7 : 1
+                  }}
               >
                 {stripeProcessing ? (
                   <div className="flex items-center justify-center">
@@ -1141,8 +1186,8 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                 disabled={stripeProcessing || stablecoinProcessing}
                 className="w-full p-3 rounded-full font-medium"
                 style={{
-                  backgroundColor: theme.mainDarkColor,
-                  color: theme.highlightColor,
+                  backgroundColor: theme.highlightColor,
+                  color: theme.mainDarkColor,
                   opacity: (stripeProcessing || stablecoinProcessing) ? 0.7 : 1
                 }}
               >
@@ -1167,36 +1212,62 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
               </div>
             </div>
             
-            <h3 className="font-medium text-lg mb-2">You are scheduled!</h3>
+            <h3 className="font-bold text-lg mb-2">You are scheduled!</h3>
             <p className="text-sm mb-6">Details have been sent to your email</p>
             
             {selectedDate && selectedSlot && (
-              <div className="space-y-2 text-left mb-6">
-                <div>
-                  <div className="font-medium">SELECTED DATE</div>
-                  <div>{fmtDateFull(selectedDate)}</div>
+            <div className="space-y-3 text-left mb-6">
+                <div className="flex justify-between items-center">
+                <div 
+                    className="font-medium uppercase"
+                    style={{ color: theme.highlightColor }}
+                >
+                    SELECTED DATE
+                </div>
+                <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
+                    {fmtDateFull(selectedDate)}
+                </div>
                 </div>
                 
-                <div>
-                  <div className="font-medium">SELECTED TIME</div>
-                  <div>{fmtTime(selectedSlot.startTime)} - {fmtTime(selectedSlot.endTime)}</div>
+                <div className="flex justify-between items-center">
+                <div 
+                    className="font-medium uppercase"
+                    style={{ color: theme.highlightColor }}
+                >
+                    SELECTED TIME
+                </div>
+                <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
+                    {fmtTime(selectedSlot.startTime)} - {fmtTime(selectedSlot.endTime)}
+                </div>
                 </div>
                 
                 {!dynamicPrice.isFree && (
-                  <div>
-                    <div className="font-medium">AMOUNT PAID</div>
-                    <div>{dynamicPrice.displayPrice}</div>
-                  </div>
+                <div className="flex justify-between items-center">
+                    <div 
+                    className="font-medium uppercase"
+                    style={{ color: theme.highlightColor }}
+                    >
+                    AMOUNT PAID
+                    </div>
+                    <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
+                    {dynamicPrice.displayPrice}
+                    </div>
+                </div>
                 )}
-              </div>
+            </div>
             )}
             
             <button
-              onClick={() => onClose()}
-              className="w-full p-3 rounded font-medium"
-              style={{ backgroundColor: theme.highlightColor, color: "#000" }}
-            >
-              BOOK ANOTHER SLOT
+                onClick={() => onClose()}
+                className="px-6 py-2 rounded-2xl font-medium border"
+                style={{
+                    backgroundColor: "transparent",
+                    borderColor: theme.highlightColor,
+                    color: theme.highlightColor,
+                    borderWidth: "1px"
+                }}
+                >
+                BOOK ANOTHER SLOT
             </button>
           </div>
         );
