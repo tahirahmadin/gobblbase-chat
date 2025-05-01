@@ -49,8 +49,9 @@ const navItems: NavItem[] = [
     path: "/admin/business",
     expandable: true,
     subItems: [
-      { name: "Overview", path: "/admin/business/overview" },
-      { name: "Settings", path: "/admin/business/settings" },
+      { name: "Payments", path: "/admin/business/payments" },
+      { name: "Integrations", path: "/admin/business/integrations" },
+      { name: "Embed", path: "/admin/business/embed" },
     ],
   },
   {
@@ -59,8 +60,10 @@ const navItems: NavItem[] = [
     path: "/admin/offerings",
     expandable: true,
     subItems: [
-      { name: "Products", path: "/admin/offerings/products" },
-      { name: "Services", path: "/admin/offerings/services" },
+      { name: "Add New", path: "/admin/offerings/add" },
+      { name: "Manage", path: "/admin/offerings/manage" },
+      { name: "Calendar", path: "/admin/offerings/calendar" },
+      { name: "Policies", path: "/admin/offerings/policies" },
     ],
   },
   {

@@ -32,6 +32,9 @@ import Voice from "./pages/admin/Voice";
 import Theme from "./pages/admin/Theme";
 import WelcomeText from "./pages/admin/WelcomeText";
 import Prompts from "./pages/admin/Prompts";
+import Business from "./pages/admin/Business";
+import Embed from "./pages/admin/Embed";
+import Offerings from "./pages/admin/Offerings";
 
 // Add type definition for window
 declare global {
@@ -189,8 +192,15 @@ function Dashboard() {
         <Route path="dashboard/theme" element={<Theme />} />
         <Route path="dashboard/welcome" element={<WelcomeText />} />
         <Route path="dashboard/prompts" element={<Prompts />} />
-        <Route path="business/*" element={<div>Business Component</div>} />
-        <Route path="offerings/*" element={<div>Offerings Component</div>} />
+        <Route path="business" element={<Business />} />
+        <Route path="business/payments" element={<Business />} />
+        <Route path="business/integrations" element={<Business />} />
+        <Route path="business/embed" element={<Business />} />
+        <Route path="offerings" element={<Offerings />} />
+        <Route path="offerings/add" element={<Offerings />} />
+        <Route path="offerings/manage" element={<Offerings />} />
+        <Route path="offerings/calendar" element={<Offerings />} />
+        <Route path="offerings/policies" element={<Offerings />} />
         <Route path="crm/*" element={<div>CRM Component</div>} />
         <Route path="*" element={<Navigate to="dashboard/profile" replace />} />
       </Routes>

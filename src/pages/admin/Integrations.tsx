@@ -6,6 +6,11 @@ import {
   ArrowRight,
   Check,
   ExternalLink,
+  Calendar,
+  MessageSquare,
+  Mail,
+  Globe,
+  Database,
 } from "lucide-react";
 import { useBotConfig } from "../../store/useBotConfig";
 import { toast } from "react-hot-toast";
@@ -43,6 +48,43 @@ const Integrations: React.FC = () => {
     null
   );
   const [showEditConfig, setShowEditConfig] = useState(false);
+  const [integrations, setIntegrations] = useState<Integration[]>([
+    {
+      id: "calendar",
+      name: "Calendar",
+      description: "Connect your Google Calendar for automated scheduling",
+      icon: <Calendar className="w-6 h-6" />,
+      isConnected: false,
+    },
+    {
+      id: "slack",
+      name: "Slack",
+      description: "Integrate with Slack for team notifications",
+      icon: <MessageSquare className="w-6 h-6" />,
+      isConnected: false,
+    },
+    {
+      id: "email",
+      name: "Email",
+      description: "Set up email notifications and campaigns",
+      icon: <Mail className="w-6 h-6" />,
+      isConnected: false,
+    },
+    {
+      id: "website",
+      name: "Website",
+      description: "Add chat widget to your website",
+      icon: <Globe className="w-6 h-6" />,
+      isConnected: true,
+    },
+    {
+      id: "crm",
+      name: "CRM",
+      description: "Connect with your CRM system",
+      icon: <Database className="w-6 h-6" />,
+      isConnected: false,
+    },
+  ]);
 
   // Check initial ZOHO status
   useEffect(() => {
@@ -61,17 +103,6 @@ const Integrations: React.FC = () => {
     checkZohoStatus();
   }, [activeBotId]);
 
-  const integrations: Integration[] = [
-    {
-      id: "zoho-books",
-      name: "ZOHO Books",
-      description:
-        "Connect your ZOHO Books account to manage invoices and payments",
-      icon: <Building2 className="h-6 w-6" />,
-      isConnected: isAuthenticated,
-    },
-  ];
-  //   https://api-console.zoho.in/
   const handleDisconnect = async (integrationId: string) => {
     // TODO: Implement disconnection logic
     console.log(`Disconnecting from ${integrationId}`);
@@ -397,8 +428,18 @@ const Integrations: React.FC = () => {
     );
   };
 
+  const handleConnect = (integrationId: string) => {
+    setIntegrations((prevIntegrations) =>
+      prevIntegrations.map((integration) =>
+        integration.id === integrationId
+          ? { ...integration, isConnected: !integration.isConnected }
+          : integration
+      )
+    );
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4">
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
           <h2 className="text-xl font-semibold text-gray-800">Integrations</h2>
@@ -434,7 +475,7 @@ const Integrations: React.FC = () => {
                         Connected
                       </span>
                       <button
-                        onClick={handleEditConfig}
+                        onClick={() => handleConnect(integration.id)}
                         className="px-3 py-1 text-sm text-blue-600 hover:text-blue-700 border border-blue-200 rounded-md hover:bg-blue-50"
                       >
                         Edit Configuration
@@ -442,7 +483,7 @@ const Integrations: React.FC = () => {
                     </div>
                   ) : (
                     <button
-                      onClick={() => setActiveIntegration(integration.id)}
+                      onClick={() => handleConnect(integration.id)}
                       className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900"
                     >
                       Connect
