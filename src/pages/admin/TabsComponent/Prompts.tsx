@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
-import { useBotConfig } from "../../store/useBotConfig";
-import { updateAgentDetails } from "../../lib/serverActions";
-import PublicChat from "../chatbot/PublicChat";
+import { useBotConfig } from "../../../store/useBotConfig";
+import { updateAgentDetails } from "../../../lib/serverActions";
+import PublicChat from "../../chatbot/PublicChat";
 import { toast } from "react-hot-toast";
 
 const defaultPrompts = [

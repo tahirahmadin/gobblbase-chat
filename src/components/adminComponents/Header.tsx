@@ -50,7 +50,6 @@ const Header = () => {
     >
       <div className="flex justify-between items-center px-6 py-3">
         <div className="flex items-center space-x-4">
-          <div className="text-sm font-medium text-gray-500">AGENT AGENT</div>
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}

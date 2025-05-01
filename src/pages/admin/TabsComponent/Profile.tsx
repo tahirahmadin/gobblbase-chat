@@ -1,6 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Upload, Link2, Copy, Check, X } from "lucide-react";
-import PublicChat from "../chatbot/PublicChat";
+import PublicChat from "../../chatbot/PublicChat";
+import {
+  uploadProfilePicture,
+  updateAgentUsername,
+} from "../../../lib/serverActions";
+import { useBotConfig } from "../../../store/useBotConfig";
+import toast from "react-hot-toast";
 
 interface SocialMediaLinks {
   instagram: string;
@@ -15,6 +21,7 @@ const Profile = () => {
   const [agentUsername, setAgentUsername] = useState("");
   const [isEditingUrl, setIsEditingUrl] = useState(false);
   const [urlAvailable, setUrlAvailable] = useState<boolean | null>(null);
+  const [isCheckingUrl, setIsCheckingUrl] = useState(false);
   const [agentBio, setAgentBio] = useState("");
   const [promotionalBanner, setPromotionalBanner] = useState("");
   const [smartnessLevel, setSmartNessLevel] = useState(30);
@@ -26,37 +33,102 @@ const Profile = () => {
     youtube: "",
   });
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const { activeBotId, activeBotData } = useBotConfig();
 
   const baseUrl = "http://www.kifor.ai/";
 
+  // Initialize username from activeBotData
+  useEffect(() => {
+    if (activeBotData?.username) {
+      setAgentUsername(activeBotData.username);
+    }
+  }, [activeBotData]);
+
   const handleUrlEdit = () => {
     setIsEditingUrl(true);
+    setUrlAvailable(null);
   };
 
-  const handleUrlSave = () => {
-    // Here you would typically check URL availability
-    setIsEditingUrl(false);
-    // Simulate URL check - replace with actual API call
-    setUrlAvailable(true);
+  const validateUsername = (username: string) => {
+    const usernameRegex = /^[a-zA-Z0-9_-]{3,30}$/;
+    return usernameRegex.test(username);
+  };
+
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newUsername = e.target.value.toLowerCase();
+    setAgentUsername(newUsername);
+    setUrlAvailable(null);
+  };
+
+  const handleUrlSave = async () => {
+    if (!activeBotId) {
+      toast.error("No agent selected");
+      return;
+    }
+
+    if (!validateUsername(agentUsername)) {
+      toast.error(
+        "Username must be 3-30 characters and can only contain letters, numbers, underscores, and hyphens"
+      );
+      return;
+    }
+
+    try {
+      setIsCheckingUrl(true);
+      await updateAgentUsername(activeBotId, agentUsername);
+      setIsEditingUrl(false);
+      setUrlAvailable(true);
+      toast.success("Agent URL updated successfully");
+    } catch (error: any) {
+      console.error("Error updating agent username:", error);
+      setUrlAvailable(false);
+      toast.error(error.message || "Failed to update agent URL");
+    } finally {
+      setIsCheckingUrl(false);
+    }
   };
 
   const handleCopyUrl = () => {
     navigator.clipboard.writeText(baseUrl + agentUsername);
+    toast.success("URL copied to clipboard");
   };
 
   const handleVisitUrl = () => {
     window.open(baseUrl + agentUsername, "_blank");
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (file && activeBotId) {
+      try {
+        setIsUploading(true);
+        // First update the UI with a preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setProfileImage(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+
+        // Then upload to server
+        await uploadProfilePicture(activeBotId, file);
+        toast.success("Profile picture updated successfully");
+      } catch (error) {
+        console.error("Error uploading profile picture:", error);
+        toast.error("Failed to update profile picture");
+        // Revert the preview on error
+        setProfileImage(null);
+      } finally {
+        setIsUploading(false);
+      }
     }
+  };
+
+  const handleRemoveImage = async () => {
+    setProfileImage(null);
+    // You might want to add an API call here to remove the profile picture from the server
   };
 
   return (
@@ -68,7 +140,9 @@ const Profile = () => {
             <div className="flex items-start mb-6">
               <div className="relative">
                 <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center overflow-hidden border-2 border-gray-200">
-                  {profileImage ? (
+                  {isUploading ? (
+                    <div className="animate-pulse bg-gray-200 w-full h-full" />
+                  ) : profileImage ? (
                     <img
                       src={profileImage}
                       alt="Agent"
@@ -76,28 +150,41 @@ const Profile = () => {
                     />
                   ) : (
                     <img
-                      src="/default-agent-avatar.png"
+                      src={
+                        activeBotData?.logo ||
+                        "https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/4a65a868-4b95-457b-8ec7-549f35709ada.jpg"
+                      }
                       alt="Default Agent"
                       className="w-full h-full object-cover"
                     />
                   )}
                 </div>
                 <div className="absolute -top-1 -right-1 flex space-x-1">
-                  <label className="w-5 h-5 bg-blue-600 flex items-center justify-center cursor-pointer hover:bg-blue-700">
+                  <label
+                    className={`w-5 h-5 ${
+                      isUploading
+                        ? "bg-gray-400"
+                        : "bg-blue-600 hover:bg-blue-700"
+                    } flex items-center justify-center cursor-pointer transition-colors`}
+                  >
                     <input
                       type="file"
                       className="hidden"
                       onChange={handleImageUpload}
                       accept="image/*"
+                      disabled={isUploading}
                     />
                     <Upload className="w-3 h-3 text-white" />
                   </label>
-                  <button
-                    className="w-5 h-5 bg-red-600 flex items-center justify-center hover:bg-red-700"
-                    onClick={() => setProfileImage(null)}
-                  >
-                    <X className="w-3 h-3 text-white" />
-                  </button>
+                  {profileImage && (
+                    <button
+                      className="w-5 h-5 bg-red-600 flex items-center justify-center hover:bg-red-700 transition-colors"
+                      onClick={handleRemoveImage}
+                      disabled={isUploading}
+                    >
+                      <X className="w-3 h-3 text-white" />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -131,14 +218,14 @@ const Profile = () => {
                     <div className="absolute right-1 top-1/2 -translate-y-1/2 flex space-x-1">
                       <button
                         onClick={handleCopyUrl}
-                        className="w-5 h-5 bg-gray-100 flex items-center justify-center hover:bg-gray-200 rounded-sm"
+                        className="w-5 h-5 bg-gray-100 flex items-center justify-center hover:bg-gray-200 rounded-sm transition-colors"
                         title="Copy URL"
                       >
                         <Copy className="w-3 h-3 text-gray-600" />
                       </button>
                       <button
                         onClick={handleVisitUrl}
-                        className="w-5 h-5 bg-gray-100 flex items-center justify-center hover:bg-gray-200 rounded-sm"
+                        className="w-5 h-5 bg-gray-100 flex items-center justify-center hover:bg-gray-200 rounded-sm transition-colors"
                         title="Visit URL"
                       >
                         <Link2 className="w-3 h-3 text-gray-600" />
@@ -147,46 +234,66 @@ const Profile = () => {
                   </div>
                   <button
                     onClick={handleUrlEdit}
-                    className="px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
+                    className="px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm transition-colors"
                   >
                     Edit
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center space-x-2">
-                  <div className="flex-1 relative">
-                    <div className="flex items-center border border-gray-300 rounded-md overflow-hidden">
-                      <span className="px-3 py-2 bg-gray-100 text-gray-500 text-sm border-r">
-                        {baseUrl}
-                      </span>
-                      <input
-                        type="text"
-                        value={agentUsername}
-                        onChange={(e) => setAgentUsername(e.target.value)}
-                        placeholder="your-username"
-                        className="flex-1 px-3 py-2 focus:outline-none text-sm"
-                      />
-                    </div>
-                    {urlAvailable !== null && (
-                      <div
-                        className={`absolute right-3 top-1/2 -translate-y-1/2 flex items-center ${
-                          urlAvailable ? "text-green-500" : "text-red-500"
-                        }`}
-                      >
-                        {urlAvailable ? (
-                          <Check className="w-4 h-4" />
-                        ) : (
-                          <span className="text-xs">URL Unavailable</span>
-                        )}
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex-1 relative">
+                      <div className="flex items-center border border-gray-300 rounded-md overflow-hidden">
+                        <span className="px-3 py-2 bg-gray-100 text-gray-500 text-sm border-r">
+                          {baseUrl}
+                        </span>
+                        <input
+                          type="text"
+                          value={agentUsername}
+                          onChange={handleUsernameChange}
+                          placeholder="your-username"
+                          className="flex-1 px-3 py-2 focus:outline-none text-sm"
+                          disabled={isCheckingUrl}
+                        />
                       </div>
-                    )}
+                      {urlAvailable !== null && !isCheckingUrl && (
+                        <div
+                          className={`absolute right-3 top-1/2 -translate-y-1/2 flex items-center ${
+                            urlAvailable ? "text-green-500" : "text-red-500"
+                          }`}
+                        >
+                          {urlAvailable ? (
+                            <Check className="w-4 h-4" />
+                          ) : (
+                            <span className="text-xs">
+                              Username not available
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={handleUrlSave}
+                      disabled={isCheckingUrl}
+                      className={`px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm transition-colors
+                        ${
+                          isCheckingUrl ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                    >
+                      {isCheckingUrl ? (
+                        <div className="flex items-center space-x-2">
+                          <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                          <span>Checking...</span>
+                        </div>
+                      ) : (
+                        "Save"
+                      )}
+                    </button>
                   </div>
-                  <button
-                    onClick={handleUrlSave}
-                    className="px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
-                  >
-                    Save
-                  </button>
+                  <div className="text-xs text-gray-500">
+                    Username must be 3-30 characters and can only contain
+                    letters, numbers, underscores, and hyphens
+                  </div>
                 </div>
               )}
             </div>

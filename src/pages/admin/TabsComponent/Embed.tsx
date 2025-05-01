@@ -10,7 +10,7 @@ import {
   Facebook,
   MessageSquare,
 } from "lucide-react";
-import { useBotConfig } from "../../store/useBotConfig";
+import { useBotConfig } from "../../../store/useBotConfig";
 
 export default function Emded() {
   const { activeBotData } = useBotConfig();

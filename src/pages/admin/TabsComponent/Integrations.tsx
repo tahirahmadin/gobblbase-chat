@@ -12,9 +12,9 @@ import {
   Globe,
   Database,
 } from "lucide-react";
-import { useBotConfig } from "../../store/useBotConfig";
+import { useBotConfig } from "../../../store/useBotConfig";
 import { toast } from "react-hot-toast";
-import { getAgentDetails } from "../../lib/serverActions";
+import { getAgentDetails } from "../../../lib/serverActions";
 
 interface Integration {
   id: string;

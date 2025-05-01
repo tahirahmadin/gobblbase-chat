@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Bot } from "lucide-react";
-import type { Theme as ThemeType } from "../../types";
-import { useBotConfig } from "../../store/useBotConfig";
-import PublicChat from "../chatbot/PublicChat";
+
+import { useBotConfig } from "../../../store/useBotConfig";
+import PublicChat from "../../chatbot/PublicChat";
 import { toast } from "react-hot-toast";
-import { updateAgentDetails } from "../../lib/serverActions";
+import { updateAgentDetails } from "../../../lib/serverActions";
 
 const Theme = () => {
   const { activeBotData } = useBotConfig();

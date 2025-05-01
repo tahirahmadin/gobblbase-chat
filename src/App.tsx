@@ -22,19 +22,19 @@ import { Toaster } from "react-hot-toast";
 import Products from "./pages/admin/Products";
 import { useBotConfig } from "./store/useBotConfig";
 import BookingTab from "./pages/chatbot/BookingTab";
-import Integrations from "./pages/admin/Integrations";
+import Integrations from "./pages/admin/TabsComponent/Integrations";
 import Leads from "./pages/admin/Leads";
 import Directory from "./pages/admin/Directory";
 import AdminLayout from "./components/adminComponents/AdminLayout";
-import Profile from "./pages/admin/Profile";
-import Brain from "./pages/admin/Brain";
-import Voice from "./pages/admin/Voice";
-import Theme from "./pages/admin/Theme";
-import WelcomeText from "./pages/admin/WelcomeText";
-import Prompts from "./pages/admin/Prompts";
-import Business from "./pages/admin/Business";
-import Embed from "./pages/admin/Embed";
-import Offerings from "./pages/admin/Offerings";
+import Profile from "./pages/admin/TabsComponent/Profile";
+import Brain from "./pages/admin/TabsComponent/Brain";
+import Voice from "./pages/admin/TabsComponent/Voice";
+import Theme from "./pages/admin/TabsComponent/Theme";
+import WelcomeText from "./pages/admin/TabsComponent/WelcomeText";
+import Prompts from "./pages/admin/TabsComponent/Prompts";
+import Business from "./pages/admin/TabsComponent/Business";
+import Embed from "./pages/admin/TabsComponent/Embed";
+import Offerings from "./pages/admin/TabsComponent/Offerings";
 
 // Add type definition for window
 declare global {
