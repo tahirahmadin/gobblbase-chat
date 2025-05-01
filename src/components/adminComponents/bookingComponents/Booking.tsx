@@ -15,6 +15,10 @@ import {
   Coffee,
   Timer,
   Loader2,
+  ChevronDown,
+  DollarSign,
+  CreditCard,
+  Toggle,
 } from "lucide-react";
 import { useBotConfig } from "../../../store/useBotConfig";
 import {
@@ -45,6 +49,17 @@ interface BookingProps {
   isEditMode?: boolean;
   agentId?: string;
 }
+
+// Currency constants
+const CURRENCIES = [
+  { code: "USD", symbol: "$", name: "US Dollar" },
+  { code: "EUR", symbol: "€", name: "Euro" },
+  { code: "GBP", symbol: "£", name: "British Pound" },
+  { code: "INR", symbol: "₹", name: "Indian Rupee" },
+  { code: "CAD", symbol: "C$", name: "Canadian Dollar" },
+  { code: "AUD", symbol: "A$", name: "Australian Dollar" },
+  { code: "JPY", symbol: "¥", name: "Japanese Yen" }
+];
 
 const DURATION_OPTIONS = [
   { label: "15 minutes", value: 15 },
@@ -183,7 +198,7 @@ const Booking: React.FC<BookingProps> = ({
   }, [isEditMode]);
 
   const [currentStep, setCurrentStep] = useState<
-    "booking-type" | "duration" | "availability" | "locations" | "complete"
+    "booking-type" | "duration" | "availability" | "locations" | "pricing" | "complete"
   >("booking-type");
 
   // Form state
@@ -198,6 +213,12 @@ const Booking: React.FC<BookingProps> = ({
   const [meetingLocations, setMeetingLocations] = useState<MeetingLocation[]>(
     DEFAULT_MEETING_LOCATIONS
   );
+
+  // Add pricing state
+  const [isFree, setIsFree] = useState(false);
+  const [priceAmount, setPriceAmount] = useState<number>(0);
+  const [selectedCurrency, setSelectedCurrency] = useState<string>("USD");
+  const [showCurrencies, setShowCurrencies] = useState(false);
 
   // Add timezone state
   const [timezone, setTimezone] = useState<string>(
@@ -276,6 +297,13 @@ const Booking: React.FC<BookingProps> = ({
               }
             }
           }
+          
+          // Load pricing data if available
+          if (settings.price) {
+            setIsFree(settings.price.isFree);
+            setPriceAmount(settings.price.amount || 0);
+            setSelectedCurrency(settings.price.currency || "USD");
+          }
         }
       } catch (error) {
         console.error("Error fetching booking settings:", error);
@@ -304,24 +332,6 @@ const Booking: React.FC<BookingProps> = ({
     });
   };
 
-  // const addTimeSlot = (dayIndex: number) => {
-  //   setAvailability((prev) => {
-  //     const updated = [...prev];
-  //     const slots = updated[dayIndex].timeSlots;
-  //     const last = slots[slots.length - 1];
-  //     slots.push({ startTime: last?.startTime || "09:00", endTime: last?.endTime || "17:00" });
-  //     return updated;
-  //   });
-  // };
-
-  // const removeTimeSlot = (dayIndex: number, slotIndex: number) => {
-  //   setAvailability((prev) => {
-  //     const updated = [...prev];
-  //     updated[dayIndex].timeSlots.splice(slotIndex, 1);
-  //     return updated;
-  //   });
-  // };
-
   const updateTimeSlot = (
     dayIndex: number,
     slotIndex: number,
@@ -343,18 +353,42 @@ const Booking: React.FC<BookingProps> = ({
     );
   };
 
+  const selectCurrency = (currencyCode: string) => {
+    setSelectedCurrency(currencyCode);
+    setShowCurrencies(false);
+  };
+
+  const handlePriceAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Remove non-numeric characters except decimal point
+    const rawValue = e.target.value.replace(/[^0-9.]/g, "");
+    
+    // Handle decimal points properly
+    if (rawValue === "" || rawValue === ".") {
+      setPriceAmount(0);
+      return;
+    }
+    
+    // Ensure only valid numbers are entered
+    const numValue = parseFloat(rawValue);
+    if (!isNaN(numValue)) {
+      setPriceAmount(numValue);
+    }
+  };
+
   const handleNextStep = () => {
     if (currentStep === "booking-type") setCurrentStep("duration");
     else if (currentStep === "duration") setCurrentStep("availability");
     else if (currentStep === "availability") setCurrentStep("locations");
-    else if (currentStep === "locations") saveSettings();
+    else if (currentStep === "locations") setCurrentStep("pricing");
+    else if (currentStep === "pricing") saveSettings();
   };
 
   const handlePrevStep = () => {
     if (currentStep === "duration") setCurrentStep("booking-type");
     else if (currentStep === "availability") setCurrentStep("duration");
     else if (currentStep === "locations") setCurrentStep("availability");
-    else if (currentStep === "complete") setCurrentStep("locations");
+    else if (currentStep === "pricing") setCurrentStep("locations");
+    else if (currentStep === "complete") setCurrentStep("pricing");
   };
 
   const saveSettings = async () => {
@@ -371,6 +405,11 @@ const Booking: React.FC<BookingProps> = ({
       availability,
       locations: meetingLocations.filter((l) => l.selected).map((l) => l.id),
       timezone,
+      price: {
+        isFree,
+        amount: priceAmount,
+        currency: selectedCurrency
+      }
     };
 
     console.log("Saving booking settings for agent:", activeAgentId, payload);
@@ -480,14 +519,41 @@ const Booking: React.FC<BookingProps> = ({
             className={`w-8 h-8 rounded-full flex items-center justify-center ${
               currentStep === "locations"
                 ? "bg-gray-800 text-white"
-                : currentStep === "complete"
-                ? "bg-gray-800 text-white"
-                : "bg-gray-200 text-gray-700"
+                : currentStep === "booking-type" || 
+                  currentStep === "duration" || 
+                  currentStep === "availability"
+                ? "bg-gray-200 text-gray-700"
+                : "bg-gray-800 text-white"
             }`}
           >
             4
           </div>
           <span className="text-xs mt-1">Locations</span>
+        </div>
+        <div
+          className={`w-12 h-1 ${
+            currentStep === "booking-type" ||
+            currentStep === "duration" ||
+            currentStep === "availability" ||
+            currentStep === "locations"
+              ? "bg-gray-300"
+              : "bg-gray-800"
+          }`}
+        ></div>
+
+        <div className="flex flex-col items-center">
+          <div
+            className={`w-8 h-8 rounded-full flex items-center justify-center ${
+              currentStep === "pricing"
+                ? "bg-gray-800 text-white"
+                : currentStep === "complete"
+                ? "bg-gray-800 text-white"
+                : "bg-gray-200 text-gray-700"
+            }`}
+          >
+            5
+          </div>
+          <span className="text-xs mt-1">Pricing</span>
         </div>
         <div
           className={`w-12 h-1 ${
@@ -503,7 +569,7 @@ const Booking: React.FC<BookingProps> = ({
                 : "bg-gray-200 text-gray-700"
             }`}
           >
-            5
+            6
           </div>
           <span className="text-xs mt-1">Complete</span>
         </div>
@@ -606,6 +672,7 @@ const Booking: React.FC<BookingProps> = ({
       )}
     </div>
   );
+  
   // In your renderTimezoneStep function
   const renderTimezoneStep = () => {
     const displayLabel =
@@ -852,23 +919,8 @@ const Booking: React.FC<BookingProps> = ({
                         ))}
                       </select>
                     </div>
-
-                    {/* <button
-                      onClick={() => removeTimeSlot(dayIndex, slotIndex)}
-                      className="text-gray-400 hover:text-gray-700"
-                      disabled={day.timeSlots.length === 1}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button> */}
                   </div>
                 ))}
-
-                {/* <button
-                  onClick={() => addTimeSlot(dayIndex)}
-                  className="flex items-center text-sm text-gray-600 hover:text-gray-800"
-                >
-                  <Plus className="h-4 w-4 mr-1" /> Add Time Range
-                </button> */}
               </div>
             )}
           </div>
@@ -922,6 +974,136 @@ const Booking: React.FC<BookingProps> = ({
       </div>
     </div>
   );
+  
+  // New pricing step
+  const renderPricingStep = () => {
+    const currencySymbol = CURRENCIES.find(c => c.code === selectedCurrency)?.symbol || '$';
+    const displayPrice = isFree ? 'Free' : `${currencySymbol}${priceAmount.toFixed(2)}`;
+    
+    return (
+      <div className="space-y-6">
+        <div className="text-sm text-gray-700 mb-6">
+          Configure the pricing for your booking sessions. You can offer free sessions or set a price for your time.
+        </div>
+        
+        <div className="border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center mb-5">
+            <CreditCard className="h-5 w-5 text-gray-600 mr-2" />
+            <h3 className="font-medium">Session Pricing</h3>
+          </div>
+          
+          <div className="mb-6">
+            <label className="flex items-center justify-between cursor-pointer">
+              <span className="font-medium">Free Session</span>
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={isFree}
+                  onChange={() => setIsFree(!isFree)}
+                  className="sr-only"
+                />
+                <div
+                  className={`w-10 h-5 bg-gray-200 rounded-full peer ${
+                    isFree ? "bg-gray-600" : ""
+                  }`}
+                >
+                  <div
+                    className={`absolute w-4 h-4 rounded-full bg-white transition-all ${
+                      isFree ? "right-1" : "left-1"
+                    } top-0.5`}
+                  ></div>
+                </div>
+              </div>
+            </label>
+            <p className="text-sm text-gray-500 mt-2">
+              {isFree 
+                ? "Your sessions will be offered for free." 
+                : "Your sessions will require payment."}
+            </p>
+          </div>
+          
+          {!isFree && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Session Price
+                </label>
+                <div className="mt-1 relative rounded-md shadow-sm">
+                  <div className="absolute inset-y-0 left-0 flex items-center">
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrencies(!showCurrencies)}
+                        className="h-full rounded-l-md border-r-0 border-gray-300 bg-gray-50 px-3 py-2 text-gray-500 hover:bg-gray-100 focus:outline-none"
+                      >
+                        <span className="flex items-center">
+                          {currencySymbol}
+                          <ChevronDown className="ml-1 h-4 w-4" />
+                        </span>
+                      </button>
+                      
+                      {showCurrencies && (
+                        <div className="absolute left-0 mt-1 w-48 rounded-md bg-white shadow-lg z-10 max-h-60 overflow-y-auto border border-gray-200">
+                          <div className="py-1">
+                            {CURRENCIES.map((currency) => (
+                              <button
+                                key={currency.code}
+                                type="button"
+                                onClick={() => selectCurrency(currency.code)}
+                                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center"
+                              >
+                                <span className="mr-2">{currency.symbol}</span>
+                                <span>{currency.name}</span>
+                                {selectedCurrency === currency.code && (
+                                  <Check className="ml-auto h-4 w-4 text-gray-600" />
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <input
+                    type="text"
+                    value={priceAmount.toString()}
+                    onChange={handlePriceAmountChange}
+                    className="block w-full rounded-md border-gray-300 pl-16 pr-12 py-2 focus:border-gray-500 focus:ring-gray-500 sm:text-sm"
+                    placeholder="0.00"
+                  />
+                </div>
+                <p className="text-sm text-gray-500 mt-2">
+                  Clients will be charged {currencySymbol}{priceAmount} for each session
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        <div className="rounded-lg p-4 bg-blue-50 border border-blue-100">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <div className="h-5 w-5 text-blue-400">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </div>
+            </div>
+            <div className="ml-3 flex-1">
+              <h3 className="text-sm font-medium text-blue-800">Session pricing information</h3>
+              <div className="mt-2 text-sm text-blue-700">
+                <p>
+                  The price you set here will be displayed to clients when they book a session. 
+                  {isFree ? " Free sessions will be labeled as 'Free' on the booking page." 
+                  : ` Your price of ${currencySymbol}${priceAmount} will be shown when clients book.`}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Render complete step
   const renderCompleteStep = () => (
@@ -1003,6 +1185,13 @@ const Booking: React.FC<BookingProps> = ({
                   .join(", ")}
               </span>
             </div>
+            
+            <div className="flex justify-between pb-2 border-b border-green-100">
+              <span className="text-gray-600">Session Price:</span>
+              <span className="font-medium">
+                {isFree ? "Free" : `${CURRENCIES.find(c => c.code === selectedCurrency)?.symbol || "$"}${priceAmount}`}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -1057,12 +1246,12 @@ const Booking: React.FC<BookingProps> = ({
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {currentStep === "locations" ? "Saving..." : "Loading..."}
+                  {currentStep === "pricing" ? "Saving..." : "Loading..."}
                 </>
               ) : (
                 <>
-                  {currentStep === "locations" ? "Save Settings" : "Next"}
-                  {currentStep !== "locations" && (
+                  {currentStep === "pricing" ? "Save Settings" : "Next"}
+                  {currentStep !== "pricing" && (
                     <ArrowRight className="h-4 w-4 ml-2" />
                   )}
                 </>
@@ -1081,6 +1270,7 @@ const Booking: React.FC<BookingProps> = ({
         {currentStep === "duration" && renderDurationStep()}
         {currentStep === "availability" && renderAvailabilityStep()}
         {currentStep === "locations" && renderLocationsStep()}
+        {currentStep === "pricing" && renderPricingStep()}
         {currentStep === "complete" && renderCompleteStep()}
       </div>
     </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { ChatMessage, Theme } from "../../types";
-import { queryDocument } from "../../lib/serverActions";
+import { queryDocument, getAppointmentSettings } from "../../lib/serverActions";
 import OpenAI from "openai";
 import { useBotConfig } from "../../store/useBotConfig";
 import { PERSONALITY_TYPES } from "../admin/PersonalityAnalyzer";
@@ -60,6 +60,17 @@ interface PreviewConfig {
   personalityAnalysis?: PersonalityAnalysis | null;
 }
 
+// Currency symbols mapping
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+  INR: "₹",
+  CAD: "C$",
+  AUD: "A$",
+  JPY: "¥"
+};
+
 export default function PublicChat({
   agentUsernamePlayground,
   previewConfig,
@@ -99,6 +110,14 @@ export default function PublicChat({
   const [customPersonalityPrompt, setCustomPersonalityPrompt] = useState("");
   const [personalityAnalysis, setPersonalityAnalysis] =
     useState<PersonalityAnalysis | null>(null);
+    
+  // Pricing state
+  const [pricingInfo, setPricingInfo] = useState({
+    isFreeSession: false,
+    sessionPrice: "$0",
+    sessionName: "Consultation",
+  });
+  const [loadingPricing, setLoadingPricing] = useState(false);
 
   // use preview or fetched config
   const currentConfig = previewConfig || config;
@@ -115,7 +134,6 @@ export default function PublicChat({
   };
 
   // Enhanced scroll to bottom function
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -131,6 +149,38 @@ export default function PublicChat({
       scrollToBottom();
     }
   }, [isLoading]);
+
+  // Fetch pricing information from settings
+  useEffect(() => {
+    const fetchPricing = async () => {
+      if (!currentConfig?.agentId) return;
+      
+      setLoadingPricing(true);
+      try {
+        const data = await getAppointmentSettings(currentConfig.agentId);
+        console.log("Fetched settings for pricing:", data);
+        
+        if (data && data.price) {
+          const formattedPrice = data.price.isFree ? 
+            "Free" : 
+            `${CURRENCY_SYMBOLS[data.price.currency] || "$"}${data.price.amount}`;
+            
+          setPricingInfo({
+            isFreeSession: data.price.isFree,
+            sessionPrice: formattedPrice,
+            sessionName: currentConfig.sessionName || "Consultation"
+          });
+          console.log("Dynamic price info set:", formattedPrice);
+        }
+      } catch (error) {
+        console.error("Failed to fetch pricing data:", error);
+      } finally {
+        setLoadingPricing(false);
+      }
+    };
+    
+    fetchPricing();
+  }, [currentConfig]);
 
   // fetch config on mount/params change
   useEffect(() => {
@@ -301,7 +351,7 @@ export default function PublicChat({
     handleSendMessage(cue);
   };
 
-  if (currentIsLoading) {
+  if (currentIsLoading || loadingPricing) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin h-12 w-12 border-t-2 border-blue-500 rounded-full"></div>
@@ -342,7 +392,18 @@ export default function PublicChat({
           />
         )}
 
-        {activeScreen === "browse" && <BrowseSection theme={theme} />}
+        {activeScreen === "browse" && (
+          <BrowseSection 
+            theme={theme} 
+            currentConfig={{
+              agentId: config?.agentId,
+              name: config?.name,
+              sessionName: pricingInfo.sessionName,
+              sessionPrice: pricingInfo.sessionPrice,
+              isFreeSession: pricingInfo.isFreeSession
+            }}
+          />
+        )}
 
         {activeScreen === "chat" && (
           <>
