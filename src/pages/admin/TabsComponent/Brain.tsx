@@ -1,5 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, Upload } from "lucide-react";
+import { useBotConfig } from "../../../store/useBotConfig";
+import { updateAgentBrain } from "../../../lib/serverActions";
+import { toast } from "react-hot-toast";
 
 interface UploadedFile {
   name: string;
@@ -7,6 +10,7 @@ interface UploadedFile {
 }
 
 const Brain = () => {
+  const { activeBotData, setRefetchBotData } = useBotConfig();
   const [smartnessLevel, setSmartNessLevel] = useState(30);
   const [selectedLanguage, setSelectedLanguage] = useState("English");
   const [links, setLinks] = useState<string[]>([]);
@@ -15,6 +19,22 @@ const Brain = () => {
     { name: "inventorylist.pdf", size: "10MB" },
     { name: "salefullst.pdf", size: "560KB" },
   ]);
+  const [smartenUpAnswers, setSmartenUpAnswers] = useState<string[]>([
+    "",
+    "",
+    "",
+    "",
+  ]);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (activeBotData) {
+      setSelectedLanguage(activeBotData.language || "English");
+      if (activeBotData.smartenUpAnswers) {
+        setSmartenUpAnswers(activeBotData.smartenUpAnswers);
+      }
+    }
+  }, [activeBotData]);
 
   const handleAddLink = () => {
     if (newLink && !links.includes(newLink)) {
@@ -29,6 +49,35 @@ const Brain = () => {
 
   const handleRemoveFile = (fileName: string) => {
     setUploadedFiles(uploadedFiles.filter((file) => file.name !== fileName));
+  };
+
+  const handleAnswerChange = (index: number, value: string) => {
+    const newAnswers = [...smartenUpAnswers];
+    newAnswers[index] = value;
+    setSmartenUpAnswers(newAnswers);
+  };
+
+  const handleSave = async () => {
+    if (!activeBotData) {
+      toast.error("No agent selected");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      await updateAgentBrain(
+        activeBotData.agentId,
+        selectedLanguage,
+        smartenUpAnswers
+      );
+      setRefetchBotData();
+      toast.success("Agent brain updated successfully");
+    } catch (error: any) {
+      console.error("Error updating agent brain:", error);
+      toast.error(error.message || "Failed to update agent brain");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -198,6 +247,8 @@ const Brain = () => {
               1. What makes you/your brand unique? The main USP:
             </label>
             <textarea
+              value={smartenUpAnswers[0]}
+              onChange={(e) => handleAnswerChange(0, e.target.value)}
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="Type here..."
@@ -210,6 +261,8 @@ const Brain = () => {
               your brand's personality?
             </label>
             <textarea
+              value={smartenUpAnswers[1]}
+              onChange={(e) => handleAnswerChange(1, e.target.value)}
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="Type here..."
@@ -222,6 +275,8 @@ const Brain = () => {
               use (or avoid) to authentically represent your brand voice?
             </label>
             <textarea
+              value={smartenUpAnswers[2]}
+              onChange={(e) => handleAnswerChange(2, e.target.value)}
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="Type here..."
@@ -233,10 +288,31 @@ const Brain = () => {
               4. What questions do your customers most frequently ask?
             </label>
             <textarea
+              value={smartenUpAnswers[3]}
+              onChange={(e) => handleAnswerChange(3, e.target.value)}
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="Type here..."
             />
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className={`px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold transition-colors ${
+                isSaving ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              {isSaving ? (
+                <div className="flex items-center space-x-2">
+                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                  <span>Saving...</span>
+                </div>
+              ) : (
+                "SAVE"
+              )}
+            </button>
           </div>
         </div>
       </div>

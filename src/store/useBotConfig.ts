@@ -12,6 +12,19 @@ interface BotConfig {
   agentId: string;
   username: string;
   name: string;
+  bio: string;
+  socials: {
+    instagram: string;
+    tiktok: string;
+    twitter: string;
+    facebook: string;
+    youtube: string;
+    linkedin: string;
+    snapchat: string;
+    link: string;
+  };
+  prompts: string[];
+  promotionalBanner: string;
   logo: string;
 
   stripeAccountId: string;
@@ -27,6 +40,42 @@ interface BotConfig {
   model: string;
 
   themeColors: Theme;
+
+  // Voice Personality
+  voicePersonality: string;
+  customVoiceName?: string;
+  customVoiceCharacteristics?: string;
+  customVoiceExamples?: string;
+
+  // Welcome Message
+  welcomeMessage: string;
+
+  // Brain
+  language: string;
+  smartenUpAnswers: string[];
+
+  // Payment Settings
+  preferredPaymentMethod: string;
+  paymentMethods: {
+    stripe: {
+      enabled: boolean;
+      accountId: string;
+    };
+    razorpay: {
+      enabled: boolean;
+      accountId: string;
+    };
+    usdt: {
+      enabled: boolean;
+      walletAddress: string;
+      chains: string[];
+    };
+    usdc: {
+      enabled: boolean;
+      walletAddress: string;
+      chains: string[];
+    };
+  };
 }
 
 interface BotConfigState {
@@ -85,6 +134,7 @@ export const useBotConfig = create<BotConfigState>()(
               agentId: response.agentId,
               username: response.username,
               name: response.name,
+              bio: response.bio || "",
               logo: response.logo,
               stripeAccountId: response.stripeAccountId,
               currency: response.currency,
@@ -97,6 +147,29 @@ export const useBotConfig = create<BotConfigState>()(
               lastPersonalityContent: response.lastPersonalityContent,
               lastPersonalityUrl: response.lastPersonalityUrl,
               personalityAnalysis: response.personalityAnalysis,
+              socials: response.socials || {
+                instagram: "",
+                tiktok: "",
+                twitter: "",
+                facebook: "",
+                youtube: "",
+                linkedin: "",
+                snapchat: "",
+                link: "",
+              },
+              promotionalBanner: response.promotionalBanner || "",
+              voicePersonality: response.voicePersonality || "friend",
+              customVoiceName: response.customVoiceName,
+              customVoiceCharacteristics: response.customVoiceCharacteristics,
+              customVoiceExamples: response.customVoiceExamples,
+              welcomeMessage: response.welcomeMessage || "",
+              language: response.language,
+              smartenUpAnswers: response.smartenUpAnswers,
+              preferredPaymentMethod: response.preferredPaymentMethod,
+              stripe: response.stripe,
+              razorpay: response.razorpay,
+              usdt: response.usdt,
+              usdc: response.usdc,
             };
 
             if (get().activeBotId === id) {
@@ -128,28 +201,11 @@ export const useBotConfig = create<BotConfigState>()(
             isFetchByUsername
           );
 
-          const cleanConfig: BotConfig = {
-            agentId: response.agentId,
-            username: response.username,
-            name: response.name,
-            logo: response.logo,
-
-            stripeAccountId: response.stripeAccountId,
-            currency: response.currency,
-            model: response.model,
-            systemPrompt: response.systemPrompt,
-            personalityType: response.personalityType,
-            themeColors: response.themeColors,
-            customPersonalityPrompt: response.customPersonalityPrompt,
-            isCustomPersonality: response.isCustomPersonality,
-            lastPersonalityContent: response.lastPersonalityContent,
-            lastPersonalityUrl: response.lastPersonalityUrl,
-            personalityAnalysis: response.personalityAnalysis,
-          };
-
+          set({
+            activeBotData: response,
+          });
           set({
             activeBotId: response.agentId,
-            activeBotData: cleanConfig,
             isLoading: false,
           });
         } catch (error) {
@@ -167,12 +223,15 @@ export const useBotConfig = create<BotConfigState>()(
           if (response.error) {
             toast.error(response.error);
           } else {
-            set({
-              activeBotData: {
-                ...get().activeBotData,
-                username: inputUsername,
-              },
-            });
+            const currentData = get().activeBotData;
+            if (currentData) {
+              set({
+                activeBotData: {
+                  ...currentData,
+                  username: inputUsername,
+                },
+              });
+            }
           }
         } catch (error) {
           console.error("Error updating username:", error);
@@ -190,12 +249,15 @@ export const useBotConfig = create<BotConfigState>()(
           if (response.error) {
             toast.error(response.error);
           } else {
-            set({
-              activeBotData: {
-                ...get().activeBotData,
-                logo: response,
-              },
-            });
+            const currentData = get().activeBotData;
+            if (currentData) {
+              set({
+                activeBotData: {
+                  ...currentData,
+                  logo: response,
+                },
+              });
+            }
           }
         } catch (error) {
           console.error("Error updating username:", error);

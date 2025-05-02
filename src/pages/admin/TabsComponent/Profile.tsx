@@ -4,6 +4,9 @@ import PublicChat from "../../chatbot/PublicChat";
 import {
   uploadProfilePicture,
   updateAgentUsername,
+  updateAgentNameAndBio,
+  updateSocialHandles,
+  updatePromotionalBanner,
 } from "../../../lib/serverActions";
 import { useBotConfig } from "../../../store/useBotConfig";
 import toast from "react-hot-toast";
@@ -14,7 +17,19 @@ interface SocialMediaLinks {
   tiktok: string;
   facebook: string;
   youtube: string;
+  linkedin: string;
+  snapchat: string;
 }
+
+const socialMediaIcons = {
+  instagram: "https://cdn-icons-png.flaticon.com/512/174/174855.png",
+  twitter: "https://cdn-icons-png.flaticon.com/512/733/733579.png",
+  tiktok: "https://cdn-icons-png.flaticon.com/512/3046/3046121.png",
+  facebook: "https://cdn-icons-png.flaticon.com/512/124/124010.png",
+  youtube: "https://cdn-icons-png.flaticon.com/512/1384/1384060.png",
+  linkedin: "https://cdn-icons-png.flaticon.com/512/174/174857.png",
+  snapchat: "https://cdn-icons-png.flaticon.com/512/2111/2111890.png",
+};
 
 const Profile = () => {
   const [agentName, setAgentName] = useState("");
@@ -24,6 +39,7 @@ const Profile = () => {
   const [isCheckingUrl, setIsCheckingUrl] = useState(false);
   const [agentBio, setAgentBio] = useState("");
   const [promotionalBanner, setPromotionalBanner] = useState("");
+  const [isPromoBannerEnabled, setIsPromoBannerEnabled] = useState(false);
   const [smartnessLevel, setSmartNessLevel] = useState(30);
   const [socialMedia, setSocialMedia] = useState<SocialMediaLinks>({
     instagram: "",
@@ -31,17 +47,29 @@ const Profile = () => {
     tiktok: "",
     facebook: "",
     youtube: "",
+    linkedin: "",
+    snapchat: "",
   });
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const { activeBotId, activeBotData } = useBotConfig();
+  const { activeBotId, activeBotData, setRefetchBotData, refetchBotData } =
+    useBotConfig();
+  const [isSavingName, setIsSavingName] = useState(false);
+  const [isSavingBio, setIsSavingBio] = useState(false);
+  const [isSavingSocials, setIsSavingSocials] = useState(false);
+  const [isSavingPromoBanner, setIsSavingPromoBanner] = useState(false);
 
   const baseUrl = "http://www.kifor.ai/";
 
   // Initialize username from activeBotData
   useEffect(() => {
-    if (activeBotData?.username) {
+    if (activeBotData) {
+      console.log(activeBotData);
       setAgentUsername(activeBotData.username);
+      setAgentName(activeBotData.name);
+      setAgentBio(activeBotData.bio);
+      setSocialMedia(activeBotData.socials);
+      setPromotionalBanner(activeBotData.promotionalBanner);
     }
   }, [activeBotData]);
 
@@ -77,6 +105,7 @@ const Profile = () => {
     try {
       setIsCheckingUrl(true);
       await updateAgentUsername(activeBotId, agentUsername);
+      setRefetchBotData();
       setIsEditingUrl(false);
       setUrlAvailable(true);
       toast.success("Agent URL updated successfully");
@@ -114,6 +143,7 @@ const Profile = () => {
 
         // Then upload to server
         await uploadProfilePicture(activeBotId, file);
+        setRefetchBotData();
         toast.success("Profile picture updated successfully");
       } catch (error) {
         console.error("Error uploading profile picture:", error);
@@ -129,6 +159,87 @@ const Profile = () => {
   const handleRemoveImage = async () => {
     setProfileImage(null);
     // You might want to add an API call here to remove the profile picture from the server
+  };
+
+  const handleSaveName = async () => {
+    if (!activeBotId) {
+      toast.error("No agent selected");
+      return;
+    }
+
+    try {
+      setIsSavingName(true);
+      await updateAgentNameAndBio(activeBotId, agentName);
+      setRefetchBotData();
+      toast.success("Agent name updated successfully");
+    } catch (error: any) {
+      console.error("Error updating agent name:", error);
+      toast.error(error.message || "Failed to update agent name");
+    } finally {
+      setIsSavingName(false);
+    }
+  };
+
+  const handleSaveBio = async () => {
+    if (!activeBotId) {
+      toast.error("No agent selected");
+      return;
+    }
+
+    try {
+      setIsSavingBio(true);
+      await updateAgentNameAndBio(activeBotId, undefined, agentBio);
+      setRefetchBotData();
+      toast.success("Agent bio updated successfully");
+    } catch (error: any) {
+      console.error("Error updating agent bio:", error);
+      toast.error(error.message || "Failed to update agent bio");
+    } finally {
+      setIsSavingBio(false);
+    }
+  };
+
+  const handleSaveSocials = async () => {
+    if (!activeBotId) {
+      toast.error("No agent selected");
+      return;
+    }
+    try {
+      setIsSavingSocials(true);
+      await updateSocialHandles(
+        activeBotId,
+        socialMedia as unknown as Record<string, string>
+      );
+      setRefetchBotData();
+      toast.success("Social media links updated successfully");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update social media links");
+    } finally {
+      setIsSavingSocials(false);
+    }
+  };
+
+  const handleSavePromoBanner = async () => {
+    if (!activeBotId) {
+      toast.error("No agent selected");
+      return;
+    }
+
+    try {
+      setIsSavingPromoBanner(true);
+      await updatePromotionalBanner(
+        activeBotId,
+        promotionalBanner,
+        isPromoBannerEnabled
+      );
+      setRefetchBotData();
+      toast.success("Promotional banner updated successfully");
+    } catch (error: any) {
+      console.error("Error updating promotional banner:", error);
+      toast.error(error.message || "Failed to update promotional banner");
+    } finally {
+      setIsSavingPromoBanner(false);
+    }
   };
 
   return (
@@ -194,13 +305,31 @@ const Profile = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Agent Name
               </label>
-              <input
-                type="text"
-                value={agentName}
-                onChange={(e) => setAgentName(e.target.value)}
-                placeholder="Type your name or brand"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
-              />
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value={agentName}
+                  onChange={(e) => setAgentName(e.target.value)}
+                  placeholder="Type your name or brand"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                />
+                <button
+                  onClick={handleSaveName}
+                  disabled={isSavingName}
+                  className={`px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm transition-colors ${
+                    isSavingName ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                >
+                  {isSavingName ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      <span>Saving...</span>
+                    </div>
+                  ) : (
+                    "Save"
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Agent URL */}
@@ -310,14 +439,35 @@ const Profile = () => {
                   MAX 150 CHARACTERS
                 </span>
               </div>
-              <textarea
-                value={agentBio}
-                onChange={(e) => setAgentBio(e.target.value)}
-                placeholder="Describe your agent purpose or business..."
-                maxLength={150}
-                rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
-              />
+              <div className="space-y-2">
+                {console.log(agentBio)}
+                <textarea
+                  value={agentBio}
+                  onChange={(e) => setAgentBio(e.target.value)}
+                  placeholder="Describe your agent purpose or business..."
+                  maxLength={150}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                />
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleSaveBio}
+                    disabled={isSavingBio}
+                    className={`px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm transition-colors ${
+                      isSavingBio ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    {isSavingBio ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                        <span>Saving...</span>
+                      </div>
+                    ) : (
+                      "Save"
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -353,32 +503,42 @@ const Profile = () => {
               <div className="flex items-center space-x-2">
                 <span className="text-xs text-gray-500">MAX 50 CHARACTERS</span>
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" className="sr-only peer" />
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={isPromoBannerEnabled}
+                    onChange={(e) => setIsPromoBannerEnabled(e.target.checked)}
+                  />
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>
               </div>
             </div>
-            <div>
+            <div className="space-y-2">
               <input
                 type="text"
                 value={promotionalBanner}
                 onChange={(e) => setPromotionalBanner(e.target.value)}
-                placeholder="Type your text..."
+                placeholder="Type your promotional text..."
                 maxLength={50}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <div className="flex space-x-1">
-                <button className="w-8 h-8 rounded flex items-center justify-center bg-yellow-400">
-                  <span className="text-sm">$</span>
+              <div className="flex justify-end">
+                <button
+                  onClick={handleSavePromoBanner}
+                  disabled={isSavingPromoBanner}
+                  className={`px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm transition-colors ${
+                    isSavingPromoBanner ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                >
+                  {isSavingPromoBanner ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      <span>Saving...</span>
+                    </div>
+                  ) : (
+                    "Save"
+                  )}
                 </button>
-                {["A", "A", "A", "A", "A", "A", "A"].map((letter, index) => (
-                  <button
-                    key={index}
-                    className="w-8 h-8 rounded flex items-center justify-center bg-gray-200 hover:bg-gray-300"
-                  >
-                    <span className="text-sm">{letter}</span>
-                  </button>
-                ))}
               </div>
             </div>
           </div>
@@ -390,11 +550,15 @@ const Profile = () => {
             </label>
             {Object.entries(socialMedia).map(([platform, url]) => (
               <div key={platform} className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
                   <img
-                    src={`/${platform}-icon.png`}
+                    src={
+                      socialMediaIcons[
+                        platform as keyof typeof socialMediaIcons
+                      ]
+                    }
                     alt={platform}
-                    className="w-4 h-4"
+                    className="w-5 h-5 object-contain"
                   />
                 </div>
                 <input
@@ -408,14 +572,29 @@ const Profile = () => {
                   }
                   placeholder={`${
                     platform.charAt(0).toUpperCase() + platform.slice(1)
-                  }`}
+                  } URL`}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <button className="p-2 border border-gray-300 rounded-md hover:bg-gray-50">
-                  <Check className="w-4 h-4 text-green-500" />
-                </button>
               </div>
             ))}
+            <div className="flex justify-end">
+              <button
+                onClick={handleSaveSocials}
+                disabled={isSavingSocials}
+                className={`px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold transition-colors mt-2 ${
+                  isSavingSocials ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                {isSavingSocials ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                    <span>Saving...</span>
+                  </div>
+                ) : (
+                  "SAVE"
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -1,73 +1,74 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { useBotConfig } from "../../../store/useBotConfig";
-import { updateAgentDetails } from "../../../lib/serverActions";
+import { updateAgentPrompts } from "../../../lib/serverActions";
 import PublicChat from "../../chatbot/PublicChat";
 import { toast } from "react-hot-toast";
 
 const defaultPrompts = [
-  { id: "bestsellers", text: "View Bestsellers" },
-  { id: "booking", text: "Book a Meeting" },
-  { id: "demo", text: "Schedule Demo" },
-  { id: "collection", text: "View Latest Collection" },
-  { id: "contact", text: "Submit Contact Details" },
-  { id: "offers", text: "Current Offers" },
-  { id: "returns", text: "Shipping & Returns Policy" },
-  { id: "more", text: "Tell me more" },
+  "View Bestsellers",
+  "Book a Meeting",
+  "Schedule Demo",
+  "View Latest Collection",
+  "Submit Contact Details",
+  "Current Offers",
+  "Shipping & Returns Policy",
+  "Tell me more",
 ];
 
 const Prompts = () => {
-  const { activeBotData } = useBotConfig();
-  const [selectedPrompts, setSelectedPrompts] = useState<string[]>([
-    "bestsellers",
-    "booking",
-  ]);
-  const [customPrompts, setCustomPrompts] = useState<string[]>(["query"]);
+  const { activeBotData, setRefetchBotData } = useBotConfig();
+  const [selectedPrompts, setSelectedPrompts] = useState<string[]>([]);
+  const [customPrompts, setCustomPrompts] = useState<string[]>([]);
   const [newPrompt, setNewPrompt] = useState("");
   const [previewConfig, setPreviewConfig] = useState<any>(null);
+
+  useEffect(() => {
+    if (activeBotData?.prompts) {
+      // Split prompts into default and custom
+      const defaultSelected = activeBotData.prompts.filter((prompt) =>
+        defaultPrompts.includes(prompt)
+      );
+      const customSelected = activeBotData.prompts.filter(
+        (prompt) => !defaultPrompts.includes(prompt)
+      );
+      setSelectedPrompts(defaultSelected);
+      setCustomPrompts(customSelected);
+    }
+  }, [activeBotData]);
 
   const allPrompts = [...selectedPrompts, ...customPrompts];
   const canAddMore = allPrompts.length < 4;
 
-  const handlePromptSelect = async (promptId: string) => {
-    if (selectedPrompts.includes(promptId)) {
-      setSelectedPrompts(selectedPrompts.filter((id) => id !== promptId));
+  const handlePromptSelect = async (prompt: string) => {
+    if (selectedPrompts.includes(prompt)) {
+      setSelectedPrompts(selectedPrompts.filter((p) => p !== prompt));
     } else if (canAddMore) {
-      setSelectedPrompts([...selectedPrompts, promptId]);
+      setSelectedPrompts([...selectedPrompts, prompt]);
     } else {
-      toast.error("You can only select up to 4 prompts");
+      toast.error("You can only have up to 4 prompts in total");
       return;
     }
 
     if (activeBotData) {
       try {
-        const updatedPrompts = selectedPrompts.includes(promptId)
-          ? selectedPrompts.filter((id) => id !== promptId)
+        const updatedPrompts = selectedPrompts.includes(prompt)
+          ? selectedPrompts.filter((p) => p !== prompt)
           : canAddMore
-          ? [...selectedPrompts, promptId]
+          ? [...selectedPrompts, prompt]
           : selectedPrompts;
 
-        await updateAgentDetails(activeBotData.agentId, {
-          model: activeBotData.model,
-          systemPrompt: activeBotData.systemPrompt,
-          username: activeBotData.username,
-          name: activeBotData.name,
-          logo: activeBotData.logo,
-          personalityType: activeBotData.personalityType,
-          isCustomPersonality: activeBotData.isCustomPersonality,
-          customPersonalityPrompt: activeBotData.customPersonalityPrompt,
-          personalityAnalysis: activeBotData.personalityAnalysis,
-          lastPersonalityUrl: activeBotData.lastPersonalityUrl,
-          lastPersonalityContent: activeBotData.lastPersonalityContent,
-          themeColors: activeBotData.themeColors,
-          prompts: [...updatedPrompts, ...customPrompts],
-        });
+        await updateAgentPrompts(activeBotData.agentId, [
+          ...updatedPrompts,
+          ...customPrompts,
+        ]);
 
         setPreviewConfig({
           ...activeBotData,
           prompts: [...updatedPrompts, ...customPrompts],
         });
 
+        setRefetchBotData();
         toast.success("Prompts updated successfully");
       } catch (error) {
         toast.error("Failed to update prompts");
@@ -83,7 +84,7 @@ const Prompts = () => {
     }
 
     if (!canAddMore) {
-      toast.error("You can only have up to 4 prompts");
+      toast.error("You can only have up to 4 prompts in total");
       return;
     }
 
@@ -91,21 +92,10 @@ const Prompts = () => {
       try {
         const updatedCustomPrompts = [...customPrompts, newPrompt];
 
-        await updateAgentDetails(activeBotData.agentId, {
-          model: activeBotData.model,
-          systemPrompt: activeBotData.systemPrompt,
-          username: activeBotData.username,
-          name: activeBotData.name,
-          logo: activeBotData.logo,
-          personalityType: activeBotData.personalityType,
-          isCustomPersonality: activeBotData.isCustomPersonality,
-          customPersonalityPrompt: activeBotData.customPersonalityPrompt,
-          personalityAnalysis: activeBotData.personalityAnalysis,
-          lastPersonalityUrl: activeBotData.lastPersonalityUrl,
-          lastPersonalityContent: activeBotData.lastPersonalityContent,
-          themeColors: activeBotData.themeColors,
-          prompts: [...selectedPrompts, ...updatedCustomPrompts],
-        });
+        await updateAgentPrompts(activeBotData.agentId, [
+          ...selectedPrompts,
+          ...updatedCustomPrompts,
+        ]);
 
         setCustomPrompts(updatedCustomPrompts);
         setNewPrompt("");
@@ -115,6 +105,7 @@ const Prompts = () => {
           prompts: [...selectedPrompts, ...updatedCustomPrompts],
         });
 
+        setRefetchBotData();
         toast.success("Custom prompt added successfully");
       } catch (error) {
         toast.error("Failed to add custom prompt");
@@ -123,41 +114,31 @@ const Prompts = () => {
     }
   };
 
-  const handleRemovePrompt = async (promptId: string, isCustom: boolean) => {
+  const handleRemovePrompt = async (prompt: string, isCustom: boolean) => {
     if (activeBotData) {
       try {
         let updatedSelected = [...selectedPrompts];
         let updatedCustom = [...customPrompts];
 
         if (isCustom) {
-          updatedCustom = customPrompts.filter((prompt) => prompt !== promptId);
+          updatedCustom = customPrompts.filter((p) => p !== prompt);
           setCustomPrompts(updatedCustom);
         } else {
-          updatedSelected = selectedPrompts.filter((id) => id !== promptId);
+          updatedSelected = selectedPrompts.filter((p) => p !== prompt);
           setSelectedPrompts(updatedSelected);
         }
 
-        await updateAgentDetails(activeBotData.agentId, {
-          model: activeBotData.model,
-          systemPrompt: activeBotData.systemPrompt,
-          username: activeBotData.username,
-          name: activeBotData.name,
-          logo: activeBotData.logo,
-          personalityType: activeBotData.personalityType,
-          isCustomPersonality: activeBotData.isCustomPersonality,
-          customPersonalityPrompt: activeBotData.customPersonalityPrompt,
-          personalityAnalysis: activeBotData.personalityAnalysis,
-          lastPersonalityUrl: activeBotData.lastPersonalityUrl,
-          lastPersonalityContent: activeBotData.lastPersonalityContent,
-          themeColors: activeBotData.themeColors,
-          prompts: [...updatedSelected, ...updatedCustom],
-        });
+        await updateAgentPrompts(activeBotData.agentId, [
+          ...updatedSelected,
+          ...updatedCustom,
+        ]);
 
         setPreviewConfig({
           ...activeBotData,
           prompts: [...updatedSelected, ...updatedCustom],
         });
 
+        setRefetchBotData();
         toast.success("Prompt removed successfully");
       } catch (error) {
         toast.error("Failed to remove prompt");
@@ -174,31 +155,31 @@ const Prompts = () => {
             Opening Prompts
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-            Curate AI interaction prompts to appear on chat initiation
+            Choose from predefined prompts or add custom ones (max 4 total)
           </p>
         </div>
 
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-700">
-              Select upto 4 Prompts
+              Predefined Prompts
             </h3>
             <button
               onClick={() => setSelectedPrompts([])}
               className="text-xs text-gray-500 hover:text-gray-700"
             >
-              REMOVE
+              CLEAR ALL
             </button>
           </div>
 
           <div className="space-y-2">
             {defaultPrompts.map((prompt) => (
               <button
-                key={prompt.id}
-                onClick={() => handlePromptSelect(prompt.id)}
+                key={prompt}
+                onClick={() => handlePromptSelect(prompt)}
                 className={`w-full text-left px-4 py-3 rounded-lg border transition-all relative
                   ${
-                    selectedPrompts.includes(prompt.id)
+                    activeBotData?.prompts?.includes(prompt)
                       ? "border-green-500 bg-green-50"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
@@ -207,18 +188,18 @@ const Prompts = () => {
                   <div
                     className={`w-4 h-4 rounded-full mr-3 flex-shrink-0
                     ${
-                      selectedPrompts.includes(prompt.id)
+                      activeBotData?.prompts?.includes(prompt)
                         ? "bg-green-500"
                         : "bg-gray-200"
                     }`}
                   />
-                  <span className="text-sm text-gray-900">{prompt.text}</span>
+                  <span className="text-sm text-gray-900">{prompt}</span>
                 </div>
-                {selectedPrompts.includes(prompt.id) && (
+                {activeBotData?.prompts?.includes(prompt) && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleRemovePrompt(prompt.id, false);
+                      handleRemovePrompt(prompt, false);
                     }}
                     className="absolute right-3 top-1/2 -translate-y-1/2"
                   >
@@ -231,7 +212,9 @@ const Prompts = () => {
         </div>
 
         <div className="mb-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">CUSTOM</h3>
+          <h3 className="text-sm font-medium text-gray-700 mb-3">
+            Custom Prompts
+          </h3>
           <div className="space-y-2">
             {customPrompts.map((prompt) => (
               <div
@@ -253,7 +236,7 @@ const Prompts = () => {
 
         <div>
           <h3 className="text-sm font-medium text-gray-700 mb-3">
-            ADD NEW PROMPT
+            Add Custom Prompt
           </h3>
           <div className="bg-gray-100 p-4 rounded-lg">
             <div className="flex gap-2">
@@ -261,7 +244,7 @@ const Prompts = () => {
                 type="text"
                 value={newPrompt}
                 onChange={(e) => setNewPrompt(e.target.value)}
-                placeholder="Type your prompt..."
+                placeholder="Type your custom prompt..."
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               <button
@@ -269,7 +252,7 @@ const Prompts = () => {
                 disabled={!canAddMore}
                 className="px-4 py-2 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                ENTER
+                ADD
               </button>
             </div>
           </div>

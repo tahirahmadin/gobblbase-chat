@@ -1,69 +1,44 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useBotConfig } from "../../../store/useBotConfig";
-import { updateAgentDetails } from "../../../lib/serverActions";
+import { updateAgentWelcomeMessage } from "../../../lib/serverActions";
 import PublicChat from "../../chatbot/PublicChat";
 import { toast } from "react-hot-toast";
 
 const welcomeTemplates = [
-  {
-    id: "default",
-    text: "Hi there! How can I help you?",
-  },
-  {
-    id: "support",
-    text: "Thank you for reaching out. How can I support you right now?",
-  },
-  {
-    id: "shop",
-    text: "Welcome to our shop! Can I help you with recommendations, or track an order?",
-  },
-  {
-    id: "meeting",
-    text: "Hello, thanks for reaching out! Can I help you set up a meeting?",
-  },
-  {
-    id: "mission",
-    text: "Thank you for supporting our mission! How can I help you today?",
-  },
-  {
-    id: "project",
-    text: "Greetings! Looking to kickstart a project? Let's chat!",
-  },
+  "Hi there! How can I help you?",
+  "Thank you for reaching out. How can I support you right now?",
+  "Welcome to our shop! Can I help you with recommendations, or track an order?",
+  "Hello, thanks for reaching out! Can I help you set up a meeting?",
+  "Thank you for supporting our mission! How can I help you today?",
+  "Greetings! Looking to kickstart a project? Let's chat!",
 ];
 
 const WelcomeText = () => {
-  const { activeBotData } = useBotConfig();
-  const [selectedTemplate, setSelectedTemplate] = useState<string>("default");
+  const { activeBotData, setRefetchBotData } = useBotConfig();
+  const [selectedTemplate, setSelectedTemplate] = useState<string>(
+    welcomeTemplates[0]
+  );
   const [customMessage, setCustomMessage] = useState("");
   const [previewConfig, setPreviewConfig] = useState<any>(null);
 
-  const handleTemplateSelect = async (templateId: string) => {
-    setSelectedTemplate(templateId);
-    const template = welcomeTemplates.find((t) => t.id === templateId);
+  useEffect(() => {
+    if (activeBotData) {
+      setSelectedTemplate(activeBotData.welcomeMessage);
+    }
+  }, [activeBotData]);
 
-    if (template && activeBotData) {
+  const handleTemplateSelect = async (templateText: string) => {
+    setSelectedTemplate(templateText);
+
+    if (templateText && activeBotData) {
       try {
-        await updateAgentDetails(activeBotData.agentId, {
-          model: activeBotData.model,
-          systemPrompt: activeBotData.systemPrompt,
-          username: activeBotData.username,
-          name: activeBotData.name,
-          logo: activeBotData.logo,
-          personalityType: activeBotData.personalityType,
-          isCustomPersonality: activeBotData.isCustomPersonality,
-          customPersonalityPrompt: activeBotData.customPersonalityPrompt,
-          personalityAnalysis: activeBotData.personalityAnalysis,
-          lastPersonalityUrl: activeBotData.lastPersonalityUrl,
-          lastPersonalityContent: activeBotData.lastPersonalityContent,
-          themeColors: activeBotData.themeColors,
-          welcomeMessage: template.text,
-        });
+        await updateAgentWelcomeMessage(activeBotData.agentId, templateText);
 
         setPreviewConfig({
           ...activeBotData,
-          welcomeMessage: template.text,
+          welcomeMessage: templateText,
         });
-
+        setRefetchBotData();
         toast.success("Welcome message updated successfully");
       } catch (error) {
         toast.error("Failed to update welcome message");
@@ -80,27 +55,13 @@ const WelcomeText = () => {
 
     if (activeBotData) {
       try {
-        await updateAgentDetails(activeBotData.agentId, {
-          model: activeBotData.model,
-          systemPrompt: activeBotData.systemPrompt,
-          username: activeBotData.username,
-          name: activeBotData.name,
-          logo: activeBotData.logo,
-          personalityType: activeBotData.personalityType,
-          isCustomPersonality: activeBotData.isCustomPersonality,
-          customPersonalityPrompt: activeBotData.customPersonalityPrompt,
-          personalityAnalysis: activeBotData.personalityAnalysis,
-          lastPersonalityUrl: activeBotData.lastPersonalityUrl,
-          lastPersonalityContent: activeBotData.lastPersonalityContent,
-          themeColors: activeBotData.themeColors,
-          welcomeMessage: customMessage,
-        });
+        await updateAgentWelcomeMessage(activeBotData.agentId, customMessage);
 
         setPreviewConfig({
           ...activeBotData,
           welcomeMessage: customMessage,
         });
-
+        setRefetchBotData();
         toast.success("Custom welcome message updated successfully");
       } catch (error) {
         toast.error("Failed to update welcome message");
@@ -124,11 +85,11 @@ const WelcomeText = () => {
           <div className="space-y-2">
             {welcomeTemplates.map((template) => (
               <button
-                key={template.id}
-                onClick={() => handleTemplateSelect(template.id)}
+                key={template}
+                onClick={() => handleTemplateSelect(template)}
                 className={`w-full text-left px-4 py-3 rounded-lg border transition-all
                   ${
-                    selectedTemplate === template.id
+                    selectedTemplate === template
                       ? "border-green-500 bg-green-50"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
@@ -137,12 +98,12 @@ const WelcomeText = () => {
                   <div
                     className={`w-4 h-4 rounded-full mr-3 flex-shrink-0
                     ${
-                      selectedTemplate === template.id
+                      selectedTemplate === template
                         ? "bg-green-500"
                         : "bg-gray-200"
                     }`}
                   />
-                  <span className="text-sm text-gray-900">{template.text}</span>
+                  <span className="text-sm text-gray-900">{template}</span>
                 </div>
               </button>
             ))}
