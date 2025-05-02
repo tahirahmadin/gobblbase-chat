@@ -36,6 +36,9 @@ interface BotConfigState {
   isLoading: boolean;
   error: string | null;
 
+  refetchBotData: number;
+  setRefetchBotData: () => void;
+
   setActiveBotId: (id: string | null) => void;
   setActiveBotData: (data: BotConfig | null) => void;
   fetchBotData: (
@@ -57,10 +60,13 @@ export const useBotConfig = create<BotConfigState>()(
     (set, get) => ({
       activeBotId: null,
       activeBotData: null,
+      refetchBotData: 0,
 
       isLoading: false,
       error: null,
 
+      setRefetchBotData: () =>
+        set({ refetchBotData: get().refetchBotData + 1 }),
       setActiveBotId: async (id) => {
         console.log("Setting activeBotId to:", id);
 

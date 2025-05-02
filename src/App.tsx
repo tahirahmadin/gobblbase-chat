@@ -35,6 +35,7 @@ import Prompts from "./pages/admin/TabsComponent/Prompts";
 import Business from "./pages/admin/TabsComponent/Business";
 import Embed from "./pages/admin/TabsComponent/Embed";
 import Offerings from "./pages/admin/TabsComponent/Offerings";
+import Policies from "./pages/admin/TabsComponent/Policies";
 
 // Add type definition for window
 declare global {
@@ -200,7 +201,7 @@ function Dashboard() {
         <Route path="offerings/add" element={<Offerings />} />
         <Route path="offerings/manage" element={<Offerings />} />
         <Route path="offerings/calendar" element={<Offerings />} />
-        <Route path="offerings/policies" element={<Offerings />} />
+        <Route path="offerings/policies" element={<Policies />} />
         <Route path="crm/*" element={<div>CRM Component</div>} />
         <Route path="*" element={<Navigate to="dashboard/profile" replace />} />
       </Routes>

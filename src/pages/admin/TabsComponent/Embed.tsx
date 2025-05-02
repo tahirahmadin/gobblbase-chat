@@ -9,13 +9,17 @@ import {
   Linkedin,
   Facebook,
   MessageSquare,
+  Check,
 } from "lucide-react";
 import { useBotConfig } from "../../../store/useBotConfig";
 
-export default function Emded() {
+export default function Embed() {
   const { activeBotData } = useBotConfig();
   const [copied, setCopied] = React.useState(false);
   const [urlCopied, setUrlCopied] = React.useState(false);
+  const [embedType, setEmbedType] = React.useState<"bubble" | "iframe">(
+    "iframe"
+  );
 
   const iframeCode = `<iframe
   src="https://test.KiFor.ai/${activeBotData?.username}"
@@ -24,10 +28,20 @@ export default function Emded() {
   frameborder="0"
 ></iframe>`;
 
+  const bubbleCode = `<script>
+  window.chatbaseConfig = {
+    chatbotId: "${activeBotData?.username}"
+  }
+</script>
+<script
+  src="https://test.KiFor.ai/embed.min.js"
+  async>
+</script>`;
+
   const chatbotUrl = `https://test.KiFor.ai/${activeBotData?.username}`;
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(iframeCode);
+  const handleCopy = (code: string) => {
+    navigator.clipboard.writeText(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -58,221 +72,122 @@ export default function Emded() {
 
   return (
     <div className="space-y-8 p-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Embed Chatbot Card */}
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
-            <div className="flex items-center space-x-3">
-              <Code className="h-6 w-6 text-gray-600" />
-              <h2 className="text-xl font-semibold text-gray-800">
-                Embed Chatbot
-              </h2>
-            </div>
-            <p className="mt-2 text-gray-600">
-              Add your chatbot to any website with this code
-            </p>
+      {/* Embed Type Selection */}
+      {/* <div className="flex gap-4 mb-8">
+        <button
+          onClick={() => setEmbedType("bubble")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${
+            embedType === "bubble"
+              ? "bg-blue-50 border-blue-200"
+              : "bg-white border-gray-200"
+          }`}
+        >
+          <div className="w-4 h-4 rounded-full border-2 border-blue-500 flex items-center justify-center">
+            {embedType === "bubble" && (
+              <div className="w-2 h-2 rounded-full bg-blue-500" />
+            )}
           </div>
-          <div className="p-6">
-            <div className="space-y-4">
+          <span className="text-sm font-medium">Embed a Chat Bubble</span>
+        </button>
+        <button
+          onClick={() => setEmbedType("iframe")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${
+            embedType === "iframe"
+              ? "bg-blue-50 border-blue-200"
+              : "bg-white border-gray-200"
+          }`}
+        >
+          <div className="w-4 h-4 rounded-full border-2 border-blue-500 flex items-center justify-center">
+            {embedType === "iframe" && (
+              <div className="w-2 h-2 rounded-full bg-blue-500" />
+            )}
+          </div>
+          <span className="text-sm font-medium">Embed the iFrame directly</span>
+        </button>
+      </div> */}
+
+      {/* Configuration Section */}
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4">
+          <h2 className="text-lg font-semibold text-gray-800">Configuration</h2>
+        </div>
+        <div className="p-4">
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">
+                On the website - www.kifor.ai
+              </h3>
               <div className="relative">
                 <pre className="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm font-mono border border-gray-200">
-                  {iframeCode}
+                  {embedType === "bubble" ? bubbleCode : iframeCode}
                 </pre>
                 <button
-                  onClick={handleCopy}
+                  onClick={() =>
+                    handleCopy(embedType === "bubble" ? bubbleCode : iframeCode)
+                  }
                   className="absolute top-3 right-3 p-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
                   title="Copy code"
                 >
-                  <Copy className="h-5 w-5 text-gray-600" />
-                </button>
-                {copied && (
-                  <div className="absolute top-3 right-3 bg-gray-800 text-white text-xs px-2 py-1 rounded-lg shadow-sm">
-                    Copied!
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Direct Access URL Card */}
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
-            <div className="flex items-center space-x-3">
-              <Globe className="h-6 w-6 text-gray-600" />
-              <h2 className="text-xl font-semibold text-gray-800">
-                Direct Access URL
-              </h2>
-            </div>
-            <p className="mt-2 text-gray-600">
-              Share your chatbot with this direct link
-            </p>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              <div className="relative">
-                <div className="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm font-mono border border-gray-200">
-                  {chatbotUrl}
-                </div>
-                <div className="absolute top-3 right-3 flex gap-2">
-                  <button
-                    onClick={handleUrlCopy}
-                    className="p-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
-                    title="Copy URL"
-                  >
+                  {copied ? (
+                    <Check className="h-5 w-5 text-green-600" />
+                  ) : (
                     <Copy className="h-5 w-5 text-gray-600" />
-                  </button>
-                  <button
-                    onClick={handleVisitUrl}
-                    className="p-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
-                    title="Open in new tab"
-                  >
-                    <ExternalLink className="h-5 w-5 text-gray-600" />
-                  </button>
-                  <button
-                    onClick={handleShare}
-                    className="p-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
-                    title="Share"
-                  >
-                    <Share2 className="h-5 w-5 text-gray-600" />
-                  </button>
-                </div>
-                {urlCopied && (
-                  <div className="absolute top-3 right-3 bg-gray-800 text-white text-xs px-2 py-1 rounded-lg shadow-sm">
-                    Copied!
-                  </div>
-                )}
+                  )}
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Booking Timezone Feature */}
-      {/* <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
-          <div className="flex items-center space-x-3">
-            <Clock className="h-6 w-6 text-gray-600" />
-            <h2 className="text-xl font-semibold text-gray-800">
-              Timezone Support
-            </h2>
-          </div>
-          <p className="mt-2 text-gray-600">
-            Your booking system now supports multi-timezone functionality
-          </p>
-        </div>
-        <div className="p-6">
-          <div className="space-y-6">
-            <div className="flex items-start gap-4">
-              <div className="bg-gray-100 p-3 rounded-lg">
-                <Calendar className="h-6 w-6 text-gray-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-gray-800 mb-1">
-                  International Booking
-                </h3>
-                <p className="text-gray-600 text-sm">
-                  Your customers can now book appointments from anywhere in the world. Times will automatically convert between their timezone and yours.
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-4">
-              <div className="bg-gray-100 p-3 rounded-lg">
-                <Globe className="h-6 w-6 text-gray-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-gray-800 mb-1">
-                  Business Timezone
-                </h3>
-                <p className="text-gray-600 text-sm">
-                  Set your business timezone in the booking settings. All appointments will be stored in your timezone while being displayed to users in their local time.
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-4">
-              <div className="bg-gray-100 p-3 rounded-lg">
-                <Clock className="h-6 w-6 text-gray-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-gray-800 mb-1">
-                  Automatic Timezone Detection
-                </h3>
-                <p className="text-gray-600 text-sm">
-                  The system automatically detects your visitors' timezone and shows available slots accordingly. No more confusion about meeting times!
-                </p>
-              </div>
-            </div>
-            
-            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
-              <p className="text-blue-800 text-sm">
-                <strong>Pro Tip:</strong> Let your customers know they can now book appointments in their local timezone. This feature helps reduce scheduling confusion and missed appointments.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div> */}
-
-      {/* Social Sharing Section */}
+      {/* Direct Access URL Card */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
           <div className="flex items-center space-x-3">
-            <Share2 className="h-6 w-6 text-gray-600" />
+            <Globe className="h-6 w-6 text-gray-600" />
             <h2 className="text-xl font-semibold text-gray-800">
-              Share on Social Media
+              Direct Access URL
             </h2>
           </div>
           <p className="mt-2 text-gray-600">
-            Share your chatbot with your audience on social media
+            Share your chatbot with this direct link
           </p>
         </div>
         <div className="p-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <a
-              href={`https://twitter.com/intent/tweet?text=Chat with my AI assistant powered by KiFor.ai&url=${encodeURIComponent(
-                chatbotUrl
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 p-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
-            >
-              <Twitter className="h-5 w-5" />
-              Share on Twitter
-            </a>
-            <a
-              href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
-                chatbotUrl
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 p-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
-            >
-              <Linkedin className="h-5 w-5" />
-              Share on LinkedIn
-            </a>
-            <a
-              href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-                chatbotUrl
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 p-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
-            >
-              <Facebook className="h-5 w-5" />
-              Share on Facebook
-            </a>
-            <a
-              href={`https://wa.me/?text=${encodeURIComponent(
-                `Check out my AI assistant: ${chatbotUrl}`
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 p-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
-            >
-              <MessageSquare className="h-5 w-5" />
-              Share on WhatsApp
-            </a>
+          <div className="space-y-4">
+            <div className="relative">
+              <div className="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm font-mono border border-gray-200">
+                {chatbotUrl}
+              </div>
+              <div className="absolute top-3 right-3 flex gap-2">
+                <button
+                  onClick={handleUrlCopy}
+                  className="p-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                  title="Copy URL"
+                >
+                  <Copy className="h-5 w-5 text-gray-600" />
+                </button>
+                <button
+                  onClick={handleVisitUrl}
+                  className="p-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                  title="Open in new tab"
+                >
+                  <ExternalLink className="h-5 w-5 text-gray-600" />
+                </button>
+                <button
+                  onClick={handleShare}
+                  className="p-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                  title="Share"
+                >
+                  <Share2 className="h-5 w-5 text-gray-600" />
+                </button>
+              </div>
+              {urlCopied && (
+                <div className="absolute top-3 right-3 bg-gray-800 text-white text-xs px-2 py-1 rounded-lg shadow-sm">
+                  Copied!
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

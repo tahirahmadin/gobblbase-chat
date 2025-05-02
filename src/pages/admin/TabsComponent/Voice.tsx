@@ -39,12 +39,12 @@ const personalityOptions: PersonalityOption[] = [
     title: "TECHIE",
     traits: ["Intuitive", "Intelligent", "Resourceful"],
   },
-  {
-    id: "custom",
-    title: "CUSTOM",
-    traits: ["Create your own", "custom voice"],
-    isCustom: true,
-  },
+  // {
+  //   id: "custom",
+  //   title: "CUSTOM",
+  //   traits: ["Create your own", "custom voice"],
+  //   isCustom: true,
+  // },
 ];
 
 const Voice = () => {
@@ -83,9 +83,9 @@ const Voice = () => {
 
             <div className="flex items-start space-x-3">
               {/* Avatar */}
-              <div className="w-12 h-12 rounded-lg overflow-hidden bg-white">
+              <div className="w-20 h-20 rounded-lg overflow-hidden bg-white">
                 <img
-                  src="/agent-avatar.png"
+                  src="/assets/tone-icon.jpg"
                   alt={`${personality.title} personality`}
                   className="w-full h-full object-cover"
                 />

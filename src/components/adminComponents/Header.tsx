@@ -3,6 +3,7 @@ import { ChevronDown } from "lucide-react";
 import { useBotConfig } from "../../store/useBotConfig";
 import { useAdminStore } from "../../store/useAdminStore";
 import { useNavigate } from "react-router-dom";
+import { useServerHook } from "../../hooks/useServerHook";
 
 interface Agent {
   agentId: string;
@@ -16,6 +17,8 @@ const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  const hook1 = useServerHook({ initHook: true });
 
   useEffect(() => {
     if (adminId) {

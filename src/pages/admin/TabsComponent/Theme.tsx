@@ -91,47 +91,57 @@ const Theme = () => {
           {themes.map((theme) => (
             <div
               key={theme.id}
-              className={`relative cursor-pointer transition-all`}
+              className={`relative cursor-pointer transition-all hover:scale-105`}
               onClick={() => handleThemeSelect(theme.id)}
             >
               {/* Selection Circle */}
               <div
-                className={`absolute -top-2 -left-2 w-4 h-4 rounded-full border border-white
+                className={`absolute -top-2 -left-2 w-4 h-4 rounded-full border-2 border-white shadow-sm z-10
                 ${selectedTheme === theme.id ? "bg-green-500" : "bg-gray-300"}`}
               />
 
-              {/* Color Bar */}
-              <div
-                className="h-6 rounded-t-md"
-                style={{ backgroundColor: theme.color }}
-              />
-
-              {/* Chat Preview */}
-              <div className="bg-gray-100 p-3 rounded-b-md">
+              {/* Chat Container */}
+              <div className="border rounded-lg overflow-hidden shadow-sm">
                 {/* Chat Header */}
-                <div className="flex items-center justify-center mb-2">
-                  <div className="flex items-center space-x-1">
+                <div
+                  className="p-2 border-b"
+                  style={{ backgroundColor: theme.color }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 rounded-full bg-white"></div>
+                      <span
+                        className="text-[11px] font-medium"
+                        style={{ color: theme.textColor }}
+                      >
+                        CHAT
+                      </span>
+                    </div>
                     <svg
                       viewBox="0 0 24 24"
-                      className="w-3 h-3 text-black"
+                      className="w-3 h-3"
+                      style={{ color: theme.textColor }}
                       fill="currentColor"
                     >
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+                      <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
                     </svg>
-                    <span className="text-[10px] font-medium text-black">
-                      CHAT
-                    </span>
                   </div>
                 </div>
 
-                {/* Messages */}
-                <div className="space-y-2">
-                  <div className="text-[11px] bg-white px-2 py-1 rounded inline-block">
-                    AI Agent
+                {/* Messages Container */}
+                <div className="bg-gray-50 p-2 space-y-2">
+                  {/* AI Message */}
+                  <div className="flex items-start space-x-1">
+                    <div className="w-4 h-4 rounded-full bg-gray-200 flex-shrink-0"></div>
+                    <div className="text-[11px] bg-white px-2 py-1.5 rounded-lg shadow-sm max-w-[80%]">
+                      AI Agent
+                    </div>
                   </div>
+
+                  {/* User Message */}
                   <div className="flex justify-end">
                     <div
-                      className="text-[11px] px-2 py-1 rounded"
+                      className="text-[11px] px-2 py-1.5 rounded-lg shadow-sm max-w-[80%]"
                       style={{
                         backgroundColor: theme.color,
                         color: theme.textColor,
@@ -142,21 +152,28 @@ const Theme = () => {
                   </div>
                 </div>
 
-                {/* Voice Input Bar */}
-                <div className="mt-2 h-8 rounded flex items-center justify-center bg-blue-600">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    className="w-4 h-4 text-white"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                    />
-                  </svg>
+                {/* Input Bar */}
+                <div className="p-2 bg-white border-t">
+                  <div className="flex items-center justify-between bg-gray-50 rounded-full px-3 py-1.5">
+                    <div className="text-[10px] text-gray-400">
+                      Type a message...
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        className="w-3 h-3 text-gray-400"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
