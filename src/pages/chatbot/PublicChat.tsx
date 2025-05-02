@@ -41,7 +41,8 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true,
 });
 
-const QUERY_CUES: string[][] = [
+// Default cues if no prompts are provided
+const DEFAULT_CUES: string[][] = [
   [
     "Pizza hut se meri call ki sales pitch btao?",
     "Bamboo Spoons kitni stock mein hain abhi?",
@@ -58,6 +59,22 @@ interface PreviewConfig {
   personalityType?: PersonalityType;
   customPersonalityPrompt?: string;
   personalityAnalysis?: PersonalityAnalysis | null;
+  promotionalBanner?: string;
+  isPromoBannerEnabled?: boolean;
+  socials?: {
+    instagram: string;
+    tiktok: string;
+    twitter: string;
+    facebook: string;
+    youtube: string;
+    linkedin: string;
+    snapchat: string;
+    link: string;
+  };
+  prompts?: string[];
+  welcomeMessage?: string;
+  agentId?: string;
+  sessionName?: string;
 }
 
 // Currency symbols mapping
@@ -68,7 +85,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   INR: "₹",
   CAD: "C$",
   AUD: "A$",
-  JPY: "¥"
+  JPY: "¥",
 };
 
 export default function PublicChat({
@@ -91,8 +108,7 @@ export default function PublicChat({
   const [messages, setMessages] = useState<ExtendedChatMessage[]>([
     {
       id: "1",
-      content:
-        "Hi! Looking to upskill yourself? Let me know how I can help you.",
+      content: previewConfig?.welcomeMessage || "Hi! How may I help you?",
       timestamp: new Date(),
       sender: "agent",
     },
@@ -110,7 +126,7 @@ export default function PublicChat({
   const [customPersonalityPrompt, setCustomPersonalityPrompt] = useState("");
   const [personalityAnalysis, setPersonalityAnalysis] =
     useState<PersonalityAnalysis | null>(null);
-    
+
   // Pricing state
   const [pricingInfo, setPricingInfo] = useState({
     isFreeSession: false,
@@ -133,6 +149,20 @@ export default function PublicChat({
     highlightColor: "#ffcc16",
   };
 
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    if (previewConfig?.welcomeMessage) {
+      setMessages([
+        {
+          id: "1",
+          content: previewConfig?.welcomeMessage || "Hi! How may I help you?",
+          timestamp: new Date(),
+          sender: "agent",
+        },
+      ]);
+    }
+  }, [previewConfig?.welcomeMessage]);
+
   // Enhanced scroll to bottom function
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -154,21 +184,23 @@ export default function PublicChat({
   useEffect(() => {
     const fetchPricing = async () => {
       if (!currentConfig?.agentId) return;
-      
+
       setLoadingPricing(true);
       try {
         const data = await getAppointmentSettings(currentConfig.agentId);
         console.log("Fetched settings for pricing:", data);
-        
+
         if (data && data.price) {
-          const formattedPrice = data.price.isFree ? 
-            "Free" : 
-            `${CURRENCY_SYMBOLS[data.price.currency] || "$"}${data.price.amount}`;
-            
+          const formattedPrice = data.price.isFree
+            ? "Free"
+            : `${CURRENCY_SYMBOLS[data.price.currency] || "$"}${
+                data.price.amount
+              }`;
+
           setPricingInfo({
             isFreeSession: data.price.isFree,
             sessionPrice: formattedPrice,
-            sessionName: currentConfig.sessionName || "Consultation"
+            sessionName: currentConfig.sessionName || "Consultation",
           });
           console.log("Dynamic price info set:", formattedPrice);
         }
@@ -178,7 +210,7 @@ export default function PublicChat({
         setLoadingPricing(false);
       }
     };
-    
+
     fetchPricing();
   }, [currentConfig]);
 
@@ -389,18 +421,19 @@ export default function PublicChat({
           <AboutSection
             theme={theme}
             currentConfig={currentConfig || { name: "KiFor Bot" }}
+            socials={currentConfig?.socials}
           />
         )}
 
         {activeScreen === "browse" && (
-          <BrowseSection 
-            theme={theme} 
+          <BrowseSection
+            theme={theme}
             currentConfig={{
               agentId: config?.agentId,
               name: config?.name,
               sessionName: pricingInfo.sessionName,
               sessionPrice: pricingInfo.sessionPrice,
-              isFreeSession: pricingInfo.isFreeSession
+              isFreeSession: pricingInfo.isFreeSession,
             }}
           />
         )}
@@ -424,7 +457,10 @@ export default function PublicChat({
                   backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
                 }}
               >
-                {QUERY_CUES.map((row, i) => (
+                {(currentConfig?.prompts?.length
+                  ? [currentConfig.prompts]
+                  : DEFAULT_CUES
+                ).map((row, i) => (
                   <div key={i} className="grid grid-cols-2 gap-2">
                     {row.map((cue) => (
                       <button

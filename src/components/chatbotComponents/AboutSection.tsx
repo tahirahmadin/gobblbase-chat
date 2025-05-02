@@ -1,5 +1,13 @@
 import React from "react";
-import { Twitter, Instagram, Music } from "lucide-react";
+import {
+  Twitter,
+  Instagram,
+  Music,
+  Facebook,
+  Youtube,
+  Linkedin,
+  Link as LinkIcon,
+} from "lucide-react";
 import { Theme } from "../../types";
 import TryFreeBanner from "./TryFreeBanner";
 
@@ -8,18 +16,24 @@ interface AboutSectionProps {
     name?: string;
     logo?: string;
     bio?: string;
-    socialLinks?: {
-      twitter?: string;
-      instagram?: string;
-      tiktok?: string;
-    };
   };
   theme: Theme;
+  socials?: {
+    instagram: string;
+    tiktok: string;
+    twitter: string;
+    facebook: string;
+    youtube: string;
+    linkedin: string;
+    snapchat: string;
+    link: string;
+  };
 }
 
 export default function AboutSection({
   currentConfig,
   theme,
+  socials,
 }: AboutSectionProps) {
   return (
     <div
@@ -51,24 +65,76 @@ export default function AboutSection({
 
           {/* Social Media Icons */}
           <div className="flex space-x-4">
-            <a
-              href={currentConfig?.socialLinks?.twitter || "#"}
-              className="hover:opacity-80"
-            >
-              <Twitter className="w-5 h-5" />
-            </a>
-            <a
-              href={currentConfig?.socialLinks?.instagram || "#"}
-              className="hover:opacity-80"
-            >
-              <Instagram className="w-5 h-5" />
-            </a>
-            <a
-              href={currentConfig?.socialLinks?.tiktok || "#"}
-              className="hover:opacity-80"
-            >
-              <Music className="w-5 h-5" />
-            </a>
+            {socials?.twitter && (
+              <a
+                href={socials.twitter}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:opacity-80"
+              >
+                <Twitter className="w-5 h-5" />
+              </a>
+            )}
+            {socials?.instagram && (
+              <a
+                href={socials.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:opacity-80"
+              >
+                <Instagram className="w-5 h-5" />
+              </a>
+            )}
+            {socials?.tiktok && (
+              <a
+                href={socials.tiktok}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:opacity-80"
+              >
+                <Music className="w-5 h-5" />
+              </a>
+            )}
+            {socials?.facebook && (
+              <a
+                href={socials.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:opacity-80"
+              >
+                <Facebook className="w-5 h-5" />
+              </a>
+            )}
+            {socials?.youtube && (
+              <a
+                href={socials.youtube}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:opacity-80"
+              >
+                <Youtube className="w-5 h-5" />
+              </a>
+            )}
+            {socials?.linkedin && (
+              <a
+                href={socials.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:opacity-80"
+              >
+                <Linkedin className="w-5 h-5" />
+              </a>
+            )}
+            {socials?.link && (
+              <a
+                href={socials.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:opacity-80"
+              >
+                <LinkIcon className="w-5 h-5" />
+              </a>
+            )}
           </div>
         </div>
 
@@ -89,25 +155,35 @@ export default function AboutSection({
         </div>
 
         {/* Social Links */}
-        <div className="w-full px-6 mt-6 space-y-3 ">
-          <button
-            className="w-full py-3 rounded-full font-medium"
-            style={{
-              backgroundColor: theme.mainDarkColor,
-              color: !theme.isDark ? "white" : "black",
-            }}
-          >
-            Social Link 1
-          </button>
-          <button
-            className="w-full py-3 rounded-full  font-medium"
-            style={{
-              backgroundColor: theme.mainDarkColor,
-              color: !theme.isDark ? "white" : "black",
-            }}
-          >
-            Social Link 2
-          </button>
+        <div className="w-full px-6 mt-6 space-y-3">
+          {socials?.instagram && (
+            <a
+              href={socials.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-3 rounded-full font-medium block text-center"
+              style={{
+                backgroundColor: theme.mainDarkColor,
+                color: !theme.isDark ? "white" : "black",
+              }}
+            >
+              Follow on Instagram
+            </a>
+          )}
+          {socials?.youtube && (
+            <a
+              href={socials.youtube}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-3 rounded-full font-medium block text-center"
+              style={{
+                backgroundColor: theme.mainDarkColor,
+                color: !theme.isDark ? "white" : "black",
+              }}
+            >
+              Subscribe on YouTube
+            </a>
+          )}
         </div>
         <div className="flex justify-center space-x-4 mt-4 mb-6">
           <a href="/privacy" className="text-sm opacity-60 hover:opacity-100">

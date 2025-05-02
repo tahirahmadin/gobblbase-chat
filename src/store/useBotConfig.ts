@@ -24,8 +24,10 @@ interface BotConfig {
     link: string;
   };
   prompts: string[];
-  promotionalBanner: string;
+  promotionalBanner: string | null;
+  isPromoBannerEnabled: boolean;
   logo: string;
+  sessionName: string;
 
   stripeAccountId: string;
   currency: string;
@@ -158,6 +160,7 @@ export const useBotConfig = create<BotConfigState>()(
                 link: "",
               },
               promotionalBanner: response.promotionalBanner || "",
+              isPromoBannerEnabled: response.isPromoBannerEnabled || false,
               voicePersonality: response.voicePersonality || "friend",
               customVoiceName: response.customVoiceName,
               customVoiceCharacteristics: response.customVoiceCharacteristics,
@@ -166,10 +169,28 @@ export const useBotConfig = create<BotConfigState>()(
               language: response.language,
               smartenUpAnswers: response.smartenUpAnswers,
               preferredPaymentMethod: response.preferredPaymentMethod,
-              stripe: response.stripe,
-              razorpay: response.razorpay,
-              usdt: response.usdt,
-              usdc: response.usdc,
+              sessionName: response.sessionName || "Consultation",
+              prompts: response.prompts || [],
+              paymentMethods: {
+                stripe: {
+                  enabled: response.stripe?.enabled || false,
+                  accountId: response.stripe?.accountId || "",
+                },
+                razorpay: {
+                  enabled: response.razorpay?.enabled || false,
+                  accountId: response.razorpay?.accountId || "",
+                },
+                usdt: {
+                  enabled: response.usdt?.enabled || false,
+                  walletAddress: response.usdt?.walletAddress || "",
+                  chains: response.usdt?.chains || [],
+                },
+                usdc: {
+                  enabled: response.usdc?.enabled || false,
+                  walletAddress: response.usdc?.walletAddress || "",
+                  chains: response.usdc?.chains || [],
+                },
+              },
             };
 
             if (get().activeBotId === id) {

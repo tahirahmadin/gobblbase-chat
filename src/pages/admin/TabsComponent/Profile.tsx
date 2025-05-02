@@ -70,6 +70,7 @@ const Profile = () => {
       setAgentBio(activeBotData.bio);
       setSocialMedia(activeBotData.socials);
       setPromotionalBanner(activeBotData.promotionalBanner);
+      setIsPromoBannerEnabled(activeBotData.isPromoBannerEnabled);
     }
   }, [activeBotData]);
 
@@ -440,7 +441,6 @@ const Profile = () => {
                 </span>
               </div>
               <div className="space-y-2">
-                {console.log(agentBio)}
                 <textarea
                   value={agentBio}
                   onChange={(e) => setAgentBio(e.target.value)}
@@ -600,7 +600,17 @@ const Profile = () => {
       </div>
       <div className="col-span-2 pt-6" style={{ backgroundColor: "#eaefff" }}>
         <div className="mx-auto" style={{ maxWidth: 440 }}>
-          <PublicChat agentUsernamePlayground={null} />
+          <PublicChat
+            agentUsernamePlayground={null}
+            previewConfig={{
+              name: agentName,
+              logo: activeBotData?.logo,
+              promotionalBanner: promotionalBanner,
+              isPromoBannerEnabled: isPromoBannerEnabled,
+              socials: socialMedia,
+              bio: agentBio,
+            }}
+          />
         </div>
       </div>
     </div>

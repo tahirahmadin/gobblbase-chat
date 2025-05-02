@@ -135,17 +135,18 @@ export default function HeaderSection({
         )}
       </div>
       {/* Ad Strip */}
-      <div
-        className="flex justify-center items-center px-4 py-3"
-        style={{
-          backgroundColor: theme.isDark ? "white" : "black",
-          color: theme.isDark ? "black" : "white",
-        }}
-      >
-        <div className="text-sm">
-          New batches will be available by 1st June.
+      {currentConfig.isPromoBannerEnabled && (
+        <div
+          className="flex justify-center items-center px-4 py-3"
+          style={{
+            backgroundColor: theme.isDark ? "white" : "black",
+            color: theme.isDark ? "black" : "white",
+          }}
+        >
+          <div className="text-sm">{currentConfig.promotionalBanner}</div>
         </div>
-      </div>
+      )}
+
       {/* Navigation Bar */}
       <div
         className="flex justify-around pt-2"
