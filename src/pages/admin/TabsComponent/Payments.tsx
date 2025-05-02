@@ -148,190 +148,6 @@ const Payments = () => {
     }
   };
 
-  const handleStripeSave = async () => {
-    if (!activeBotData) {
-      toast.error("No agent selected");
-      return;
-    }
-    if (stripeEnabled && !stripeId) {
-      toast.error("Please enter Stripe Account ID");
-      return;
-    }
-
-    try {
-      setIsSaving(true);
-      await updateAgentPaymentSettings(activeBotData.agentId, {
-        currency,
-        preferredPaymentMethod: preferredMethod,
-        paymentMethods: {
-          stripe: {
-            enabled: stripeEnabled,
-            accountId: stripeEnabled ? stripeId : "",
-          },
-          razorpay: {
-            enabled: razorpayEnabled,
-            accountId: razorpayEnabled ? razorpayId : "",
-          },
-          usdt: {
-            enabled: usdtEnabled,
-            walletAddress: usdtEnabled ? usdtAddress : "",
-            chains: usdtEnabled ? selectedUsdtChains : [],
-          },
-          usdc: {
-            enabled: usdcEnabled,
-            walletAddress: usdcEnabled ? usdcAddress : "",
-            chains: usdcEnabled ? selectedUsdcChains : [],
-          },
-        },
-      });
-      setRefetchBotData();
-      toast.success("Stripe settings updated successfully");
-    } catch (error: any) {
-      console.error("Error updating Stripe settings:", error);
-      toast.error(error.message || "Failed to update Stripe settings");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleRazorpaySave = async () => {
-    if (!activeBotData) {
-      toast.error("No agent selected");
-      return;
-    }
-    if (razorpayEnabled && !razorpayId) {
-      toast.error("Please enter Razorpay Account ID");
-      return;
-    }
-
-    try {
-      setIsSaving(true);
-      await updateAgentPaymentSettings(activeBotData.agentId, {
-        currency,
-        preferredPaymentMethod: preferredMethod,
-        paymentMethods: {
-          stripe: {
-            enabled: stripeEnabled,
-            accountId: stripeEnabled ? stripeId : "",
-          },
-          razorpay: {
-            enabled: razorpayEnabled,
-            accountId: razorpayEnabled ? razorpayId : "",
-          },
-          usdt: {
-            enabled: usdtEnabled,
-            walletAddress: usdtEnabled ? usdtAddress : "",
-            chains: usdtEnabled ? selectedUsdtChains : [],
-          },
-          usdc: {
-            enabled: usdcEnabled,
-            walletAddress: usdcEnabled ? usdcAddress : "",
-            chains: usdcEnabled ? selectedUsdcChains : [],
-          },
-        },
-      });
-      setRefetchBotData();
-      toast.success("Razorpay settings updated successfully");
-    } catch (error: any) {
-      console.error("Error updating Razorpay settings:", error);
-      toast.error(error.message || "Failed to update Razorpay settings");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleUsdtSave = async () => {
-    if (!activeBotData) {
-      toast.error("No agent selected");
-      return;
-    }
-    if (usdtEnabled && !usdtAddress) {
-      toast.error("Please enter USDT Wallet Address");
-      return;
-    }
-
-    try {
-      setIsSaving(true);
-      await updateAgentPaymentSettings(activeBotData.agentId, {
-        currency,
-        preferredPaymentMethod: preferredMethod,
-        paymentMethods: {
-          stripe: {
-            enabled: stripeEnabled,
-            accountId: stripeEnabled ? stripeId : "",
-          },
-          razorpay: {
-            enabled: razorpayEnabled,
-            accountId: razorpayEnabled ? razorpayId : "",
-          },
-          usdt: {
-            enabled: usdtEnabled,
-            walletAddress: usdtEnabled ? usdtAddress : "",
-            chains: usdtEnabled ? selectedUsdtChains : [],
-          },
-          usdc: {
-            enabled: usdcEnabled,
-            walletAddress: usdcEnabled ? usdcAddress : "",
-            chains: usdcEnabled ? selectedUsdcChains : [],
-          },
-        },
-      });
-      setRefetchBotData();
-      toast.success("USDT settings updated successfully");
-    } catch (error: any) {
-      console.error("Error updating USDT settings:", error);
-      toast.error(error.message || "Failed to update USDT settings");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleUsdcSave = async () => {
-    if (!activeBotData) {
-      toast.error("No agent selected");
-      return;
-    }
-    if (usdcEnabled && !usdcAddress) {
-      toast.error("Please enter USDC Wallet Address");
-      return;
-    }
-
-    try {
-      setIsSaving(true);
-      await updateAgentPaymentSettings(activeBotData.agentId, {
-        currency,
-        preferredPaymentMethod: preferredMethod,
-        paymentMethods: {
-          stripe: {
-            enabled: stripeEnabled,
-            accountId: stripeEnabled ? stripeId : "",
-          },
-          razorpay: {
-            enabled: razorpayEnabled,
-            accountId: razorpayEnabled ? razorpayId : "",
-          },
-          usdt: {
-            enabled: usdtEnabled,
-            walletAddress: usdtEnabled ? usdtAddress : "",
-            chains: usdtEnabled ? selectedUsdtChains : [],
-          },
-          usdc: {
-            enabled: usdcEnabled,
-            walletAddress: usdcEnabled ? usdcAddress : "",
-            chains: usdcEnabled ? selectedUsdcChains : [],
-          },
-        },
-      });
-      setRefetchBotData();
-      toast.success("USDC settings updated successfully");
-    } catch (error: any) {
-      console.error("Error updating USDC settings:", error);
-      toast.error(error.message || "Failed to update USDC settings");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   const handleChainToggle = (chain: string, isUsdt: boolean) => {
     const setChains = isUsdt ? setSelectedUsdtChains : setSelectedUsdcChains;
     const currentChains = isUsdt ? selectedUsdtChains : selectedUsdcChains;
@@ -443,15 +259,6 @@ const Payments = () => {
                 <RefreshCw className="w-3 h-3" />
               </button>
             </div>
-            <div className="mt-2 flex justify-end">
-              <button
-                onClick={handleStripeSave}
-                className="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600 text-sm"
-                disabled={!stripeEnabled || isSaving}
-              >
-                {isSaving ? "Saving..." : "Save"}
-              </button>
-            </div>
           </div>
         </div>
 
@@ -482,13 +289,6 @@ const Payments = () => {
                 className="flex-1 border border-gray-300 rounded-l px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={!razorpayEnabled}
               />
-              <button
-                onClick={handleRazorpaySave}
-                className="bg-green-500 text-white px-4 rounded-r hover:bg-green-600"
-                disabled={!razorpayEnabled || isSaving}
-              >
-                {isSaving ? "Saving..." : "Save"}
-              </button>
             </div>
           </div>
         </div>
@@ -520,13 +320,6 @@ const Payments = () => {
                 className="flex-1 border border-gray-300 rounded-l px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={!usdtEnabled}
               />
-              <button
-                onClick={handleUsdtSave}
-                className="bg-green-500 text-white px-4 rounded-r hover:bg-green-600"
-                disabled={!usdtEnabled || isSaving}
-              >
-                {isSaving ? "Saving..." : "Save"}
-              </button>
             </div>
             <div className="flex flex-wrap gap-2">
               {[
@@ -621,20 +414,11 @@ const Payments = () => {
                 </button>
               ))}
             </div>
-            <div className="mt-2 flex justify-end">
-              <button
-                onClick={handleUsdcSave}
-                className="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600 text-sm"
-                disabled={!usdcEnabled || isSaving}
-              >
-                {isSaving ? "Saving..." : "Save"}
-              </button>
-            </div>
           </div>
         </div>
 
         {/* Save Button */}
-        {/* <div className="flex justify-end">
+        <div className="flex justify-end">
           <button
             onClick={handleSave}
             disabled={isSaving}
@@ -651,7 +435,7 @@ const Payments = () => {
               "SAVE"
             )}
           </button>
-        </div> */}
+        </div>
       </div>
 
       {/* Payments Log */}
