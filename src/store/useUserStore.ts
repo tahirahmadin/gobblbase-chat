@@ -115,13 +115,18 @@ export const useUserStore = create<UserState>()(
         }
       },
 
-      logout: () =>
+      logout: () => {
+        // Clear the state
         set({
           isLoggedIn: false,
           userEmail: null,
           userId: null,
           userDetails: null,
-        }),
+        });
+
+        // Clear the persisted storage
+        localStorage.removeItem("user-storage");
+      },
     }),
     {
       name: "user-storage",

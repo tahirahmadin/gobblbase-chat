@@ -104,6 +104,7 @@ interface BotConfigState {
     inputBotId: string,
     inputProfilePicture: File
   ) => Promise<void>;
+  clearBotConfig: () => void;
 }
 
 export const useBotConfig = create<BotConfigState>()(
@@ -193,22 +194,23 @@ export const useBotConfig = create<BotConfigState>()(
               },
             };
 
-            if (get().activeBotId === id) {
-              console.log("Setting activeBotData for ID:", id, cleanConfig);
-              set({ activeBotData: cleanConfig, isLoading: false });
-            }
+            set({ activeBotData: cleanConfig, isLoading: false });
           } catch (error) {
             console.error("Error fetching bot data:", error);
-            if (get().activeBotId === id) {
-              set({ error: (error as Error).message, isLoading: false });
-              toast.error("Failed to fetch bot configuration");
-            }
+            set({ error: (error as Error).message, isLoading: false });
           }
-        } else {
-          set({ activeBotData: null });
         }
       },
-
+      clearBotConfig: () => {
+        set({
+          activeBotId: null,
+          activeBotData: null,
+          refetchBotData: 0,
+          isLoading: false,
+          error: null,
+        });
+        localStorage.removeItem("bot-config-storage");
+      },
       setActiveBotData: (data) => set({ activeBotData: data }),
 
       fetchBotData: async (

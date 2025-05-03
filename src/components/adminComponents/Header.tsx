@@ -18,13 +18,24 @@ const Header = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  //Handeling agentDetails refresh when change trigger
   const hook1 = useServerHook({ initHook: true });
 
+  console.log("activeBotId");
+  console.log(activeBotId);
+  console.log(activeBotData);
+
   useEffect(() => {
-    if (adminId) {
-      fetchAllAgents();
+    if (agents.length > 0) {
+      setActiveBotId(agents[0].agentId);
     }
-  }, [adminId, fetchAllAgents]);
+  }, [agents, setActiveBotId]);
+
+  // useEffect(() => {
+  //   if (adminId) {
+  //     fetchAllAgents();
+  //   }
+  // }, [adminId, fetchAllAgents]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

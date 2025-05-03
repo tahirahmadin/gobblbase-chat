@@ -1,20 +1,17 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  Brain,
-  MessageSquare,
-  Palette,
-  FileText,
   Briefcase,
   Package,
   Users,
-  Settings,
   LogOut,
   ChevronRight,
   ChevronDown,
   LayoutDashboard,
 } from "lucide-react";
 import { useAdminStore } from "../../store/useAdminStore";
+import { useUserStore } from "../../store/useUserStore";
+import { useBotConfig } from "../../store/useBotConfig";
 
 interface SubNavItem {
   name: string;
@@ -84,6 +81,8 @@ const Sidebar = () => {
   const location = useLocation();
   const [expandedTabs, setExpandedTabs] = useState<string[]>([]);
   const { adminLogout } = useAdminStore();
+  const { logout: userLogout } = useUserStore();
+  const { clearBotConfig } = useBotConfig();
 
   const toggleTab = (tabName: string) => {
     setExpandedTabs((prev) =>
@@ -162,8 +161,10 @@ const Sidebar = () => {
         <button
           className="w-full flex items-center space-x-3 px-4 py-2 text-gray-300 hover:bg-gray-800 rounded-lg"
           onClick={() => {
+            userLogout();
             adminLogout();
-            navigate("/login");
+            clearBotConfig();
+            navigate("/admin");
           }}
         >
           <LogOut className="w-5 h-5" />
