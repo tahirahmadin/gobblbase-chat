@@ -72,9 +72,8 @@ const navItems: NavItem[] = [
     path: "/admin/crm",
     expandable: true,
     subItems: [
-      { name: "Customers", path: "/admin/crm/customers" },
-      { name: "Leads", path: "/admin/crm/leads" },
-      { name: "Analytics", path: "/admin/crm/analytics" },
+      { name: "Customer Leads", path: "/admin/crm/leads" },
+      { name: "Chat Logs", path: "/admin/crm/chat-logs" },
     ],
   },
 ];

@@ -36,6 +36,8 @@ import Business from "./pages/admin/TabsComponent/Business";
 import Embed from "./pages/admin/TabsComponent/Embed";
 import Offerings from "./pages/admin/TabsComponent/Offerings";
 import Policies from "./pages/admin/TabsComponent/Policies";
+import ChatLogs from "./pages/admin/TabsComponent/ChatLogs";
+import CustomerLeads from "./pages/admin/TabsComponent/CustomerLeads";
 
 // Add type definition for window
 declare global {
@@ -202,7 +204,8 @@ function Dashboard() {
         <Route path="offerings/manage" element={<Offerings />} />
         <Route path="offerings/calendar" element={<Offerings />} />
         <Route path="offerings/policies" element={<Policies />} />
-        <Route path="crm/*" element={<div>CRM Component</div>} />
+        <Route path="crm/chat-logs" element={<ChatLogs />} />
+        <Route path="crm/leads" element={<CustomerLeads />} />
         <Route path="*" element={<Navigate to="dashboard/profile" replace />} />
       </Routes>
     </AdminLayout>
