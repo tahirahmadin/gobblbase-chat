@@ -609,6 +609,7 @@ const Profile = () => {
               isPromoBannerEnabled: isPromoBannerEnabled,
               socials: socialMedia,
               bio: agentBio,
+              ...activeBotData,
             }}
           />
         </div>

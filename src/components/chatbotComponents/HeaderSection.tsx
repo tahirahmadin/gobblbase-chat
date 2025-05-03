@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   User,
   LogOut,
@@ -8,29 +8,48 @@ import {
   ShoppingCart,
   Menu,
 } from "lucide-react";
-import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { useUserStore } from "../../store/useUserStore";
 import { Theme } from "../../types";
+
+// Add Google API type declaration
+declare global {
+  interface Window {
+    google: {
+      accounts: {
+        oauth2: {
+          initTokenClient: (config: {
+            client_id: string;
+            callback: (response: any) => void;
+            scope: string;
+          }) => {
+            requestAccessToken: () => void;
+          };
+        };
+      };
+    };
+  }
+}
 
 interface HeaderSectionProps {
   theme: Theme;
   currentConfig: {
+    isPromoBannerEnabled?: boolean;
+    promotionalBanner?: string;
     logo?: string;
     name?: string;
   };
   activeScreen: "about" | "chat" | "browse";
   setActiveScreen: (screen: "about" | "chat" | "browse") => void;
-  onGoogleLoginSuccess?: (response: any) => void;
-  onGoogleLoginError?: () => void;
 }
 
-export default function HeaderSection({
+function HeaderSection({
   theme,
   currentConfig,
   activeScreen,
   setActiveScreen,
 }: HeaderSectionProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
 
   const {
     isLoggedIn,
@@ -40,12 +59,81 @@ export default function HeaderSection({
     logout: userLogout,
   } = useUserStore();
 
-  const handleLoginSuccess = (response: any) => {
-    userGoogleLoginSuccess(response);
-  };
+  useEffect(() => {
+    // Load Google Identity Services script
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      console.log("Google Identity Services script loaded");
+      setIsGoogleLoaded(true);
+    };
+    script.onerror = (error) => {
+      console.error("Error loading Google Identity Services script:", error);
+    };
+    document.body.appendChild(script);
 
-  const handleLoginError = () => {
-    userGoogleLoginError();
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const handleLoginClick = () => {
+    console.log("Login button clicked");
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+    if (!clientId) {
+      console.error("Google Client ID is not configured");
+      return;
+    }
+
+    if (!isGoogleLoaded) {
+      console.error("Google Identity Services not loaded yet");
+      return;
+    }
+
+    try {
+      console.log("Initializing Google client with ID:", clientId);
+      // Initialize Google OAuth client
+      const client = window.google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        callback: (response: { error?: string; access_token: string }) => {
+          console.log("Google OAuth response:", response);
+          if (response.error) {
+            console.error("Google OAuth error:", response.error);
+            userGoogleLoginError();
+          } else {
+            console.log("Google OAuth success");
+            // Get user info using the access token
+            fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+              headers: {
+                Authorization: `Bearer ${response.access_token}`,
+              },
+            })
+              .then((res) => res.json())
+              .then((userInfo) => {
+                console.log("User info:", userInfo);
+                userGoogleLoginSuccess({
+                  credential: response.access_token,
+                  userInfo: userInfo,
+                });
+              })
+              .catch((error) => {
+                console.error("Error fetching user info:", error);
+                userGoogleLoginError();
+              });
+          }
+        },
+        scope: "email profile",
+      });
+
+      console.log("Requesting Google OAuth token");
+      // Request the token
+      client.requestAccessToken();
+    } catch (error) {
+      console.error("Error initializing Google client:", error);
+      userGoogleLoginError();
+    }
   };
 
   const UserDropdownMenu = () => (
@@ -125,13 +213,18 @@ export default function HeaderSection({
             </div>
           </div>
         ) : (
-          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-            <GoogleLogin
-              onSuccess={handleLoginSuccess}
-              onError={handleLoginError}
-              useOneTap
-            />
-          </GoogleOAuthProvider>
+          <div>
+            <button
+              className="p-2 rounded-full hover:bg-opacity-10 hover:bg-white"
+              style={{
+                backgroundColor: theme.highlightColor,
+                color: !theme.isDark ? "white" : "black",
+              }}
+              onClick={handleLoginClick}
+            >
+              LOGIN
+            </button>
+          </div>
         )}
       </div>
       {/* Ad Strip */}
@@ -218,3 +311,5 @@ export default function HeaderSection({
     </div>
   );
 }
+
+export default HeaderSection;

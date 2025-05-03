@@ -53,7 +53,7 @@ const personalityOptions: PersonalityOption[] = [
 const Voice = () => {
   const { activeBotId, activeBotData, setRefetchBotData } = useBotConfig();
   const [selectedPersonality, setSelectedPersonality] =
-    useState<string>("friend");
+    useState<PersonalityOption>(personalityOptions[0]);
   const [customVoiceName, setCustomVoiceName] = useState("");
   const [customVoiceCharacteristics, setCustomVoiceCharacteristics] =
     useState("");
@@ -61,20 +61,18 @@ const Voice = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (activeBotData?.voicePersonality) {
-      setSelectedPersonality(activeBotData.voicePersonality);
-      if (activeBotData.voicePersonality === "custom") {
-        setCustomVoiceName(activeBotData.customVoiceName || "");
-        setCustomVoiceCharacteristics(
-          activeBotData.customVoiceCharacteristics || ""
-        );
-        setCustomVoiceExamples(activeBotData.customVoiceExamples || "");
+    if (activeBotData?.personalityType) {
+      const personality = personalityOptions.find(
+        (option) => option.title === activeBotData.personalityType.name
+      );
+      if (personality) {
+        setSelectedPersonality(personality);
       }
     }
   }, [activeBotData]);
 
-  const handlePersonalitySelect = (personalityId: string) => {
-    setSelectedPersonality(personalityId);
+  const handlePersonalitySelect = (personality: PersonalityOption) => {
+    setSelectedPersonality(personality);
   };
 
   const handleSave = async () => {
@@ -84,7 +82,7 @@ const Voice = () => {
     }
 
     if (
-      selectedPersonality === "custom" &&
+      selectedPersonality.id === "custom" &&
       (!customVoiceName || !customVoiceCharacteristics || !customVoiceExamples)
     ) {
       toast.error("Please fill in all custom voice fields");
@@ -93,15 +91,10 @@ const Voice = () => {
 
     try {
       setIsSaving(true);
-      await updateAgentVoicePersonality(
-        activeBotId,
-        selectedPersonality,
-        selectedPersonality === "custom" ? customVoiceName : undefined,
-        selectedPersonality === "custom"
-          ? customVoiceCharacteristics
-          : undefined,
-        selectedPersonality === "custom" ? customVoiceExamples : undefined
-      );
+      await updateAgentVoicePersonality(activeBotId, {
+        name: selectedPersonality.title,
+        value: selectedPersonality.traits,
+      });
       setRefetchBotData();
       toast.success("Voice personality updated successfully");
     } catch (error: any) {
@@ -129,14 +122,14 @@ const Voice = () => {
             key={personality.id}
             className={`relative rounded-lg p-4 cursor-pointer transition-all
               ${
-                selectedPersonality === personality.id
+                selectedPersonality.id === personality.id
                   ? "bg-green-50 border-2 border-green-500"
                   : "bg-[#f4f6ff] border-2 border-transparent"
               }`}
-            onClick={() => handlePersonalitySelect(personality.id)}
+            onClick={() => handlePersonalitySelect(personality)}
           >
             {/* Selection Indicator */}
-            {selectedPersonality === personality.id && (
+            {selectedPersonality.id === personality.id && (
               <div className="absolute -top-2 -left-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
                 <Check className="w-4 h-4 text-white" />
               </div>

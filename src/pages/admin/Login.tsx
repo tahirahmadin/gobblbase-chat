@@ -7,53 +7,54 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAdminStore } from "../../store/useAdminStore";
 import { Check } from "lucide-react";
+import { AVAILABLE_THEMES } from "../../utils/constants";
 
 // Theme options (reuse from Theme.tsx)
-const themes = [
-  { id: "yellow", color: "#EFC715", textColor: "#000000" },
-  { id: "green", color: "#C2E539", textColor: "#000000" },
-  { id: "orange", color: "#FF975F", textColor: "#000000" },
-  { id: "pink", color: "#d16bd7", textColor: "#000000" },
-  { id: "blue", color: "#ABC3FF", textColor: "#000000" },
-  { id: "gray", color: "#808080", textColor: "#FFFFFF" },
-];
+const themes = AVAILABLE_THEMES;
 
-const voices = [
+interface PersonalityOption {
+  id: string;
+  title: string;
+  traits: string[];
+  isCustom?: boolean;
+}
+
+const personalityOptions: PersonalityOption[] = [
   {
     id: "friend",
-    label: "FRIEND",
-    desc: "Warm\nRelatable\nConversational",
-    icon: "🧑‍🤝‍🧑",
-  },
-  {
-    id: "coach",
-    label: "COACH",
-    desc: "Upbeat\nEncouraging\nMotivational",
-    icon: "💪",
-  },
-  {
-    id: "genz",
-    label: "GEN Z",
-    desc: "Casual\nWitty\nTrendy",
-    icon: "🧢",
-  },
-  {
-    id: "techie",
-    label: "TECHIE",
-    desc: "Intuitive\nIntelligent\nResourceful",
-    icon: "🤖",
+    title: "FRIEND",
+    traits: ["Warm", "Relatable", "Conversational"],
   },
   {
     id: "concierge",
-    label: "CONCIERGE",
-    desc: "Polished\nRefined\nFormal",
-    icon: "🎩",
+    title: "CONCIERGE",
+    traits: ["Polished", "Refined", "Formal"],
+  },
+  {
+    id: "coach",
+    title: "COACH",
+    traits: ["Upbeat", "Encouraging", "Motivational"],
   },
   {
     id: "professional",
-    label: "PROFESSIONAL",
-    desc: "Direct\nAuthentic\nClear",
-    icon: "🗂️",
+    title: "PROFESSIONAL",
+    traits: ["Direct", "Authentic", "Clear"],
+  },
+  {
+    id: "gen_z",
+    title: "GEN Z",
+    traits: ["Casual", "Witty", "Trendy"],
+  },
+  {
+    id: "techie",
+    title: "TECHIE",
+    traits: ["Intuitive", "Intelligent", "Resourceful"],
+  },
+  {
+    id: "custom",
+    title: "CUSTOM",
+    traits: ["Create your own", "custom voice"],
+    isCustom: true,
   },
 ];
 
@@ -77,12 +78,8 @@ const Login: React.FC = () => {
 
   // Form state
   const [agentName, setAgentName] = useState("");
-  const [voice, setVoice] = useState(voices[0].id);
-  const [theme, setTheme] = useState(themes[0].id);
-
-  console.log(isAdminLoggedIn);
-  console.log(adminId);
-  console.log(adminEmail);
+  const [selectedVoice, setSelectedVoice] = useState(personalityOptions[0]);
+  const [selectedTheme, setSelectedTheme] = useState(themes[0]);
 
   useEffect(() => {
     adminLogout();
@@ -241,19 +238,19 @@ const Login: React.FC = () => {
                   Give your Agent a personality
                 </label>
                 <div className="grid grid-cols-2 gap-4">
-                  {voices.map((v) => (
+                  {personalityOptions.map((v) => (
                     <div
                       key={v.id}
                       className={`relative rounded-lg p-4 cursor-pointer transition-all flex items-start gap-3
                         ${
-                          voice === v.id
+                          selectedVoice.id === v.id
                             ? "bg-green-50 border-2 border-green-500"
                             : "bg-[#f4f6ff] border-2 border-transparent"
                         }`}
-                      onClick={() => setVoice(v.id)}
+                      onClick={() => setSelectedVoice(v)}
                     >
                       {/* Selection Indicator */}
-                      {voice === v.id && (
+                      {selectedVoice.id === v.id && (
                         <div className="absolute -top-2 -left-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
                           <Check className="w-4 h-4 text-white" />
                         </div>
@@ -262,17 +259,17 @@ const Login: React.FC = () => {
                       <div className="w-20 h-20 rounded-lg overflow-hidden bg-white">
                         <img
                           src="/assets/tone-icon.jpg"
-                          alt={`${v.label} personality`}
+                          alt={`${v.title} personality`}
                           className="w-full h-full object-cover"
                         />
                       </div>
                       {/* Content */}
                       <div className="flex-1">
                         <div className="text-sm font-semibold text-gray-900 mb-1">
-                          {v.label}
+                          {v.title}
                         </div>
                         <div className="space-y-0.5">
-                          {v.desc.split("\n").map((trait, idx) => (
+                          {v.traits.map((trait, idx) => (
                             <p key={idx} className="text-xs text-gray-600">
                               {trait}
                             </p>
@@ -309,31 +306,35 @@ const Login: React.FC = () => {
                       key={t.id}
                       className={`relative cursor-pointer transition-all hover:scale-105 rounded-lg border-2
                         ${
-                          theme === t.id
+                          selectedTheme.id === t.id
                             ? "border-green-500 ring-2 ring-green-400"
                             : "border-black"
                         }`}
-                      onClick={() => setTheme(t.id)}
+                      onClick={() => setSelectedTheme(t)}
                       style={{ background: "#fff" }}
                     >
                       {/* Selection Circle */}
                       <div
                         className={`absolute -top-3 -left-3 w-5 h-5 rounded-full border-2 border-white shadow-sm z-10
-                          ${theme === t.id ? "bg-green-500" : "bg-gray-300"}`}
+                          ${
+                            selectedTheme.id === t.id
+                              ? "bg-green-500"
+                              : "bg-gray-300"
+                          }`}
                       />
                       {/* Chat Preview Card */}
                       <div className="border rounded-lg overflow-hidden shadow-sm">
                         {/* Chat Header */}
                         <div
                           className="p-2 border-b"
-                          style={{ backgroundColor: t.color }}
+                          style={{ backgroundColor: t.palette[0] }}
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-2">
                               <div className="w-2 h-2 rounded-full bg-white"></div>
                               <span
                                 className="text-[11px] font-medium"
-                                style={{ color: t.textColor }}
+                                style={{ color: t.palette[1] }}
                               >
                                 CHAT
                               </span>
@@ -341,7 +342,7 @@ const Login: React.FC = () => {
                             <svg
                               viewBox="0 0 24 24"
                               className="w-3 h-3"
-                              style={{ color: t.textColor }}
+                              style={{ color: t.palette[1] }}
                               fill="currentColor"
                             >
                               <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
@@ -362,8 +363,8 @@ const Login: React.FC = () => {
                             <div
                               className="text-[11px] px-2 py-1.5 rounded-lg shadow-sm max-w-[80%]"
                               style={{
-                                backgroundColor: t.color,
-                                color: t.textColor,
+                                backgroundColor: t.palette[0],
+                                color: t.palette[1],
                               }}
                             >
                               User
@@ -424,8 +425,14 @@ const Login: React.FC = () => {
   async function handleFinish() {
     if (!adminId) return;
     setLoading(true);
+
     try {
-      const response = await createNewAgent(adminId, agentName, "");
+      const response = await createNewAgent(
+        adminId,
+        agentName,
+        { name: selectedVoice.title, value: selectedVoice.traits },
+        selectedTheme.theme
+      );
       if (!response.error) {
         toast.success("Agent created successfully!");
         // Clear any existing bot config before redirecting

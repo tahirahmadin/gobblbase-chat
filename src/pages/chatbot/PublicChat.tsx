@@ -401,18 +401,11 @@ export default function PublicChat({
           backgroundColor: "white", // white mobile shell
         }}
       >
-        {/* Sign In Overlay */}
-        {showSignInOverlay && (
-          <div className="absolute inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden w-full max-w-md mx-4">
-              {/* ... Sign In content remains the same ... */}
-            </div>
-          </div>
-        )}
-
         <HeaderSection
           theme={theme}
-          currentConfig={currentConfig || { name: "KiFor Bot" }}
+          currentConfig={
+            currentConfig || { name: "KiFor Bot", isPromoBannerEnabled: false }
+          }
           activeScreen={activeScreen}
           setActiveScreen={setActiveScreen}
         />

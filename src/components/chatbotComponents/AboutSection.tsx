@@ -37,13 +37,13 @@ export default function AboutSection({
 }: AboutSectionProps) {
   return (
     <div
-      className="flex flex-col items-center h-full"
+      className="flex flex-col items-center h-full w-full"
       style={{
         backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
         color: theme.isDark ? "white" : "black",
       }}
     >
-      <div className="shadow-lg">
+      <div className="shadow-lg w-full">
         {/* Profile Section */}
         <div className="flex flex-col items-center mt-8 space-y-4">
           {/* Profile Image */}
@@ -148,8 +148,7 @@ export default function AboutSection({
             }}
           >
             <p className="text-sm text-center">
-              {currentConfig?.bio ||
-                "User Bio User Bio qwerty qwerty qwerty qwerty qwerty"}
+              {currentConfig?.bio || "Add your bio..."}
             </p>
           </div>
         </div>

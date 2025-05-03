@@ -104,15 +104,22 @@ export async function extractContentFromURL(
 export async function createNewAgent(
   clientId: string,
   name: string,
-  textContent: string
+  personalityType: { name: string; value: string[] },
+  themeColors: {
+    mainDarkColor: string;
+    mainLightColor: string;
+    highlightColor: string;
+    isDark: boolean;
+  }
 ): Promise<CreateNewAgentResponse> {
   try {
     const response = await axios.post(
       "https://rag.gobbl.ai/milvus/create-new-agent",
       {
-        textContent: textContent,
         clientId: clientId,
         name: name,
+        personalityType: personalityType,
+        themeColors: themeColors,
       }
     );
 
@@ -836,20 +843,17 @@ export async function updatePromotionalBanner(
 
 export async function updateAgentVoicePersonality(
   agentId: string,
-  voicePersonality: string,
-  customVoiceName?: string,
-  customVoiceCharacteristics?: string,
-  customVoiceExamples?: string
+  personalityType: {
+    name: string;
+    value: string[];
+  }
 ): Promise<boolean> {
   try {
     await axios.post(
       "https://rag.gobbl.ai/client/updateAgentVoicePersonality",
       {
         agentId,
-        voicePersonality,
-        customVoiceName,
-        customVoiceCharacteristics,
-        customVoiceExamples,
+        personalityType,
       }
     );
     return true;

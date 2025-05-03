@@ -31,11 +31,11 @@ const Header = () => {
     }
   }, [agents, setActiveBotId]);
 
-  // useEffect(() => {
-  //   if (adminId) {
-  //     fetchAllAgents();
-  //   }
-  // }, [adminId, fetchAllAgents]);
+  useEffect(() => {
+    if (adminId) {
+      fetchAllAgents();
+    }
+  }, [adminId, fetchAllAgents]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

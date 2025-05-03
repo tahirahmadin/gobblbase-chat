@@ -32,22 +32,16 @@ interface BotConfig {
   stripeAccountId: string;
   currency: string;
 
-  isCustomPersonality: boolean;
-  customPersonalityPrompt: string;
-  lastPersonalityContent: string;
-  lastPersonalityUrl: string;
-  personalityAnalysis: any;
-  personalityType: string;
   systemPrompt: string;
   model: string;
 
   themeColors: Theme;
 
   // Voice Personality
-  voicePersonality: string;
-  customVoiceName?: string;
-  customVoiceCharacteristics?: string;
-  customVoiceExamples?: string;
+  personalityType: {
+    name: string;
+    value: string[];
+  };
 
   // Welcome Message
   welcomeMessage: string;
@@ -145,11 +139,7 @@ export const useBotConfig = create<BotConfigState>()(
               systemPrompt: response.systemPrompt,
               personalityType: response.personalityType,
               themeColors: response.themeColors,
-              customPersonalityPrompt: response.customPersonalityPrompt,
-              isCustomPersonality: response.isCustomPersonality,
-              lastPersonalityContent: response.lastPersonalityContent,
-              lastPersonalityUrl: response.lastPersonalityUrl,
-              personalityAnalysis: response.personalityAnalysis,
+
               socials: response.socials || {
                 instagram: "",
                 tiktok: "",
@@ -162,10 +152,6 @@ export const useBotConfig = create<BotConfigState>()(
               },
               promotionalBanner: response.promotionalBanner || "",
               isPromoBannerEnabled: response.isPromoBannerEnabled || false,
-              voicePersonality: response.voicePersonality || "friend",
-              customVoiceName: response.customVoiceName,
-              customVoiceCharacteristics: response.customVoiceCharacteristics,
-              customVoiceExamples: response.customVoiceExamples,
               welcomeMessage: response.welcomeMessage || "",
               language: response.language,
               smartenUpAnswers: response.smartenUpAnswers,
