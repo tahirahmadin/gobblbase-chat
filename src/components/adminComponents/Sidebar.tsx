@@ -14,6 +14,7 @@ import {
   ChevronDown,
   LayoutDashboard,
 } from "lucide-react";
+import { useAdminStore } from "../../store/useAdminStore";
 
 interface SubNavItem {
   name: string;
@@ -82,6 +83,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [expandedTabs, setExpandedTabs] = useState<string[]>([]);
+  const { adminLogout } = useAdminStore();
 
   const toggleTab = (tabName: string) => {
     setExpandedTabs((prev) =>
@@ -160,7 +162,8 @@ const Sidebar = () => {
         <button
           className="w-full flex items-center space-x-3 px-4 py-2 text-gray-300 hover:bg-gray-800 rounded-lg"
           onClick={() => {
-            /* Add logout logic */
+            adminLogout();
+            navigate("/login");
           }}
         >
           <LogOut className="w-5 h-5" />

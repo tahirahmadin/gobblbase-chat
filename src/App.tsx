@@ -38,6 +38,7 @@ import Offerings from "./pages/admin/TabsComponent/Offerings";
 import Policies from "./pages/admin/TabsComponent/Policies";
 import ChatLogs from "./pages/admin/TabsComponent/ChatLogs";
 import CustomerLeads from "./pages/admin/TabsComponent/CustomerLeads";
+import CreateBot from "./pages/admin/CreateBot";
 
 // Add type definition for window
 declare global {
@@ -52,6 +53,8 @@ function Dashboard() {
   const { isLoggedIn, handleGoogleLoginSuccess, handleGoogleLoginError } =
     useUserStore();
   const { activeBotId, setActiveBotId } = useBotConfig();
+  const [hasCheckedAgents, setHasCheckedAgents] = useState(false);
+  const [hasAgents, setHasAgents] = useState<boolean | null>(null);
 
   // Check for redirect from public chat
   useEffect(() => {
@@ -92,6 +95,30 @@ function Dashboard() {
       setActiveTab("playground");
     }
   }, [isLoggedIn]);
+
+  useEffect(() => {
+    const checkAgents = async () => {
+      if (isLoggedIn && activeBotId == null) {
+        try {
+          // Use userId from useUserStore
+          const { userId } = useUserStore.getState();
+          if (userId) {
+            const agents = await import("./lib/serverActions").then((m) =>
+              m.fetchClientAgents(userId)
+            );
+            setHasAgents(agents && agents.length > 0);
+          } else {
+            setHasAgents(false);
+          }
+        } catch {
+          setHasAgents(false);
+        } finally {
+          setHasCheckedAgents(true);
+        }
+      }
+    };
+    checkAgents();
+  }, [isLoggedIn, activeBotId]);
 
   if (!isLoggedIn) {
     return (
@@ -153,35 +180,39 @@ function Dashboard() {
     );
   }
 
-  // If logged in but no agent selected, show agents list
-  if (!activeBotId) {
+  // If logged in but no agent selected, check if user has agents
+  if (isLoggedIn && activeBotId == null && hasCheckedAgents) {
+    if (hasAgents === false) {
+      // Redirect to signup flow
+      window.location.replace("/admin/signup");
+      return null;
+    }
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {!isCreating ? (
-            <AgentsList onStartCreating={() => setIsCreating(true)} />
-          ) : (
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <div className="flex justify-between items-center mb-6">
-                <div className="">
-                  <button
-                    onClick={() => setIsCreating(false)}
-                    className="flex items-center text-gray-600 hover:text-gray-900 mr-4"
-                  >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to Agents
-                  </button>
-                  <h2 className="text-2xl font-semibold text-gray-900 mt-2">
-                    Create New Agent
-                  </h2>
-                </div>
-              </div>
-              <FileUpload onCancel={() => setIsCreating(false)} />
-            </div>
-          )}
-        </div>
-      </div>
+      <AdminLayout>
+        <Routes>
+          <Route path="dashboard/profile" element={<Profile />} />
+          <Route path="dashboard/brain" element={<Brain />} />
+          <Route path="dashboard/voice" element={<Voice />} />
+          <Route path="dashboard/theme" element={<Theme />} />
+          <Route path="dashboard/welcome" element={<WelcomeText />} />
+          <Route path="dashboard/prompts" element={<Prompts />} />
+          <Route path="business" element={<Business />} />
+          <Route path="business/payments" element={<Business />} />
+          <Route path="business/integrations" element={<Business />} />
+          <Route path="business/embed" element={<Business />} />
+          <Route path="offerings" element={<Offerings />} />
+          <Route path="offerings/add" element={<Offerings />} />
+          <Route path="offerings/manage" element={<Offerings />} />
+          <Route path="offerings/calendar" element={<Offerings />} />
+          <Route path="offerings/policies" element={<Policies />} />
+          <Route path="crm/chat-logs" element={<ChatLogs />} />
+          <Route path="crm/leads" element={<CustomerLeads />} />
+          <Route
+            path="*"
+            element={<Navigate to="dashboard/profile" replace />}
+          />
+        </Routes>
+      </AdminLayout>
     );
   }
 
@@ -233,6 +264,8 @@ function App() {
     <Router>
       <Toaster position="top-right" />
       <Routes>
+        <Route path="/signup" element={<CreateBot />} />
+
         <Route path="/book/:agentId" element={<CustomerBookingPage />} />
         <Route
           path="/:botUsername"
