@@ -5,24 +5,40 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import Header from "./components/Header";
-import Tabs from "./components/Tabs";
-import FileUpload from "./components/FileUpload";
-import Activity from "./components/Activity";
-import Integration from "./components/Integration";
-import Playground from "./components/Playground";
-import AgentsList from "./components/AgentsList";
-import PublicChat from "./components/PublicChat";
-import CustomerBooking from "./components/booking/CustomerBooking";
-import Services from "./components/Services";
+import Header from "./components/adminComponents/Header";
+import Tabs from "./pages/admin/Tabs";
+import FileUpload from "./pages/admin/FileUpload";
+import Activity from "./pages/admin/Activity";
+import Integration from "./pages/admin/Integration";
+import Playground from "./pages/admin/Playground";
+import AgentsList from "./pages/admin/AgentsList";
+import PublicChat from "./pages/chatbot/PublicChat";
+import CustomerBooking from "./components/adminComponents/bookingComponents/CustomerBooking";
 import { useUserStore } from "./store/useUserStore";
 import { ArrowLeft, Bot } from "lucide-react";
-import SettingsPage from "./components/Settings";
+import SettingsPage from "./pages/admin/Settings";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { Toaster } from "react-hot-toast";
-import Products from "./components/Products";
+import Products from "./pages/admin/Products";
 import { useBotConfig } from "./store/useBotConfig";
-import BookingTab from "./components/BookingTab";
+import BookingTab from "./pages/chatbot/BookingTab";
+import Integrations from "./pages/admin/TabsComponent/Integrations";
+import Leads from "./pages/admin/Leads";
+import Directory from "./pages/admin/Directory";
+import AdminLayout from "./components/adminComponents/AdminLayout";
+import Profile from "./pages/admin/TabsComponent/Profile";
+import Brain from "./pages/admin/TabsComponent/Brain";
+import Voice from "./pages/admin/TabsComponent/Voice";
+import Theme from "./pages/admin/TabsComponent/Theme";
+import WelcomeText from "./pages/admin/TabsComponent/WelcomeText";
+import Prompts from "./pages/admin/TabsComponent/Prompts";
+import Business from "./pages/admin/TabsComponent/Business";
+import Embed from "./pages/admin/TabsComponent/Embed";
+import Offerings from "./pages/admin/TabsComponent/Offerings";
+import Policies from "./pages/admin/TabsComponent/Policies";
+import ChatLogs from "./pages/admin/TabsComponent/ChatLogs";
+import CustomerLeads from "./pages/admin/TabsComponent/CustomerLeads";
+import CreateBot from "./pages/admin/CreateBot";
 
 // Add type definition for window
 declare global {
@@ -37,6 +53,8 @@ function Dashboard() {
   const { isLoggedIn, handleGoogleLoginSuccess, handleGoogleLoginError } =
     useUserStore();
   const { activeBotId, setActiveBotId } = useBotConfig();
+  const [hasCheckedAgents, setHasCheckedAgents] = useState(false);
+  const [hasAgents, setHasAgents] = useState<boolean | null>(null);
 
   // Check for redirect from public chat
   useEffect(() => {
@@ -44,13 +62,13 @@ function Dashboard() {
     const redirectAgentId = localStorage.getItem("redirectToAgentBooking");
     if (redirectAgentId) {
       console.log("Redirecting to booking tab for agent:", redirectAgentId);
-      
-      // Set the active bot ID 
+
+      // Set the active bot ID
       setActiveBotId(redirectAgentId);
-      
+
       // Set the active tab to booking
       setActiveTab("booking");
-      
+
       // Clear the localStorage item
       localStorage.removeItem("redirectToAgentBooking");
     }
@@ -77,6 +95,30 @@ function Dashboard() {
       setActiveTab("playground");
     }
   }, [isLoggedIn]);
+
+  useEffect(() => {
+    const checkAgents = async () => {
+      if (isLoggedIn && activeBotId == null) {
+        try {
+          // Use userId from useUserStore
+          const { userId } = useUserStore.getState();
+          if (userId) {
+            const agents = await import("./lib/serverActions").then((m) =>
+              m.fetchClientAgents(userId)
+            );
+            setHasAgents(agents && agents.length > 0);
+          } else {
+            setHasAgents(false);
+          }
+        } catch {
+          setHasAgents(false);
+        } finally {
+          setHasCheckedAgents(true);
+        }
+      }
+    };
+    checkAgents();
+  }, [isLoggedIn, activeBotId]);
 
   if (!isLoggedIn) {
     return (
@@ -138,71 +180,66 @@ function Dashboard() {
     );
   }
 
-  // If logged in but no agent selected, show agents list
-  if (!activeBotId) {
+  // If logged in but no agent selected, check if user has agents
+  if (isLoggedIn && activeBotId == null && hasCheckedAgents) {
+    if (hasAgents === false) {
+      // Redirect to signup flow
+      window.location.replace("/admin/signup");
+      return null;
+    }
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {!isCreating ? (
-            <AgentsList onStartCreating={() => setIsCreating(true)} />
-          ) : (
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <div className="flex justify-between items-center mb-6">
-                <div className="">
-                  <button
-                    onClick={() => setIsCreating(false)}
-                    className="flex items-center text-gray-600 hover:text-gray-900 mr-4"
-                  >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to Agents
-                  </button>
-                  <h2 className="text-2xl font-semibold text-gray-900 mt-2">
-                    Create New Agent
-                  </h2>
-                </div>
-              </div>
-              <FileUpload onCancel={() => setIsCreating(false)} />
-            </div>
-          )}
-        </div>
-      </div>
+      <AdminLayout>
+        <Routes>
+          <Route path="dashboard/profile" element={<Profile />} />
+          <Route path="dashboard/brain" element={<Brain />} />
+          <Route path="dashboard/voice" element={<Voice />} />
+          <Route path="dashboard/theme" element={<Theme />} />
+          <Route path="dashboard/welcome" element={<WelcomeText />} />
+          <Route path="dashboard/prompts" element={<Prompts />} />
+          <Route path="business" element={<Business />} />
+          <Route path="business/payments" element={<Business />} />
+          <Route path="business/integrations" element={<Business />} />
+          <Route path="business/embed" element={<Business />} />
+          <Route path="offerings" element={<Offerings />} />
+          <Route path="offerings/add" element={<Offerings />} />
+          <Route path="offerings/manage" element={<Offerings />} />
+          <Route path="offerings/calendar" element={<Offerings />} />
+          <Route path="offerings/policies" element={<Policies />} />
+          <Route path="crm/chat-logs" element={<ChatLogs />} />
+          <Route path="crm/leads" element={<CustomerLeads />} />
+          <Route
+            path="*"
+            element={<Navigate to="dashboard/profile" replace />}
+          />
+        </Routes>
+      </AdminLayout>
     );
   }
 
-  // If logged in and agent selected, show tabs and content
+  // If logged in and agent selected, show admin layout with content
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex">
-          <div className="w-42 pr-8">
-            <div className="mb-4">
-              <button
-                onClick={() => {
-                  setActiveBotId(null);
-                  setActiveTab("playground");
-                }}
-                className="flex items-center text-gray-600 hover:text-gray-900"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Agents
-              </button>
-            </div>
-            <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
-          </div>
-          <div className="flex-1">
-            {activeTab === "playground" && <Playground agentId={activeBotId} />}
-            {activeTab === "activity" && <Activity />}
-            {activeTab === "booking" && <BookingTab />}
-            {activeTab === "integration" && <Integration />}
-            {activeTab === "services" && <Services />}
-            {activeTab === "settings" && <SettingsPage />}
-            {activeTab === "products" && <Products />}
-          </div>
-        </div>
-      </div>
-    </div>
+    <AdminLayout>
+      <Routes>
+        <Route path="dashboard/profile" element={<Profile />} />
+        <Route path="dashboard/brain" element={<Brain />} />
+        <Route path="dashboard/voice" element={<Voice />} />
+        <Route path="dashboard/theme" element={<Theme />} />
+        <Route path="dashboard/welcome" element={<WelcomeText />} />
+        <Route path="dashboard/prompts" element={<Prompts />} />
+        <Route path="business" element={<Business />} />
+        <Route path="business/payments" element={<Business />} />
+        <Route path="business/integrations" element={<Business />} />
+        <Route path="business/embed" element={<Business />} />
+        <Route path="offerings" element={<Offerings />} />
+        <Route path="offerings/add" element={<Offerings />} />
+        <Route path="offerings/manage" element={<Offerings />} />
+        <Route path="offerings/calendar" element={<Offerings />} />
+        <Route path="offerings/policies" element={<Policies />} />
+        <Route path="crm/chat-logs" element={<ChatLogs />} />
+        <Route path="crm/leads" element={<CustomerLeads />} />
+        <Route path="*" element={<Navigate to="dashboard/profile" replace />} />
+      </Routes>
+    </AdminLayout>
   );
 }
 
@@ -227,12 +264,14 @@ function App() {
     <Router>
       <Toaster position="top-right" />
       <Routes>
+        <Route path="/signup" element={<CreateBot />} />
+
         <Route path="/book/:agentId" element={<CustomerBookingPage />} />
         <Route
           path="/:botUsername"
           element={<PublicChat agentUsernamePlayground={null} />}
         />
-        <Route path="/admin" element={<Dashboard />} />
+        <Route path="/admin/*" element={<Dashboard />} />
         <Route path="/" element={<Navigate to="/admin" replace />} />
       </Routes>
     </Router>

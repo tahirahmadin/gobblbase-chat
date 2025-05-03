@@ -78,6 +78,11 @@ interface Transaction {
   productName: string;
 }
 
+interface DirectoryLink {
+  label: string;
+  url: string;
+}
+
 export async function extractContentFromURL(
   url: string
 ): Promise<ExtractContentResponse> {
@@ -131,7 +136,7 @@ export async function queryDocument(
       }
     );
 
-    return response.data;
+    return response.data.result;
   } catch (error) {
     console.error("Error querying document:", error);
     throw new Error("Failed to query document");
@@ -272,7 +277,6 @@ export async function updateAgentDetails(
   }
 }
 
-
 export async function deleteAgent(agentId: string): Promise<void> {
   try {
     // Use POST instead of DELETE to avoid CORS issues
@@ -406,20 +410,6 @@ export async function updateCalendlyUrl(agentId: string, calendlyUrl: string) {
   } catch (error) {
     console.error("Error updating Calendly URL:", error);
     throw error;
-  }
-}
-
-export async function checkUsernameAvailability(
-  username: string
-): Promise<boolean> {
-  try {
-    // We'll use a temporary ID for checking availability
-    const tempAgentId = "check-availability";
-    await updateAgentUsername(tempAgentId, username);
-    return true;
-  } catch (error) {
-    // If there's an error, the username is not available
-    return false;
   }
 }
 
@@ -665,9 +655,9 @@ export const deleteProduct = async (id: string, agentId: string) => {
 
 export const getProducts = async (agentId: string) => {
   try {
-    const response = await axios.get(
-      `https://rag.gobbl.ai/product/getProducts?agentId=${agentId}`
-    );
+    let url = `https://rag.gobbl.ai/zoho/items?agentId=${agentId}`;
+    // let url = `https://rag.gobbl.ai/product/getProducts?agentId=${agentId}`;
+    const response = await axios.get(url);
 
     if (response.data.error) {
       throw new Error("Failed to fetch products");
@@ -783,4 +773,177 @@ export interface AdminUser {
   role: "user" | "admin";
   createdAt: string;
   lastLogin: string;
+}
+
+export async function updateSocialHandles(
+  agentId: string,
+  socials: Record<string, string>
+): Promise<boolean> {
+  try {
+    await axios.post("https://rag.gobbl.ai/client/updateSocialHandles", {
+      agentId,
+      socials,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error updating social handles:", error);
+    throw new Error("Failed to update social handles");
+  }
+}
+
+export async function updateAgentNameAndBio(
+  agentId: string,
+  name?: string,
+  bio?: string
+) {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/client/updateAgentNameAndBio",
+      {
+        agentId,
+        name,
+        bio,
+      }
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating agent name and bio:", error);
+    throw error;
+  }
+}
+
+export async function updatePromotionalBanner(
+  agentId: string,
+  promotionalBanner?: string,
+  isPromoBannerEnabled?: boolean
+): Promise<boolean> {
+  try {
+    await axios.post("https://rag.gobbl.ai/client/updateAgentPromoBanner", {
+      agentId,
+      promotionalBanner,
+      isPromoBannerEnabled,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error updating promotional banner:", error);
+    throw new Error("Failed to update promotional banner");
+  }
+}
+
+export async function updateAgentVoicePersonality(
+  agentId: string,
+  voicePersonality: string,
+  customVoiceName?: string,
+  customVoiceCharacteristics?: string,
+  customVoiceExamples?: string
+): Promise<boolean> {
+  try {
+    await axios.post(
+      "https://rag.gobbl.ai/client/updateAgentVoicePersonality",
+      {
+        agentId,
+        voicePersonality,
+        customVoiceName,
+        customVoiceCharacteristics,
+        customVoiceExamples,
+      }
+    );
+    return true;
+  } catch (error) {
+    console.error("Error updating voice personality:", error);
+    throw new Error("Failed to update voice personality");
+  }
+}
+
+export async function updateAgentWelcomeMessage(
+  agentId: string,
+  welcomeMessage: string
+): Promise<boolean> {
+  try {
+    await axios.post("https://rag.gobbl.ai/client/updateAgentWelcomeMessage", {
+      agentId,
+      welcomeMessage,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error updating welcome message:", error);
+    throw new Error("Failed to update welcome message");
+  }
+}
+
+export async function updateAgentPrompts(
+  agentId: string,
+  prompts: string[]
+): Promise<boolean> {
+  try {
+    await axios.post("https://rag.gobbl.ai/client/updateAgentPrompts", {
+      agentId,
+      prompts,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error updating prompts:", error);
+    throw new Error("Failed to update prompts");
+  }
+}
+
+export async function updateAgentBrain(
+  agentId: string,
+  language?: string,
+  smartenUpAnswers?: string[] | Record<string, string>
+): Promise<boolean> {
+  try {
+    await axios.post("https://rag.gobbl.ai/client/updateAgentBrain", {
+      agentId,
+      language,
+      smartenUpAnswers,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error updating agent brain:", error);
+    throw new Error("Failed to update agent brain");
+  }
+}
+
+export async function updateAgentPaymentSettings(
+  agentId: string,
+  settings: {
+    currency?: string;
+    preferredPaymentMethod?: string;
+    paymentMethods: {
+      stripe: {
+        enabled: boolean;
+        accountId: string;
+      };
+      razorpay: {
+        enabled: boolean;
+        accountId: string;
+      };
+      usdt: {
+        enabled: boolean;
+        walletAddress: string;
+        chains: string[];
+      };
+      usdc: {
+        enabled: boolean;
+        walletAddress: string;
+        chains: string[];
+      };
+    };
+  }
+): Promise<boolean> {
+  try {
+    await axios.post("https://rag.gobbl.ai/client/updateAgentPaymentSettings", {
+      agentId,
+      ...settings,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error updating payment settings:", error);
+    throw new Error("Failed to update payment settings");
+  }
 }
