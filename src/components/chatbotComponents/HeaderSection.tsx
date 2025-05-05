@@ -49,11 +49,13 @@ function HeaderSection({
   setActiveScreen,
 }: HeaderSectionProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showOrderHistory, setShowOrderHistory] = useState(false);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
 
   const {
     isLoggedIn,
     userEmail,
+    userDetails,
     handleGoogleLoginSuccess: userGoogleLoginSuccess,
     handleGoogleLoginError: userGoogleLoginError,
     logout: userLogout,
@@ -137,20 +139,65 @@ function HeaderSection({
 
   const UserDropdownMenu = () => (
     <div
-      className="absolute right-0 top-full mt-2 w-48 rounded-md shadow-lg ring-1 ring-black ring-opacity-5"
+      className="absolute right-0 top-full mt-2 w-64 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-20"
       style={{ backgroundColor: theme.mainLightColor }}
     >
-      <div className="py-1" role="menu" aria-orientation="vertical">
-        <div className="px-4 py-2 text-sm text-gray-700 border-b">
-          {userEmail}
+      <div className="py-3 px-4 flex items-center space-x-3 border-b">
+        <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
+          <User className="h-6 w-6 text-gray-500" />
         </div>
+        <div>
+          <div className="font-semibold text-sm text-black">
+            {userDetails?.name || "Full Name"}
+          </div>
+          <div className="text-xs text-gray-600">
+            {userEmail || "email@email.com"}
+          </div>
+        </div>
+      </div>
+      <button
+        onClick={userLogout}
+        className="w-full text-left px-4 py-3 text-sm text-yellow-500 hover:bg-gray-100 flex items-center space-x-2 border-t"
+      >
+        <LogOut className="h-4 w-4" />
+        <span>LOGOUT</span>
+      </button>
+    </div>
+  );
+
+  const OrderHistoryModal = () => (
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black bg-opacity-40">
+      <div
+        className="bg-black rounded-xl border border-yellow-400 w-96 max-w-full p-0 relative"
+        style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.2)" }}
+      >
         <button
-          onClick={userLogout}
-          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+          className="absolute top-2 right-2 text-yellow-400 hover:text-yellow-600"
+          onClick={() => setShowOrderHistory(false)}
         >
-          <LogOut className="h-4 w-4" />
-          <span>Logout</span>
+          <span className="text-xl">&times;</span>
         </button>
+        <div className="p-4 pb-2 border-b border-yellow-400">
+          <div className="text-white font-semibold text-md">ORDER HISTORY</div>
+        </div>
+        <div className="p-4 space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="bg-[#232323] rounded-lg px-4 py-3 flex flex-col border border-gray-700"
+            >
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-xs text-gray-400">DD MM YYYY HH:MM</span>
+                <span className="text-sm text-white font-semibold">Amount</span>
+              </div>
+              <div className="text-yellow-400 text-sm font-semibold">
+                Product Name
+              </div>
+              <div className="text-xs text-gray-300 mb-1">Qty: XX</div>
+              <div className="text-xs text-blue-300">Paid via Stripe</div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -190,9 +237,7 @@ function HeaderSection({
                 color: !theme.isDark ? "white" : "black",
                 border: "2px solid #ffffff",
               }}
-              onClick={() => {
-                /* Handle order history click */
-              }}
+              onClick={() => setShowOrderHistory(true)}
             >
               <History className="h-5 w-5" />
             </button>
@@ -210,6 +255,7 @@ function HeaderSection({
               </button>
               {showUserMenu && <UserDropdownMenu />}
             </div>
+            {showOrderHistory && <OrderHistoryModal />}
           </div>
         ) : (
           <div>

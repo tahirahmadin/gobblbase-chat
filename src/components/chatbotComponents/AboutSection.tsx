@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Twitter,
   Instagram,
@@ -10,12 +10,14 @@ import {
 } from "lucide-react";
 import { Theme } from "../../types";
 import TryFreeBanner from "./TryFreeBanner";
+import { getAgentPolicies } from "../../lib/serverActions";
 
 interface AboutSectionProps {
   currentConfig: {
     name?: string;
     logo?: string;
     bio?: string;
+    agentId?: string;
   };
   theme: Theme;
   socials?: {
@@ -28,13 +30,50 @@ interface AboutSectionProps {
     snapchat: string;
     link: string;
   };
+  onPolicyClick?: (
+    policyKey: string,
+    policy: PolicyContent,
+    policyName: string
+  ) => void;
+}
+
+interface PolicyContent {
+  enabled: boolean;
+  content: string;
 }
 
 export default function AboutSection({
   currentConfig,
   theme,
   socials,
+  onPolicyClick,
 }: AboutSectionProps) {
+  const [policies, setPolicies] = useState<{ [key: string]: PolicyContent }>(
+    {}
+  );
+
+  useEffect(() => {
+    const fetchPolicies = async () => {
+      if (!currentConfig?.agentId) return;
+      try {
+        const response = await getAgentPolicies(currentConfig.agentId);
+        if (!response.error) {
+          setPolicies(response.result);
+        }
+      } catch (err) {
+        // Optionally handle error
+      }
+    };
+    fetchPolicies();
+  }, [currentConfig?.agentId]);
+
+  const policyNames: Record<string, string> = {
+    shipping: "Shipping Policy",
+    returns: "Returns & Refunds",
+    privacy: "Privacy Policy",
+    terms: "Terms & Conditions",
+  };
+
   return (
     <div
       className="flex flex-col items-center h-full w-full"
@@ -184,13 +223,33 @@ export default function AboutSection({
             </a>
           )}
         </div>
+        {/* Policies Section */}
         <div className="flex justify-center space-x-4 mt-4 mb-6">
-          <a href="/privacy" className="text-sm opacity-60 hover:opacity-100">
-            Privacy Policy
-          </a>
-          <a href="/shipping" className="text-sm opacity-60 hover:opacity-100">
-            Shipping & Returns
-          </a>
+          {Object.entries(policies)
+            .filter(([_, p]) => p.enabled)
+            .map(([key, p]) => (
+              <button
+                key={key}
+                className="text-sm opacity-60 hover:opacity-100 underline"
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  color: "inherit",
+                  cursor: "pointer",
+                }}
+                onClick={() =>
+                  onPolicyClick?.(
+                    key,
+                    p,
+                    policyNames[key] ||
+                      key.charAt(0).toUpperCase() + key.slice(1)
+                  )
+                }
+              >
+                {policyNames[key] || key.charAt(0).toUpperCase() + key.slice(1)}
+              </button>
+            ))}
         </div>
       </div>
       <TryFreeBanner />

@@ -10,6 +10,7 @@ import {
 } from "../../../lib/serverActions";
 import { useBotConfig } from "../../../store/useBotConfig";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 interface SocialMediaLinks {
   instagram: string;
@@ -32,6 +33,7 @@ const socialMediaIcons = {
 };
 
 const Profile = () => {
+  const navigate = useNavigate();
   const [agentName, setAgentName] = useState("");
   const [agentUsername, setAgentUsername] = useState("");
   const [isEditingUrl, setIsEditingUrl] = useState(false);
@@ -40,7 +42,7 @@ const Profile = () => {
   const [agentBio, setAgentBio] = useState("");
   const [promotionalBanner, setPromotionalBanner] = useState("");
   const [isPromoBannerEnabled, setIsPromoBannerEnabled] = useState(false);
-  const [smartnessLevel, setSmartNessLevel] = useState(30);
+  const [smartnessLevel, setSmartnessLevel] = useState(30);
   const [socialMedia, setSocialMedia] = useState<SocialMediaLinks>({
     instagram: "",
     twitter: "",
@@ -71,6 +73,18 @@ const Profile = () => {
       setSocialMedia(activeBotData.socials);
       setPromotionalBanner(activeBotData.promotionalBanner);
       setIsPromoBannerEnabled(activeBotData.isPromoBannerEnabled);
+    }
+  }, [activeBotData]);
+
+  useEffect(() => {
+    if (activeBotData?.smartenUpAnswers) {
+      let answersAdded = 0;
+      activeBotData?.smartenUpAnswers.map((answer) => {
+        if (answer != "") {
+          answersAdded++;
+        }
+      });
+      setSmartnessLevel(Math.round((answersAdded / 4) * 100));
     }
   }, [activeBotData]);
 
@@ -492,7 +506,12 @@ const Profile = () => {
                 />
               </div>
             </div>
-            <button className="mt-2 px-4 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700">
+            <button
+              className="mt-2 px-4 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+              onClick={() => {
+                navigate("/admin/dashboard/brain");
+              }}
+            >
               SMARTEN
             </button>
           </div>

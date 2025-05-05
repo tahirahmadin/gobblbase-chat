@@ -1144,3 +1144,82 @@ export async function updateAgentPaymentSettings(
     throw new Error("Failed to update payment settings");
   }
 }
+
+export async function updateCustomerLeadFlag(
+  agentId: string,
+  isEnabled: boolean
+): Promise<boolean> {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/client/changeCustomerLeadFlag",
+      {
+        agentId,
+        isEnabled,
+      }
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+    return true;
+  } catch (error) {
+    console.error("Error updating customer lead flag:", error);
+    throw new Error("Failed to update customer lead flag");
+  }
+}
+
+interface CustomerLead {
+  name: string;
+  email: string;
+  phone: string;
+  queryMessage: string;
+  createdAt: string;
+}
+
+export async function getCustomerLeads(
+  agentId: string
+): Promise<CustomerLead[]> {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/client/getCustomerLeads/${agentId}`
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching customer leads:", error);
+    throw new Error("Failed to fetch customer leads");
+  }
+}
+
+interface PolicyContent {
+  enabled: boolean;
+  content: string;
+}
+
+interface AgentPoliciesResponse {
+  error: boolean;
+  result: {
+    shipping: PolicyContent;
+    returns: PolicyContent;
+    privacy: PolicyContent;
+    terms: PolicyContent;
+    [key: string]: PolicyContent;
+  };
+}
+
+export async function getAgentPolicies(
+  agentId: string
+): Promise<AgentPoliciesResponse> {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/client/getAgentPolicies/${agentId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching agent policies:", error);
+    throw error;
+  }
+}

@@ -61,60 +61,8 @@ export const useBotConfig = create<BotConfigState>()(
             let response = await getAgentDetails(id, false);
 
             // Extract only the required fields from the response
-            const cleanConfig: BotConfig = {
-              agentId: response.agentId,
-              username: response.username,
-              name: response.name,
-              bio: response.bio || "",
-              logo: response.logo,
-              stripeAccountId: response.stripeAccountId,
-              currency: response.currency,
-              model: response.model,
-              systemPrompt: response.systemPrompt,
-              personalityType: response.personalityType,
-              themeColors: response.themeColors,
 
-              socials: response.socials || {
-                instagram: "",
-                tiktok: "",
-                twitter: "",
-                facebook: "",
-                youtube: "",
-                linkedin: "",
-                snapchat: "",
-                link: "",
-              },
-              promotionalBanner: response.promotionalBanner || "",
-              isPromoBannerEnabled: response.isPromoBannerEnabled || false,
-              welcomeMessage: response.welcomeMessage || "",
-              language: response.language,
-              smartenUpAnswers: response.smartenUpAnswers,
-              preferredPaymentMethod: response.preferredPaymentMethod,
-              sessionName: response.sessionName || "Consultation",
-              prompts: response.prompts || [],
-              paymentMethods: {
-                stripe: {
-                  enabled: response.stripe?.enabled || false,
-                  accountId: response.stripe?.accountId || "",
-                },
-                razorpay: {
-                  enabled: response.razorpay?.enabled || false,
-                  accountId: response.razorpay?.accountId || "",
-                },
-                usdt: {
-                  enabled: response.usdt?.enabled || false,
-                  walletAddress: response.usdt?.walletAddress || "",
-                  chains: response.usdt?.chains || [],
-                },
-                usdc: {
-                  enabled: response.usdc?.enabled || false,
-                  walletAddress: response.usdc?.walletAddress || "",
-                  chains: response.usdc?.chains || [],
-                },
-              },
-            };
-
-            set({ activeBotData: cleanConfig, isLoading: false });
+            set({ activeBotData: response, isLoading: false });
           } catch (error) {
             console.error("Error fetching bot data:", error);
             set({ error: (error as Error).message, isLoading: false });

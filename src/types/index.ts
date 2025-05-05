@@ -142,6 +142,8 @@ export interface BotConfig {
   language: string;
   smartenUpAnswers: string[];
 
+  customerLeadFlag: boolean;
+
   // Payment Settings
   preferredPaymentMethod: string;
   paymentMethods: {

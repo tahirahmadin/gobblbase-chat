@@ -11,7 +11,7 @@ interface UploadedFile {
 
 const Brain = () => {
   const { activeBotData, setRefetchBotData } = useBotConfig();
-  const [smartnessLevel, setSmartNessLevel] = useState(30);
+  const [smartnessLevel, setSmartnessLevel] = useState(30);
   const [selectedLanguage, setSelectedLanguage] = useState("English");
   const [links, setLinks] = useState<string[]>([]);
   const [newLink, setNewLink] = useState("");
@@ -33,6 +33,18 @@ const Brain = () => {
       if (activeBotData.smartenUpAnswers) {
         setSmartenUpAnswers(activeBotData.smartenUpAnswers);
       }
+    }
+  }, [activeBotData]);
+
+  useEffect(() => {
+    if (activeBotData?.smartenUpAnswers) {
+      let answersAdded = 0;
+      activeBotData?.smartenUpAnswers.map((answer) => {
+        if (answer != "") {
+          answersAdded++;
+        }
+      });
+      setSmartnessLevel(Math.round((answersAdded / 4) * 100));
     }
   }, [activeBotData]);
 

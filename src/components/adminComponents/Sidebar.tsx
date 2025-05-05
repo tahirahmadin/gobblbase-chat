@@ -97,7 +97,7 @@ const Sidebar = () => {
   const isTabExpanded = (tabName: string) => expandedTabs.includes(tabName);
 
   return (
-    <div className="w-64 bg-black min-h-screen text-white p-4 flex flex-col">
+    <div className="w-64 bg-black min-h-screen text-white p-4 flex flex-col overflow-y-auto">
       <div className="mb-8">
         <h1 className="text-xl font-bold">kifor.ai</h1>
       </div>
