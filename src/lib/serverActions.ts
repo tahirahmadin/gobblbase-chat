@@ -78,6 +78,43 @@ interface Transaction {
   productName: string;
 }
 
+interface Document {
+  documentId: string;
+  title: string;
+  addedAt: string;
+  updatedAt: string;
+}
+
+interface DocumentListResponse {
+  error: boolean;
+  result: {
+    agentId: string;
+    agentName: string;
+    documentCount: number;
+    documents: Document[];
+  } | string;
+}
+
+export interface DocumentResponse {
+  error: boolean;
+  result: {
+    message: string;
+    agentId: string;
+    documentId: string;
+    title: string;
+  } | string;
+}
+
+export interface RemoveDocumentResponse {
+  error: boolean;
+  result: {
+    message: string;
+    agentId: string;
+    documentId: string;
+    remainingDocumentCount: number;
+  } | string;
+}
+
 interface DirectoryLink {
   label: string;
   url: string;
@@ -97,6 +134,131 @@ export async function extractContentFromURL(
     return {
       success: false,
       error: "Failed to extract content from URL",
+    };
+  }
+}
+
+export async function createNewAgentWithDocumentId(
+  clientId: string,
+  name: string,
+  personalityType: { name: string; value: string[] },
+  themeColors: {
+    mainDarkColor: string;
+    mainLightColor: string;
+    highlightColor: string;
+    isDark: boolean;
+  }
+): Promise<CreateNewAgentResponse> {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/milvus/create-new-agent",
+      {
+        clientId: clientId,
+        name: name,
+        personalityType: personalityType,
+        themeColors: themeColors,
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error creating agent:", error);
+    return {
+      error: true,
+      result: error instanceof Error ? error.message : "Failed to create agent"
+    };
+  }
+}
+
+export async function addDocumentToAgent(
+  agentId: string,
+  textContent: string,
+  documentTitle?: string
+): Promise<DocumentResponse> {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/milvus/add-document",
+      {
+        agentId,
+        textContent,
+        documentTitle: documentTitle || "Untitled Document"
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error adding document:", error);
+    return {
+      error: true,
+      result: error instanceof Error ? error.message : "Failed to add document"
+    };
+  }
+}
+
+export async function removeDocumentFromAgent(
+  agentId: string,
+  documentId: string
+): Promise<RemoveDocumentResponse> {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/milvus/remove-document",
+      {
+        agentId,
+        documentId
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error removing document:", error);
+    return {
+      error: true,
+      result: error instanceof Error ? error.message : "Failed to remove document"
+    };
+  }
+}
+
+export async function updateDocumentInAgent(
+  agentId: string,
+  documentId: string,
+  textContent: string,
+  documentTitle?: string
+): Promise<DocumentResponse> {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/milvus/update-document",
+      {
+        agentId,
+        documentId,
+        textContent,
+        documentTitle
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error updating document:", error);
+    return {
+      error: true,
+      result: error instanceof Error ? error.message : "Failed to update document"
+    };
+  }
+}
+
+export async function listAgentDocuments(
+  agentId: string
+): Promise<DocumentListResponse> {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/milvus/list-documents/${agentId}`
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error listing documents:", error);
+    return {
+      error: true,
+      result: error instanceof Error ? error.message : "Failed to list documents"
     };
   }
 }
@@ -426,10 +588,15 @@ export async function updateAppointmentSettings(payload: {
   bookingsPerSlot: number;
   meetingDuration: number;
   bufferTime: number;
-  lunchBreak: { start: string; end: string };
+  breaks: { startTime: string; endTime: string }[];
   availability: AvailabilityDay[];
   locations: string[];
-  timezone: string; // Added timezone field
+  timezone: string; 
+  price: {
+    isFree: boolean;
+    amount: number;
+    currency: string;
+  };
 }) {
   try {
     const response = await axios.post(

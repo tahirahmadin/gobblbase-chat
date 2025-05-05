@@ -28,6 +28,7 @@ import Offerings from "./pages/admin/TabsComponent/Offerings";
 import Policies from "./pages/admin/TabsComponent/Policies";
 import ChatLogs from "./pages/admin/TabsComponent/ChatLogs";
 import CustomerLeads from "./pages/admin/TabsComponent/CustomerLeads";
+import Booking from "./pages/admin/BookingComponent/Booking";
 import Login from "./pages/admin/Login";
 import { useAdminStore } from "./store/useAdminStore";
 
@@ -110,6 +111,8 @@ function Dashboard() {
         <Route path="offerings/add" element={<Offerings />} />
         <Route path="offerings/manage" element={<Offerings />} />
         <Route path="offerings/calendar" element={<Offerings />} />
+        <Route path="offerings/calendar/edit" element={<Booking isEditMode={true} onSetupComplete={() => window.location.href = "/admin/offerings/calendar"} />} />
+        <Route path="offerings/calendar/new" element={<Booking isEditMode={false} onSetupComplete={() => window.location.href = "/admin/offerings/calendar"} />} />
         <Route path="offerings/policies" element={<Policies />} />
         <Route path="crm/chat-logs" element={<ChatLogs />} />
         <Route path="crm/leads" element={<CustomerLeads />} />
