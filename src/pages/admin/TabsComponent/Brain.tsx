@@ -116,7 +116,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   const updateSmartness = (docCount: number) => {
     // Base level 30% + 10% per document, max 100%
     const newLevel = Math.min(30 + (docCount * 10), 100);
-    setSmartNessLevel(newLevel);
+    setSmartnessLevel(newLevel);
   };
 
   // Handle adding links
