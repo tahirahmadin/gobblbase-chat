@@ -26,6 +26,7 @@ import Policies from "./pages/admin/TabsComponent/Policies";
 import ChatLogs from "./pages/admin/TabsComponent/ChatLogs";
 import CustomerLeads from "./pages/admin/TabsComponent/CustomerLeads";
 import Booking from "./pages/admin/BookingComponent/Booking";
+import BookingDashboardWrapper from "./pages/admin/BookingComponent/BookingDashboardWrapper";
 import Login from "./pages/admin/Login";
 import { useAdminStore } from "./store/useAdminStore";
 
@@ -109,15 +110,15 @@ function Dashboard() {
         <Route path="offerings" element={<Offerings />} />
         <Route path="offerings/add" element={<Offerings />} />
         <Route path="offerings/manage" element={<Offerings />} />
-        <Route path="offerings/calendar" element={<Offerings />} />
+        
+        {/* Modified Calendar Routes */}
+        <Route path="offerings/calendar" element={<BookingDashboardWrapper />} />
         <Route
           path="offerings/calendar/edit"
           element={
             <Booking
               isEditMode={true}
-              onSetupComplete={() =>
-                (window.location.href = "/admin/offerings/calendar")
-              }
+              onSetupComplete={() => navigate("/admin/offerings/calendar")}
             />
           }
         />
@@ -126,9 +127,7 @@ function Dashboard() {
           element={
             <Booking
               isEditMode={false}
-              onSetupComplete={() =>
-                (window.location.href = "/admin/offerings/calendar")
-              }
+              onSetupComplete={() => navigate("/admin/offerings/calendar")}
             />
           }
         />

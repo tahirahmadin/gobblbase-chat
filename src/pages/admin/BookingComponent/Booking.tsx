@@ -136,7 +136,7 @@ const Booking: React.FC<BookingProps> = ({
   const queryParams = new URLSearchParams(location.search);
   const agentIdFromUrl = queryParams.get('agentId');
   const { activeBotData, activeBotId } = useBotConfig();
-  const activeAgentId = propAgentId || activeBotId || activeBotData?.agentId;
+  const activeAgentId = propAgentId || agentIdFromUrl || activeBotId || activeBotData?.agentId;
   const [timezones, setTimezones] = useState(DEFAULT_TIMEZONES);
   const [detectedTimezoneInList, setDetectedTimezoneInList] = useState(false);
 
@@ -749,7 +749,7 @@ const Booking: React.FC<BookingProps> = ({
       
       <div className="mt-4 bg-blue-50 p-6 rounded-lg">
         <div className="flex items-center mb-6">
-          <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-medium">
+        <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-medium">
             3
           </div>
           <h3 className="ml-3 text-lg font-medium">Availability</h3>
