@@ -104,12 +104,34 @@ function Dashboard() {
         <Route path="business/payments" element={<Business />} />
         <Route path="business/integrations" element={<Business />} />
         <Route path="business/embed" element={<Business />} />
+        <Route path="business/orders" element={<Business />} />
+        <Route path="business/email" element={<Business />} />
         <Route path="offerings" element={<Offerings />} />
         <Route path="offerings/add" element={<Offerings />} />
         <Route path="offerings/manage" element={<Offerings />} />
         <Route path="offerings/calendar" element={<Offerings />} />
-        <Route path="offerings/calendar/edit" element={<Booking isEditMode={true} onSetupComplete={() => window.location.href = "/admin/offerings/calendar"} />} />
-        <Route path="offerings/calendar/new" element={<Booking isEditMode={false} onSetupComplete={() => window.location.href = "/admin/offerings/calendar"} />} />
+        <Route
+          path="offerings/calendar/edit"
+          element={
+            <Booking
+              isEditMode={true}
+              onSetupComplete={() =>
+                (window.location.href = "/admin/offerings/calendar")
+              }
+            />
+          }
+        />
+        <Route
+          path="offerings/calendar/new"
+          element={
+            <Booking
+              isEditMode={false}
+              onSetupComplete={() =>
+                (window.location.href = "/admin/offerings/calendar")
+              }
+            />
+          }
+        />
         <Route path="offerings/policies" element={<Policies />} />
         <Route path="crm/chat-logs" element={<ChatLogs />} />
         <Route path="crm/leads" element={<CustomerLeads />} />
@@ -144,7 +166,58 @@ function App() {
         <Route path="/book/:agentId" element={<CustomerBookingPage />} />
         <Route
           path="/:botUsername"
-          element={<PublicChat agentUsernamePlayground={null} />}
+          element={
+            <PublicChat
+              agentUsernamePlayground={null}
+              previewConfig={{
+                agentId: "",
+                username: "",
+                name: "",
+                bio: "",
+                socials: {
+                  instagram: "",
+                  tiktok: "",
+                  twitter: "",
+                  facebook: "",
+                  youtube: "",
+                  linkedin: "",
+                  snapchat: "",
+                  link: "",
+                },
+                prompts: [],
+                promotionalBanner: null,
+                isPromoBannerEnabled: false,
+                logo: "",
+                sessionName: "",
+                stripeAccountId: "",
+                currency: "",
+                systemPrompt: "",
+                model: "",
+                themeColors: {
+                  id: "",
+                  name: "",
+                  isDark: false,
+                  mainDarkColor: "",
+                  mainLightColor: "",
+                  highlightColor: "",
+                },
+                personalityType: {
+                  name: "",
+                  value: [],
+                },
+                welcomeMessage: "",
+                language: "",
+                smartenUpAnswers: [],
+                preferredPaymentMethod: "",
+                paymentMethods: {
+                  stripe: { enabled: false, accountId: "" },
+                  razorpay: { enabled: false, accountId: "" },
+                  usdt: { enabled: false, walletAddress: "", chains: [] },
+                  usdc: { enabled: false, walletAddress: "", chains: [] },
+                },
+              }}
+            />
+          }
         />
         <Route path="/admin/*" element={<Dashboard />} />
         <Route path="/" element={<Navigate to="/admin" replace />} />

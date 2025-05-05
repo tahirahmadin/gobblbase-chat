@@ -1,28 +1,8 @@
 import React, { useState, useEffect } from "react";
-import {
-  Building2,
-  CheckCircle2,
-  XCircle,
-  ArrowRight,
-  Check,
-  ExternalLink,
-  Calendar,
-  MessageSquare,
-  Mail,
-  Globe,
-  Database,
-} from "lucide-react";
+import { CheckCircle2, Check, ExternalLink, Database } from "lucide-react";
 import { useBotConfig } from "../../../store/useBotConfig";
 import { toast } from "react-hot-toast";
 import { getAgentDetails } from "../../../lib/serverActions";
-
-interface Integration {
-  id: string;
-  name: string;
-  description: string;
-  icon: React.ReactNode;
-  isConnected: boolean;
-}
 
 interface ZohoConfig {
   clientId: string;
@@ -32,9 +12,6 @@ interface ZohoConfig {
 
 const Integrations: React.FC = () => {
   const { activeBotId } = useBotConfig();
-  const [activeIntegration, setActiveIntegration] = useState<string | null>(
-    null
-  );
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [zohoConfig, setZohoConfig] = useState<ZohoConfig>({
     clientId: "",
@@ -48,43 +25,7 @@ const Integrations: React.FC = () => {
     null
   );
   const [showEditConfig, setShowEditConfig] = useState(false);
-  const [integrations, setIntegrations] = useState<Integration[]>([
-    {
-      id: "calendar",
-      name: "Calendar",
-      description: "Connect your Google Calendar for automated scheduling",
-      icon: <Calendar className="w-6 h-6" />,
-      isConnected: false,
-    },
-    {
-      id: "slack",
-      name: "Slack",
-      description: "Integrate with Slack for team notifications",
-      icon: <MessageSquare className="w-6 h-6" />,
-      isConnected: false,
-    },
-    {
-      id: "email",
-      name: "Email",
-      description: "Set up email notifications and campaigns",
-      icon: <Mail className="w-6 h-6" />,
-      isConnected: false,
-    },
-    {
-      id: "website",
-      name: "Website",
-      description: "Add chat widget to your website",
-      icon: <Globe className="w-6 h-6" />,
-      isConnected: true,
-    },
-    {
-      id: "crm",
-      name: "CRM",
-      description: "Connect with your CRM system",
-      icon: <Database className="w-6 h-6" />,
-      isConnected: false,
-    },
-  ]);
+  const [showConfigForm, setShowConfigForm] = useState(false);
 
   // Check initial ZOHO status
   useEffect(() => {
@@ -106,7 +47,6 @@ const Integrations: React.FC = () => {
   const handleDisconnect = async (integrationId: string) => {
     // TODO: Implement disconnection logic
     console.log(`Disconnecting from ${integrationId}`);
-    setActiveIntegration(null);
     setCurrentStep(1);
     setIsConfigSubmitted(false);
     setIsAuthenticated(false);
@@ -212,6 +152,52 @@ const Integrations: React.FC = () => {
     setCurrentStep(1);
     setIsConfigSubmitted(false);
     setIsAuthenticated(false);
+  };
+
+  const renderZohoCard = () => {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex items-center space-x-4">
+            <div className="p-2 bg-white rounded-lg border border-gray-200">
+              <Database className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-900">ZOHO Books</h3>
+              <p className="text-sm text-gray-500">
+                Connect your ZOHO Books account to manage inventory and orders
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-4">
+                <span className="flex items-center text-green-600">
+                  <CheckCircle2 className="h-5 w-5 mr-1" />
+                  Connected
+                </span>
+                <button
+                  onClick={() => {
+                    setShowEditConfig(true);
+                    setShowConfigForm(true);
+                  }}
+                  className="px-3 py-1 text-sm text-blue-600 hover:text-blue-700 border border-blue-200 rounded-md hover:bg-blue-50"
+                >
+                  Edit Configuration
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowConfigForm(true)}
+                className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900"
+              >
+                Connect
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const renderZohoIntegration = () => {
@@ -428,76 +414,17 @@ const Integrations: React.FC = () => {
     );
   };
 
-  const handleConnect = (integrationId: string) => {
-    setIntegrations((prevIntegrations) =>
-      prevIntegrations.map((integration) =>
-        integration.id === integrationId
-          ? { ...integration, isConnected: !integration.isConnected }
-          : integration
-      )
-    );
-  };
-
   return (
     <div className="space-y-6 p-4">
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
           <h2 className="text-xl font-semibold text-gray-800">Integrations</h2>
           <p className="mt-2 text-gray-600">
-            Connect your favorite services to enhance your bot's capabilities
+            Connect your ZOHO Books account to enhance your bot's capabilities
           </p>
         </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 gap-4">
-            {integrations.map((integration) => (
-              <div
-                key={integration.id}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="p-2 bg-white rounded-lg border border-gray-200">
-                    {integration.icon}
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">
-                      {integration.name}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      {integration.description}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  {integration.isConnected ? (
-                    <div className="flex items-center space-x-4">
-                      <span className="flex items-center text-green-600">
-                        <CheckCircle2 className="h-5 w-5 mr-1" />
-                        Connected
-                      </span>
-                      <button
-                        onClick={() => handleConnect(integration.id)}
-                        className="px-3 py-1 text-sm text-blue-600 hover:text-blue-700 border border-blue-200 rounded-md hover:bg-blue-50"
-                      >
-                        Edit Configuration
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => handleConnect(integration.id)}
-                      className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900"
-                    >
-                      Connect
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {!showConfigForm ? renderZohoCard() : renderZohoIntegration()}
       </div>
-
-      {(activeIntegration === "zoho-books" || showEditConfig) &&
-        renderZohoIntegration()}
     </div>
   );
 };

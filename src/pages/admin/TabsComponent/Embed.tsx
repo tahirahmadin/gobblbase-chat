@@ -72,6 +72,9 @@ export default function Embed() {
 
   return (
     <div className="space-y-8 p-4">
+      <div className="mb-8">
+        <h2 className="text-xl font-bold text-black">Embded Chat</h2>
+      </div>
       {/* Embed Type Selection */}
       {/* <div className="flex gap-4 mb-8">
         <button
@@ -107,7 +110,10 @@ export default function Embed() {
       </div> */}
 
       {/* Configuration Section */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div
+        className="rounded-lg border border-gray-200 overflow-hidden"
+        style={{ backgroundColor: "#eaefff" }}
+      >
         <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4">
           <h2 className="text-lg font-semibold text-gray-800">Configuration</h2>
         </div>
@@ -141,7 +147,10 @@ export default function Embed() {
       </div>
 
       {/* Direct Access URL Card */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div
+        className="rounded-lg border border-gray-200 overflow-hidden"
+        style={{ backgroundColor: "#eaefff" }}
+      >
         <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
           <div className="flex items-center space-x-3">
             <Globe className="h-6 w-6 text-gray-600" />

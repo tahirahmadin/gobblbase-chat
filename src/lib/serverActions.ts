@@ -87,32 +87,38 @@ interface Document {
 
 interface DocumentListResponse {
   error: boolean;
-  result: {
-    agentId: string;
-    agentName: string;
-    documentCount: number;
-    documents: Document[];
-  } | string;
+  result:
+    | {
+        agentId: string;
+        agentName: string;
+        documentCount: number;
+        documents: Document[];
+      }
+    | string;
 }
 
 export interface DocumentResponse {
   error: boolean;
-  result: {
-    message: string;
-    agentId: string;
-    documentId: string;
-    title: string;
-  } | string;
+  result:
+    | {
+        message: string;
+        agentId: string;
+        documentId: string;
+        title: string;
+      }
+    | string;
 }
 
 export interface RemoveDocumentResponse {
   error: boolean;
-  result: {
-    message: string;
-    agentId: string;
-    documentId: string;
-    remainingDocumentCount: number;
-  } | string;
+  result:
+    | {
+        message: string;
+        agentId: string;
+        documentId: string;
+        remainingDocumentCount: number;
+      }
+    | string;
 }
 
 interface DirectoryLink {
@@ -165,7 +171,7 @@ export async function createNewAgentWithDocumentId(
     console.error("Error creating agent:", error);
     return {
       error: true,
-      result: error instanceof Error ? error.message : "Failed to create agent"
+      result: error instanceof Error ? error.message : "Failed to create agent",
     };
   }
 }
@@ -181,7 +187,7 @@ export async function addDocumentToAgent(
       {
         agentId,
         textContent,
-        documentTitle: documentTitle || "Untitled Document"
+        documentTitle: documentTitle || "Untitled Document",
       }
     );
 
@@ -190,7 +196,7 @@ export async function addDocumentToAgent(
     console.error("Error adding document:", error);
     return {
       error: true,
-      result: error instanceof Error ? error.message : "Failed to add document"
+      result: error instanceof Error ? error.message : "Failed to add document",
     };
   }
 }
@@ -204,7 +210,7 @@ export async function removeDocumentFromAgent(
       "https://rag.gobbl.ai/milvus/remove-document",
       {
         agentId,
-        documentId
+        documentId,
       }
     );
 
@@ -213,7 +219,8 @@ export async function removeDocumentFromAgent(
     console.error("Error removing document:", error);
     return {
       error: true,
-      result: error instanceof Error ? error.message : "Failed to remove document"
+      result:
+        error instanceof Error ? error.message : "Failed to remove document",
     };
   }
 }
@@ -231,7 +238,7 @@ export async function updateDocumentInAgent(
         agentId,
         documentId,
         textContent,
-        documentTitle
+        documentTitle,
       }
     );
 
@@ -240,7 +247,8 @@ export async function updateDocumentInAgent(
     console.error("Error updating document:", error);
     return {
       error: true,
-      result: error instanceof Error ? error.message : "Failed to update document"
+      result:
+        error instanceof Error ? error.message : "Failed to update document",
     };
   }
 }
@@ -258,7 +266,8 @@ export async function listAgentDocuments(
     console.error("Error listing documents:", error);
     return {
       error: true,
-      result: error instanceof Error ? error.message : "Failed to list documents"
+      result:
+        error instanceof Error ? error.message : "Failed to list documents",
     };
   }
 }
@@ -320,10 +329,8 @@ export async function signUpClient(
     const response = await axios.post(
       "https://rag.gobbl.ai/client/signupClient",
       {
-        body: {
-          via,
-          handle,
-        },
+        via,
+        handle,
       }
     );
 
@@ -610,7 +617,7 @@ export async function updateAppointmentSettings(payload: {
   breaks: { startTime: string; endTime: string }[];
   availability: AvailabilityDay[];
   locations: string[];
-  timezone: string; 
+  timezone: string;
   price: {
     isFree: boolean;
     amount: number;

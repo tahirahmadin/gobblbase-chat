@@ -1,27 +1,17 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
-import Booking from "../BookingComponent/Booking"; 
+import Booking from "../BookingComponent/Booking";
 import BookingDashboard from "../BookingComponent/BookingDashboard";
+import AddNew from "../OfferingComponents/AddNew";
 
 const Offerings = () => {
   const location = useLocation();
   const currentPath = location.pathname;
-  
+
   const renderContent = () => {
     switch (true) {
       case currentPath.includes("/offerings/add"):
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-semibold text-gray-900 mb-6">
-              Add New Offering
-            </h1>
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <p className="text-gray-600">
-                Create a new product or service offering
-              </p>
-            </div>
-          </div>
-        );
+        return <AddNew />;
 
       case currentPath.includes("/offerings/manage"):
         return (
@@ -37,10 +27,12 @@ const Offerings = () => {
           </div>
         );
 
-        case currentPath.includes("/offerings/calendar"):
+      case currentPath.includes("/offerings/calendar"):
         // Only show the BookingDashboard at exactly /offerings/calendar
-        if (currentPath === "/admin/offerings/calendar" || 
-            currentPath === "/admin/offerings/calendar/") {
+        if (
+          currentPath === "/admin/offerings/calendar" ||
+          currentPath === "/admin/offerings/calendar/"
+        ) {
           return <BookingDashboard />;
         }
         // For other calendar paths, let the router handle it
