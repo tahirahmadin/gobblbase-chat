@@ -21,10 +21,6 @@ const Header = () => {
   //Handeling agentDetails refresh when change trigger
   const hook1 = useServerHook({ initHook: true });
 
-  console.log("activeBotId");
-  console.log(activeBotId);
-  console.log(activeBotData);
-
   useEffect(() => {
     if (agents.length > 0) {
       setActiveBotId(agents[0].agentId);

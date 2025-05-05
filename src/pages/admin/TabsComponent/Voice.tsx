@@ -106,25 +106,23 @@ const Voice = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-6">
       <div className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-900">
-          Voice Personality
-        </h2>
-        <p className="text-sm text-gray-600 mt-1">
+        <h2 className="text-xl font-bold text-black">Voice Personality</h2>
+        <p className="text-sm font-[500] text-black mt-1">
           Define how your AI communicates with customers
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-10">
         {personalityOptions.map((personality) => (
           <div
             key={personality.id}
-            className={`relative rounded-lg p-4 cursor-pointer transition-all
+            className={`relative rounded-xl p-4 cursor-pointer transition-all
               ${
                 selectedPersonality.id === personality.id
-                  ? "bg-green-50 border-2 border-green-500"
-                  : "bg-[#f4f6ff] border-2 border-transparent"
+                  ? "bg-green-50 border-2 border-black"
+                  : "bg-[#f4f6ff] border-2 border-gray-400"
               }`}
             onClick={() => handlePersonalitySelect(personality)}
           >
@@ -135,9 +133,9 @@ const Voice = () => {
               </div>
             )}
 
-            <div className="flex items-start space-x-3">
+            <div className="flex items-start space-x-5">
               {/* Avatar */}
-              <div className="w-20 h-20 rounded-lg overflow-hidden bg-white">
+              <div className="w-28 h-28 rounded-lg overflow-hidden bg-white">
                 <img
                   src="/assets/tone-icon.jpg"
                   alt={`${personality.title} personality`}
@@ -146,13 +144,18 @@ const Voice = () => {
               </div>
 
               {/* Content */}
-              <div className="flex-1">
-                <h3 className="text-sm font-semibold text-gray-900 mb-1">
+              <div className="flex-1 ">
+                <h3 className="text-md font-semibold black mb-1">
                   {personality.title}
                 </h3>
+                <hr
+                  className="my-3 border-black w-10 "
+                  style={{ border: "2px solid black", borderRadius: 30 }}
+                />
+
                 <div className="space-y-0.5">
                   {personality.traits.map((trait, index) => (
-                    <p key={index} className="text-xs text-gray-600">
+                    <p key={index} className="text-sm text-black">
                       {trait}
                     </p>
                   ))}

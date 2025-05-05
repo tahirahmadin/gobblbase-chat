@@ -43,11 +43,11 @@ export default function AboutSection({
         color: theme.isDark ? "white" : "black",
       }}
     >
-      <div className="shadow-lg w-full">
+      <div className="w-full flex flex-col justify-evenly h-full">
         {/* Profile Section */}
         <div className="flex flex-col items-center mt-8 space-y-4">
           {/* Profile Image */}
-          <div className="w-16 h-16 rounded-full overflow-hidden">
+          <div className="w-20 h-20 rounded-full overflow-hidden">
             <img
               src={
                 currentConfig?.logo ||

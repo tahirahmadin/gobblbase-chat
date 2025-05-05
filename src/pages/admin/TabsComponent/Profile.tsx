@@ -244,8 +244,11 @@ const Profile = () => {
   };
 
   return (
-    <div className="container grid grid-cols-5 w-full bg-white">
-      <div className="col-span-3">
+    <div
+      className="grid grid-cols-5 w-full bg-white"
+      style={{ height: "calc(100vh - 64px)" }}
+    >
+      <div className="col-span-3 overflow-y-auto h-full">
         <div className="max-w-3xl mx-auto p-6 space-y-6">
           <div className="p-6 shadow-sm">
             {/* Profile Image Upload */}
@@ -598,18 +601,21 @@ const Profile = () => {
           </div>
         </div>
       </div>
-      <div className="col-span-2 pt-6" style={{ backgroundColor: "#eaefff" }}>
-        <div className="mx-auto" style={{ maxWidth: 440 }}>
+      <div
+        className="col-span-2 h-full sticky top-0 flex items-center justify-center"
+        style={{ backgroundColor: "#eaefff" }}
+      >
+        <div className="mx-auto" style={{ maxWidth: 400 }}>
           <PublicChat
             agentUsernamePlayground={null}
             previewConfig={{
+              ...activeBotData,
               name: agentName,
-              logo: activeBotData?.logo,
+              logo: activeBotData?.logo || "",
               promotionalBanner: promotionalBanner,
               isPromoBannerEnabled: isPromoBannerEnabled,
               socials: socialMedia,
               bio: agentBio,
-              ...activeBotData,
             }}
           />
         </div>

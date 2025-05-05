@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { ChatMessage, Theme } from "../../types";
+import { BotConfig, ChatMessage, Theme } from "../../types";
 import { queryDocument, getAppointmentSettings } from "../../lib/serverActions";
 import OpenAI from "openai";
 import { useBotConfig } from "../../store/useBotConfig";
@@ -93,7 +93,7 @@ export default function PublicChat({
   previewConfig,
 }: {
   agentUsernamePlayground: string | null;
-  previewConfig?: PreviewConfig;
+  previewConfig: BotConfig;
 }) {
   const { botUsername } = useParams();
   const {
@@ -139,8 +139,6 @@ export default function PublicChat({
   const currentConfig = previewConfig || config;
   const currentIsLoading = previewConfig ? false : isConfigLoading;
 
-  console.log("currentConfig?.themeColors");
-  console.log(currentConfig?.themeColors);
   // safe themeColors fallback
   const theme = currentConfig?.themeColors ?? {
     isDark: true,
@@ -212,7 +210,7 @@ export default function PublicChat({
     };
 
     fetchPricing();
-  }, [currentConfig]);
+  }, [currentConfig?.agentId]);
 
   // fetch config on mount/params change
   useEffect(() => {
@@ -221,28 +219,6 @@ export default function PublicChat({
       if (agentUsernamePlayground) fetchBotData(agentUsernamePlayground, false);
     }
   }, [botUsername, agentUsernamePlayground, fetchBotData, previewConfig]);
-
-  // Function to handle redirection to admin dashboard
-  const handleRedirectToAdmin = () => {
-    // Check if we're in the right environment
-    if (window.location.pathname.includes("/chatbot/")) {
-      // Save agent ID to local storage so admin page knows which agent to focus
-      if (config?.agentId) {
-        localStorage.setItem("redirectToAgentBooking", config.agentId);
-      }
-
-      // Redirect to admin dashboard
-      window.location.href = "/"; // This will redirect to dashboard home
-    } else {
-      // If we're already in admin/playground context, just change the tab
-      // Assuming you have a parent function to call
-      if (typeof window.parent.setActiveAdminTab === "function") {
-        window.parent.setActiveAdminTab("booking");
-      } else {
-        console.error("Admin redirect function not available");
-      }
-    }
-  };
 
   // build personality prompt
   const getPersonalityPrompt = () => {
@@ -397,7 +373,7 @@ export default function PublicChat({
       <div
         className="w-full max-w-md bg-white shadow-2xl  overflow-hidden flex flex-col relative"
         style={{
-          height: agentUsernamePlayground ? 700 : "100vh",
+          height: agentUsernamePlayground ? 700 : "80vh",
           backgroundColor: "white", // white mobile shell
         }}
       >

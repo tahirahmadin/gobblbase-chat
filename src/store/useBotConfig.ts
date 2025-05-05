@@ -6,73 +6,7 @@ import {
   uploadProfilePicture,
 } from "../lib/serverActions";
 import { toast } from "react-hot-toast";
-import { Theme } from "../types";
-
-interface BotConfig {
-  agentId: string;
-  username: string;
-  name: string;
-  bio: string;
-  socials: {
-    instagram: string;
-    tiktok: string;
-    twitter: string;
-    facebook: string;
-    youtube: string;
-    linkedin: string;
-    snapchat: string;
-    link: string;
-  };
-  prompts: string[];
-  promotionalBanner: string | null;
-  isPromoBannerEnabled: boolean;
-  logo: string;
-  sessionName: string;
-
-  stripeAccountId: string;
-  currency: string;
-
-  systemPrompt: string;
-  model: string;
-
-  themeColors: Theme;
-
-  // Voice Personality
-  personalityType: {
-    name: string;
-    value: string[];
-  };
-
-  // Welcome Message
-  welcomeMessage: string;
-
-  // Brain
-  language: string;
-  smartenUpAnswers: string[];
-
-  // Payment Settings
-  preferredPaymentMethod: string;
-  paymentMethods: {
-    stripe: {
-      enabled: boolean;
-      accountId: string;
-    };
-    razorpay: {
-      enabled: boolean;
-      accountId: string;
-    };
-    usdt: {
-      enabled: boolean;
-      walletAddress: string;
-      chains: string[];
-    };
-    usdc: {
-      enabled: boolean;
-      walletAddress: string;
-      chains: string[];
-    };
-  };
-}
+import { Theme, BotConfig } from "../types";
 
 interface BotConfigState {
   activeBotId: string | null;

@@ -66,7 +66,6 @@ function HeaderSection({
     script.async = true;
     script.defer = true;
     script.onload = () => {
-      console.log("Google Identity Services script loaded");
       setIsGoogleLoaded(true);
     };
     script.onerror = (error) => {
