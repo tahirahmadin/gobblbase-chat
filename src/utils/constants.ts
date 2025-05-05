@@ -102,8 +102,8 @@ export const AVAILABLE_THEMES: Theme[] = [
     highlightColor: "#FE5D45",
   },
   {
-    id: "light-black",
-    name: "Light Black",
+    id: "dark-white",
+    name: "Dark White",
     isDark: true,
     mainDarkColor: "#686868",
     mainLightColor: "#bfbfbf",

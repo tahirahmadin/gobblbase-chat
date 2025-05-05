@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AdminAgent, CreateNewAgentResponse } from "../types";
+import { AdminAgent, CreateNewAgentResponse, Theme } from "../types";
 
 interface QueryDocumentResponse {
   context: any; // You might want to define a more specific type based on the actual response
@@ -395,6 +395,27 @@ export async function getAgentDetails(
   }
 }
 
+export async function updateBotTheme(agentId: string, inputTheme: Theme) {
+  try {
+    const body = {
+      themeColors: inputTheme,
+    };
+
+    const response = await axios.put(
+      `https://rag.gobbl.ai/client/updateAgentTheme/${agentId}`,
+      body
+    );
+
+    if (response.data.error) {
+      throw new Error("Error updating agent details");
+    }
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating agent details:", error);
+    throw error;
+  }
+}
+
 export async function updateAgentDetails(
   agentId: string,
   details: {
@@ -428,8 +449,6 @@ export async function updateAgentDetails(
       lastPersonalityContent: details.lastPersonalityContent,
       themeColors: details.themeColors,
     };
-
-    console.log("🛰 Sending updateAgentDetails body:", body);
 
     const response = await axios.put(
       `https://rag.gobbl.ai/client/updateAgent/${agentId}`,

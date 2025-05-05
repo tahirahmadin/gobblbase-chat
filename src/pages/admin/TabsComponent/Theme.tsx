@@ -3,15 +3,10 @@ import React, { useState, useEffect } from "react";
 import { useBotConfig } from "../../../store/useBotConfig";
 import PublicChat from "../../chatbot/PublicChat";
 import { toast } from "react-hot-toast";
-import { updateAgentDetails } from "../../../lib/serverActions";
+import { updateBotTheme } from "../../../lib/serverActions";
 import { AVAILABLE_THEMES } from "../../../utils/constants";
 import { Theme } from "../../../types";
-import {
-  MessageCircle,
-  MessageCircleIcon,
-  MessageSquare,
-  Mic,
-} from "lucide-react";
+import { MessageSquare, Mic } from "lucide-react";
 
 const CustomTheme = () => {
   const { activeBotData } = useBotConfig();
@@ -24,10 +19,10 @@ const CustomTheme = () => {
   useEffect(() => {
     if (activeBotData?.themeColors) {
       const currentTheme = themes.find(
-        (t) => t.color === activeBotData.themeColors.mainDarkColor
+        (t) => t.id === activeBotData.themeColors.id
       );
       if (currentTheme) {
-        setSelectedTheme(currentTheme.id);
+        setSelectedTheme(currentTheme);
       }
     }
   }, [activeBotData]);
@@ -36,38 +31,17 @@ const CustomTheme = () => {
 
   const handleThemeSelect = async (inputTheme: Theme) => {
     setSelectedTheme(inputTheme);
-    const selectedTheme = themes.find((t) => t.id === themeId);
+    const selectedTheme = themes.find((t) => t.id === inputTheme.id);
 
     if (selectedTheme && activeBotData) {
-      const newTheme = {
-        isDark: selectedTheme.textColor === "#FFFFFF",
-        mainDarkColor: selectedTheme.color,
-        mainLightColor:
-          selectedTheme.textColor === "#FFFFFF" ? "#FFFFFF" : "#000000",
-        highlightColor: selectedTheme.textColor,
-      };
-
       try {
         // Update bot config with new theme
-        await updateAgentDetails(activeBotData.agentId, {
-          model: activeBotData.model,
-          systemPrompt: activeBotData.systemPrompt,
-          username: activeBotData.username,
-          name: activeBotData.name,
-          logo: activeBotData.logo,
-          personalityType: activeBotData.personalityType,
-          isCustomPersonality: activeBotData.isCustomPersonality,
-          customPersonalityPrompt: activeBotData.customPersonalityPrompt,
-          personalityAnalysis: activeBotData.personalityAnalysis,
-          lastPersonalityUrl: activeBotData.lastPersonalityUrl,
-          lastPersonalityContent: activeBotData.lastPersonalityContent,
-          themeColors: newTheme,
-        });
+        await updateBotTheme(activeBotData.agentId, inputTheme);
 
         // Update preview
         setPreviewConfig({
           ...activeBotData,
-          themeColors: newTheme,
+          themeColors: inputTheme,
         });
 
         toast.success("Theme updated successfully");
