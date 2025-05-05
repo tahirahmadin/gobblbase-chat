@@ -10,9 +10,6 @@ import {
 import Header from "./components/adminComponents/Header";
 import PublicChat from "./pages/chatbot/PublicChat";
 import CustomerBooking from "./components/adminComponents/bookingComponents/CustomerBooking";
-import { useUserStore } from "./store/useUserStore";
-import { Bot } from "lucide-react";
-import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { Toaster } from "react-hot-toast";
 import { useBotConfig } from "./store/useBotConfig";
 
