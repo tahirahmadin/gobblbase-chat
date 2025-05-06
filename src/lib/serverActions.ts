@@ -105,6 +105,7 @@ export interface DocumentResponse {
         agentId: string;
         documentId: string;
         title: string;
+        size?: number;
       }
     | string;
 }
@@ -179,15 +180,18 @@ export async function createNewAgentWithDocumentId(
 export async function addDocumentToAgent(
   agentId: string,
   textContent: string,
-  documentTitle?: string
+  documentTitle?: string,
+  documentSize?: number
 ): Promise<DocumentResponse> {
   try {
+    const calculatedSize = documentSize || new TextEncoder().encode(textContent).length;
     const response = await axios.post(
       "https://rag.gobbl.ai/milvus/add-document",
       {
         agentId,
         textContent,
         documentTitle: documentTitle || "Untitled Document",
+        documentSize: calculatedSize,
       }
     );
 

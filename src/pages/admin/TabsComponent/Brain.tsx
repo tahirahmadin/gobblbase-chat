@@ -469,7 +469,8 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       const response = await addDocumentToAgent(
         agentId,
         textContent,
-        file.name
+        file.name,
+        file.size
       );
       
       if (response.error) {
@@ -486,6 +487,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       setUploadedFiles(prev => [...prev, {
         name: file.name,
         size: formatFileSize(file.size),
+        sizeInBytes: file.size,
         documentId
       }]);
       
@@ -521,6 +523,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       if (!extractionData.success || !extractionData.content) {
         throw new Error(`No content extracted from ${link}`);
       }
+      const contentSize = new TextEncoder().encode(extractionData.content).length;
       
       // Get URL hostname for document title
       const urlObj = new URL(link);
@@ -530,7 +533,8 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       const response = await addDocumentToAgent(
         agentId,
         extractionData.content,
-        `Web: ${hostname}`
+        `Web: ${hostname}`,
+        contentSize
       );
       
       if (response.error) {
@@ -547,6 +551,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       setUploadedFiles(prev => [...prev, {
         name: `Web: ${hostname}`,
         size: "Web",
+        sizeInBytes: contentSize,
         documentId
       }]);
       
