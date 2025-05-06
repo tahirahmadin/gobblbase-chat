@@ -3,6 +3,7 @@ import { Check } from "lucide-react";
 import { updateAgentVoicePersonality } from "../../../lib/serverActions";
 import { useBotConfig } from "../../../store/useBotConfig";
 import toast from "react-hot-toast";
+import { PERSONALITY_OPTIONS } from "../../../utils/constants";
 
 interface PersonalityOption {
   id: string;
@@ -11,49 +12,12 @@ interface PersonalityOption {
   isCustom?: boolean;
 }
 
-const personalityOptions: PersonalityOption[] = [
-  {
-    id: "friend",
-    title: "FRIEND",
-    traits: ["Warm", "Relatable", "Conversational"],
-  },
-  {
-    id: "concierge",
-    title: "CONCIERGE",
-    traits: ["Polished", "Refined", "Formal"],
-  },
-  {
-    id: "coach",
-    title: "COACH",
-    traits: ["Upbeat", "Encouraging", "Motivational"],
-  },
-  {
-    id: "professional",
-    title: "PROFESSIONAL",
-    traits: ["Direct", "Authentic", "Clear"],
-  },
-  {
-    id: "gen_z",
-    title: "GEN Z",
-    traits: ["Casual", "Witty", "Trendy"],
-  },
-  {
-    id: "techie",
-    title: "TECHIE",
-    traits: ["Intuitive", "Intelligent", "Resourceful"],
-  },
-  {
-    id: "custom",
-    title: "CUSTOM",
-    traits: ["Create your own", "custom voice"],
-    isCustom: true,
-  },
-];
+const personalityOptions: PersonalityOption[] = PERSONALITY_OPTIONS;
 
 const Voice = () => {
   const { activeBotId, activeBotData, setRefetchBotData } = useBotConfig();
   const [selectedPersonality, setSelectedPersonality] =
-    useState<string>("friend");
+    useState<PersonalityOption>(personalityOptions[0]);
   const [customVoiceName, setCustomVoiceName] = useState("");
   const [customVoiceCharacteristics, setCustomVoiceCharacteristics] =
     useState("");
@@ -61,20 +25,18 @@ const Voice = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (activeBotData?.voicePersonality) {
-      setSelectedPersonality(activeBotData.voicePersonality);
-      if (activeBotData.voicePersonality === "custom") {
-        setCustomVoiceName(activeBotData.customVoiceName || "");
-        setCustomVoiceCharacteristics(
-          activeBotData.customVoiceCharacteristics || ""
-        );
-        setCustomVoiceExamples(activeBotData.customVoiceExamples || "");
+    if (activeBotData?.personalityType) {
+      const personality = personalityOptions.find(
+        (option) => option.title === activeBotData.personalityType.name
+      );
+      if (personality) {
+        setSelectedPersonality(personality);
       }
     }
   }, [activeBotData]);
 
-  const handlePersonalitySelect = (personalityId: string) => {
-    setSelectedPersonality(personalityId);
+  const handlePersonalitySelect = (personality: PersonalityOption) => {
+    setSelectedPersonality(personality);
   };
 
   const handleSave = async () => {
@@ -84,7 +46,7 @@ const Voice = () => {
     }
 
     if (
-      selectedPersonality === "custom" &&
+      selectedPersonality.id === "custom" &&
       (!customVoiceName || !customVoiceCharacteristics || !customVoiceExamples)
     ) {
       toast.error("Please fill in all custom voice fields");
@@ -93,15 +55,10 @@ const Voice = () => {
 
     try {
       setIsSaving(true);
-      await updateAgentVoicePersonality(
-        activeBotId,
-        selectedPersonality,
-        selectedPersonality === "custom" ? customVoiceName : undefined,
-        selectedPersonality === "custom"
-          ? customVoiceCharacteristics
-          : undefined,
-        selectedPersonality === "custom" ? customVoiceExamples : undefined
-      );
+      await updateAgentVoicePersonality(activeBotId, {
+        name: selectedPersonality.title,
+        value: selectedPersonality.traits,
+      });
       setRefetchBotData();
       toast.success("Voice personality updated successfully");
     } catch (error: any) {
@@ -113,38 +70,36 @@ const Voice = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-6">
       <div className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-900">
-          Voice Personality
-        </h2>
-        <p className="text-sm text-gray-600 mt-1">
+        <h2 className="text-xl font-bold text-black">Voice Personality</h2>
+        <p className="text-sm font-[500] text-black mt-1">
           Define how your AI communicates with customers
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-10">
         {personalityOptions.map((personality) => (
           <div
             key={personality.id}
-            className={`relative rounded-lg p-4 cursor-pointer transition-all
+            className={`relative rounded-xl p-4 cursor-pointer transition-all
               ${
-                selectedPersonality === personality.id
-                  ? "bg-green-50 border-2 border-green-500"
-                  : "bg-[#f4f6ff] border-2 border-transparent"
+                selectedPersonality.id === personality.id
+                  ? "bg-green-50 border-2 border-black"
+                  : "bg-[#f4f6ff] border-2 border-gray-400"
               }`}
-            onClick={() => handlePersonalitySelect(personality.id)}
+            onClick={() => handlePersonalitySelect(personality)}
           >
             {/* Selection Indicator */}
-            {selectedPersonality === personality.id && (
+            {selectedPersonality.id === personality.id && (
               <div className="absolute -top-2 -left-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
                 <Check className="w-4 h-4 text-white" />
               </div>
             )}
 
-            <div className="flex items-start space-x-3">
+            <div className="flex items-start space-x-5">
               {/* Avatar */}
-              <div className="w-20 h-20 rounded-lg overflow-hidden bg-white">
+              <div className="w-28 h-28 rounded-lg overflow-hidden bg-white">
                 <img
                   src="/assets/tone-icon.jpg"
                   alt={`${personality.title} personality`}
@@ -153,13 +108,18 @@ const Voice = () => {
               </div>
 
               {/* Content */}
-              <div className="flex-1">
-                <h3 className="text-sm font-semibold text-gray-900 mb-1">
+              <div className="flex-1 ">
+                <h3 className="text-md font-semibold black mb-1">
                   {personality.title}
                 </h3>
+                <hr
+                  className="my-3 border-black w-10 "
+                  style={{ border: "2px solid black", borderRadius: 30 }}
+                />
+
                 <div className="space-y-0.5">
                   {personality.traits.map((trait, index) => (
-                    <p key={index} className="text-xs text-gray-600">
+                    <p key={index} className="text-sm text-black">
                       {trait}
                     </p>
                   ))}
@@ -171,7 +131,7 @@ const Voice = () => {
       </div>
 
       {/* Custom Voice Section - Show only when custom is selected */}
-      {selectedPersonality === "custom" && (
+      {/* {selectedPersonality === "custom" && (
         <div className="mt-8 p-6 bg-white rounded-lg border border-gray-200">
           <h3 className="text-lg font-medium text-gray-900 mb-4">
             Customize Your Voice
@@ -215,7 +175,7 @@ const Voice = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       <div className="mt-8 flex justify-end">
         <button

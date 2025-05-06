@@ -6,79 +6,7 @@ import {
   uploadProfilePicture,
 } from "../lib/serverActions";
 import { toast } from "react-hot-toast";
-import { Theme } from "../types";
-
-interface BotConfig {
-  agentId: string;
-  username: string;
-  name: string;
-  bio: string;
-  socials: {
-    instagram: string;
-    tiktok: string;
-    twitter: string;
-    facebook: string;
-    youtube: string;
-    linkedin: string;
-    snapchat: string;
-    link: string;
-  };
-  prompts: string[];
-  promotionalBanner: string | null;
-  isPromoBannerEnabled: boolean;
-  logo: string;
-  sessionName: string;
-
-  stripeAccountId: string;
-  currency: string;
-
-  isCustomPersonality: boolean;
-  customPersonalityPrompt: string;
-  lastPersonalityContent: string;
-  lastPersonalityUrl: string;
-  personalityAnalysis: any;
-  personalityType: string;
-  systemPrompt: string;
-  model: string;
-
-  themeColors: Theme;
-
-  // Voice Personality
-  voicePersonality: string;
-  customVoiceName?: string;
-  customVoiceCharacteristics?: string;
-  customVoiceExamples?: string;
-
-  // Welcome Message
-  welcomeMessage: string;
-
-  // Brain
-  language: string;
-  smartenUpAnswers: string[];
-
-  // Payment Settings
-  preferredPaymentMethod: string;
-  paymentMethods: {
-    stripe: {
-      enabled: boolean;
-      accountId: string;
-    };
-    razorpay: {
-      enabled: boolean;
-      accountId: string;
-    };
-    usdt: {
-      enabled: boolean;
-      walletAddress: string;
-      chains: string[];
-    };
-    usdc: {
-      enabled: boolean;
-      walletAddress: string;
-      chains: string[];
-    };
-  };
-}
+import { Theme, BotConfig } from "../types";
 
 interface BotConfigState {
   activeBotId: string | null;
@@ -104,6 +32,7 @@ interface BotConfigState {
     inputBotId: string,
     inputProfilePicture: File
   ) => Promise<void>;
+  clearBotConfig: () => void;
 }
 
 export const useBotConfig = create<BotConfigState>()(
@@ -132,83 +61,24 @@ export const useBotConfig = create<BotConfigState>()(
             let response = await getAgentDetails(id, false);
 
             // Extract only the required fields from the response
-            const cleanConfig: BotConfig = {
-              agentId: response.agentId,
-              username: response.username,
-              name: response.name,
-              bio: response.bio || "",
-              logo: response.logo,
-              stripeAccountId: response.stripeAccountId,
-              currency: response.currency,
-              model: response.model,
-              systemPrompt: response.systemPrompt,
-              personalityType: response.personalityType,
-              themeColors: response.themeColors,
-              customPersonalityPrompt: response.customPersonalityPrompt,
-              isCustomPersonality: response.isCustomPersonality,
-              lastPersonalityContent: response.lastPersonalityContent,
-              lastPersonalityUrl: response.lastPersonalityUrl,
-              personalityAnalysis: response.personalityAnalysis,
-              socials: response.socials || {
-                instagram: "",
-                tiktok: "",
-                twitter: "",
-                facebook: "",
-                youtube: "",
-                linkedin: "",
-                snapchat: "",
-                link: "",
-              },
-              promotionalBanner: response.promotionalBanner || "",
-              isPromoBannerEnabled: response.isPromoBannerEnabled || false,
-              voicePersonality: response.voicePersonality || "friend",
-              customVoiceName: response.customVoiceName,
-              customVoiceCharacteristics: response.customVoiceCharacteristics,
-              customVoiceExamples: response.customVoiceExamples,
-              welcomeMessage: response.welcomeMessage || "",
-              language: response.language,
-              smartenUpAnswers: response.smartenUpAnswers,
-              preferredPaymentMethod: response.preferredPaymentMethod,
-              sessionName: response.sessionName || "Consultation",
-              prompts: response.prompts || [],
-              paymentMethods: {
-                stripe: {
-                  enabled: response.stripe?.enabled || false,
-                  accountId: response.stripe?.accountId || "",
-                },
-                razorpay: {
-                  enabled: response.razorpay?.enabled || false,
-                  accountId: response.razorpay?.accountId || "",
-                },
-                usdt: {
-                  enabled: response.usdt?.enabled || false,
-                  walletAddress: response.usdt?.walletAddress || "",
-                  chains: response.usdt?.chains || [],
-                },
-                usdc: {
-                  enabled: response.usdc?.enabled || false,
-                  walletAddress: response.usdc?.walletAddress || "",
-                  chains: response.usdc?.chains || [],
-                },
-              },
-            };
 
-            if (get().activeBotId === id) {
-              console.log("Setting activeBotData for ID:", id, cleanConfig);
-              set({ activeBotData: cleanConfig, isLoading: false });
-            }
+            set({ activeBotData: response, isLoading: false });
           } catch (error) {
             console.error("Error fetching bot data:", error);
-            if (get().activeBotId === id) {
-              set({ error: (error as Error).message, isLoading: false });
-              toast.error("Failed to fetch bot configuration");
-            }
+            set({ error: (error as Error).message, isLoading: false });
           }
-        } else {
-          set({ activeBotData: null });
         }
       },
-
+      clearBotConfig: () => {
+        set({
+          activeBotId: null,
+          activeBotData: null,
+          refetchBotData: 0,
+          isLoading: false,
+          error: null,
+        });
+        localStorage.removeItem("bot-config-storage");
+      },
       setActiveBotData: (data) => set({ activeBotData: data }),
 
       fetchBotData: async (

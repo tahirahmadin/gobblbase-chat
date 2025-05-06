@@ -18,7 +18,14 @@ const Header = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  //Handeling agentDetails refresh when change trigger
   const hook1 = useServerHook({ initHook: true });
+
+  useEffect(() => {
+    if (agents.length > 0) {
+      setActiveBotId(agents[0].agentId);
+    }
+  }, [agents, setActiveBotId]);
 
   useEffect(() => {
     if (adminId) {
@@ -27,6 +34,7 @@ const Header = () => {
   }, [adminId, fetchAllAgents]);
 
   useEffect(() => {
+    if (!isDropdownOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
@@ -35,10 +43,9 @@ const Header = () => {
         setIsDropdownOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [isDropdownOpen]);
 
   const handleAgentSelect = (agentId: string) => {
     setActiveBotId(agentId);
@@ -74,22 +81,28 @@ const Header = () => {
               <span>{activeBotData?.name || "Select Agent"}</span>
               <ChevronDown className="w-4 h-4 text-gray-500" />
             </button>
-
             {isDropdownOpen && (
-              <div className="absolute z-10 mt-2 w-64 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
-                <div className="py-1 max-h-64 overflow-y-auto">
+              <div className="absolute z-20 mt-2 w-72 rounded-lg shadow-lg bg-[#4b5cff] ring-1 ring-black ring-opacity-5 border border-blue-300">
+                <div className="py-3 max-h-72 overflow-y-auto">
+                  <div className="px-4 pb-2 text-white font-semibold text-base">
+                    YOUR AGENTS
+                  </div>
                   {agents?.map((agent: Agent) => (
                     <button
                       key={agent.agentId}
                       onClick={() => handleAgentSelect(agent.agentId)}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center space-x-2
-                        ${agent.agentId === activeBotId ? "bg-gray-50" : ""}`}
+                      className={`w-full text-left px-4 py-2 text-sm flex items-center space-x-2 rounded-md transition-colors duration-150
+                        ${
+                          agent.agentId === activeBotId
+                            ? "bg-white bg-opacity-20 border border-white text-white"
+                            : "hover:bg-blue-600 text-white"
+                        }`}
                     >
                       {agent.logo ? (
                         <img
                           src={agent.logo}
                           alt={`${agent.name} avatar`}
-                          className="w-6 h-6 rounded-full object-cover"
+                          className="w-6 h-6 rounded-full object-cover border border-white"
                         />
                       ) : (
                         <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
@@ -98,29 +111,36 @@ const Header = () => {
                           </span>
                         </div>
                       )}
-                      <span
-                        className={`${
-                          agent.agentId === activeBotId ? "font-medium" : ""
-                        }`}
-                      >
-                        {agent.name}
-                      </span>
+                      <span className="font-medium">{agent.name}</span>
                       {agent.agentId === activeBotId && (
-                        <span className="ml-auto text-xs text-green-500">
+                        <span className="ml-auto text-xs text-green-200 font-semibold">
                           Selected
                         </span>
                       )}
                     </button>
                   ))}
+                  <button
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      navigate("/admin/dashboard/create-bot");
+                    }}
+                    className="bg-green-400 hover:bg-green-500 text-black font-semibold px-4 py-2 rounded-lg w-[90%] mx-auto mt-3 block shadow"
+                  >
+                    CREATE NEW
+                  </button>
                 </div>
               </div>
             )}
           </div>
         </div>
-
         <div>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
-            Upgrade Plan
+          <button
+            onClick={() => {
+              navigate("/admin/dashboard/create-bot");
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+          >
+            Create New Bot
           </button>
         </div>
       </div>

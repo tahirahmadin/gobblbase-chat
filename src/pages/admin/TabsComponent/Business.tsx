@@ -1,8 +1,9 @@
-import React from "react";
 import { useLocation } from "react-router-dom";
 import Payments from "./Payments";
 import Integrations from "./Integrations";
 import Embed from "./Embed";
+import Orders from "./Orders";
+import EmailTemplates from "./EmailTemplates";
 
 const Business = () => {
   const location = useLocation();
@@ -14,6 +15,12 @@ const Business = () => {
     }
     if (currentPath.includes("/business/embed")) {
       return <Embed />;
+    }
+    if (currentPath.includes("/business/orders")) {
+      return <Orders />;
+    }
+    if (currentPath.includes("/business/email")) {
+      return <EmailTemplates />;
     }
     return <Payments />;
   };

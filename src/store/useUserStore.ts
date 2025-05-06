@@ -21,15 +21,20 @@ interface UserState {
   userEmail: string | null;
   userId: string | null;
   userDetails: UserDetails | null;
+  userRole: string | null;
 
   // Actions
   setUserEmail: (email: string) => void;
   setUserId: (id: string) => void;
   setIsLoggedIn: (status: boolean) => void;
   setUserDetails: (details: UserDetails | null) => void;
+  setUserRole: (role: string | null) => void;
 
   // Auth actions
-  handleGoogleLoginSuccess: (credentialResponse: any) => Promise<void>;
+  handleGoogleLoginSuccess: (response: {
+    credential: string;
+    userInfo: any;
+  }) => Promise<void>;
   handleGoogleLoginError: () => void;
   logout: () => void;
   fetchUserDetails: (userId: string) => Promise<void>;
@@ -50,35 +55,30 @@ export const useUserStore = create<UserState>()(
       setUserId: (id) => set({ userId: id }),
       setIsLoggedIn: (status) => set({ isLoggedIn: status }),
       setUserDetails: (details) => set({ userDetails: details }),
+      setUserRole: (role) => set({ userRole: role }),
 
       // Complex actions
-      handleGoogleLoginSuccess: async (credentialResponse: any) => {
+      handleGoogleLoginSuccess: async (response: {
+        credential: string;
+        userInfo: any;
+      }) => {
         try {
-          // Decode the JWT token to get user info
-          const base64Url = credentialResponse.credential.split(".")[1];
-          const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-          const jsonPayload = decodeURIComponent(
-            atob(base64)
-              .split("")
-              .map(function (c) {
-                return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
-              })
-              .join("")
-          );
-
-          const userInfo = JSON.parse(jsonPayload);
+          const userInfo = response.userInfo;
           set({ userEmail: userInfo.email, isLoggedIn: true });
 
           // Call the signUpUser API
-          const response = await signUpUser("google", userInfo.email);
+          const signUpResponse = await signUpUser("google", userInfo.email);
 
-          if (response.error) {
+          if (signUpResponse.error) {
             toast.error("Failed to complete signup process");
-            console.error("Signup failed:", response.result);
+            console.error("Signup failed:", signUpResponse.result);
           } else {
             // Store the userId from the response
-            if (typeof response.result !== "string" && response.result._id) {
-              const userId = response.result._id;
+            if (
+              typeof signUpResponse.result !== "string" &&
+              signUpResponse.result._id
+            ) {
+              const userId = signUpResponse.result._id;
               set({ userId });
 
               // Fetch user details
@@ -115,13 +115,19 @@ export const useUserStore = create<UserState>()(
         }
       },
 
-      logout: () =>
+      logout: () => {
+        // Clear the state
         set({
           isLoggedIn: false,
           userEmail: null,
           userId: null,
           userDetails: null,
-        }),
+          userRole: null,
+        });
+
+        // Clear the persisted storage
+        localStorage.removeItem("user-storage");
+      },
     }),
     {
       name: "user-storage",

@@ -10,6 +10,8 @@ import {
 } from "../../../lib/serverActions";
 import { useBotConfig } from "../../../store/useBotConfig";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import { calculateSmartnessLevel } from "../../../utils/helperFn";
 
 interface SocialMediaLinks {
   instagram: string;
@@ -19,6 +21,7 @@ interface SocialMediaLinks {
   youtube: string;
   linkedin: string;
   snapchat: string;
+  link: string;
 }
 
 const socialMediaIcons = {
@@ -32,6 +35,7 @@ const socialMediaIcons = {
 };
 
 const Profile = () => {
+  const navigate = useNavigate();
   const [agentName, setAgentName] = useState("");
   const [agentUsername, setAgentUsername] = useState("");
   const [isEditingUrl, setIsEditingUrl] = useState(false);
@@ -40,7 +44,7 @@ const Profile = () => {
   const [agentBio, setAgentBio] = useState("");
   const [promotionalBanner, setPromotionalBanner] = useState("");
   const [isPromoBannerEnabled, setIsPromoBannerEnabled] = useState(false);
-  const [smartnessLevel, setSmartNessLevel] = useState(30);
+  const [smartnessLevel, setSmartnessLevel] = useState(30);
   const [socialMedia, setSocialMedia] = useState<SocialMediaLinks>({
     instagram: "",
     twitter: "",
@@ -49,6 +53,7 @@ const Profile = () => {
     youtube: "",
     linkedin: "",
     snapchat: "",
+    link: "",
   });
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -68,9 +73,14 @@ const Profile = () => {
       setAgentUsername(activeBotData.username);
       setAgentName(activeBotData.name);
       setAgentBio(activeBotData.bio);
-      setSocialMedia(activeBotData.socials);
-      setPromotionalBanner(activeBotData.promotionalBanner);
+      const socials = activeBotData.socials as SocialMediaLinks;
+      setSocialMedia(socials);
+      setPromotionalBanner(activeBotData.promotionalBanner || "");
       setIsPromoBannerEnabled(activeBotData.isPromoBannerEnabled);
+
+      // Calculate and set smartness level
+      const newSmartnessLevel = calculateSmartnessLevel(activeBotData);
+      setSmartnessLevel(newSmartnessLevel);
     }
   }, [activeBotData]);
 
@@ -244,8 +254,11 @@ const Profile = () => {
   };
 
   return (
-    <div className="container grid grid-cols-5 w-full bg-white">
-      <div className="col-span-3">
+    <div
+      className="grid grid-cols-5 w-full bg-white"
+      style={{ height: "calc(100vh - 64px)" }}
+    >
+      <div className="col-span-3 overflow-y-auto h-full">
         <div className="max-w-3xl mx-auto p-6 space-y-6">
           <div className="p-6 shadow-sm">
             {/* Profile Image Upload */}
@@ -489,7 +502,12 @@ const Profile = () => {
                 />
               </div>
             </div>
-            <button className="mt-2 px-4 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700">
+            <button
+              className="mt-2 px-4 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+              onClick={() => {
+                navigate("/admin/dashboard/brain");
+              }}
+            >
               SMARTEN
             </button>
           </div>
@@ -598,13 +616,17 @@ const Profile = () => {
           </div>
         </div>
       </div>
-      <div className="col-span-2 pt-6" style={{ backgroundColor: "#eaefff" }}>
-        <div className="mx-auto" style={{ maxWidth: 440 }}>
+      <div
+        className="col-span-2 h-full sticky top-0 flex items-center justify-center"
+        style={{ backgroundColor: "#eaefff" }}
+      >
+        <div className="mx-auto" style={{ maxWidth: 400 }}>
           <PublicChat
             agentUsernamePlayground={null}
             previewConfig={{
+              ...activeBotData,
               name: agentName,
-              logo: activeBotData?.logo,
+              logo: activeBotData?.logo || "",
               promotionalBanner: promotionalBanner,
               isPromoBannerEnabled: isPromoBannerEnabled,
               socials: socialMedia,

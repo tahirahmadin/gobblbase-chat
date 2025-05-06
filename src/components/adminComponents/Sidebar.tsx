@@ -1,20 +1,17 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  Brain,
-  MessageSquare,
-  Palette,
-  FileText,
   Briefcase,
   Package,
   Users,
-  Settings,
   LogOut,
   ChevronRight,
   ChevronDown,
   LayoutDashboard,
 } from "lucide-react";
 import { useAdminStore } from "../../store/useAdminStore";
+import { useUserStore } from "../../store/useUserStore";
+import { useBotConfig } from "../../store/useBotConfig";
 
 interface SubNavItem {
   name: string;
@@ -50,7 +47,9 @@ const navItems: NavItem[] = [
     path: "/admin/business",
     expandable: true,
     subItems: [
+      { name: "Orders", path: "/admin/business/orders" },
       { name: "Payments", path: "/admin/business/payments" },
+      { name: "Email", path: "/admin/business/email" },
       { name: "Integrations", path: "/admin/business/integrations" },
       { name: "Embed", path: "/admin/business/embed" },
     ],
@@ -84,6 +83,8 @@ const Sidebar = () => {
   const location = useLocation();
   const [expandedTabs, setExpandedTabs] = useState<string[]>([]);
   const { adminLogout } = useAdminStore();
+  const { logout: userLogout } = useUserStore();
+  const { clearBotConfig } = useBotConfig();
 
   const toggleTab = (tabName: string) => {
     setExpandedTabs((prev) =>
@@ -96,7 +97,7 @@ const Sidebar = () => {
   const isTabExpanded = (tabName: string) => expandedTabs.includes(tabName);
 
   return (
-    <div className="w-64 bg-black min-h-screen text-white p-4 flex flex-col">
+    <div className="w-64 bg-black min-h-screen text-white p-4 flex flex-col overflow-y-auto">
       <div className="mb-8">
         <h1 className="text-xl font-bold">kifor.ai</h1>
       </div>
@@ -162,8 +163,10 @@ const Sidebar = () => {
         <button
           className="w-full flex items-center space-x-3 px-4 py-2 text-gray-300 hover:bg-gray-800 rounded-lg"
           onClick={() => {
+            userLogout();
             adminLogout();
-            navigate("/login");
+            clearBotConfig();
+            navigate("/admin");
           }}
         >
           <LogOut className="w-5 h-5" />

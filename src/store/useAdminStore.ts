@@ -16,6 +16,7 @@ interface AdminState {
   agents: AdminAgent[];
   isLoading: boolean;
   error: string | null;
+  totalAgents: number;
   setError: (error: string | null) => void;
   // Admin operations
   fetchAllAgents: () => Promise<void>;
@@ -23,6 +24,14 @@ interface AdminState {
   adminLogout: () => void;
   handleGoogleLoginError: () => void;
   handleGoogleLoginSuccess: (credentialResponse: any) => Promise<void>;
+}
+
+// Add a type for the expected result
+interface SignUpResult {
+  _id: string;
+  signUpVia: { via: string; handle: string };
+  totalAgents?: number;
+  [key: string]: any;
 }
 
 export const useAdminStore = create<AdminState>()(
@@ -33,9 +42,9 @@ export const useAdminStore = create<AdminState>()(
       adminEmail: null,
       isAdminLoggedIn: false,
       agents: [],
-
       isLoading: false,
       error: null,
+      totalAgents: 0,
 
       // Basic setters
       setError: (error) => set({ error }),
@@ -56,7 +65,6 @@ export const useAdminStore = create<AdminState>()(
           );
 
           const userInfo = JSON.parse(jsonPayload);
-          set({ adminEmail: userInfo.email, isAdminLoggedIn: true });
 
           // Call the signUpUser API
           const response = await signUpClient("google", userInfo.email);
@@ -66,9 +74,22 @@ export const useAdminStore = create<AdminState>()(
             console.error("Signup failed:", response.result);
           } else {
             // Store the userId from the response
-            if (typeof response.result !== "string" && response.result._id) {
-              const adminId = response.result._id;
-              set({ adminId });
+            if (
+              typeof response.result === "object" &&
+              response.result !== null &&
+              "_id" in response.result
+            ) {
+              const result = response.result as SignUpResult;
+              const adminId = result._id;
+              // const totalAgents = result.totalAgents || 2;
+              let tempAgents = await fetchClientAgents(adminId);
+              set({
+                adminId,
+                adminEmail: result.signUpVia.handle,
+                isAdminLoggedIn: true,
+                totalAgents: tempAgents.length,
+              });
+              set({ agents: tempAgents, isLoading: false });
             }
             toast.success(`Successfully signed in!`);
           }
@@ -87,10 +108,11 @@ export const useAdminStore = create<AdminState>()(
       fetchAllAgents: async () => {
         try {
           set({ isLoading: true, error: null });
-          if (!get().adminId) {
+          const adminId = get().adminId;
+          if (!adminId) {
             throw new Error("Admin ID is not set");
           }
-          const agents = await fetchClientAgents(get().adminId);
+          const agents = await fetchClientAgents(adminId);
           set({ agents, isLoading: false });
         } catch (error) {
           set({ error: (error as Error).message, isLoading: false });
@@ -111,7 +133,19 @@ export const useAdminStore = create<AdminState>()(
         }
       },
       adminLogout: () => {
-        set({ adminId: null, adminEmail: null, isAdminLoggedIn: false });
+        // Clear the state
+        set({
+          adminId: null,
+          adminEmail: null,
+          isAdminLoggedIn: false,
+          agents: [],
+          isLoading: false,
+          error: null,
+          totalAgents: 0,
+        });
+
+        // Clear the persisted storage
+        localStorage.removeItem("admin-storage");
       },
     }),
     {

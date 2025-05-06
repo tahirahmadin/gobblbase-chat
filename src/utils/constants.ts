@@ -1,160 +1,113 @@
 import {
   ModelOption,
   SystemPromptTemplate,
-  TonePreset,
-  ThemeOption,
+  Theme,
+  PersonalityOption,
 } from "./../types";
 
-export const AVAILABLE_THEMES: ThemeOption[] = [
+export const AVAILABLE_THEMES: Theme[] = [
   {
     id: "light-yellow",
     name: "Light Yellow",
-    image:
-      "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=200&h=200&q=80",
-    description:
-      "Bright and friendly, this sunny palette brings clarity and optimism to any chat interface.",
-    palette: ["#fff6a0", "#5155CD", "#000000", "#ffffff"],
-    theme: {
-      isDark: false,
-      mainDarkColor: "#EFC715",
-      mainLightColor: "#5155CD",
-      highlightColor: "#000000",
-    },
+    isDark: false,
+    mainDarkColor: "#EFC715",
+    mainLightColor: "#5155CD",
+    highlightColor: "#000000",
   },
   {
     id: "lime-green",
     name: "Lime Green",
-    image:
-      "https://images.unsplash.com/photo-1612153018787-4899c6e056d7?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bGltZSUyMGdyZWVuJTIwYmFja2dyb3VuZHxlbnwwfHwwfHx8MA%3D%3D",
-    description:
-      "Fresh and energetic with vibrant greens — perfect for nature-themed or eco-friendly bots.",
-    palette: ["#C2E539", "#A88D16", "#26300B", "#ffffff"],
-    theme: {
-      isDark: false,
-      mainDarkColor: "#C2E539",
-      mainLightColor: "#A88D16",
-      highlightColor: "#26300B",
-    },
+    isDark: false,
+    mainDarkColor: "#C2E539",
+    mainLightColor: "#A88D16",
+    highlightColor: "#26300B",
   },
   {
     id: "sunset-orange",
     name: "Sunset Orange",
-    image:
-      "https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?w=200&h=200&q=80",
-    description:
-      "Warm and inviting, this orange theme channels the glow of golden hour.",
-    palette: ["#FF975F", "#70BCDF", "#006587", "#ffffff"],
-    theme: {
-      isDark: false,
-      mainDarkColor: "#FF975F",
-      mainLightColor: "#70BCDF",
-      highlightColor: "#006587",
-    },
+
+    isDark: false,
+    mainDarkColor: "#FF975F",
+    mainLightColor: "#70BCDF",
+    highlightColor: "#006587",
   },
   {
     id: "purple-pink",
     name: "Purple Pink",
-    image:
-      "https://images.unsplash.com/photo-1603984871071-66c79459f19b?w=200&h=200&q=80",
-    description:
-      "Playful and dreamy, blending soft purples and pinks for a whimsical UI.",
-    palette: ["#d16bd7", "#DAAA33", "#EE15C6", "#000000"],
-    theme: {
-      isDark: false,
-      mainDarkColor: "#d16bd7",
-      mainLightColor: "#DAAA33",
-      highlightColor: "#EE15C6",
-    },
+
+    isDark: false,
+    mainDarkColor: "#d16bd7",
+    mainLightColor: "#DAAA33",
+    highlightColor: "#EE15C6",
   },
   {
     id: "sky-blue",
     name: "Sky Blue",
-    image:
-      "https://images.unsplash.com/photo-1529676468690-0376b3e4792d?w=200&h=200&q=80",
-    description:
-      "Clean, calm, and professional — inspired by clear skies and open space.",
-    palette: ["#ABC3FF", "#4A68EC", "#001C9A", "#000000"],
-    theme: {
-      isDark: false,
-      mainDarkColor: "#ABC3FF",
-      mainLightColor: "#4A68EC",
-      highlightColor: "#001C9A",
-    },
+
+    isDark: false,
+    mainDarkColor: "#ABC3FF",
+    mainLightColor: "#4A68EC",
+    highlightColor: "#001C9A",
+  },
+  {
+    id: "light-black",
+    name: "Light Black",
+    isDark: false,
+    mainDarkColor: "#e6e6e6",
+    mainLightColor: "#8c8c8c",
+    highlightColor: "#000000",
   },
   {
     id: "dark-blue",
     name: "Dark Blue",
-    image:
-      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=200&h=200&q=80",
-    description:
-      "A deep and bold theme with electric blues and sharp contrasts for a tech-forward experience.",
-    palette: ["#4220cd", "#91a3ff", "#ffcc16", "#000000"],
-    theme: {
-      isDark: true,
-      mainDarkColor: "#4220cd",
-      mainLightColor: "#91a3ff",
-      highlightColor: "#ffcc16",
-    },
+    isDark: true,
+    mainDarkColor: "#4220cd",
+    mainLightColor: "#91a3ff",
+    highlightColor: "#FFCC16",
   },
   {
     id: "teal-green",
     name: "Teal Green",
-    image:
-      "https://images.unsplash.com/photo-1517816743773-6e0fd518b4a6?w=200&h=200&q=80",
-    description:
-      "Mystical and bold, this theme evokes starlit skies and late-night coding sessions.",
-    palette: ["#16598F", "#B6DFFF", "#D2FF4B", "#000000"],
-    theme: {
-      isDark: true,
-      mainDarkColor: "#16598F",
-      mainLightColor: "#B6DFFF",
-      highlightColor: "#D2FF4B",
-    },
+
+    isDark: true,
+    mainDarkColor: "#16598F",
+    mainLightColor: "#B6DFFF",
+    highlightColor: "#D2FF4B",
   },
   {
     id: "teal-ocean",
     name: "Teal Ocean",
-    image:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200&h=200&q=80",
-    description:
-      "Inspired by ocean depths and coastal calm — ideal for relaxed and focused chats.",
-    palette: ["#004F4A", "#CFFFE0", "#35FFB5", "#000000"],
-    theme: {
-      isDark: true,
-      mainDarkColor: "#004F4A",
-      mainLightColor: "#CFFFE0",
-      highlightColor: "#35FFB5",
-    },
+
+    isDark: true,
+    mainDarkColor: "#004F4A",
+    mainLightColor: "#CFFFE0",
+    highlightColor: "#35FFB5",
   },
   {
     id: "muted-blue",
     name: "Muted Blue",
-    image:
-      "https://images.unsplash.com/photo-1603575448363-c3ee33c46e2e?w=200&h=200&q=80",
-    description:
-      "Soft and balanced tones of blue and pink for a modern, relaxed vibe.",
-    palette: ["#003A79", "#A6CBFF", "#398CFF", "#000000"],
-    theme: {
-      isDark: true,
-      mainDarkColor: "#003A79",
-      mainLightColor: "#A6CBFF",
-      highlightColor: "#398CFF",
-    },
+
+    isDark: true,
+    mainDarkColor: "#003A79",
+    mainLightColor: "#A6CBFF",
+    highlightColor: "#398CFF",
   },
   {
     id: "forest-green",
     name: "Forest Green",
-    image:
-      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=200&h=200&q=80",
-    description:
-      "Grounded in nature, this earthy green palette brings tranquility and focus.",
-    palette: ["#12776B", "#C6C6C6", "#FE5D45", "#000000"],
-    theme: {
-      isDark: true,
-      mainDarkColor: "#12776B",
-      mainLightColor: "#C6C6C6",
-      highlightColor: "#FE5D45",
-    },
+
+    isDark: true,
+    mainDarkColor: "#12776B",
+    mainLightColor: "#C6C6C6",
+    highlightColor: "#FE5D45",
+  },
+  {
+    id: "dark-white",
+    name: "Dark White",
+    isDark: true,
+    mainDarkColor: "#686868",
+    mainLightColor: "#bfbfbf",
+    highlightColor: "#ffffff",
   },
 ];
 
@@ -314,64 +267,41 @@ export const SYSTEM_PROMPT_TEMPLATES: SystemPromptTemplate[] = [
   },
 ];
 
-export const TONE_PRESETS: TonePreset[] = [
+export const PERSONALITY_OPTIONS: PersonalityOption[] = [
   {
-    id: "humorous",
-    name: "Humorous & Witty",
-    image:
-      "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&h=200&q=80",
-    description: "Funny, engaging, with a touch of humor",
-    traits: ["Witty", "Playful", "Engaging"],
-    prompt:
-      "Communicate in a lighthearted, humorous way. Use witty remarks, clever wordplay, and casual language. Keep the tone fun and engaging while still being helpful. Feel free to use appropriate jokes and playful examples to make the conversation enjoyable.",
+    id: "friend",
+    title: "FRIEND",
+    traits: ["Warm", "Relatable", "Conversational"],
+  },
+  {
+    id: "concierge",
+    title: "CONCIERGE",
+    traits: ["Polished", "Refined", "Formal"],
+  },
+  {
+    id: "coach",
+    title: "COACH",
+    traits: ["Upbeat", "Encouraging", "Motivational"],
   },
   {
     id: "professional",
-    name: "Professional & Direct",
-    image:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&q=80",
-    description: "Serious, authentic, straight to the point",
-    traits: ["Direct", "Clear", "Formal"],
-    prompt:
-      "Maintain a professional, straightforward communication style. Be concise and direct, focusing on delivering accurate information efficiently. Use formal language and clear explanations without unnecessary elaboration.",
+    title: "PROFESSIONAL",
+    traits: ["Direct", "Authentic", "Clear"],
   },
   {
-    id: "friendly",
-    name: "Friendly & Supportive",
-    image:
-      "https://images.unsplash.com/photo-1515552726023-7125c8d07fb3?w=200&h=200&q=80",
-    description: "Warm, encouraging, approachable",
-    traits: ["Supportive", "Warm", "Patient"],
-    prompt:
-      "Adopt a warm, friendly tone that makes users feel comfortable and supported. Use encouraging language, show empathy, and maintain a helpful, patient approach. Make the conversation feel personal while remaining professional.",
+    id: "gen_z",
+    title: "GEN Z",
+    traits: ["Casual", "Witty", "Trendy"],
   },
   {
-    id: "expert",
-    name: "Expert & Analytical",
-    image:
-      "https://images.unsplash.com/photo-1513258496099-48168024aec0?w=200&h=200&q=80",
-    description: "Technical, detailed, thorough",
-    traits: ["Analytical", "Detailed", "Technical"],
-    prompt:
-      "Communication should be detailed and analytical, demonstrating deep expertise. Use technical terminology when appropriate, provide comprehensive explanations, and back statements with logical reasoning.",
+    id: "techie",
+    title: "TECHIE",
+    traits: ["Intuitive", "Intelligent", "Resourceful"],
   },
-  {
-    id: "motivational",
-    name: "Motivational & Inspiring",
-    image:
-      "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&q=80",
-    description: "Energetic, inspiring, encouraging",
-    traits: ["Inspiring", "Energetic", "Positive"],
-    prompt:
-      "Take an energetic, inspiring approach to communication. Use motivational language, positive reinforcement, and encouraging statements. Focus on possibilities and growth while maintaining enthusiasm.",
-  },
-  {
-    id: "custom-personality",
-    name: "Custom Tone",
-    image:
-      "https://images.unsplash.com/photo-1534308143481-c55f00be8bd7?w=200&h=200&q=80",
-    description: "Create your own custom tone",
-    traits: ["Customizable", "Flexible", "Unique"],
-    prompt: "",
-  },
+  // {
+  //   id: "custom",
+  //   title: "CUSTOM",
+  //   traits: ["Create your own", "custom voice"],
+  //   isCustom: true,
+  // },
 ];

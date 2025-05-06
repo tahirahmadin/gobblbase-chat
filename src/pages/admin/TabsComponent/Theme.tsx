@@ -3,71 +3,45 @@ import React, { useState, useEffect } from "react";
 import { useBotConfig } from "../../../store/useBotConfig";
 import PublicChat from "../../chatbot/PublicChat";
 import { toast } from "react-hot-toast";
-import { updateAgentDetails } from "../../../lib/serverActions";
+import { updateBotTheme } from "../../../lib/serverActions";
+import { AVAILABLE_THEMES } from "../../../utils/constants";
+import { Theme } from "../../../types";
+import { MessageSquare, Mic } from "lucide-react";
 
-const Theme = () => {
+const CustomTheme = () => {
   const { activeBotData } = useBotConfig();
-  const [selectedTheme, setSelectedTheme] = useState<string>("yellow");
+  const [selectedTheme, setSelectedTheme] = useState<Theme>(
+    AVAILABLE_THEMES[0]
+  );
   const [previewConfig, setPreviewConfig] = useState<any>(null);
 
   // Initialize selected theme from bot data
   useEffect(() => {
     if (activeBotData?.themeColors) {
       const currentTheme = themes.find(
-        (t) => t.color === activeBotData.themeColors.mainDarkColor
+        (t) => t.id === activeBotData.themeColors.id
       );
       if (currentTheme) {
-        setSelectedTheme(currentTheme.id);
+        setSelectedTheme(currentTheme);
       }
     }
   }, [activeBotData]);
 
-  const themes = [
-    { id: "yellow", color: "#EFC715", textColor: "#000000" },
-    { id: "green", color: "#C2E539", textColor: "#000000" },
-    { id: "orange", color: "#FF975F", textColor: "#000000" },
-    { id: "pink", color: "#d16bd7", textColor: "#000000" },
-    { id: "blue", color: "#ABC3FF", textColor: "#000000" },
-    { id: "gray", color: "#808080", textColor: "#FFFFFF" },
-    { id: "dark-blue", color: "#4220cd", textColor: "#FFFFFF" },
-    { id: "navy", color: "#16598F", textColor: "#FFFFFF" },
-    { id: "dark-green", color: "#004F4A", textColor: "#FFFFFF" },
-  ];
+  const themes = AVAILABLE_THEMES;
 
-  const handleThemeSelect = async (themeId: string) => {
-    setSelectedTheme(themeId);
-    const selectedTheme = themes.find((t) => t.id === themeId);
+  const handleThemeSelect = async (inputTheme: Theme) => {
+    setSelectedTheme(inputTheme);
+    const selectedTheme = themes.find((t) => t.id === inputTheme.id);
 
     if (selectedTheme && activeBotData) {
-      const newTheme = {
-        isDark: selectedTheme.textColor === "#FFFFFF",
-        mainDarkColor: selectedTheme.color,
-        mainLightColor:
-          selectedTheme.textColor === "#FFFFFF" ? "#FFFFFF" : "#000000",
-        highlightColor: selectedTheme.textColor,
-      };
-
       try {
         // Update bot config with new theme
-        await updateAgentDetails(activeBotData.agentId, {
-          model: activeBotData.model,
-          systemPrompt: activeBotData.systemPrompt,
-          username: activeBotData.username,
-          name: activeBotData.name,
-          logo: activeBotData.logo,
-          personalityType: activeBotData.personalityType,
-          isCustomPersonality: activeBotData.isCustomPersonality,
-          customPersonalityPrompt: activeBotData.customPersonalityPrompt,
-          personalityAnalysis: activeBotData.personalityAnalysis,
-          lastPersonalityUrl: activeBotData.lastPersonalityUrl,
-          lastPersonalityContent: activeBotData.lastPersonalityContent,
-          themeColors: newTheme,
-        });
+        await updateBotTheme(activeBotData.agentId, inputTheme);
 
         // Update preview
         setPreviewConfig({
           ...activeBotData,
-          themeColors: newTheme,
+          themeColors: inputTheme,
         });
 
         toast.success("Theme updated successfully");
@@ -79,99 +53,114 @@ const Theme = () => {
   };
 
   return (
-    <div className="container grid grid-cols-5 w-full bg-white">
-      <div className="col-span-3 p-6">
+    <div
+      className="grid grid-cols-5 w-full bg-white"
+      style={{ height: "calc(100vh - 64px)" }}
+    >
+      <div className="col-span-3 p-6 overflow-y-auto h-full">
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900">Display Theme</h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <h2 className="text-xl font-bold text-black">Display Theme</h2>
+          <p className="text-sm font-[500] text-black mt-1">
             Select a theme that visually represents your brand's personality
           </p>
         </div>
         <div className="grid grid-cols-3 gap-4">
-          {themes.map((theme) => (
+          {themes.map((currentTheme) => (
             <div
-              key={theme.id}
-              className={`relative cursor-pointer transition-all hover:scale-105`}
-              onClick={() => handleThemeSelect(theme.id)}
+              key={currentTheme.id}
+              className="relative w-52 mx-auto cursor-pointer transition-all hover:scale-105"
+              onClick={() => handleThemeSelect(currentTheme)}
             >
-              {/* Selection Circle */}
+              {/* Selection Indicator */}
               <div
-                className={`absolute -top-2 -left-2 w-4 h-4 rounded-full border-2 border-white shadow-sm z-10
-                ${selectedTheme === theme.id ? "bg-green-500" : "bg-gray-300"}`}
+                className={`border absolute  -left-3 w-7 h-7 rounded-full shadow border-2 border-white bg-gradient-to-br from-gray-300 to-gray-500 z-10 ${
+                  selectedTheme.id === currentTheme.id
+                    ? "bg-green-500"
+                    : "opacity-100"
+                }`}
+                style={{
+                  border: `2px solid black`,
+                  background:
+                    selectedTheme.id === currentTheme.id
+                      ? "#6aff97"
+                      : "#bdbdbd",
+                }}
               />
 
-              {/* Chat Container */}
-              <div className="border rounded-lg overflow-hidden shadow-sm">
-                {/* Chat Header */}
-                <div
-                  className="p-2 border-b"
-                  style={{ backgroundColor: theme.color }}
+              {/* Theme Header Bar */}
+              <div
+                className="mt-2"
+                style={{
+                  background: currentTheme.mainDarkColor,
+                  height: 40,
+                  borderTopRightRadius: 10,
+                }}
+              />
+
+              <div
+                className="flex justify-around"
+                style={{
+                  backgroundColor: currentTheme.isDark ? "black" : "white",
+                }}
+              >
+                <button
+                  onClick={() => null}
+                  className={`text-xs font-bold px-4 py-1 relative flex items-center space-x-1`}
+                  style={{
+                    color: currentTheme.highlightColor,
+                    borderBlockEnd: `4px solid ${currentTheme.highlightColor}`,
+                  }}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 rounded-full bg-white"></div>
-                      <span
-                        className="text-[11px] font-medium"
-                        style={{ color: theme.textColor }}
-                      >
-                        CHAT
-                      </span>
-                    </div>
-                    <svg
-                      viewBox="0 0 24 24"
-                      className="w-3 h-3"
-                      style={{ color: theme.textColor }}
-                      fill="currentColor"
-                    >
-                      <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
-                    </svg>
+                  <MessageSquare
+                    className="h-3.5 w-3.5 font"
+                    style={{
+                      marginRight: 3,
+                      color: currentTheme.highlightColor,
+                    }}
+                  />{" "}
+                  CHAT
+                </button>
+              </div>
+
+              {/* Chat Window */}
+              <div className="bg-gray-100 rounded-xl p-4 space-y-2">
+                {/* AI Agent Message */}
+                <div className="flex">
+                  <div className="bg-white rounded-lg px-3 py-1 text-black text-sm font-medium">
+                    AI Agent
                   </div>
                 </div>
-
-                {/* Messages Container */}
-                <div className="bg-gray-50 p-2 space-y-2">
-                  {/* AI Message */}
-                  <div className="flex items-start space-x-1">
-                    <div className="w-4 h-4 rounded-full bg-gray-200 flex-shrink-0"></div>
-                    <div className="text-[11px] bg-white px-2 py-1.5 rounded-lg shadow-sm max-w-[80%]">
-                      AI Agent
-                    </div>
+                {/* User Message */}
+                <div className="flex justify-end">
+                  <div
+                    className="rounded-lg px-3 py-1 text-black text-sm font-medium"
+                    style={{ background: currentTheme.mainDarkColor }}
+                  >
+                    User
                   </div>
-
-                  {/* User Message */}
-                  <div className="flex justify-end">
+                </div>
+                {/* Input Bar */}
+                <div className="flex items-center mt-2">
+                  <div
+                    className="flex-1 rounded-lg"
+                    style={{
+                      background: currentTheme.mainLightColor,
+                      height: 32,
+                    }}
+                  />
+                  <div className="ml-2 w-8 h-8 rounded-full bg-black flex items-center justify-center">
                     <div
-                      className="text-[11px] px-2 py-1.5 rounded-lg shadow-sm max-w-[80%]"
+                      className=" right-2 p-2 rounded-full"
                       style={{
-                        backgroundColor: theme.color,
-                        color: theme.textColor,
+                        backgroundColor: currentTheme.highlightColor,
                       }}
                     >
-                      User
-                    </div>
-                  </div>
-                </div>
-
-                {/* Input Bar */}
-                <div className="p-2 bg-white border-t">
-                  <div className="flex items-center justify-between bg-gray-50 rounded-full px-3 py-1.5">
-                    <div className="text-[10px] text-gray-400">
-                      Type a message...
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        className="w-3 h-3 text-gray-400"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                        />
-                      </svg>
+                      <Mic
+                        className="h-5 w-5"
+                        style={{
+                          color: !currentTheme.isDark ? "white" : "black",
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
@@ -180,16 +169,16 @@ const Theme = () => {
           ))}
         </div>
       </div>
-      <div className="col-span-2 pt-6" style={{ backgroundColor: "#eaefff" }}>
-        <div className="mx-auto" style={{ maxWidth: 440 }}>
-          <PublicChat
-            agentUsernamePlayground={null}
-            previewConfig={previewConfig || activeBotData}
-          />
+      <div
+        className="col-span-2 h-full sticky top-0 flex items-center justify-center"
+        style={{ backgroundColor: "#eaefff" }}
+      >
+        <div className="mx-auto" style={{ maxWidth: 400 }}>
+          <PublicChat previewConfig={previewConfig || activeBotData} />
         </div>
       </div>
     </div>
   );
 };
 
-export default Theme;
+export default CustomTheme;

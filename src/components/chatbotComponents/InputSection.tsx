@@ -21,7 +21,7 @@ export default function InputSection({
 }: InputSectionProps) {
   return (
     <div
-      className="p-4 space-y-4"
+      className="p-4 space-y-2"
       style={{ backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9" }}
     >
       {/* Input Field */}
@@ -63,7 +63,7 @@ export default function InputSection({
         className="text-center text-xs"
         style={{ color: theme.highlightColor }}
       >
-        Powered by Kifor
+        Powered by KiFor
       </div>
     </div>
   );

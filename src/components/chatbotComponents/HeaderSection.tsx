@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   User,
   LogOut,
@@ -8,62 +8,229 @@ import {
   ShoppingCart,
   Menu,
 } from "lucide-react";
-import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { useUserStore } from "../../store/useUserStore";
-import { Theme } from "../../types";
+import { BotConfig, Theme } from "../../types";
+
+// Add Google API type declaration
+declare global {
+  interface Window {
+    google: {
+      accounts: {
+        oauth2: {
+          initTokenClient: (config: {
+            client_id: string;
+            callback: (response: any) => void;
+            scope: string;
+          }) => {
+            requestAccessToken: () => void;
+          };
+        };
+      };
+    };
+  }
+}
 
 interface HeaderSectionProps {
   theme: Theme;
-  currentConfig: {
-    logo?: string;
-    name?: string;
-  };
+  currentConfig: BotConfig;
   activeScreen: "about" | "chat" | "browse";
   setActiveScreen: (screen: "about" | "chat" | "browse") => void;
-  onGoogleLoginSuccess?: (response: any) => void;
-  onGoogleLoginError?: () => void;
 }
 
-export default function HeaderSection({
+function HeaderSection({
   theme,
   currentConfig,
   activeScreen,
   setActiveScreen,
 }: HeaderSectionProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showOrderHistory, setShowOrderHistory] = useState(false);
+  const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
 
   const {
     isLoggedIn,
     userEmail,
+    userDetails,
     handleGoogleLoginSuccess: userGoogleLoginSuccess,
     handleGoogleLoginError: userGoogleLoginError,
     logout: userLogout,
   } = useUserStore();
 
-  const handleLoginSuccess = (response: any) => {
-    userGoogleLoginSuccess(response);
-  };
+  useEffect(() => {
+    // Load Google Identity Services script
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      setIsGoogleLoaded(true);
+    };
+    script.onerror = (error) => {
+      console.error("Error loading Google Identity Services script:", error);
+    };
+    document.body.appendChild(script);
 
-  const handleLoginError = () => {
-    userGoogleLoginError();
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const handleLoginClick = () => {
+    console.log("Login button clicked");
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+    if (!clientId) {
+      console.error("Google Client ID is not configured");
+      return;
+    }
+
+    if (!isGoogleLoaded) {
+      console.error("Google Identity Services not loaded yet");
+      return;
+    }
+
+    try {
+      console.log("Initializing Google client with ID:", clientId);
+      // Initialize Google OAuth client
+      const client = window.google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        callback: (response: { error?: string; access_token: string }) => {
+          console.log("Google OAuth response:", response);
+          if (response.error) {
+            console.error("Google OAuth error:", response.error);
+            userGoogleLoginError();
+          } else {
+            console.log("Google OAuth success");
+            // Get user info using the access token
+            fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+              headers: {
+                Authorization: `Bearer ${response.access_token}`,
+              },
+            })
+              .then((res) => res.json())
+              .then((userInfo) => {
+                console.log("User info:", userInfo);
+                userGoogleLoginSuccess({
+                  credential: response.access_token,
+                  userInfo: userInfo,
+                });
+              })
+              .catch((error) => {
+                console.error("Error fetching user info:", error);
+                userGoogleLoginError();
+              });
+          }
+        },
+        scope: "email profile",
+      });
+
+      console.log("Requesting Google OAuth token");
+      // Request the token
+      client.requestAccessToken();
+    } catch (error) {
+      console.error("Error initializing Google client:", error);
+      userGoogleLoginError();
+    }
   };
 
   const UserDropdownMenu = () => (
     <div
-      className="absolute right-0 top-full mt-2 w-48 rounded-md shadow-lg ring-1 ring-black ring-opacity-5"
-      style={{ backgroundColor: theme.mainLightColor }}
+      className="absolute right-0 top-full mt-2 w-64 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-20"
+      style={{
+        backgroundColor: !theme.isDark ? "white" : "black",
+        border: `1px solid ${theme.highlightColor}`,
+      }}
     >
-      <div className="py-1" role="menu" aria-orientation="vertical">
-        <div className="px-4 py-2 text-sm text-gray-700 border-b">
-          {userEmail}
-        </div>
-        <button
-          onClick={userLogout}
-          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+      <div className="py-3 px-4 flex items-center space-x-3">
+        <div
+          className="w-8 h-8 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: theme.mainDarkColor }}
         >
-          <LogOut className="h-4 w-4" />
-          <span>Logout</span>
+          <User
+            className="h-6 w-6"
+            style={{ color: theme.isDark ? "white" : "black" }}
+          />
+        </div>
+        <div>
+          <div
+            className="text-xs"
+            style={{
+              color: theme.isDark ? "white" : "black",
+            }}
+          >
+            {userEmail || "email@email.com"}
+          </div>
+        </div>
+      </div>{" "}
+      <div
+        style={{ backgroundColor: theme.highlightColor, height: 1 }}
+        className="mx-4"
+      />
+      <button
+        onClick={userLogout}
+        className="w-full text-left px-4 py-3 text-sm flex items-center space-x-2 font-semibold"
+        style={{ color: theme.highlightColor }}
+      >
+        <LogOut className="h-4 w-4" />
+        <span>LOGOUT</span>
+      </button>
+    </div>
+  );
+
+  const OrderHistoryModal = () => (
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black bg-opacity-40">
+      <div
+        className="rounded-xl  w-96 max-w-full p-0 relative"
+        style={{
+          boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
+          backgroundColor: theme.isDark ? "black" : "white",
+          border: `1px solid ${theme.highlightColor}`,
+        }}
+      >
+        <button
+          className="absolute top-2 right-2"
+          style={{ color: theme.highlightColor }}
+          onClick={() => setShowOrderHistory(false)}
+        >
+          <span className="text-xl">&times;</span>
         </button>
+        <div className="p-4 pb-2 ">
+          <div
+            className="font-semibold text-md"
+            style={{ color: theme.isDark ? "white" : "black" }}
+          >
+            ORDER HISTORY
+          </div>
+        </div>
+        <div className="p-4 space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="bg-[#232323] rounded-lg px-4 py-3 flex flex-row justify-between items-center"
+            >
+              <div className="flex flex-col ">
+                <div className="text-xs text-gray-400">DD MM YYYY HH:MM</div>
+                <div className="text-yellow-400 text-sm font-semibold">
+                  Product Name
+                </div>
+                <div className="text-xs text-gray-300 mb-1">Qty: XX</div>
+              </div>
+              <div className="flex flex-col justify-between items-end mb-1">
+                <div
+                  className="text-sm font-semibold"
+                  style={{ color: theme.isDark ? "white" : "black" }}
+                >
+                  Amount
+                </div>
+                <div
+                  className="text-xs"
+                  style={{ color: theme.mainLightColor }}
+                >
+                  Paid via Stripe
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -103,9 +270,7 @@ export default function HeaderSection({
                 color: !theme.isDark ? "white" : "black",
                 border: "2px solid #ffffff",
               }}
-              onClick={() => {
-                /* Handle order history click */
-              }}
+              onClick={() => setShowOrderHistory(true)}
             >
               <History className="h-5 w-5" />
             </button>
@@ -123,15 +288,21 @@ export default function HeaderSection({
               </button>
               {showUserMenu && <UserDropdownMenu />}
             </div>
+            {showOrderHistory && <OrderHistoryModal />}
           </div>
         ) : (
-          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-            <GoogleLogin
-              onSuccess={handleLoginSuccess}
-              onError={handleLoginError}
-              useOneTap
-            />
-          </GoogleOAuthProvider>
+          <div>
+            <button
+              className="rounded-full hover:bg-opacity-10 hover:bg-white px-4 py-1 text-sm"
+              style={{
+                backgroundColor: theme.highlightColor,
+                color: !theme.isDark ? "white" : "black",
+              }}
+              onClick={handleLoginClick}
+            >
+              LOGIN
+            </button>
+          </div>
         )}
       </div>
       {/* Ad Strip */}
@@ -218,3 +389,5 @@ export default function HeaderSection({
     </div>
   );
 }
+
+export default HeaderSection;

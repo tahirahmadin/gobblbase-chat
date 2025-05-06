@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Twitter,
   Instagram,
@@ -10,12 +10,14 @@ import {
 } from "lucide-react";
 import { Theme } from "../../types";
 import TryFreeBanner from "./TryFreeBanner";
+import { getAgentPolicies } from "../../lib/serverActions";
 
 interface AboutSectionProps {
   currentConfig: {
     name?: string;
     logo?: string;
     bio?: string;
+    agentId?: string;
   };
   theme: Theme;
   socials?: {
@@ -28,26 +30,64 @@ interface AboutSectionProps {
     snapchat: string;
     link: string;
   };
+  onPolicyClick?: (
+    policyKey: string,
+    policy: PolicyContent,
+    policyName: string
+  ) => void;
+}
+
+interface PolicyContent {
+  enabled: boolean;
+  content: string;
 }
 
 export default function AboutSection({
   currentConfig,
   theme,
   socials,
+  onPolicyClick,
 }: AboutSectionProps) {
+  const [policies, setPolicies] = useState<{ [key: string]: PolicyContent }>(
+    {}
+  );
+
+  //Fetching policies from the database
+  useEffect(() => {
+    const fetchPolicies = async () => {
+      if (!currentConfig?.agentId) return;
+      try {
+        const response = await getAgentPolicies(currentConfig.agentId);
+        if (!response.error) {
+          setPolicies(response.result);
+        }
+      } catch (err) {
+        // Optionally handle error
+      }
+    };
+    fetchPolicies();
+  }, [currentConfig?.agentId]);
+
+  const policyNames: Record<string, string> = {
+    shipping: "Shipping Policy",
+    returns: "Returns & Refunds",
+    privacy: "Privacy Policy",
+    terms: "Terms & Conditions",
+  };
+
   return (
     <div
-      className="flex flex-col items-center h-full"
+      className="flex flex-col items-center h-full w-full"
       style={{
         backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
         color: theme.isDark ? "white" : "black",
       }}
     >
-      <div className="shadow-lg">
+      <div className="w-full flex flex-col justify-between h-full">
         {/* Profile Section */}
-        <div className="flex flex-col items-center mt-8 space-y-4">
+        <div className="flex flex-col items-center mt-3 space-y-2">
           {/* Profile Image */}
-          <div className="w-16 h-16 rounded-full overflow-hidden">
+          <div className="w-20 h-20 rounded-full overflow-hidden">
             <img
               src={
                 currentConfig?.logo ||
@@ -148,14 +188,13 @@ export default function AboutSection({
             }}
           >
             <p className="text-sm text-center">
-              {currentConfig?.bio ||
-                "User Bio User Bio qwerty qwerty qwerty qwerty qwerty"}
+              {currentConfig?.bio || "Add your bio..."}
             </p>
           </div>
         </div>
 
         {/* Social Links */}
-        <div className="w-full px-6 mt-6 space-y-3">
+        <div className="w-full px-6 mt-4 space-y-3">
           {socials?.instagram && (
             <a
               href={socials.instagram}
@@ -163,7 +202,7 @@ export default function AboutSection({
               rel="noopener noreferrer"
               className="w-full py-3 rounded-full font-medium block text-center"
               style={{
-                backgroundColor: theme.mainDarkColor,
+                backgroundColor: theme.highlightColor,
                 color: !theme.isDark ? "white" : "black",
               }}
             >
@@ -177,7 +216,7 @@ export default function AboutSection({
               rel="noopener noreferrer"
               className="w-full py-3 rounded-full font-medium block text-center"
               style={{
-                backgroundColor: theme.mainDarkColor,
+                backgroundColor: theme.highlightColor,
                 color: !theme.isDark ? "white" : "black",
               }}
             >
@@ -185,16 +224,36 @@ export default function AboutSection({
             </a>
           )}
         </div>
+        {/* Policies Section */}
         <div className="flex justify-center space-x-4 mt-4 mb-6">
-          <a href="/privacy" className="text-sm opacity-60 hover:opacity-100">
-            Privacy Policy
-          </a>
-          <a href="/shipping" className="text-sm opacity-60 hover:opacity-100">
-            Shipping & Returns
-          </a>
+          {Object.entries(policies)
+            .filter(([_, p]) => p.enabled)
+            .map(([key, p]) => (
+              <button
+                key={key}
+                className="text-sm opacity-60 hover:opacity-100 underline"
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  color: "inherit",
+                  cursor: "pointer",
+                }}
+                onClick={() =>
+                  onPolicyClick?.(
+                    key,
+                    p,
+                    policyNames[key] ||
+                      key.charAt(0).toUpperCase() + key.slice(1)
+                  )
+                }
+              >
+                {policyNames[key] || key.charAt(0).toUpperCase() + key.slice(1)}
+              </button>
+            ))}
         </div>
+        <TryFreeBanner />
       </div>
-      <TryFreeBanner />
     </div>
   );
 }
