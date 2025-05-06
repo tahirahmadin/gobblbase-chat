@@ -167,7 +167,7 @@ const Voice = () => {
       </div>
 
       {/* Custom Voice Section - Show only when custom is selected */}
-      {selectedPersonality === "custom" && (
+      {/* {selectedPersonality === "custom" && (
         <div className="mt-8 p-6 bg-white rounded-lg border border-gray-200">
           <h3 className="text-lg font-medium text-gray-900 mb-4">
             Customize Your Voice
@@ -211,7 +211,7 @@ const Voice = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       <div className="mt-8 flex justify-end">
         <button

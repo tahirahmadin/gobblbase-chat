@@ -14,7 +14,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   INR: "₹",
   CAD: "C$",
   AUD: "A$",
-  JPY: "¥"
+  JPY: "¥",
 };
 
 interface BrowseSectionProps {
@@ -26,65 +26,77 @@ interface BrowseSectionProps {
     sessionPrice?: string;
     isFreeSession?: boolean;
   };
+  showOnlyBooking?: boolean;
 }
 
-export default function BrowseSection({ 
-  theme, 
-  currentConfig
+export default function BrowseSection({
+  theme,
+  currentConfig,
+  showOnlyBooking = false,
 }: BrowseSectionProps) {
   const { products } = useCartStore();
-  const [showBooking, setShowBooking] = useState(false);
-  
+  const [showBooking, setShowBooking] = useState(showOnlyBooking);
+
   // State for dynamic pricing from backend
   const [dynamicPrice, setDynamicPrice] = useState({
     isFree: currentConfig?.isFreeSession || false,
     amount: 0,
     currency: "USD",
-    displayPrice: currentConfig?.isFreeSession ? "Free" : currentConfig?.sessionPrice || "Free"
+    displayPrice: currentConfig?.isFreeSession
+      ? "Free"
+      : currentConfig?.sessionPrice || "Free",
   });
-  
+
   const [loadingPrice, setLoadingPrice] = useState(false);
-  
+
   // Format price for display
-  const formatPrice = (price: { isFree: boolean; amount: number; currency: string }): string => {
+  const formatPrice = (price: {
+    isFree: boolean;
+    amount: number;
+    currency: string;
+  }): string => {
     if (price.isFree) return "Free";
     const symbol = CURRENCY_SYMBOLS[price.currency] || "$";
     return `${symbol}${price.amount}`;
   };
-  
+
   // Extract values from config with defaults
   const businessId = currentConfig?.agentId || "";
   const botName = currentConfig?.name || "AI Assistant";
   const sessionName = currentConfig?.sessionName || "Session Description";
-  
+
   // Load price from backend API
   useEffect(() => {
     const fetchPriceSettings = async () => {
       if (!businessId) return;
-      
+
       setLoadingPrice(true);
       try {
         const data = await getAppointmentSettings(businessId);
         console.log("Loaded settings for pricing:", data);
-        
+
         if (data && data.price) {
           const formattedPrice = formatPrice(data.price);
           setDynamicPrice({
             isFree: data.price.isFree,
             amount: data.price.amount,
             currency: data.price.currency,
-            displayPrice: formattedPrice
+            displayPrice: formattedPrice,
           });
           console.log("Set dynamic price from API:", formattedPrice);
         } else {
           // Use defaults from currentConfig if no price data found
           setDynamicPrice({
             isFree: currentConfig?.isFreeSession || false,
-            amount: currentConfig?.sessionPrice ? 
-              parseFloat(currentConfig.sessionPrice.replace(/[^0-9.]/g, "")) || 0 : 0,
+            amount: currentConfig?.sessionPrice
+              ? parseFloat(
+                  currentConfig.sessionPrice.replace(/[^0-9.]/g, "")
+                ) || 0
+              : 0,
             currency: "USD",
-            displayPrice: currentConfig?.isFreeSession ? 
-              "Free" : currentConfig?.sessionPrice || "Free"
+            displayPrice: currentConfig?.isFreeSession
+              ? "Free"
+              : currentConfig?.sessionPrice || "Free",
           });
         }
       } catch (error) {
@@ -93,9 +105,30 @@ export default function BrowseSection({
         setLoadingPrice(false);
       }
     };
-    
+
     fetchPriceSettings();
   }, [businessId, currentConfig]);
+
+  // If showOnlyBooking is true, only show the booking section
+  if (showOnlyBooking) {
+    return (
+      <div
+        className="rounded-xl overflow-hidden"
+        style={{
+          backgroundColor: theme.isDark ? "#000000" : "#ffffff",
+          color: !theme.isDark ? "#000000" : "#ffffff",
+        }}
+      >
+        <BookingFlowComponent
+          businessId={businessId}
+          serviceName={sessionName}
+          servicePrice={dynamicPrice.displayPrice}
+          theme={theme}
+          onClose={() => setShowBooking(false)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div
@@ -107,7 +140,7 @@ export default function BrowseSection({
       {/* Book Meeting Section */}
       <div className="pt-4 px-4">
         <h2 className="text-sm font-medium mb-2">Book Meeting</h2>
-        
+
         {/* Session Description Button */}
         <button
           className="w-full rounded-xl p-4 flex items-center justify-between"
@@ -124,21 +157,27 @@ export default function BrowseSection({
             </div>
           </div>
           {showBooking ? (
-            <ChevronDown className="w-5 h-5" style={{ color: theme.highlightColor }} />
+            <ChevronDown
+              className="w-5 h-5"
+              style={{ color: theme.highlightColor }}
+            />
           ) : (
-            <ChevronRight className="w-5 h-5" style={{ color: theme.highlightColor }} />
+            <ChevronRight
+              className="w-5 h-5"
+              style={{ color: theme.highlightColor }}
+            />
           )}
         </button>
-        
+
         {/* Booking Component (appears as dropdown) */}
         {showBooking && (
-          <div 
-            className="mt-2 rounded-xl overflow-hidden" 
-            style={{ 
+          <div
+            className="mt-2 rounded-xl overflow-hidden"
+            style={{
               backgroundColor: theme.isDark ? "#000000" : "#ffffff",
               color: !theme.isDark ? "#000000" : "#ffffff",
-              maxHeight: "450px", // Fixed height to match reference
-              overflowY: "auto"    // Allow scrolling for content
+              maxHeight: "450px",
+              overflowY: "auto",
             }}
           >
             <BookingFlowComponent
@@ -152,8 +191,8 @@ export default function BrowseSection({
         )}
       </div>
 
-      {/* Browse Products Section - Only show when booking is closed */}
-      {!showBooking && (
+      {/* Browse Products Section - Only show when booking is closed and not in booking-only mode */}
+      {!showBooking && !showOnlyBooking && (
         <div className="px-4 mt-6">
           <h2 className="text-sm font-medium mb-2">Browse</h2>
           <div className="grid grid-cols-2 gap-4">
@@ -185,7 +224,7 @@ export default function BrowseSection({
                       ${product.price}
                     </div>
                   </div>
-                  <button 
+                  <button
                     className="w-6 h-6 rounded-full flex items-center justify-center"
                     style={{ backgroundColor: theme.highlightColor }}
                   >
@@ -197,7 +236,7 @@ export default function BrowseSection({
           </div>
         </div>
       )}
-      
+
       {/* Always show TryFreeBanner */}
       <TryFreeBanner />
     </div>

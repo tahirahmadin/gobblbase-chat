@@ -180,7 +180,6 @@ export default function PublicChat({
     };
     setMessages((m) => [...m, userMsg]);
     setMessage("");
-    setIsLoading(true);
     setShowCues(false);
     scrollToBottom(); // Scroll immediately after user message
 
@@ -191,6 +190,14 @@ export default function PublicChat({
       "appointment",
       "meeting",
       "schedule",
+      "call",
+      "reserve",
+      "booking",
+      "appointments",
+      "meetings",
+      "calls",
+      "scheduling",
+      "reservation",
     ].some((kw) => text.includes(kw));
 
     if (isBookingRequest) {
@@ -203,18 +210,12 @@ export default function PublicChat({
         type: "booking",
       };
       setMessages((m) => [...m, bookingMsg]);
-      setIsLoading(false);
       return;
     }
 
+    setIsLoading(true);
     try {
       // fetch RAG context
-      // let productContext = "";
-      // if (products.length > 0) {
-      //   productContext = `Here are the products available: ${JSON.stringify(
-      //     products
-      //   )}`;
-      // }
       const queryContext = await queryDocument(config.agentId, msgToSend);
       let voiceTone = currentConfig?.personalityType.value.toString();
       let systemPrompt = `You are a concise AI assistant.  Use context when relevant:\n${JSON.stringify(
@@ -324,8 +325,14 @@ export default function PublicChat({
                 messages={messages}
                 isLoading={isLoading}
                 activeScreen={activeScreen}
-                currentConfig={currentConfig || { name: "KiFor Bot" }}
                 messagesEndRef={messagesEndRef}
+                currentConfig={{
+                  agentId: config?.agentId,
+                  name: config?.name,
+                  sessionName: pricingInfo.sessionName,
+                  sessionPrice: pricingInfo.sessionPrice,
+                  isFreeSession: pricingInfo.isFreeSession,
+                }}
               />
 
               {/* cues */}

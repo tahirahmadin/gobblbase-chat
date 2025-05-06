@@ -11,6 +11,7 @@ import {
 import { useBotConfig } from "../../../store/useBotConfig";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { calculateSmartnessLevel } from "../../../utils/helperFn";
 
 interface SocialMediaLinks {
   instagram: string;
@@ -20,6 +21,7 @@ interface SocialMediaLinks {
   youtube: string;
   linkedin: string;
   snapchat: string;
+  link: string;
 }
 
 const socialMediaIcons = {
@@ -51,6 +53,7 @@ const Profile = () => {
     youtube: "",
     linkedin: "",
     snapchat: "",
+    link: "",
   });
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -70,21 +73,14 @@ const Profile = () => {
       setAgentUsername(activeBotData.username);
       setAgentName(activeBotData.name);
       setAgentBio(activeBotData.bio);
-      setSocialMedia(activeBotData.socials);
-      setPromotionalBanner(activeBotData.promotionalBanner);
+      const socials = activeBotData.socials as SocialMediaLinks;
+      setSocialMedia(socials);
+      setPromotionalBanner(activeBotData.promotionalBanner || "");
       setIsPromoBannerEnabled(activeBotData.isPromoBannerEnabled);
-    }
-  }, [activeBotData]);
 
-  useEffect(() => {
-    if (activeBotData?.smartenUpAnswers) {
-      let answersAdded = 0;
-      activeBotData?.smartenUpAnswers.map((answer) => {
-        if (answer != "") {
-          answersAdded++;
-        }
-      });
-      setSmartnessLevel(Math.round((answersAdded / 4) * 100));
+      // Calculate and set smartness level
+      const newSmartnessLevel = calculateSmartnessLevel(activeBotData);
+      setSmartnessLevel(newSmartnessLevel);
     }
   }, [activeBotData]);
 

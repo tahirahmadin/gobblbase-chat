@@ -1,19 +1,19 @@
-import React, { useState, useRef, useEffect} from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { X, Upload, Loader2, FileText, AlertCircle } from "lucide-react";
 import { toast } from "react-hot-toast";
 import * as pdfjsLib from "pdfjs-dist";
 import mammoth from "mammoth";
-import { 
+import {
   createNewAgentWithDocumentId,
-  addDocumentToAgent, 
-  removeDocumentFromAgent, 
+  addDocumentToAgent,
+  removeDocumentFromAgent,
   listAgentDocuments,
   updateDocumentInAgent,
-  Document
 } from "../../../lib/serverActions";
 import { useAdminStore } from "../../../store/useAdminStore";
 import { useBotConfig } from "../../../store/useBotConfig";
 import { updateAgentBrain } from "../../../lib/serverActions";
+import { calculateSmartnessLevel } from "../../../utils/helperFn";
 
 // Set the PDF worker source
 pdfjsLib.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
@@ -25,13 +25,20 @@ interface UploadedFile {
   documentId?: string;
 }
 
+// Define Document interface locally since it's not exported from serverActions
+interface Document {
+  documentId: string;
+  title: string;
+  content?: string;
+}
+
 interface BrainProps {
   onCancel?: () => void;
 }
 
 const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   const { activeBotData, setRefetchBotData } = useBotConfig();
-  const [smartnessLevel, setSmartnessLevel] = useState(30);
+  const [smartnessLevel, setSmartnessLevel] = useState(0);
   const [selectedLanguage, setSelectedLanguage] = useState("English");
   const [links, setLinks] = useState<string[]>([]);
   const [newLink, setNewLink] = useState("");
@@ -45,7 +52,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     usp: "",
     brandPersonality: "",
     languageTerms: "",
-    frequentQuestions: ""
+    frequentQuestions: "",
   });
   const [smartenUpAnswers, setSmartenUpAnswers] = useState<string[]>([
     "",
@@ -58,21 +65,27 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   useEffect(() => {
     if (activeBotData) {
       setSelectedLanguage(activeBotData.language || "English");
-      if (activeBotData.smartenUpAnswers) {
+
+      // Initialize smartenUpAnswers from activeBotData
+      if (
+        activeBotData.smartenUpAnswers &&
+        activeBotData.smartenUpAnswers.length >= 4
+      ) {
         setSmartenUpAnswers(activeBotData.smartenUpAnswers);
+
+        // Initialize insightsData from smartenUpAnswers
+        setInsightsData({
+          usp: activeBotData.smartenUpAnswers[0] || "",
+          brandPersonality: activeBotData.smartenUpAnswers[1] || "",
+          languageTerms: activeBotData.smartenUpAnswers[2] || "",
+          frequentQuestions: activeBotData.smartenUpAnswers[3] || "",
+        });
       }
-    }
-  }, [activeBotData]);
-  
-  useEffect(() => {
-    if (activeBotData?.smartenUpAnswers) {
-      let answersAdded = 0;
-      activeBotData?.smartenUpAnswers.map((answer) => {
-        if (answer != "") {
-          answersAdded++;
-        }
-      });
-      setSmartnessLevel(Math.round((answersAdded / 4) * 100));
+
+      // Calculate and set smartness level
+      const newSmartnessLevel = calculateSmartnessLevel(activeBotData);
+      console.log("newSmartnessLevel", newSmartnessLevel);
+      setSmartnessLevel(newSmartnessLevel);
     }
   }, [activeBotData]);
 
@@ -90,33 +103,23 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   // Fetch documents for an agent
   const fetchAgentDocuments = async () => {
     if (!activeBotId) return;
-    
+
     try {
       const response = await listAgentDocuments(activeBotId);
-      
-      if (!response.error && typeof response.result !== 'string') {
+
+      if (!response.error && typeof response.result !== "string") {
         const docs = response.result.documents.map((doc: Document) => ({
           name: doc.title,
           size: "N/A", // Size not stored in backend
-          documentId: doc.documentId
+          documentId: doc.documentId,
         }));
-        
+
         setUploadedFiles(docs);
-        
-        // Update smartness level based on document count
-        updateSmartness(docs.length);
       }
     } catch (error) {
       console.error("Error fetching agent documents:", error);
       toast.error("Failed to load agent documents");
     }
-  };
-
-  // Update smartness level based on number of documents
-  const updateSmartness = (docCount: number) => {
-    // Base level 30% + 10% per document, max 100%
-    const newLevel = Math.min(30 + (docCount * 10), 100);
-    setSmartnessLevel(newLevel);
   };
 
   // Handle adding links
@@ -125,13 +128,15 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       toast.error("Please enter a valid URL");
       return;
     }
-    
+
     // Basic URL validation
     try {
       // Add protocol if missing
-      const urlToAdd = newLink.startsWith('http') ? newLink : `https://${newLink}`;
+      const urlToAdd = newLink.startsWith("http")
+        ? newLink
+        : `https://${newLink}`;
       new URL(urlToAdd); // Will throw if invalid
-      
+
       if (!links.includes(urlToAdd)) {
         setLinks([...links, urlToAdd]);
         setNewLink("");
@@ -154,33 +159,35 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       // Just remove from UI if no document ID (not yet uploaded to server)
       setUploadedFiles(uploadedFiles.filter((file) => file.name !== fileName));
       // Also remove from selectedFiles if it's there
-      setSelectedFiles(selectedFiles.filter(file => file.name !== fileName));
+      setSelectedFiles(selectedFiles.filter((file) => file.name !== fileName));
       return;
     }
 
     try {
       setProcessingFile(fileName);
-      
+
       // Call API to remove document
       const response = await removeDocumentFromAgent(activeBotId, documentId);
-      
+
       if (!response.error) {
         // Remove from UI
-        const updatedFiles = uploadedFiles.filter(file => file.documentId !== documentId);
+        const updatedFiles = uploadedFiles.filter(
+          (file) => file.documentId !== documentId
+        );
         setUploadedFiles(updatedFiles);
-        
-        // Update smartness level
-        updateSmartness(updatedFiles.length);
-        
+
         toast.success("Document removed successfully");
       } else {
         // Check if we have the only document error
-        const errorMsg = typeof response.result === 'string' 
-          ? response.result 
-          : "Failed to remove document";
-        
+        const errorMsg =
+          typeof response.result === "string"
+            ? response.result
+            : "Failed to remove document";
+
         if (errorMsg.includes("Cannot remove the only document")) {
-          toast.error("Cannot remove the only document. An agent must have at least one document.");
+          toast.error(
+            "Cannot remove the only document. An agent must have at least one document."
+          );
         } else {
           toast.error(errorMsg);
         }
@@ -206,20 +213,25 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
           const textContent = await page.getTextContent();
-          extractedText += textContent.items.map((item: any) => item.str).join(" ");
+          extractedText += textContent.items
+            .map((item: any) => item.str)
+            .join(" ");
         }
-      } 
+      }
       // Word document extraction
-      else if (fileType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+      else if (
+        fileType ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      ) {
         const arrayBuffer = await file.arrayBuffer();
         const result = await mammoth.extractRawText({ arrayBuffer });
         extractedText = result.value;
-      } 
+      }
       // Text files or other formats
       else {
         extractedText = await file.text();
       }
-      
+
       return extractedText;
     } catch (error) {
       console.error("Error extracting text from file:", error);
@@ -231,32 +243,44 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const newFiles = Array.from(e.target.files);
-    
+
     // Check if adding these files would exceed the limit
     if (uploadedFiles.length + selectedFiles.length + newFiles.length > 5) {
       setErrorMessage("Maximum 5 files allowed");
       return;
     }
-    
+
     // Check file sizes
-    const largeFiles = newFiles.filter(f => f.size > 15 * 1024 * 1024);
+    const largeFiles = newFiles.filter((f) => f.size > 15 * 1024 * 1024);
     if (largeFiles.length > 0) {
-      setErrorMessage(`File size should be less than 15MB: ${largeFiles.map(f => f.name).join(', ')}`);
+      setErrorMessage(
+        `File size should be less than 15MB: ${largeFiles
+          .map((f) => f.name)
+          .join(", ")}`
+      );
       return;
     }
-    
+
     // Check file types
-    const allowedTypes = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "text/plain"];
-    const invalidFiles = newFiles.filter(f => !allowedTypes.includes(f.type));
+    const allowedTypes = [
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "text/plain",
+    ];
+    const invalidFiles = newFiles.filter((f) => !allowedTypes.includes(f.type));
     if (invalidFiles.length > 0) {
-      setErrorMessage(`Only PDF, DOCX, and TXT files are supported: ${invalidFiles.map(f => f.name).join(', ')}`);
+      setErrorMessage(
+        `Only PDF, DOCX, and TXT files are supported: ${invalidFiles
+          .map((f) => f.name)
+          .join(", ")}`
+      );
       return;
     }
-    
+
     setErrorMessage("");
-    
+
     // Add new files to the selected files array
-    setSelectedFiles(prevFiles => [...prevFiles, ...newFiles]);
+    setSelectedFiles((prevFiles) => [...prevFiles, ...newFiles]);
   };
 
   // Handle drag and drop - UPDATED FOR MULTIPLE FILES
@@ -268,58 +292,75 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const newFiles = Array.from(e.dataTransfer.files);
-      
+
       // Check if adding these files would exceed the limit
       if (uploadedFiles.length + selectedFiles.length + newFiles.length > 5) {
         setErrorMessage("Maximum 5 files allowed");
         return;
       }
-      
+
       // Check file sizes
-      const largeFiles = newFiles.filter(f => f.size > 15 * 1024 * 1024);
+      const largeFiles = newFiles.filter((f) => f.size > 15 * 1024 * 1024);
       if (largeFiles.length > 0) {
-        setErrorMessage(`File size should be less than 15MB: ${largeFiles.map(f => f.name).join(', ')}`);
+        setErrorMessage(
+          `File size should be less than 15MB: ${largeFiles
+            .map((f) => f.name)
+            .join(", ")}`
+        );
         return;
       }
-      
+
       // Check file types
-      const allowedTypes = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "text/plain"];
-      const invalidFiles = newFiles.filter(f => !allowedTypes.includes(f.type));
+      const allowedTypes = [
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "text/plain",
+      ];
+      const invalidFiles = newFiles.filter(
+        (f) => !allowedTypes.includes(f.type)
+      );
       if (invalidFiles.length > 0) {
-        setErrorMessage(`Only PDF, DOCX, and TXT files are supported: ${invalidFiles.map(f => f.name).join(', ')}`);
+        setErrorMessage(
+          `Only PDF, DOCX, and TXT files are supported: ${invalidFiles
+            .map((f) => f.name)
+            .join(", ")}`
+        );
         return;
       }
-      
+
       setErrorMessage("");
-      
+
       // Add new files to the selected files array
-      setSelectedFiles(prevFiles => [...prevFiles, ...newFiles]);
+      setSelectedFiles((prevFiles) => [...prevFiles, ...newFiles]);
     }
   };
 
   // Handle updating insights data
-  const handleInsightsChange = (field: keyof typeof insightsData, value: string) => {
-    setInsightsData(prev => ({
+  const handleInsightsChange = (
+    field: keyof typeof insightsData,
+    value: string
+  ) => {
+    setInsightsData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
-    
+
   // Handle file upload - UPDATED FOR MULTIPLE FILES
   const handleUpload = async () => {
     if (!adminId) {
       setErrorMessage("Admin ID is required");
       return;
     }
-    
+
     if (selectedFiles.length === 0) {
       setErrorMessage("Please select files to upload");
       return;
     }
-    
+
     // Check if adding these files would exceed the limit
     if (uploadedFiles.length + selectedFiles.length > 5) {
       setErrorMessage("Maximum 5 files allowed");
@@ -331,65 +372,89 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       setErrorMessage("Agent name is required");
       return;
     }
-    
+
     setIsUploading(true);
     setErrorMessage("");
-    
+
     try {
       // If we don't have an agent yet, create one with the first file
       if (!activeBotId) {
         try {
           setProcessingFile(selectedFiles[0].name);
-          
+
           // Extract text from the first file
           const firstFileContent = await extractTextFromFile(selectedFiles[0]);
-          
+
           // Prepare combined content with insights if available
           let combinedContent = firstFileContent;
-          
+
           // Add insights data if available
           const insights = [];
           if (insightsData.usp) insights.push(`Brand USP: ${insightsData.usp}`);
-          if (insightsData.brandPersonality) insights.push(`Brand Personality: ${insightsData.brandPersonality}`);
-          if (insightsData.languageTerms) insights.push(`Brand Language: ${insightsData.languageTerms}`);
-          if (insightsData.frequentQuestions) insights.push(`Frequent Questions: ${insightsData.frequentQuestions}`);
-          
+          if (insightsData.brandPersonality)
+            insights.push(
+              `Brand Personality: ${insightsData.brandPersonality}`
+            );
+          if (insightsData.languageTerms)
+            insights.push(`Brand Language: ${insightsData.languageTerms}`);
+          if (insightsData.frequentQuestions)
+            insights.push(
+              `Frequent Questions: ${insightsData.frequentQuestions}`
+            );
+
           if (insights.length > 0) {
-            combinedContent = `BRAND INSIGHTS:\n${insights.join('\n\n')}\n\n${combinedContent}`;
+            combinedContent = `BRAND INSIGHTS:\n${insights.join(
+              "\n\n"
+            )}\n\n${combinedContent}`;
           }
-          
+
           // Create a new agent with the combined content
           const response = await createNewAgentWithDocumentId(
-            adminId, 
-            agentName.trim(), 
-            combinedContent
+            adminId,
+            agentName.trim(),
+            {
+              name: selectedLanguage,
+              value: [],
+            },
+            {
+              mainDarkColor: "#000000",
+              mainLightColor: "#ffffff",
+              highlightColor: "#3b82f6",
+              isDark: false,
+            }
           );
-          
+
           if (response.error) {
-            throw new Error(typeof response.result === 'string' ? response.result : "Failed to create agent");
+            throw new Error(
+              typeof response.result === "string"
+                ? response.result
+                : "Failed to create agent"
+            );
           }
-          
-          const newAgentId = typeof response.result !== 'string' ? response.result.agentId : '';
-          const firstDocumentId = typeof response.result !== 'string' ? response.result.documentId : '';
-          
-          if (!newAgentId || !firstDocumentId) {
+
+          const newAgentId =
+            typeof response.result !== "string" ? response.result.agentId : "";
+
+          if (!newAgentId) {
             throw new Error("Invalid response from server");
           }
-          
+
           // Add first file to the list
-          setUploadedFiles([{
-            name: selectedFiles[0].name,
-            size: formatFileSize(selectedFiles[0].size),
-            documentId: firstDocumentId
-          }]);
-          
+          setUploadedFiles([
+            {
+              name: selectedFiles[0].name,
+              size: formatFileSize(selectedFiles[0].size),
+              documentId: newAgentId, // Use agentId as documentId for now
+            },
+          ]);
+
           // Upload remaining files
           if (selectedFiles.length > 1) {
             for (let i = 1; i < selectedFiles.length; i++) {
               await uploadFileToAgent(selectedFiles[i], newAgentId);
             }
           }
-          
+
           // Upload links as separate documents if available
           if (links.length > 0) {
             for (const link of links) {
@@ -401,16 +466,12 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
               }
             }
           }
-          
-          // Update smartness level
-          updateSmartness(selectedFiles.length + links.length);
-          
+
           // Update active bot ID
-          await fetchBotData(newAgentId, false);
-          setActiveBotId(newAgentId);
-          
+          setRefetchBotData;
+
           toast.success("Agent created successfully!");
-          
+
           // Close modal if needed
           if (onCancel) {
             setTimeout(() => {
@@ -419,35 +480,37 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           }
         } catch (error) {
           console.error("Error creating agent:", error);
-          toast.error(error instanceof Error ? error.message : "Failed to create agent");
+          toast.error(
+            error instanceof Error ? error.message : "Failed to create agent"
+          );
           throw error;
         }
-      } 
+      }
       // If we already have an agent, add files to it
       else {
         // Process all selected files in parallel with Promise.all
-        const uploadPromises = selectedFiles.map(file => uploadFileToAgent(file, activeBotId));
+        const uploadPromises = selectedFiles.map((file) =>
+          uploadFileToAgent(file, activeBotId)
+        );
         await Promise.all(uploadPromises);
-        
+
         // Upload links as separate documents if available
         if (links.length > 0) {
-          const linkPromises = links.map(link => uploadLinkToAgent(link, activeBotId));
+          const linkPromises = links.map((link) =>
+            uploadLinkToAgent(link, activeBotId)
+          );
           await Promise.all(linkPromises);
         }
-        
-        // Update smartness level
-        updateSmartness(uploadedFiles.length + selectedFiles.length + links.length);
-        
+
         toast.success("All files uploaded successfully!");
       }
-      
+
       // Reset file input and selected files
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
       setSelectedFiles([]);
       setLinks([]);
-      
     } catch (error) {
       console.error("Upload error:", error);
       setErrorMessage(error instanceof Error ? error.message : "Upload failed");
@@ -458,13 +521,16 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   };
 
   // Upload a single file to an agent
-  const uploadFileToAgent = async (file: File, agentId: string): Promise<string> => {
+  const uploadFileToAgent = async (
+    file: File,
+    agentId: string
+  ): Promise<string> => {
     setProcessingFile(file.name);
-    
+
     try {
       // Extract text from file
       const textContent = await extractTextFromFile(file);
-      
+
       // Upload to agent
       const response = await addDocumentToAgent(
         agentId,
@@ -472,25 +538,33 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         file.name,
         file.size
       );
-      
+
       if (response.error) {
-        throw new Error(typeof response.result === 'string' ? response.result : `Failed to upload ${file.name}`);
+        throw new Error(
+          typeof response.result === "string"
+            ? response.result
+            : `Failed to upload ${file.name}`
+        );
       }
-      
-      const documentId = typeof response.result !== 'string' ? response.result.documentId : '';
-      
+
+      const documentId =
+        typeof response.result !== "string" ? response.result.documentId : "";
+
       if (!documentId) {
         throw new Error("Invalid response from server");
       }
-      
+
       // Add to uploaded files list
-      setUploadedFiles(prev => [...prev, {
-        name: file.name,
-        size: formatFileSize(file.size),
-        sizeInBytes: file.size,
-        documentId
-      }]);
-      
+      setUploadedFiles((prev) => [
+        ...prev,
+        {
+          name: file.name,
+          size: formatFileSize(file.size),
+          sizeInBytes: file.size,
+          documentId,
+        },
+      ]);
+
       return documentId;
     } catch (error) {
       console.error(`Error uploading ${file.name}:`, error);
@@ -502,33 +576,41 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   };
 
   // Upload a link to an agent by extracting its content
-  const uploadLinkToAgent = async (link: string, agentId: string): Promise<string> => {
+  const uploadLinkToAgent = async (
+    link: string,
+    agentId: string
+  ): Promise<string> => {
     try {
       // You need to implement this function in your serverActions.js
       // It should call your backend API that handles content extraction from URLs
-      const extractionResponse = await fetch("https://rag.gobbl.ai/content/extract", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ url: link }),
-      });
-      
+      const extractionResponse = await fetch(
+        "https://rag.gobbl.ai/content/extract",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ url: link }),
+        }
+      );
+
       if (!extractionResponse.ok) {
         throw new Error(`Failed to extract content from ${link}`);
       }
-      
+
       const extractionData = await extractionResponse.json();
-      
+
       if (!extractionData.success || !extractionData.content) {
         throw new Error(`No content extracted from ${link}`);
       }
-      const contentSize = new TextEncoder().encode(extractionData.content).length;
-      
+      const contentSize = new TextEncoder().encode(
+        extractionData.content
+      ).length;
+
       // Get URL hostname for document title
       const urlObj = new URL(link);
       const hostname = urlObj.hostname;
-      
+
       // Upload extracted content to agent
       const response = await addDocumentToAgent(
         agentId,
@@ -536,25 +618,33 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         `Web: ${hostname}`,
         contentSize
       );
-      
+
       if (response.error) {
-        throw new Error(typeof response.result === 'string' ? response.result : `Failed to upload ${link}`);
+        throw new Error(
+          typeof response.result === "string"
+            ? response.result
+            : `Failed to upload ${link}`
+        );
       }
-      
-      const documentId = typeof response.result !== 'string' ? response.result.documentId : '';
-      
+
+      const documentId =
+        typeof response.result !== "string" ? response.result.documentId : "";
+
       if (!documentId) {
         throw new Error("Invalid response from server");
       }
-      
+
       // Add to uploaded files list
-      setUploadedFiles(prev => [...prev, {
-        name: `Web: ${hostname}`,
-        size: "Web",
-        sizeInBytes: contentSize,
-        documentId
-      }]);
-      
+      setUploadedFiles((prev) => [
+        ...prev,
+        {
+          name: `Web: ${hostname}`,
+          size: "Web",
+          sizeInBytes: contentSize,
+          documentId,
+        },
+      ]);
+
       return documentId;
     } catch (error) {
       console.error(`Error uploading link ${link}:`, error);
@@ -565,15 +655,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
   // Format file size for display
   const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return bytes + ' B';
-    else if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
-    else return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-  };
-
-  const handleAnswerChange = (index: number, value: string) => {
-    const newAnswers = [...smartenUpAnswers];
-    newAnswers[index] = value;
-    setSmartenUpAnswers(newAnswers);
+    if (bytes < 1024) return bytes + " B";
+    else if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + " KB";
+    else return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   };
 
   const handleSave = async () => {
@@ -584,10 +668,19 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
     try {
       setIsSaving(true);
+
+      // Map insights to their corresponding positions in smartenUpAnswers
+      const updatedAnswers = [
+        insightsData.usp || "",
+        insightsData.brandPersonality || "",
+        insightsData.languageTerms || "",
+        insightsData.frequentQuestions || "",
+      ];
+
       await updateAgentBrain(
         activeBotData.agentId,
         selectedLanguage,
-        smartenUpAnswers
+        updatedAnswers
       );
       setRefetchBotData();
       toast.success("Agent brain updated successfully");
@@ -723,7 +816,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             <div className="space-y-2 mb-3">
               {uploadedFiles.map((file) => (
                 <div
-                  key={file.name + (file.documentId || '')}
+                  key={file.name + (file.documentId || "")}
                   className="flex items-center justify-between bg-green-50 border border-green-100 rounded-md px-3 py-2"
                 >
                   <div className="flex items-center space-x-2">
@@ -736,7 +829,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                       <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
                     ) : (
                       <button
-                        onClick={() => handleRemoveFile(file.name, file.documentId)}
+                        onClick={() =>
+                          handleRemoveFile(file.name, file.documentId)
+                        }
                         className="hover:text-red-600"
                         disabled={isUploading || processingFile !== null}
                         aria-label="Remove file"
@@ -747,7 +842,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                   </div>
                 </div>
               ))}
-              
+
               {/* Show selected files that haven't been uploaded yet */}
               {selectedFiles.map((file) => (
                 <div
@@ -757,13 +852,17 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                   <div className="flex items-center space-x-2">
                     <FileText className="h-4 w-4 text-gray-500" />
                     <span className="text-sm">{file.name}</span>
-                    <span className="text-xs text-gray-500">{formatFileSize(file.size)}</span>
+                    <span className="text-xs text-gray-500">
+                      {formatFileSize(file.size)}
+                    </span>
                     <span className="text-xs text-blue-500">(Selected)</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => {
-                        setSelectedFiles(selectedFiles.filter(f => f.name !== file.name));
+                        setSelectedFiles(
+                          selectedFiles.filter((f) => f.name !== file.name)
+                        );
                       }}
                       className="hover:text-red-600"
                       disabled={isUploading}
@@ -783,7 +882,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
               </div>
             )}
 
-            <div 
+            <div
               className="border-2 border-dashed border-gray-300 rounded-lg p-6 mb-3 cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
               onDragOver={handleDragOver}
@@ -817,16 +916,26 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
               </span>
               <button
                 onClick={handleUpload}
-                disabled={isUploading || processingFile !== null || (selectedFiles.length === 0 && !activeBotId)}
+                disabled={
+                  isUploading ||
+                  processingFile !== null ||
+                  (selectedFiles.length === 0 && !activeBotId)
+                }
                 className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
               >
                 {isUploading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {processingFile ? `UPLOADING ${processingFile}...` : "UPLOADING..."}
+                    {processingFile
+                      ? `UPLOADING ${processingFile}...`
+                      : "UPLOADING..."}
                   </>
                 ) : (
-                  `UPLOAD${selectedFiles.length > 0 ? ` (${selectedFiles.length} FILES)` : ""}`
+                  `UPLOAD${
+                    selectedFiles.length > 0
+                      ? ` (${selectedFiles.length} FILES)`
+                      : ""
+                  }`
                 )}
               </button>
             </div>
@@ -850,7 +959,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             </label>
             <textarea
               value={insightsData.usp}
-              onChange={(e) => handleInsightsChange('usp', e.target.value)}
+              onChange={(e) => handleInsightsChange("usp", e.target.value)}
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="Type here..."
@@ -864,7 +973,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             </label>
             <textarea
               value={insightsData.brandPersonality}
-              onChange={(e) => handleInsightsChange('brandPersonality', e.target.value)}
+              onChange={(e) =>
+                handleInsightsChange("brandPersonality", e.target.value)
+              }
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="Type here..."
@@ -878,7 +989,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             </label>
             <textarea
               value={insightsData.languageTerms}
-              onChange={(e) => handleInsightsChange('languageTerms', e.target.value)}
+              onChange={(e) =>
+                handleInsightsChange("languageTerms", e.target.value)
+              }
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="Type here..."
@@ -891,7 +1004,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             </label>
             <textarea
               value={insightsData.frequentQuestions}
-              onChange={(e) => handleInsightsChange('frequentQuestions', e.target.value)}
+              onChange={(e) =>
+                handleInsightsChange("frequentQuestions", e.target.value)
+              }
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="Type here..."

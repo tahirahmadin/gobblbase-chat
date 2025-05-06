@@ -174,10 +174,7 @@ const CustomTheme = () => {
         style={{ backgroundColor: "#eaefff" }}
       >
         <div className="mx-auto" style={{ maxWidth: 440 }}>
-          <PublicChat
-            agentUsernamePlayground={null}
-            previewConfig={previewConfig || activeBotData}
-          />
+          <PublicChat previewConfig={previewConfig || activeBotData} />
         </div>
       </div>
     </div>

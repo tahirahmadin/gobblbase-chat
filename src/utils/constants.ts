@@ -298,10 +298,10 @@ export const PERSONALITY_OPTIONS: PersonalityOption[] = [
     title: "TECHIE",
     traits: ["Intuitive", "Intelligent", "Resourceful"],
   },
-  {
-    id: "custom",
-    title: "CUSTOM",
-    traits: ["Create your own", "custom voice"],
-    isCustom: true,
-  },
+  // {
+  //   id: "custom",
+  //   title: "CUSTOM",
+  //   traits: ["Create your own", "custom voice"],
+  //   isCustom: true,
+  // },
 ];
