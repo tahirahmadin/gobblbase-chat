@@ -693,9 +693,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   };
 
   return (
-    <div className="container grid grid-cols-2 gap-6 p-6">
+    <div className="container grid grid-cols-2 gap-6 p-6 h-full overflow-y-auto">
       {/* Left Section - Power Your Agent's Intelligence */}
-      <div className="space-y-6">
+      <div className="space-y-6 ">
         <div>
           <h2 className="text-lg font-semibold mb-2">
             Power Your Agent's Intelligence

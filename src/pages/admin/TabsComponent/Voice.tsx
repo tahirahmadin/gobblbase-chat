@@ -3,6 +3,7 @@ import { Check } from "lucide-react";
 import { updateAgentVoicePersonality } from "../../../lib/serverActions";
 import { useBotConfig } from "../../../store/useBotConfig";
 import toast from "react-hot-toast";
+import { PERSONALITY_OPTIONS } from "../../../utils/constants";
 
 interface PersonalityOption {
   id: string;
@@ -11,44 +12,7 @@ interface PersonalityOption {
   isCustom?: boolean;
 }
 
-const personalityOptions: PersonalityOption[] = [
-  {
-    id: "friend",
-    title: "FRIEND",
-    traits: ["Warm", "Relatable", "Conversational"],
-  },
-  {
-    id: "concierge",
-    title: "CONCIERGE",
-    traits: ["Polished", "Refined", "Formal"],
-  },
-  {
-    id: "coach",
-    title: "COACH",
-    traits: ["Upbeat", "Encouraging", "Motivational"],
-  },
-  {
-    id: "professional",
-    title: "PROFESSIONAL",
-    traits: ["Direct", "Authentic", "Clear"],
-  },
-  {
-    id: "gen_z",
-    title: "GEN Z",
-    traits: ["Casual", "Witty", "Trendy"],
-  },
-  {
-    id: "techie",
-    title: "TECHIE",
-    traits: ["Intuitive", "Intelligent", "Resourceful"],
-  },
-  {
-    id: "custom",
-    title: "CUSTOM",
-    traits: ["Create your own", "custom voice"],
-    isCustom: true,
-  },
-];
+const personalityOptions: PersonalityOption[] = PERSONALITY_OPTIONS;
 
 const Voice = () => {
   const { activeBotId, activeBotData, setRefetchBotData } = useBotConfig();

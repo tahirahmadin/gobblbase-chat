@@ -18,14 +18,6 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true,
 });
 
-// Default cues if no prompts are provided
-const DEFAULT_CUES: string[][] = [
-  [
-    "Pizza hut se meri call ki sales pitch btao?",
-    "Bamboo Spoons kitni stock mein hain abhi?",
-  ],
-];
-
 type Screen = "about" | "chat" | "browse";
 
 // Currency symbols mapping
@@ -343,10 +335,7 @@ export default function PublicChat({
                     backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
                   }}
                 >
-                  {(currentConfig?.prompts?.length
-                    ? [currentConfig.prompts]
-                    : DEFAULT_CUES
-                  ).map((row, i) => (
+                  {[currentConfig.prompts].map((row, i) => (
                     <div key={i} className="grid grid-cols-2 gap-2">
                       {row.map((cue) => (
                         <button

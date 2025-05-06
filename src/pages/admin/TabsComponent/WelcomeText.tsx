@@ -139,11 +139,8 @@ const WelcomeText = () => {
         className="col-span-2 h-full sticky top-0 flex items-center justify-center"
         style={{ backgroundColor: "#eaefff" }}
       >
-        <div className="mx-auto" style={{ maxWidth: 440 }}>
-          <PublicChat
-            agentUsernamePlayground={null}
-            previewConfig={previewConfig || activeBotData}
-          />
+        <div className="mx-auto" style={{ maxWidth: 400 }}>
+          <PublicChat previewConfig={previewConfig || activeBotData} />
         </div>
       </div>
     </div>
