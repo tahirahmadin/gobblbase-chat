@@ -1,38 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { BotConfig, ChatMessage, Theme } from "../../types";
+import { BotConfig, ChatMessage } from "../../types";
 import { queryDocument, getAppointmentSettings } from "../../lib/serverActions";
 import OpenAI from "openai";
 import { useBotConfig } from "../../store/useBotConfig";
-import { PERSONALITY_TYPES } from "../admin/PersonalityAnalyzer";
 import { useCartStore } from "../../store/useCartStore";
-import { useUserStore } from "../../store/useUserStore";
 import HeaderSection from "../../components/chatbotComponents/HeaderSection";
 import ChatSection from "../../components/chatbotComponents/ChatSection";
 import InputSection from "../../components/chatbotComponents/InputSection";
 import AboutSection from "../../components/chatbotComponents/AboutSection";
 import BrowseSection from "../../components/chatbotComponents/BrowseSection";
-
-interface PersonalityAnalysis {
-  dominantTrait: string;
-  confidence: number;
-  briefDescription: string;
-  speechPatterns: string[];
-  vocabularyStyle: string;
-  sentenceStructure: string;
-  emotionalTone: string;
-  uniqueMannerisms: string;
-  mimicryInstructions?: string;
-}
-
-type PersonalityType =
-  | "influencer"
-  | "professional"
-  | "friendly"
-  | "expert"
-  | "motivational"
-  | "casual"
-  | "custom-personality";
 
 type ExtendedChatMessage = ChatMessage & { type?: "booking" };
 
@@ -51,32 +28,6 @@ const DEFAULT_CUES: string[][] = [
 
 type Screen = "about" | "chat" | "browse";
 
-interface PreviewConfig {
-  name?: string;
-  logo?: string;
-  calendlyUrl?: string;
-  themeColors?: Theme;
-  personalityType?: PersonalityType;
-  customPersonalityPrompt?: string;
-  personalityAnalysis?: PersonalityAnalysis | null;
-  promotionalBanner?: string;
-  isPromoBannerEnabled?: boolean;
-  socials?: {
-    instagram: string;
-    tiktok: string;
-    twitter: string;
-    facebook: string;
-    youtube: string;
-    linkedin: string;
-    snapchat: string;
-    link: string;
-  };
-  prompts?: string[];
-  welcomeMessage?: string;
-  agentId?: string;
-  sessionName?: string;
-}
-
 // Currency symbols mapping
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
@@ -89,11 +40,9 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 };
 
 export default function PublicChat({
-  agentUsernamePlayground,
   previewConfig,
 }: {
-  agentUsernamePlayground: string | null;
-  previewConfig: BotConfig;
+  previewConfig: BotConfig | null;
 }) {
   const { botUsername } = useParams();
   const {
@@ -101,9 +50,15 @@ export default function PublicChat({
     isLoading: isConfigLoading,
     fetchBotData,
   } = useBotConfig();
+
+  // use preview or fetched config
+  const currentConfig = previewConfig ? previewConfig : config;
+  const currentIsLoading = previewConfig ? false : isConfigLoading;
+
+  console.log("currentConfig");
+  console.log(currentConfig);
+
   const { products } = useCartStore();
-  const { isLoggedIn } = useUserStore();
-  const [showSignInOverlay, setShowSignInOverlay] = useState(!isLoggedIn);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ExtendedChatMessage[]>([
     {
@@ -119,14 +74,6 @@ export default function PublicChat({
   const [showCues, setShowCues] = useState(true);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
-  // Personality
-  const [personalityType, setPersonalityType] =
-    useState<PersonalityType | null>(null);
-  const [isCustomPersonality, setIsCustomPersonality] = useState(false);
-  const [customPersonalityPrompt, setCustomPersonalityPrompt] = useState("");
-  const [personalityAnalysis, setPersonalityAnalysis] =
-    useState<PersonalityAnalysis | null>(null);
-
   // Pricing state
   const [pricingInfo, setPricingInfo] = useState({
     isFreeSession: false,
@@ -135,17 +82,22 @@ export default function PublicChat({
   });
   const [loadingPricing, setLoadingPricing] = useState(false);
 
-  // use preview or fetched config
-  const currentConfig = previewConfig || config;
-  const currentIsLoading = previewConfig ? false : isConfigLoading;
-
   // safe themeColors fallback
   const theme = currentConfig?.themeColors ?? {
-    isDark: true,
-    mainDarkColor: "#4220cd",
-    mainLightColor: "#91a3ff",
-    highlightColor: "#ffcc16",
+    id: "light-yellow",
+    name: "Light Yellow",
+    isDark: false,
+    mainDarkColor: "#EFC715",
+    mainLightColor: "#5155CD",
+    highlightColor: "#000000",
   };
+
+  // Scroll to bottom when loading state changes (for streaming text)
+  useEffect(() => {
+    if (!isLoading) {
+      scrollToBottom();
+    }
+  }, [isLoading]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -170,13 +122,6 @@ export default function PublicChat({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  // Scroll to bottom when loading state changes (for streaming text)
-  useEffect(() => {
-    if (!isLoading) {
-      scrollToBottom();
-    }
-  }, [isLoading]);
 
   // Fetch pricing information from settings
   useEffect(() => {
@@ -214,27 +159,10 @@ export default function PublicChat({
 
   // fetch config on mount/params change
   useEffect(() => {
-    if (!previewConfig) {
-      if (botUsername) fetchBotData(botUsername, true);
-      if (agentUsernamePlayground) fetchBotData(agentUsernamePlayground, false);
+    if (!previewConfig && botUsername) {
+      fetchBotData(botUsername, true);
     }
-  }, [botUsername, agentUsernamePlayground, fetchBotData, previewConfig]);
-
-  // build personality prompt
-  const getPersonalityPrompt = () => {
-    if (isCustomPersonality && personalityAnalysis?.mimicryInstructions) {
-      return personalityAnalysis.mimicryInstructions;
-    }
-    if (isCustomPersonality && customPersonalityPrompt) {
-      return customPersonalityPrompt;
-    }
-    if (personalityType && !isCustomPersonality) {
-      return (
-        PERSONALITY_TYPES.find((p) => p.id === personalityType)?.prompt || ""
-      );
-    }
-    return "";
-  };
+  }, [botUsername, fetchBotData, previewConfig]);
 
   const handleSendMessage = async (
     inputMessage?: string | React.MouseEvent<HTMLButtonElement>
@@ -281,26 +209,20 @@ export default function PublicChat({
 
     try {
       // fetch RAG context
-      let productContext = "";
-      if (products.length > 0) {
-        productContext = `Here are the products available: ${JSON.stringify(
-          products
-        )}`;
-      }
-      const context = await queryDocument(config.agentId, msgToSend);
-      let basePrompt = `${
-        config.systemPrompt
-      } and Use context when relevant:\n${JSON.stringify(
-        context
-      )} and also use product context when relevant:\n${productContext}`;
+      // let productContext = "";
+      // if (products.length > 0) {
+      //   productContext = `Here are the products available: ${JSON.stringify(
+      //     products
+      //   )}`;
+      // }
+      const queryContext = await queryDocument(config.agentId, msgToSend);
+      let voiceTone = currentConfig?.personalityType.value.toString();
+      let systemPrompt = `You are a concise AI assistant.  Use context when relevant:\n${JSON.stringify(
+        queryContext
+      )} to answer the user's question when relevant. If the context doesn't contain the answer or if the query is conversational, respond appropriately.\nRules:\n- Answer in 1-2 plain sentences only.\n- Do not add extra explanation, greetings, or conclusions.\n- No special characters, markdown, or formatting. Give outputs in following tone: ${voiceTone}`;
 
-      let systemPrompt = `You are a concise AI assistant. Use context when relevant:\n${JSON.stringify(
-        context
-      )}`;
-      const personalityPrompt = getPersonalityPrompt();
-      if (personalityPrompt) {
-        systemPrompt += `\nPERSONALITY INSTRUCTIONS (MUST FOLLOW):\n${personalityPrompt}`;
-      }
+      let basePrompt = systemPrompt;
+
       basePrompt += `\nRules: 
       - Use markdown formatting for better readability:
         * Use **bold** for emphasis
@@ -312,6 +234,7 @@ export default function PublicChat({
       - Keep responses concise (1-2 sentences)
       - No extra greetings or formatting`;
 
+      console.log(systemPrompt);
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
@@ -368,103 +291,106 @@ export default function PublicChat({
   }
 
   return (
-    <div className="w-full  bg-gray-100 flex items-start justify-center">
+    <div className="w-full bg-gray-100 flex items-start justify-center">
       {/* Simulated Mobile Frame */}
-      <div
-        className="w-full max-w-md bg-white shadow-2xl  overflow-hidden flex flex-col relative"
-        style={{
-          height: agentUsernamePlayground ? 700 : "80vh",
-          backgroundColor: "white", // white mobile shell
-        }}
-      >
-        <HeaderSection
-          theme={theme}
-          currentConfig={
-            currentConfig || { name: "KiFor Bot", isPromoBannerEnabled: false }
-          }
-          activeScreen={activeScreen}
-          setActiveScreen={setActiveScreen}
-        />
 
-        {activeScreen === "about" && (
-          <AboutSection
-            theme={theme}
-            currentConfig={currentConfig || { name: "KiFor Bot" }}
-            socials={currentConfig?.socials}
+      {currentConfig?.themeColors && (
+        <div
+          className="w-full max-w-md bg-white shadow-2xl  overflow-hidden flex flex-col relative"
+          style={{
+            height: previewConfig ? 700 : "100vh",
+            backgroundColor: "white", // white mobile shell
+          }}
+        >
+          <HeaderSection
+            theme={currentConfig.themeColors}
+            currentConfig={currentConfig}
+            activeScreen={activeScreen}
+            setActiveScreen={setActiveScreen}
           />
-        )}
 
-        {activeScreen === "browse" && (
-          <BrowseSection
-            theme={theme}
-            currentConfig={{
-              agentId: config?.agentId,
-              name: config?.name,
-              sessionName: pricingInfo.sessionName,
-              sessionPrice: pricingInfo.sessionPrice,
-              isFreeSession: pricingInfo.isFreeSession,
-            }}
-          />
-        )}
-
-        {activeScreen === "chat" && (
-          <>
-            <ChatSection
-              theme={theme}
-              messages={messages}
-              isLoading={isLoading}
-              activeScreen={activeScreen}
-              currentConfig={currentConfig || { name: "KiFor Bot" }}
-              messagesEndRef={messagesEndRef}
+          {activeScreen === "about" && (
+            <AboutSection
+              theme={currentConfig.themeColors}
+              currentConfig={currentConfig}
+              socials={currentConfig?.socials}
             />
+          )}
 
-            {/* cues */}
-            {showCues && (
-              <div
-                className="p-2 grid grid-cols-1 gap-1"
-                style={{
-                  backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
-                }}
-              >
-                {(currentConfig?.prompts?.length
-                  ? [currentConfig.prompts]
-                  : DEFAULT_CUES
-                ).map((row, i) => (
-                  <div key={i} className="grid grid-cols-2 gap-2">
-                    {row.map((cue) => (
-                      <button
-                        key={cue}
-                        onClick={() => handleCueClick(cue)}
-                        disabled={isLoading}
-                        className="px-2 py-1 rounded-xl text-xs font-medium"
-                        style={{
-                          backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
-                          color: theme.isDark ? "white" : "black",
-                          border: `1px solid ${
-                            theme.isDark ? "white" : "black"
-                          }`,
-                          borderRadius: "20px",
-                        }}
-                      >
-                        {cue}
-                      </button>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            )}
+          {activeScreen === "chat" && (
+            <>
+              <ChatSection
+                theme={theme}
+                messages={messages}
+                isLoading={isLoading}
+                activeScreen={activeScreen}
+                currentConfig={currentConfig || { name: "KiFor Bot" }}
+                messagesEndRef={messagesEndRef}
+              />
 
-            <InputSection
+              {/* cues */}
+              {showCues && (
+                <div
+                  className="p-2 grid grid-cols-1 gap-1"
+                  style={{
+                    backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
+                  }}
+                >
+                  {(currentConfig?.prompts?.length
+                    ? [currentConfig.prompts]
+                    : DEFAULT_CUES
+                  ).map((row, i) => (
+                    <div key={i} className="grid grid-cols-2 gap-2">
+                      {row.map((cue) => (
+                        <button
+                          key={cue}
+                          onClick={() => handleCueClick(cue)}
+                          disabled={isLoading}
+                          className="px-2 py-1 rounded-xl text-xs font-medium"
+                          style={{
+                            backgroundColor: theme.isDark
+                              ? "#1c1c1c"
+                              : "#e9e9e9",
+                            color: theme.isDark ? "white" : "black",
+                            border: `1px solid ${
+                              theme.isDark ? "white" : "black"
+                            }`,
+                            borderRadius: "20px",
+                          }}
+                        >
+                          {cue}
+                        </button>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <InputSection
+                theme={theme}
+                message={message}
+                isLoading={isLoading}
+                setMessage={setMessage}
+                handleSendMessage={handleSendMessage}
+                handleKeyPress={handleKeyPress}
+              />
+            </>
+          )}
+
+          {activeScreen === "browse" && (
+            <BrowseSection
               theme={theme}
-              message={message}
-              isLoading={isLoading}
-              setMessage={setMessage}
-              handleSendMessage={handleSendMessage}
-              handleKeyPress={handleKeyPress}
+              currentConfig={{
+                agentId: config?.agentId,
+                name: config?.name,
+                sessionName: pricingInfo.sessionName,
+                sessionPrice: pricingInfo.sessionPrice,
+                isFreeSession: pricingInfo.isFreeSession,
+              }}
             />
-          </>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

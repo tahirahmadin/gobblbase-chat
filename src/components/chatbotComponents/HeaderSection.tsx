@@ -9,7 +9,7 @@ import {
   Menu,
 } from "lucide-react";
 import { useUserStore } from "../../store/useUserStore";
-import { Theme } from "../../types";
+import { BotConfig, Theme } from "../../types";
 
 // Add Google API type declaration
 declare global {
@@ -32,12 +32,7 @@ declare global {
 
 interface HeaderSectionProps {
   theme: Theme;
-  currentConfig: {
-    isPromoBannerEnabled?: boolean;
-    promotionalBanner?: string;
-    logo?: string;
-    name?: string;
-  };
+  currentConfig: BotConfig;
   activeScreen: "about" | "chat" | "browse";
   setActiveScreen: (screen: "about" | "chat" | "browse") => void;
 }
@@ -140,24 +135,40 @@ function HeaderSection({
   const UserDropdownMenu = () => (
     <div
       className="absolute right-0 top-full mt-2 w-64 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-20"
-      style={{ backgroundColor: theme.mainLightColor }}
+      style={{
+        backgroundColor: !theme.isDark ? "white" : "black",
+        border: `1px solid ${theme.highlightColor}`,
+      }}
     >
-      <div className="py-3 px-4 flex items-center space-x-3 border-b">
-        <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
-          <User className="h-6 w-6 text-gray-500" />
+      <div className="py-3 px-4 flex items-center space-x-3">
+        <div
+          className="w-8 h-8 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: theme.mainDarkColor }}
+        >
+          <User
+            className="h-6 w-6"
+            style={{ color: theme.isDark ? "white" : "black" }}
+          />
         </div>
         <div>
-          <div className="font-semibold text-sm text-black">
-            {userDetails?.name || "Full Name"}
-          </div>
-          <div className="text-xs text-gray-600">
+          <div
+            className="text-xs"
+            style={{
+              color: theme.isDark ? "white" : "black",
+            }}
+          >
             {userEmail || "email@email.com"}
           </div>
         </div>
-      </div>
+      </div>{" "}
+      <div
+        style={{ backgroundColor: theme.highlightColor, height: 1 }}
+        className="mx-4"
+      />
       <button
         onClick={userLogout}
-        className="w-full text-left px-4 py-3 text-sm text-yellow-500 hover:bg-gray-100 flex items-center space-x-2 border-t"
+        className="w-full text-left px-4 py-3 text-sm flex items-center space-x-2 font-semibold"
+        style={{ color: theme.highlightColor }}
       >
         <LogOut className="h-4 w-4" />
         <span>LOGOUT</span>
@@ -168,33 +179,55 @@ function HeaderSection({
   const OrderHistoryModal = () => (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black bg-opacity-40">
       <div
-        className="bg-black rounded-xl border border-yellow-400 w-96 max-w-full p-0 relative"
-        style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.2)" }}
+        className="rounded-xl  w-96 max-w-full p-0 relative"
+        style={{
+          boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
+          backgroundColor: theme.isDark ? "black" : "white",
+          border: `1px solid ${theme.highlightColor}`,
+        }}
       >
         <button
-          className="absolute top-2 right-2 text-yellow-400 hover:text-yellow-600"
+          className="absolute top-2 right-2"
+          style={{ color: theme.highlightColor }}
           onClick={() => setShowOrderHistory(false)}
         >
           <span className="text-xl">&times;</span>
         </button>
-        <div className="p-4 pb-2 border-b border-yellow-400">
-          <div className="text-white font-semibold text-md">ORDER HISTORY</div>
+        <div className="p-4 pb-2 ">
+          <div
+            className="font-semibold text-md"
+            style={{ color: theme.isDark ? "white" : "black" }}
+          >
+            ORDER HISTORY
+          </div>
         </div>
         <div className="p-4 space-y-3">
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="bg-[#232323] rounded-lg px-4 py-3 flex flex-col border border-gray-700"
+              className="bg-[#232323] rounded-lg px-4 py-3 flex flex-row justify-between items-center"
             >
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-xs text-gray-400">DD MM YYYY HH:MM</span>
-                <span className="text-sm text-white font-semibold">Amount</span>
+              <div className="flex flex-col ">
+                <div className="text-xs text-gray-400">DD MM YYYY HH:MM</div>
+                <div className="text-yellow-400 text-sm font-semibold">
+                  Product Name
+                </div>
+                <div className="text-xs text-gray-300 mb-1">Qty: XX</div>
               </div>
-              <div className="text-yellow-400 text-sm font-semibold">
-                Product Name
+              <div className="flex flex-col justify-between items-end mb-1">
+                <div
+                  className="text-sm font-semibold"
+                  style={{ color: theme.isDark ? "white" : "black" }}
+                >
+                  Amount
+                </div>
+                <div
+                  className="text-xs"
+                  style={{ color: theme.mainLightColor }}
+                >
+                  Paid via Stripe
+                </div>
               </div>
-              <div className="text-xs text-gray-300 mb-1">Qty: XX</div>
-              <div className="text-xs text-blue-300">Paid via Stripe</div>
             </div>
           ))}
         </div>
@@ -260,7 +293,7 @@ function HeaderSection({
         ) : (
           <div>
             <button
-              className="p-2 rounded-full hover:bg-opacity-10 hover:bg-white"
+              className="rounded-full hover:bg-opacity-10 hover:bg-white px-4 py-1 text-sm"
               style={{
                 backgroundColor: theme.highlightColor,
                 color: !theme.isDark ? "white" : "black",

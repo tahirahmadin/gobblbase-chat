@@ -29,6 +29,7 @@ import Booking from "./pages/admin/BookingComponent/Booking";
 import BookingDashboardWrapper from "./pages/admin/BookingComponent/BookingDashboardWrapper";
 import Login from "./pages/admin/Login";
 import { useAdminStore } from "./store/useAdminStore";
+import CreateNewBot from "./pages/admin/CreateNewBot";
 
 // Add type definition for window
 declare global {
@@ -110,9 +111,12 @@ function Dashboard() {
         <Route path="offerings" element={<Offerings />} />
         <Route path="offerings/add" element={<Offerings />} />
         <Route path="offerings/manage" element={<Offerings />} />
-        
+
         {/* Modified Calendar Routes */}
-        <Route path="offerings/calendar" element={<BookingDashboardWrapper />} />
+        <Route
+          path="offerings/calendar"
+          element={<BookingDashboardWrapper />}
+        />
         <Route
           path="offerings/calendar/edit"
           element={
@@ -162,61 +166,11 @@ function App() {
       <Toaster position="top-right" />
       <Routes>
         <Route path="/admin/signup" element={<Login />} />
+        <Route path="/admin/dashboard/create-bot" element={<CreateNewBot />} />
         <Route path="/book/:agentId" element={<CustomerBookingPage />} />
         <Route
           path="/:botUsername"
-          element={
-            <PublicChat
-              agentUsernamePlayground={null}
-              previewConfig={{
-                agentId: "",
-                username: "",
-                name: "",
-                bio: "",
-                socials: {
-                  instagram: "",
-                  tiktok: "",
-                  twitter: "",
-                  facebook: "",
-                  youtube: "",
-                  linkedin: "",
-                  snapchat: "",
-                  link: "",
-                },
-                prompts: [],
-                promotionalBanner: null,
-                isPromoBannerEnabled: false,
-                logo: "",
-                sessionName: "",
-                stripeAccountId: "",
-                currency: "",
-                systemPrompt: "",
-                model: "",
-                themeColors: {
-                  id: "",
-                  name: "",
-                  isDark: false,
-                  mainDarkColor: "",
-                  mainLightColor: "",
-                  highlightColor: "",
-                },
-                personalityType: {
-                  name: "",
-                  value: [],
-                },
-                welcomeMessage: "",
-                language: "",
-                smartenUpAnswers: [],
-                preferredPaymentMethod: "",
-                paymentMethods: {
-                  stripe: { enabled: false, accountId: "" },
-                  razorpay: { enabled: false, accountId: "" },
-                  usdt: { enabled: false, walletAddress: "", chains: [] },
-                  usdc: { enabled: false, walletAddress: "", chains: [] },
-                },
-              }}
-            />
-          }
+          element={<PublicChat previewConfig={null} />}
         />
         <Route path="/admin/*" element={<Dashboard />} />
         <Route path="/" element={<Navigate to="/admin" replace />} />

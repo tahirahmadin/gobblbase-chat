@@ -52,6 +52,7 @@ export default function AboutSection({
     {}
   );
 
+  //Fetching policies from the database
   useEffect(() => {
     const fetchPolicies = async () => {
       if (!currentConfig?.agentId) return;
@@ -82,9 +83,9 @@ export default function AboutSection({
         color: theme.isDark ? "white" : "black",
       }}
     >
-      <div className="w-full flex flex-col justify-evenly h-full">
+      <div className="w-full flex flex-col justify-between h-full">
         {/* Profile Section */}
-        <div className="flex flex-col items-center mt-8 space-y-4">
+        <div className="flex flex-col items-center mt-3 space-y-2">
           {/* Profile Image */}
           <div className="w-20 h-20 rounded-full overflow-hidden">
             <img
@@ -193,7 +194,7 @@ export default function AboutSection({
         </div>
 
         {/* Social Links */}
-        <div className="w-full px-6 mt-6 space-y-3">
+        <div className="w-full px-6 mt-4 space-y-3">
           {socials?.instagram && (
             <a
               href={socials.instagram}
@@ -201,7 +202,7 @@ export default function AboutSection({
               rel="noopener noreferrer"
               className="w-full py-3 rounded-full font-medium block text-center"
               style={{
-                backgroundColor: theme.mainDarkColor,
+                backgroundColor: theme.highlightColor,
                 color: !theme.isDark ? "white" : "black",
               }}
             >
@@ -215,7 +216,7 @@ export default function AboutSection({
               rel="noopener noreferrer"
               className="w-full py-3 rounded-full font-medium block text-center"
               style={{
-                backgroundColor: theme.mainDarkColor,
+                backgroundColor: theme.highlightColor,
                 color: !theme.isDark ? "white" : "black",
               }}
             >
@@ -251,8 +252,8 @@ export default function AboutSection({
               </button>
             ))}
         </div>
+        <TryFreeBanner />
       </div>
-      <TryFreeBanner />
     </div>
   );
 }

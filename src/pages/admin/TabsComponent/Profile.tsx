@@ -621,10 +621,10 @@ const Profile = () => {
         </div>
       </div>
       <div
-        className="col-span-2 h-full sticky top-0 flex items-center justify-center"
+        className="col-span-2 h-full sticky top-0 flex items-center justify-center w-full"
         style={{ backgroundColor: "#eaefff" }}
       >
-        <div className="mx-auto" style={{ maxWidth: 400 }}>
+        <div className="mx-auto" style={{ maxWidth: 400, width: 400 }}>
           <PublicChat
             agentUsernamePlayground={null}
             previewConfig={{

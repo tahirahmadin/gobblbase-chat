@@ -118,15 +118,14 @@ export interface BotConfig {
   prompts: string[];
   promotionalBanner: string | null;
   isPromoBannerEnabled: boolean;
+  isQueryable: boolean;
   logo: string;
   sessionName: string;
 
   stripeAccountId: string;
   currency: string;
-
   systemPrompt: string;
   model: string;
-
   themeColors: Theme;
 
   // Voice Personality
@@ -166,4 +165,11 @@ export interface BotConfig {
       chains: string[];
     };
   };
+}
+
+export interface PersonalityOption {
+  id: string;
+  title: string;
+  traits: string[];
+  isCustom?: boolean;
 }

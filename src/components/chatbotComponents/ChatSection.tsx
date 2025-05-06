@@ -35,12 +35,12 @@ export default function ChatSection({
       {activeScreen === "chat" && (
         <>
           {/* Date Header */}
-          <div
+          {/* <div
             className="text-xs text-center my-4"
             style={{ color: theme.highlightColor }}
           >
             JAN 01, 2025 AT 09:00
-          </div>
+          </div> */}
 
           {messages.map((msg) => (
             <div
@@ -70,8 +70,14 @@ export default function ChatSection({
                       textColor={!theme.isDark ? "black" : "white"}
                     />
                   ) : (
-                    <div style={{ color: !theme.isDark ? "black" : "white" }}>
-                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    <div
+                      style={{
+                        color: !theme.isDark ? "black" : "white",
+                        paddingLeft: 10,
+                        paddingRight: 10,
+                      }}
+                    >
+                      {msg.content}
                     </div>
                   )}
                 </div>

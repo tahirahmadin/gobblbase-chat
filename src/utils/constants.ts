@@ -1,8 +1,8 @@
 import {
   ModelOption,
   SystemPromptTemplate,
-  TonePreset,
   Theme,
+  PersonalityOption,
 } from "./../types";
 
 export const AVAILABLE_THEMES: Theme[] = [
@@ -267,64 +267,41 @@ export const SYSTEM_PROMPT_TEMPLATES: SystemPromptTemplate[] = [
   },
 ];
 
-export const TONE_PRESETS: TonePreset[] = [
+export const PERSONALITY_OPTIONS: PersonalityOption[] = [
   {
-    id: "humorous",
-    name: "Humorous & Witty",
-    image:
-      "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&h=200&q=80",
-    description: "Funny, engaging, with a touch of humor",
-    traits: ["Witty", "Playful", "Engaging"],
-    prompt:
-      "Communicate in a lighthearted, humorous way. Use witty remarks, clever wordplay, and casual language. Keep the tone fun and engaging while still being helpful. Feel free to use appropriate jokes and playful examples to make the conversation enjoyable.",
+    id: "friend",
+    title: "FRIEND",
+    traits: ["Warm", "Relatable", "Conversational"],
+  },
+  {
+    id: "concierge",
+    title: "CONCIERGE",
+    traits: ["Polished", "Refined", "Formal"],
+  },
+  {
+    id: "coach",
+    title: "COACH",
+    traits: ["Upbeat", "Encouraging", "Motivational"],
   },
   {
     id: "professional",
-    name: "Professional & Direct",
-    image:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&q=80",
-    description: "Serious, authentic, straight to the point",
-    traits: ["Direct", "Clear", "Formal"],
-    prompt:
-      "Maintain a professional, straightforward communication style. Be concise and direct, focusing on delivering accurate information efficiently. Use formal language and clear explanations without unnecessary elaboration.",
+    title: "PROFESSIONAL",
+    traits: ["Direct", "Authentic", "Clear"],
   },
   {
-    id: "friendly",
-    name: "Friendly & Supportive",
-    image:
-      "https://images.unsplash.com/photo-1515552726023-7125c8d07fb3?w=200&h=200&q=80",
-    description: "Warm, encouraging, approachable",
-    traits: ["Supportive", "Warm", "Patient"],
-    prompt:
-      "Adopt a warm, friendly tone that makes users feel comfortable and supported. Use encouraging language, show empathy, and maintain a helpful, patient approach. Make the conversation feel personal while remaining professional.",
+    id: "gen_z",
+    title: "GEN Z",
+    traits: ["Casual", "Witty", "Trendy"],
   },
   {
-    id: "expert",
-    name: "Expert & Analytical",
-    image:
-      "https://images.unsplash.com/photo-1513258496099-48168024aec0?w=200&h=200&q=80",
-    description: "Technical, detailed, thorough",
-    traits: ["Analytical", "Detailed", "Technical"],
-    prompt:
-      "Communication should be detailed and analytical, demonstrating deep expertise. Use technical terminology when appropriate, provide comprehensive explanations, and back statements with logical reasoning.",
+    id: "techie",
+    title: "TECHIE",
+    traits: ["Intuitive", "Intelligent", "Resourceful"],
   },
   {
-    id: "motivational",
-    name: "Motivational & Inspiring",
-    image:
-      "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&q=80",
-    description: "Energetic, inspiring, encouraging",
-    traits: ["Inspiring", "Energetic", "Positive"],
-    prompt:
-      "Take an energetic, inspiring approach to communication. Use motivational language, positive reinforcement, and encouraging statements. Focus on possibilities and growth while maintaining enthusiasm.",
-  },
-  {
-    id: "custom-personality",
-    name: "Custom Tone",
-    image:
-      "https://images.unsplash.com/photo-1534308143481-c55f00be8bd7?w=200&h=200&q=80",
-    description: "Create your own custom tone",
-    traits: ["Customizable", "Flexible", "Unique"],
-    prompt: "",
+    id: "custom",
+    title: "CUSTOM",
+    traits: ["Create your own", "custom voice"],
+    isCustom: true,
   },
 ];
