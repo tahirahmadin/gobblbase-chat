@@ -1464,3 +1464,24 @@ export async function updateClientBillingMethod(
     throw new Error("Failed to update billing method");
   }
 }
+
+export async function getClientUsage(clientId: string) {
+  try {
+    const response = await fetch(`https://rag.gobbl.ai/client/getClientUsage/${clientId}`);
+    
+    if (!response.ok) {
+      throw new Error("Failed to fetch client usage data");
+    }
+    
+    const data = await response.json();
+    
+    if (data.error) {
+      throw new Error(data.result || "Failed to fetch client usage data");
+    }
+    
+    return data.result;
+  } catch (error) {
+    console.error("Error fetching client usage data:", error);
+    throw error;
+  }
+}

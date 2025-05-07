@@ -1,75 +1,261 @@
 import React, { useState, useEffect } from "react";
-import { getPlans, getClient } from "../../lib/serverActions";
+import { getClientUsage } from "../../lib/serverActions";
 import { useAdminStore } from "../../store/useAdminStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 
+// Interface for usage data from API
+interface ClientUsageData {
+  creditsInfo: {
+    totalCredits: number;
+    availableCredits: number;
+  };
+  usage: {
+    agentUsage: {
+      totalTokensUsed: number;
+      usageData: {
+        _id: string;
+        clientId: string;
+        agentId: string;
+        date: string;
+        totalTokensUsed: number;
+      }[];
+      agentId: string;
+      agentName: string;
+    }[];
+    totalTokensUsedAllAgents: number;
+    planId: string;
+  };
+  totalAgentCount: number;
+}
+
 const Usage = () => {
-  const navigate = useNavigate();
   const { adminId } = useAdminStore();
 
-  // State
-  const [agent, setAgent] = useState("All Agents");
-  const [time, setTime] = useState("All Time");
-  const [currentPlan, setCurrentPlan] = useState(null);
-  const [creditsUsed, setCreditsUsed] = useState(8);
-  const [totalCredits, setTotalCredits] = useState(100);
+  const [selectedAgent, setSelectedAgent] = useState("All Agents");
+  const [timeFrame, setTimeFrame] = useState("All Time");
+  const [currentPlan, setCurrentPlan] = useState("");
+  const [creditsUsed, setCreditsUsed] = useState(0);
+  const [totalCredits, setTotalCredits] = useState(0);
+  const [agentsUsed, setAgentsUsed] = useState(0);
+  const [totalAgents, setTotalAgents] = useState(0);
+  const [usageData, setUsageData] = useState<ClientUsageData | null>(null);
   const [loading, setLoading] = useState(true);
-  const agentsUsed = 1;
-  const totalAgents = 1;
+  const [agentsList, setAgentsList] = useState<{id: string, name: string}[]>([]);
+  const [usageHistory, setUsageHistory] = useState<{date: string, usage: number}[]>([]);
+  const [selectedAgentTokens, setSelectedAgentTokens] = useState(0);
 
-  // Fetch plan data
   useEffect(() => {
-    const fetchData = async () => {
+    const initialData = [
+      { date: "2022", usage: 0 },
+      { date: "2023", usage: 0 },
+      { date: "2024", usage: 0 },
+      { date: "2025", usage: 5000 }, 
+      { date: "2026", usage: 0 }
+    ];
+    
+    setUsageHistory(initialData);
+  }, []);
+
+  useEffect(() => {
+    const fetchUsageData = async () => {
       if (!adminId) return;
       
       try {
         setLoading(true);
-        // Fetch plans data
-        const plansData = await getPlans(adminId);
+        const usageData = await getClientUsage(adminId);
         
-        // Find current plan
-        const current = plansData.find(plan => plan.isCurrentPlan);
-        if (current) {
-          setCurrentPlan(current);
-          setTotalCredits(current.credits);
+        if (usageData) {
+          setUsageData(usageData);
+          
+          setTotalCredits(usageData.creditsInfo.totalCredits);
+          setCreditsUsed(usageData.usage.totalTokensUsedAllAgents);
+          
+          setCurrentPlan(usageData.usage.planId);
+          
+          setTotalAgents(usageData.totalAgentCount);
+          
+          const agents = usageData.usage.agentUsage.map(agent => ({
+            id: agent.agentId,
+            name: agent.agentName
+          }));
+          setAgentsList(agents);
+          
+          setAgentsUsed(usageData.totalAgentCount);
+          
+          setTimeout(() => {
+            generateUsageHistory(usageData, "All Agents", timeFrame);
+          }, 100);
         }
-        
-        // Fetch client data for usage metrics
-        const clientData = await getClient(adminId);
-        
-        // Set credits used - adjust according to your actual API response
-        if (clientData && clientData.creditsUsed !== undefined) {
-          setCreditsUsed(clientData.creditsUsed);
-        }
-        
       } catch (err) {
-        console.error("Error fetching data:", err);
+        console.error("Error fetching usage data:", err);
         toast.error("Failed to load usage data");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchUsageData();
   }, [adminId]);
 
+  const generateUsageHistory = (data: ClientUsageData, agent: string, timeFrame: string) => {
+    if (!data) return;
+
+    let relevantAgents = data.usage.agentUsage;
+    let totalTokensForSelectedAgent = data.usage.totalTokensUsedAllAgents;
+    
+    if (agent !== "All Agents") {
+      const selectedAgentData = relevantAgents.find(a => a.agentName === agent);
+      relevantAgents = selectedAgentData ? [selectedAgentData] : [];
+      
+      if (selectedAgentData) {
+        totalTokensForSelectedAgent = selectedAgentData.totalTokensUsed;
+        setCreditsUsed(selectedAgentData.totalTokensUsed);
+        setAgentsUsed(1);
+        setSelectedAgentTokens(selectedAgentData.totalTokensUsed);
+      }
+    } else {
+      setCreditsUsed(data.usage.totalTokensUsedAllAgents);
+      setAgentsUsed(data.totalAgentCount);
+      setSelectedAgentTokens(data.usage.totalTokensUsedAllAgents);
+    }
+    
+    const defaultUsage = data.usage.totalTokensUsedAllAgents || 5000;
+    
+    let result: {date: string, usage: number}[] = [];
+    
+    switch (timeFrame) {
+      case "Today":
+        const today7Days = [];
+        
+        for (let i = 1; i <= 7; i++) {
+          today7Days.push({
+            date: `May ${i}`,
+            usage: i === 7 ? defaultUsage : 0 
+          });
+        }
+        
+        result = today7Days;
+        break;
+        
+      case "This Week":
+        const weekBreaks = [7, 14, 21, 28];
+        const weeklyData = weekBreaks.map((weekDay, index) => ({
+          date: `May ${weekDay}`,
+          usage: index === 0 ? defaultUsage : 0
+        }));
+        
+        result = weeklyData;
+        break;
+        
+      case "This Month":
+        const months = [
+          "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ];
+        
+        const monthData = months.map((month, index) => ({
+          date: month,
+          usage: index === 4 ? defaultUsage : 0 
+        }));
+        
+        result = monthData;
+        break;
+        
+      case "This Year":
+        const currentYear = new Date().getFullYear();
+        const years = [];
+        
+        for (let year = 2022; year <= currentYear + 1; year++) {
+          years.push({
+            date: year.toString(),
+            usage: year === currentYear ? defaultUsage : 0 
+          });
+        }
+        
+        result = years;
+        break;
+        
+      case "All Time":
+        const allTimeCurrentYear = new Date().getFullYear();
+        const allTimeYears = [];
+        
+        for (let year = 2022; year <= allTimeCurrentYear + 1; year++) {
+          allTimeYears.push({
+            date: year.toString(),
+            usage: year === allTimeCurrentYear ? defaultUsage : 0 // Set usage for current year
+          });
+        }
+        
+        result = allTimeYears;
+        break;
+        
+      default:
+        const defCurrentYear = new Date().getFullYear();
+        const defYears = [];
+        
+        for (let year = 2022; year <= defCurrentYear + 1; year++) {
+          defYears.push({
+            date: year.toString(),
+            usage: year === defCurrentYear ? defaultUsage : 0
+          });
+        }
+        
+        result = defYears;
+    }
+    
+    setUsageHistory(result);
+  };
+
+  const handleAgentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const agentName = e.target.value;
+    setSelectedAgent(agentName);
+    if (usageData) {
+      generateUsageHistory(usageData, agentName, timeFrame);
+    }
+  };
+
+  const handleTimeFrameChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newTimeFrame = e.target.value;
+    setTimeFrame(newTimeFrame);
+    if (usageData) {
+      generateUsageHistory(usageData, selectedAgent, newTimeFrame);
+    }
+  };
+
+  const navigate = useNavigate();
+  const navigateToPlans = () => {
+    navigate("/admin/account/plans");
+  };
+
+  const maxUsage = Math.max(...usageHistory.map(day => day.usage), 1);
+
+  if (loading && !usageData) {
+    return (
+      <div className="p-8 max-w-6xl mx-auto flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6">Usage</h2>
-      <div className="flex flex-wrap gap-4 mb-8 items-center">
+    <div className="p-6 max-w-6xl mx-auto">
+      <h1 className="text-xl font-bold mb-6">Usage</h1>
+      
+      <div className="flex flex-wrap gap-4 mb-6">
         {/* Current Plan */}
-        <div className="bg-green-100 rounded-lg p-4 flex flex-col justify-between min-w-[200px]">
+        <div className="bg-green-100 rounded-lg p-4 flex flex-col justify-between w-56">
           <span className="text-xs text-gray-600 mb-1">Current Plan</span>
-          <span className="font-bold text-lg mb-2">{currentPlan?.name || "STARTER"}</span>
+          <span className="font-bold text-lg mb-3">{currentPlan || "FREE"}</span>
           <button 
-            onClick={() => navigate("/admin/account/plans")}
-            className="bg-white border border-green-300 text-green-900 font-semibold px-4 py-1 rounded shadow hover:bg-green-200">
+            onClick={navigateToPlans}
+            className="bg-white border border-green-300 text-green-900 font-semibold px-4 py-1 rounded shadow hover:bg-green-200 w-full">
             VIEW
           </button>
         </div>
+        
         {/* Credits Used */}
-        <div className="bg-blue-100 rounded-lg p-4 flex-1 min-w-[220px] flex flex-col justify-between">
+        <div className="bg-blue-100 rounded-lg p-4 flex-1 flex flex-col justify-between">
           <div className="flex items-center mb-2">
             <span className="text-2xl font-bold mr-2">{creditsUsed}</span>
             <span className="text-gray-700">/ {totalCredits} Credits used</span>
@@ -77,53 +263,82 @@ const Usage = () => {
           <div className="w-full h-2 bg-white rounded-full">
             <div
               className="h-2 bg-blue-500 rounded-full"
-              style={{ width: `${(creditsUsed / totalCredits) * 100}%` }}
+              style={{ width: `${totalCredits > 0 ? (creditsUsed / totalCredits) * 100 : 0}%` }}
             ></div>
           </div>
         </div>
+        
         {/* Agents Used */}
-        <div className="bg-blue-100 rounded-lg p-4 flex-1 min-w-[180px] flex flex-col justify-between">
+        <div className="bg-blue-100 rounded-lg p-4 flex-1 flex flex-col justify-between">
           <div className="flex items-center mb-2">
             <span className="text-2xl font-bold mr-2">{agentsUsed}</span>
             <span className="text-gray-700">/ {totalAgents} Agents</span>
           </div>
-          <div className="w-full h-2 bg-blue-500 rounded-full"></div>
+          <div className="w-full h-2 bg-white rounded-full">
+            <div
+              className="h-2 bg-blue-500 rounded-full"
+              style={{ 
+                width: selectedAgent === "All Agents" 
+                  ? "100%" 
+                  : `${usageData && usageData.usage.totalTokensUsedAllAgents > 0 
+                      ? (selectedAgentTokens / usageData.usage.totalTokensUsedAllAgents) * 100 
+                      : 0}%` 
+              }}
+            ></div>
+          </div>
         </div>
+        
         {/* Filters */}
-        <div className="flex flex-col gap-2 ml-auto min-w-[220px]">
+        <div className="flex flex-col gap-2 w-56">
           <select
             className="border border-blue-300 rounded px-3 py-2 bg-blue-100 text-gray-800 mb-2"
-            value={agent}
-            onChange={(e) => setAgent(e.target.value)}
+            value={selectedAgent}
+            onChange={handleAgentChange}
           >
             <option>All Agents</option>
-            <option>Agent 1</option>
+            {agentsList.map(agent => (
+              <option key={agent.id}>{agent.name}</option>
+            ))}
           </select>
           <select
             className="border border-blue-300 rounded px-3 py-2 bg-blue-100 text-gray-800"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
+            value={timeFrame}
+            onChange={handleTimeFrameChange}
           >
             <option>All Time</option>
+            <option>This Year</option>
             <option>This Month</option>
             <option>This Week</option>
+            <option>Today</option>
           </select>
         </div>
       </div>
+      
       {/* Usage History */}
       <div>
         <h3 className="text-lg font-bold mb-2">Usage History</h3>
-        <div className="border rounded-lg bg-white min-h-[220px] mb-2">
-          {/* Placeholder for chart/graph */}
-          <div className="h-40"></div>
+        <div className="border rounded-lg bg-white min-h-[220px] mb-2 overflow-hidden">
+          {/* Chart */}
+          <div className="pt-6 px-4 h-44 flex items-end justify-around">
+            {usageHistory.map((day, index) => (
+              <div key={index} className="flex flex-col items-center justify-end h-full">
+                <div className="text-xs text-gray-500 mb-1 min-h-[16px]">
+                  {day.usage > 0 ? day.usage + ' tokens' : ''}
+                </div>
+                <div 
+                  className="w-16 bg-blue-400 rounded-t" 
+                  style={{ 
+                    height: `${(day.usage / maxUsage) * 80}%`, 
+                    minHeight: day.usage > 0 ? '4px' : '0' 
+                  }}
+                ></div>
+              </div>
+            ))}
+          </div>
           <div className="flex border-t bg-blue-50 text-gray-700 text-sm">
-            <div className="flex-1 text-center py-2">May 1</div>
-            <div className="flex-1 text-center py-2">May 2</div>
-            <div className="flex-1 text-center py-2">May 3</div>
-            <div className="flex-1 text-center py-2">May 4</div>
-            <div className="flex-1 text-center py-2">May 5</div>
-            <div className="flex-1 text-center py-2">May 6</div>
-            <div className="flex-1 text-center py-2">May 7</div>
+            {usageHistory.map((day, index) => (
+              <div key={index} className="flex-1 text-center py-2 px-1 truncate">{day.date}</div>
+            ))}
           </div>
         </div>
       </div>
