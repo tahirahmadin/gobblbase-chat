@@ -1,13 +1,58 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { getPlans, getClient } from "../../lib/serverActions";
+import { useAdminStore } from "../../store/useAdminStore";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 const Usage = () => {
-  // Placeholder state
+  const navigate = useNavigate();
+  const { adminId } = useAdminStore();
+
+  // State
   const [agent, setAgent] = useState("All Agents");
   const [time, setTime] = useState("All Time");
-  const creditsUsed = 8;
-  const totalCredits = 100;
+  const [currentPlan, setCurrentPlan] = useState(null);
+  const [creditsUsed, setCreditsUsed] = useState(8);
+  const [totalCredits, setTotalCredits] = useState(100);
+  const [loading, setLoading] = useState(true);
   const agentsUsed = 1;
   const totalAgents = 1;
+
+  // Fetch plan data
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!adminId) return;
+      
+      try {
+        setLoading(true);
+        // Fetch plans data
+        const plansData = await getPlans(adminId);
+        
+        // Find current plan
+        const current = plansData.find(plan => plan.isCurrentPlan);
+        if (current) {
+          setCurrentPlan(current);
+          setTotalCredits(current.credits);
+        }
+        
+        // Fetch client data for usage metrics
+        const clientData = await getClient(adminId);
+        
+        // Set credits used - adjust according to your actual API response
+        if (clientData && clientData.creditsUsed !== undefined) {
+          setCreditsUsed(clientData.creditsUsed);
+        }
+        
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        toast.error("Failed to load usage data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [adminId]);
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
@@ -16,8 +61,10 @@ const Usage = () => {
         {/* Current Plan */}
         <div className="bg-green-100 rounded-lg p-4 flex flex-col justify-between min-w-[200px]">
           <span className="text-xs text-gray-600 mb-1">Current Plan</span>
-          <span className="font-bold text-lg mb-2">STARTER</span>
-          <button className="bg-white border border-green-300 text-green-900 font-semibold px-4 py-1 rounded shadow hover:bg-green-200">
+          <span className="font-bold text-lg mb-2">{currentPlan?.name || "STARTER"}</span>
+          <button 
+            onClick={() => navigate("/admin/account/plans")}
+            className="bg-white border border-green-300 text-green-900 font-semibold px-4 py-1 rounded shadow hover:bg-green-200">
             VIEW
           </button>
         </div>

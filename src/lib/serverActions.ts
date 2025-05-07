@@ -127,6 +127,34 @@ interface DirectoryLink {
   url: string;
 }
 
+interface PlanData {
+  id: string;
+  name: string;
+  price: number;
+  currency: string;
+  credits: number;
+  recurrence: string;
+  description: string;
+  isCurrentPlan: boolean;
+}
+
+interface BillingDetails {
+  individualOrganizationName: string;
+  email: string;
+  country: string;
+  state: string;
+  addressLine1: string;
+  addressLine2: string;
+  zipCode: string;
+}
+
+interface CardDetails {
+  cardType: string;
+  cardNumber: string;
+  expiry: string;
+  default: boolean;
+}
+
 export async function extractContentFromURL(
   url: string
 ): Promise<ExtractContentResponse> {
@@ -1323,5 +1351,116 @@ export async function saveCustomerLead(
       result:
         error instanceof Error ? error.message : "Failed to save customer lead",
     };
+  }
+}
+
+export async function getPlans(clientId: string): Promise<PlanData[]> {
+  try {
+    const response = await axios.get(`https://rag.gobbl.ai/client/getPlans/${clientId}`);
+    
+    if (response.data.error) {
+      throw new Error("Failed to fetch plans");
+    }
+    
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching plans:", error);
+    throw error;
+  }
+}
+
+export async function subscribeToPlan(clientId: string, planId: string): Promise<any> {
+  try {
+    const response = await axios.post("https://rag.gobbl.ai/client/subscribeToCredits", {
+      clientId,
+      planId
+    });
+    
+    if (response.data.error) {
+      throw new Error(response.data.error || "Failed to subscribe to plan");
+    }
+    
+    return response.data.result;
+  } catch (error) {
+    console.error("Error subscribing to plan:", error);
+    throw error;
+  }
+}
+
+export async function getClient(clientId: string) {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/client/getClient/${clientId}`
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.result || "Failed to fetch client data");
+    }
+    
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching client data:", error);
+    throw error;
+  }
+}
+
+export async function updateClientBillingDetails(
+  clientId: string,
+  billingDetails: {
+    "Individual/Organization Name": string;
+    "Email": string;
+    "Country": string;
+    "State": string;
+    "Zip Code": string;
+    "Address Line 1": string;
+    "Address Line 2": string;
+  }
+): Promise<any> {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/client/updateClientBillingDetails",
+      {
+        clientId,
+        billingDetails
+      }
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+    
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating billing details:", error);
+    throw new Error("Failed to update billing details");
+  }
+}
+
+export async function updateClientBillingMethod(
+  clientId: string, 
+  billingMethod: Array<{
+    cardType: string;
+    cardNumber: number;
+    expiry: string;
+    default: boolean;
+  }>
+): Promise<any> {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/client/updateClientBillingMethod",
+      {
+        clientId,
+        billingMethod
+      }
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+    
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating billing method:", error);
+    throw new Error("Failed to update billing method");
   }
 }
