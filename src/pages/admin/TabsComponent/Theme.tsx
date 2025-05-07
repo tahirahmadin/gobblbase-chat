@@ -9,7 +9,7 @@ import { Theme } from "../../../types";
 import { MessageSquare, Mic } from "lucide-react";
 
 const CustomTheme = () => {
-  const { activeBotData } = useBotConfig();
+  const { activeBotData, setRefetchBotData } = useBotConfig();
   const [selectedTheme, setSelectedTheme] = useState<Theme>(
     AVAILABLE_THEMES[0]
   );
@@ -43,6 +43,8 @@ const CustomTheme = () => {
           ...activeBotData,
           themeColors: inputTheme,
         });
+
+        setRefetchBotData();
 
         toast.success("Theme updated successfully");
       } catch (error) {

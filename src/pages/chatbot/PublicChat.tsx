@@ -33,8 +33,10 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 };
 
 export default function PublicChat({
+  chatHeight,
   previewConfig,
 }: {
+  chatHeight: string | null;
   previewConfig: BotConfig | null;
 }) {
   const { botUsername } = useParams();
@@ -297,7 +299,7 @@ export default function PublicChat({
         <div
           className="w-full max-w-md bg-white shadow-2xl  overflow-hidden flex flex-col relative"
           style={{
-            height: previewConfig ? 700 : "100vh",
+            height: previewConfig ? (chatHeight ? chatHeight : 620) : "100vh",
             backgroundColor: "white", // white mobile shell
           }}
         >

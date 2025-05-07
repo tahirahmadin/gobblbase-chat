@@ -337,8 +337,9 @@ const CreateNewBot: React.FC = () => {
           <div className="w-2/5 flex flex-col items-center justify-center h-full bg-[#d4deff]">
             <div className="w-full flex flex-col items-center">
               <div className="text-lg font-bold mb-2 mt-4">PREVIEW</div>
-              <div className="w-[340px] h-[520px] border  border-gray-300 rounded-xl overflow-hidden shadow bg-white">
+              <div className="w-[300px] h-[550px] border  border-gray-300 rounded-xl overflow-hidden shadow bg-white">
                 <PublicChat
+                  chatHeight={"550px"}
                   previewConfig={{
                     agentId: "1234",
                     username: "preview-username",
@@ -422,12 +423,6 @@ const CreateNewBot: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full bg-[#b6baf8] flex flex-col">
-      {/* Top brand bar */}
-      <div className="w-full py-2 px-4 flex items-center">
-        <span className="text-black text-lg font-bold tracking-tight">
-          kifor
-        </span>
-      </div>
       {/* Centered content */}
       <div className="flex-1 flex items-center justify-center w-full">
         <div className="w-[80%] h-[650px] max-w-6xl  border-2 border-[#222b5f] bg-[#eaefff] shadow-[4px_4px_0_0_#222b5f] rounded-none flex flex-col justify-center items-center p-0">

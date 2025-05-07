@@ -4,6 +4,29 @@ import { useNavigate } from "react-router-dom";
 import { useAdminStore } from "../../store/useAdminStore";
 import CreateNewBot from "./CreateNewBot";
 
+// Add type definitions for Google Identity Services
+declare global {
+  interface Window {
+    google: {
+      accounts: {
+        id: {
+          initialize: (config: {
+            client_id: string;
+            callback: (response: { credential: string }) => void;
+            ux_mode: string;
+          }) => void;
+          prompt: (
+            callback: (notification: {
+              isNotDisplayed: () => boolean;
+              isSkippedMoment: () => boolean;
+            }) => void
+          ) => void;
+        };
+      };
+    };
+  }
+}
+
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const {
@@ -27,12 +50,12 @@ const Login: React.FC = () => {
     }
   }, [isAdminLoggedIn, agents, navigate]);
 
-  // Load Google Identity Services script and initialize
+  // Load Google OAuth2 script and initialize
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
 
-    const scriptId = "google-identity-service";
+    const scriptId = "google-oauth2";
     if (!document.getElementById(scriptId)) {
       const script = document.createElement("script");
       script.src = "https://accounts.google.com/gsi/client";
@@ -42,50 +65,55 @@ const Login: React.FC = () => {
         if (
           window.google &&
           window.google.accounts &&
-          window.google.accounts.id
+          window.google.accounts.oauth2
         ) {
-          window.google.accounts.id.initialize({
+          const client = window.google.accounts.oauth2.initTokenClient({
             client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-            callback: (response: any) => {
-              if (response && response.credential) {
-                handleGoogleLoginSuccess(response);
+            scope: "email profile",
+            callback: async (response: any) => {
+              if (response && response.access_token) {
+                try {
+                  // Fetch user info using the access token
+                  const userInfoResponse = await fetch(
+                    "https://www.googleapis.com/oauth2/v3/userinfo",
+                    {
+                      headers: {
+                        Authorization: `Bearer ${response.access_token}`,
+                      },
+                    }
+                  );
+                  const userInfo = await userInfoResponse.json();
+
+                  // Format the response to match what handleGoogleLoginSuccess expects
+                  const credentialResponse = {
+                    credential: response.access_token,
+                    userInfo: userInfo,
+                  };
+
+                  handleGoogleLoginSuccess(credentialResponse);
+                } catch (error) {
+                  console.error("Error fetching user info:", error);
+                  handleGoogleLoginError();
+                }
               } else {
                 handleGoogleLoginError();
               }
             },
-            ux_mode: "popup", // Force popup, not FedCM
           });
+          // Store the client for later use
+          (window as any).googleOAuthClient = client;
         }
       };
       document.body.appendChild(script);
-    } else {
-      if (
-        window.google &&
-        window.google.accounts &&
-        window.google.accounts.id
-      ) {
-        window.google.accounts.id.initialize({
-          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-          callback: (response: any) => {
-            if (response && response.credential) {
-              handleGoogleLoginSuccess(response);
-            } else {
-              handleGoogleLoginError();
-            }
-          },
-          ux_mode: "popup", // Force popup, not FedCM
-        });
-      }
     }
   }, [handleGoogleLoginSuccess, handleGoogleLoginError]);
 
   const handleCustomGoogleLogin = () => {
-    if (window.google && window.google.accounts && window.google.accounts.id) {
-      window.google.accounts.id.prompt((notification: any) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          handleGoogleLoginError();
-        }
-      });
+    const client = (window as any).googleOAuthClient;
+    if (client) {
+      client.requestAccessToken();
+    } else {
+      handleGoogleLoginError();
     }
   };
 

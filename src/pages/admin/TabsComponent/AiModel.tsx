@@ -8,7 +8,7 @@ const AiModel = () => {
   const [selectedModelId, setSelectedModelId] = useState(MODEL_PRESETS[0]?.id);
   const [currentModelId, setCurrentModelId] = useState(MODEL_PRESETS[0]?.id);
   const [isSaving, setIsSaving] = useState(false);
-  const { activeBotId } = useBotConfig();
+  const { activeBotId, setRefetchBotData } = useBotConfig();
 
   const handleSelect = (id: string) => setSelectedModelId(id);
 
@@ -21,8 +21,10 @@ const AiModel = () => {
     try {
       const selectedModel = MODEL_PRESETS.find((m) => m.id === selectedModelId);
       await updateAgentModel(activeBotId, selectedModel?.name || "");
+
       setCurrentModelId(selectedModelId);
       toast.success("Model updated successfully!");
+      setRefetchBotData();
     } catch (err: any) {
       toast.error(err?.message || "Failed to update model");
     } finally {
