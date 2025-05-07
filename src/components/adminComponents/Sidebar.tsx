@@ -38,6 +38,7 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Profile", path: "/admin/dashboard/profile" },
       { name: "Brain", path: "/admin/dashboard/brain" },
+      { name: "AI Model", path: "/admin/dashboard/ai-model" },
       { name: "Voice", path: "/admin/dashboard/voice" },
       { name: "Theme", path: "/admin/dashboard/theme" },
       { name: "Welcome Text", path: "/admin/dashboard/welcome" },

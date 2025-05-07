@@ -116,6 +116,7 @@ export interface BotConfig {
     link: string;
   };
   prompts: string[];
+  generatedPrompts: string[];
   promotionalBanner: string | null;
   isPromoBannerEnabled: boolean;
   isQueryable: boolean;

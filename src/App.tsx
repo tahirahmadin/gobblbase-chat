@@ -33,6 +33,7 @@ import CreateNewBot from "./pages/admin/CreateNewBot";
 import Plans from "./pages/admin/Plans";
 import Billing from "./pages/admin/Billing";
 import Usage from "./pages/admin/Usage";
+import AiModel from "./pages/admin/TabsComponent/AiModel";
 
 // Add type definition for window
 declare global {
@@ -101,6 +102,7 @@ function Dashboard() {
       <Routes>
         <Route path="dashboard/profile" element={<Profile />} />
         <Route path="dashboard/brain" element={<Brain />} />
+        <Route path="dashboard/ai-model" element={<AiModel />} />
         <Route path="dashboard/voice" element={<Voice />} />
         <Route path="dashboard/theme" element={<Theme />} />
         <Route path="dashboard/welcome" element={<WelcomeText />} />

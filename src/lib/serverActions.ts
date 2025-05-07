@@ -184,7 +184,8 @@ export async function addDocumentToAgent(
   documentSize?: number
 ): Promise<DocumentResponse> {
   try {
-    const calculatedSize = documentSize || new TextEncoder().encode(textContent).length;
+    const calculatedSize =
+      documentSize || new TextEncoder().encode(textContent).length;
     const response = await axios.post(
       "https://rag.gobbl.ai/milvus/add-document",
       {
@@ -1225,5 +1226,46 @@ export async function getAgentPolicies(
   } catch (error) {
     console.error("Error fetching agent policies:", error);
     throw error;
+  }
+}
+
+export async function updateAgentModel(
+  agentId: string,
+  modelName: string
+): Promise<any> {
+  try {
+    const response = await axios.put(
+      "https://rag.gobbl.ai/client/updateAgentModel",
+      {
+        agentId,
+        model: modelName,
+      }
+    );
+    if (response.data.error) {
+      throw new Error(response.data.result || "Failed to update model");
+    }
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating agent model:", error);
+    throw error;
+  }
+}
+
+export async function updateGeneratedPrompts(
+  agentId: string,
+  generatedPrompts: string[]
+): Promise<boolean> {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/client/updateAgentGeneratedPrompts",
+      {
+        agentId,
+        prompts: generatedPrompts,
+      }
+    );
+    return true;
+  } catch (error) {
+    console.error("Error updating generated prompts:", error);
+    return false;
   }
 }
