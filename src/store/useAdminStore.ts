@@ -52,49 +52,61 @@ export const useAdminStore = create<AdminState>()(
       // Complex actions
       handleGoogleLoginSuccess: async (credentialResponse: any) => {
         try {
-          // Decode the JWT token to get user info
-          const base64Url = credentialResponse.credential.split(".")[1];
-          const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-          const jsonPayload = decodeURIComponent(
-            atob(base64)
-              .split("")
-              .map(function (c) {
-                return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
-              })
-              .join("")
-          );
+          console.log("Received credential response:", credentialResponse);
 
-          const userInfo = JSON.parse(jsonPayload);
+          // Get user info from the response
+          const userInfo = credentialResponse.userInfo;
+          console.log("User info:", userInfo);
 
-          // Call the signUpUser API
+          if (!userInfo || !userInfo.email) {
+            throw new Error("Invalid user info received from Google");
+          }
+
+          // Call the signUpClient API
+          console.log("Calling signUpClient with:", {
+            via: "google",
+            email: userInfo.email,
+          });
           const response = await signUpClient("google", userInfo.email);
+          console.log("SignUpClient response:", response);
 
           if (response.error) {
+            console.error("Signup failed with error:", response.result);
             toast.error("Failed to complete signup process");
-            console.error("Signup failed:", response.result);
-          } else {
-            // Store the userId from the response
-            if (
-              typeof response.result === "object" &&
-              response.result !== null &&
-              "_id" in response.result
-            ) {
-              const result = response.result as SignUpResult;
-              const adminId = result._id;
-              // const totalAgents = result.totalAgents || 2;
-              let tempAgents = await fetchClientAgents(adminId);
-              set({
-                adminId,
-                adminEmail: result.signUpVia.handle,
-                isAdminLoggedIn: true,
-                totalAgents: tempAgents.length,
-              });
-              set({ agents: tempAgents, isLoading: false });
-            }
+            return;
+          }
+
+          // Store the userId from the response
+          if (
+            typeof response.result === "object" &&
+            response.result !== null &&
+            "_id" in response.result
+          ) {
+            const result = response.result as SignUpResult;
+            const adminId = result._id;
+            console.log("Successfully got admin ID:", adminId);
+
+            let tempAgents = await fetchClientAgents(adminId);
+            console.log("Fetched agents:", tempAgents);
+
+            set({
+              adminId,
+              adminEmail: result.signUpVia.handle,
+              isAdminLoggedIn: true,
+              totalAgents: tempAgents.length,
+            });
+            set({ agents: tempAgents, isLoading: false });
             toast.success(`Successfully signed in!`);
+          } else {
+            console.error("Invalid response format:", response.result);
+            toast.error("Invalid response from server");
           }
         } catch (error) {
-          console.error("Error during Google login:", error);
+          console.error("Detailed error during Google login:", error);
+          if (error instanceof Error) {
+            console.error("Error message:", error.message);
+            console.error("Error stack:", error.stack);
+          }
           toast.error("An error occurred during login");
         }
       },

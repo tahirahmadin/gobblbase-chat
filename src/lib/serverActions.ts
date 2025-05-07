@@ -184,7 +184,8 @@ export async function addDocumentToAgent(
   documentSize?: number
 ): Promise<DocumentResponse> {
   try {
-    const calculatedSize = documentSize || new TextEncoder().encode(textContent).length;
+    const calculatedSize =
+      documentSize || new TextEncoder().encode(textContent).length;
     const response = await axios.post(
       "https://rag.gobbl.ai/milvus/add-document",
       {
@@ -330,6 +331,7 @@ export async function signUpClient(
   handle: string
 ): Promise<SignUpClientResponse> {
   try {
+    console.log("Making signUpClient request with:", { via, handle });
     const response = await axios.post(
       "https://rag.gobbl.ai/client/signupClient",
       {
@@ -338,10 +340,31 @@ export async function signUpClient(
       }
     );
 
+    console.log("SignUpClient raw response:", response);
+
+    if (!response.data) {
+      throw new Error("No data received from server");
+    }
+
     return response.data;
   } catch (error) {
     console.error("Error signing up client:", error);
-    throw new Error("Failed to sign up client");
+    if (axios.isAxiosError(error)) {
+      console.error("Axios error details:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+      return {
+        error: true,
+        result: error.response?.data?.message || "Failed to sign up client",
+      };
+    }
+    return {
+      error: true,
+      result:
+        error instanceof Error ? error.message : "Failed to sign up client",
+    };
   }
 }
 
@@ -1225,5 +1248,80 @@ export async function getAgentPolicies(
   } catch (error) {
     console.error("Error fetching agent policies:", error);
     throw error;
+  }
+}
+
+export async function updateAgentModel(
+  agentId: string,
+  modelName: string
+): Promise<any> {
+  try {
+    const response = await axios.put(
+      "https://rag.gobbl.ai/client/updateAgentModel",
+      {
+        agentId,
+        model: modelName,
+      }
+    );
+    if (response.data.error) {
+      throw new Error(response.data.result || "Failed to update model");
+    }
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating agent model:", error);
+    throw error;
+  }
+}
+
+export async function updateGeneratedPrompts(
+  agentId: string,
+  generatedPrompts: string[]
+): Promise<boolean> {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/client/updateAgentGeneratedPrompts",
+      {
+        agentId,
+        prompts: generatedPrompts,
+      }
+    );
+    return true;
+  } catch (error) {
+    console.error("Error updating generated prompts:", error);
+    return false;
+  }
+}
+
+export async function saveCustomerLead(
+  agentId: string,
+  lead: {
+    name: string;
+    email: string;
+    phone: string;
+    queryMessage: string;
+    createdAt: string;
+  }
+): Promise<{ error: boolean; result?: string }> {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/client/saveCustomerLeads",
+      {
+        agentId,
+        newLead: lead,
+      }
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+
+    return { error: false, result: response.data.result };
+  } catch (error) {
+    console.error("Error saving customer lead:", error);
+    return {
+      error: true,
+      result:
+        error instanceof Error ? error.message : "Failed to save customer lead",
+    };
   }
 }

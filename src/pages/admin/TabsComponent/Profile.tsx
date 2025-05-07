@@ -620,7 +620,7 @@ const Profile = () => {
         className="col-span-2 h-full sticky top-0 flex items-center justify-center"
         style={{ backgroundColor: "#eaefff" }}
       >
-        <div className="mx-auto" style={{ maxWidth: 400 }}>
+        <div className="mx-auto w-full" style={{ maxWidth: 360 }}>
           <PublicChat
             agentUsernamePlayground={null}
             previewConfig={{

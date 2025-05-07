@@ -10,6 +10,7 @@ import ChatSection from "../../components/chatbotComponents/ChatSection";
 import InputSection from "../../components/chatbotComponents/InputSection";
 import AboutSection from "../../components/chatbotComponents/AboutSection";
 import BrowseSection from "../../components/chatbotComponents/BrowseSection";
+import { useChatLogs } from "../../hooks/useChatLogs";
 
 type ExtendedChatMessage = ChatMessage & { type?: "booking" };
 
@@ -32,8 +33,10 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 };
 
 export default function PublicChat({
+  chatHeight,
   previewConfig,
 }: {
+  chatHeight: string | null;
   previewConfig: BotConfig | null;
 }) {
   const { botUsername } = useParams();
@@ -42,6 +45,7 @@ export default function PublicChat({
     isLoading: isConfigLoading,
     fetchBotData,
   } = useBotConfig();
+  const { addMessages } = useChatLogs();
 
   // use preview or fetched config
   const currentConfig = previewConfig ? previewConfig : config;
@@ -246,6 +250,10 @@ export default function PublicChat({
         sender: "agent",
       };
       setMessages((m) => [...m, agentMsg]);
+
+      // Update chat logs with the last user message and agent response
+
+      await addMessages(msgToSend, agentMsg.content);
     } catch (err) {
       console.error(err);
       setMessages((m) => [
@@ -291,7 +299,7 @@ export default function PublicChat({
         <div
           className="w-full max-w-md bg-white shadow-2xl  overflow-hidden flex flex-col relative"
           style={{
-            height: previewConfig ? 700 : "100vh",
+            height: previewConfig ? (chatHeight ? chatHeight : 620) : "100vh",
             backgroundColor: "white", // white mobile shell
           }}
         >

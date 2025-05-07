@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FaBox, FaFileAlt, FaCalendarAlt, FaUsers } from "react-icons/fa";
 import NewServiceForm from "./NewServiceForm";
+import NewOfferingForm, { ProductType } from "./NewOfferingForm";
 
 const cardData = [
   {
@@ -48,8 +49,13 @@ const cardContainerStyle: React.CSSProperties = {
 const AddNew: React.FC = () => {
   const [selectedType, setSelectedType] = useState<string | null>(null);
 
-  if (selectedType === "Service") {
-    return <NewServiceForm />;
+  if (selectedType) {
+    return (
+      <NewOfferingForm
+        type={selectedType as ProductType}
+        onBack={() => setSelectedType(null)}
+      />
+    );
   }
 
   return (

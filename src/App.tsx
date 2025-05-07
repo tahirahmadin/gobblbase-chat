@@ -30,6 +30,10 @@ import BookingDashboardWrapper from "./pages/admin/BookingComponent/BookingDashb
 import Login from "./pages/admin/Login";
 import { useAdminStore } from "./store/useAdminStore";
 import CreateNewBot from "./pages/admin/CreateNewBot";
+import Plans from "./pages/admin/Plans";
+import Billing from "./pages/admin/Billing";
+import Usage from "./pages/admin/Usage";
+import AiModel from "./pages/admin/TabsComponent/AiModel";
 
 // Add type definition for window
 declare global {
@@ -98,6 +102,7 @@ function Dashboard() {
       <Routes>
         <Route path="dashboard/profile" element={<Profile />} />
         <Route path="dashboard/brain" element={<Brain />} />
+        <Route path="dashboard/ai-model" element={<AiModel />} />
         <Route path="dashboard/voice" element={<Voice />} />
         <Route path="dashboard/theme" element={<Theme />} />
         <Route path="dashboard/welcome" element={<WelcomeText />} />
@@ -138,6 +143,9 @@ function Dashboard() {
         <Route path="offerings/policies" element={<Policies />} />
         <Route path="crm/chat-logs" element={<ChatLogs />} />
         <Route path="crm/leads" element={<CustomerLeads />} />
+        <Route path="account/billing" element={<Billing />} />
+        <Route path="account/plans" element={<Plans />} />
+        <Route path="account/usage" element={<Usage />} />
         <Route path="*" element={<Navigate to="dashboard/profile" replace />} />
       </Routes>
     </AdminLayout>

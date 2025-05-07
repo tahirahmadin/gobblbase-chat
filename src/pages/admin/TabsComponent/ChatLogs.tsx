@@ -71,8 +71,9 @@ const ChatLogs = () => {
                   >
                     <div className="font-semibold text-green-700">Guest</div>
                     <div className="text-xs text-gray-600">
-                      {session.userLogs[session.userLogs.length - 1]?.content ||
-                        "No messages"}
+                      {session.userLogs[
+                        session.userLogs.length - 1
+                      ]?.content.slice(0, 60) || "No messages"}
                     </div>
                     <div className="text-xs text-right text-green-400">
                       {new Date(session.createdDate).toLocaleDateString()}
@@ -114,7 +115,7 @@ const ChatLogs = () => {
           )}
         </div>
         {/* Right: Chat Conversation */}
-        <div className="w-2/3 pl-8 flex flex-col space-y-4 bg-blue-50 rounded-lg">
+        <div className="w-2/3 pl-8 flex flex-col space-y-4 bg-blue-50 rounded-lg p-2">
           {selectedChat ? (
             selectedChat.userLogs.length > 0 ? (
               selectedChat.userLogs.map((msg, idx) =>

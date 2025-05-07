@@ -38,17 +38,26 @@ export function useChatLogs() {
     fetchUserIP();
   }, []);
 
-  const addMessage = async (message: ChatMessage) => {
-    const newLogs = [...chatLogs, message];
+  const addMessages = async (userMsg: string, agentMsg: string) => {
+    let userBubble = {
+      role: "user",
+      content: userMsg,
+      timestamp: new Date().toISOString(),
+    };
+    let agentBubble = {
+      role: "agent",
+      content: agentMsg,
+      timestamp: new Date().toISOString(),
+    };
+    const newLogs = [...chatLogs, userBubble, agentBubble];
     setChatLogs(newLogs);
-
     if (activeBotId && userId && sessionId) {
       try {
         await updateUserLogs({
           userId,
           sessionId,
           agentId: activeBotId,
-          newUserLogs: newLogs,
+          newUserLogs: [userBubble, agentBubble],
         });
       } catch (error) {
         console.error("Error updating chat logs:", error);
@@ -62,7 +71,7 @@ export function useChatLogs() {
 
   return {
     chatLogs,
-    addMessage,
+    addMessages,
     clearChatLogs,
     sessionId,
     userId,
