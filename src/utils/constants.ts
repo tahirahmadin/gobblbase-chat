@@ -271,31 +271,37 @@ export const PERSONALITY_OPTIONS: PersonalityOption[] = [
   {
     id: "friend",
     title: "FRIEND",
+    image: "/assets/voice/friend.png",
     traits: ["Warm", "Relatable", "Conversational"],
   },
   {
     id: "concierge",
     title: "CONCIERGE",
+    image: "/assets/voice/expert.png",
     traits: ["Polished", "Refined", "Formal"],
   },
   {
     id: "coach",
     title: "COACH",
+    image: "/assets/voice/coach.png",
     traits: ["Upbeat", "Encouraging", "Motivational"],
   },
   {
     id: "professional",
     title: "PROFESSIONAL",
+    image: "/assets/voice/professional.png",
     traits: ["Direct", "Authentic", "Clear"],
   },
   {
     id: "gen_z",
     title: "GEN Z",
+    image: "/assets/voice/cool.png",
     traits: ["Casual", "Witty", "Trendy"],
   },
   {
     id: "techie",
     title: "TECHIE",
+    image: "/assets/voice/tech.png",
     traits: ["Intuitive", "Intelligent", "Resourceful"],
   },
   // {

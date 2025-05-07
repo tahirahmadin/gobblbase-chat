@@ -8,6 +8,9 @@ import {
   ChevronRight,
   ChevronDown,
   LayoutDashboard,
+  CreditCard,
+  BarChart2,
+  FileText,
 } from "lucide-react";
 import { useAdminStore } from "../../store/useAdminStore";
 import { useUserStore } from "../../store/useUserStore";
@@ -74,6 +77,17 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Customer Leads", path: "/admin/crm/leads" },
       { name: "Chat Logs", path: "/admin/crm/chat-logs" },
+    ],
+  },
+  {
+    name: "Account",
+    icon: <Users className="w-5 h-5" />,
+    path: "/admin/account",
+    expandable: true,
+    subItems: [
+      { name: "Billing", path: "/admin/account/billing" },
+      { name: "Plans", path: "/admin/account/plans" },
+      { name: "Usage", path: "/admin/account/usage" },
     ],
   },
 ];

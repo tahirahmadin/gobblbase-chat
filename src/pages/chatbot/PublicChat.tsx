@@ -10,6 +10,7 @@ import ChatSection from "../../components/chatbotComponents/ChatSection";
 import InputSection from "../../components/chatbotComponents/InputSection";
 import AboutSection from "../../components/chatbotComponents/AboutSection";
 import BrowseSection from "../../components/chatbotComponents/BrowseSection";
+import { useChatLogs } from "../../hooks/useChatLogs";
 
 type ExtendedChatMessage = ChatMessage & { type?: "booking" };
 
@@ -42,6 +43,7 @@ export default function PublicChat({
     isLoading: isConfigLoading,
     fetchBotData,
   } = useBotConfig();
+  const { addMessages } = useChatLogs();
 
   // use preview or fetched config
   const currentConfig = previewConfig ? previewConfig : config;
@@ -246,6 +248,10 @@ export default function PublicChat({
         sender: "agent",
       };
       setMessages((m) => [...m, agentMsg]);
+
+      // Update chat logs with the last user message and agent response
+
+      await addMessages(msgToSend, agentMsg.content);
     } catch (err) {
       console.error(err);
       setMessages((m) => [

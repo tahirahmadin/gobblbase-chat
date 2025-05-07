@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import ReactMarkdown from "react-markdown";
 import { ChatMessage, Theme } from "../../types";
 import StreamingText from "./otherComponents/StreamingText";
 import LoadingBubbles from "./otherComponents/LoadingBubbles";

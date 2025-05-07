@@ -170,6 +170,7 @@ export interface BotConfig {
 export interface PersonalityOption {
   id: string;
   title: string;
+  image: string;
   traits: string[];
   isCustom?: boolean;
 }

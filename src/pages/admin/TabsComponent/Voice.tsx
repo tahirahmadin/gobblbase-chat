@@ -4,13 +4,7 @@ import { updateAgentVoicePersonality } from "../../../lib/serverActions";
 import { useBotConfig } from "../../../store/useBotConfig";
 import toast from "react-hot-toast";
 import { PERSONALITY_OPTIONS } from "../../../utils/constants";
-
-interface PersonalityOption {
-  id: string;
-  title: string;
-  traits: string[];
-  isCustom?: boolean;
-}
+import { PersonalityOption } from "../../../types";
 
 const personalityOptions: PersonalityOption[] = PERSONALITY_OPTIONS;
 
@@ -101,7 +95,7 @@ const Voice = () => {
               {/* Avatar */}
               <div className="w-28 h-28 rounded-lg overflow-hidden bg-white">
                 <img
-                  src="/assets/tone-icon.jpg"
+                  src={personality.image}
                   alt={`${personality.title} personality`}
                   className="w-full h-full object-cover"
                 />

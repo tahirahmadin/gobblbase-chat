@@ -134,7 +134,7 @@ const CreateNewBot: React.FC = () => {
                     {/* Avatar */}
                     <div className="w-28 h-28 rounded-lg overflow-hidden bg-white">
                       <img
-                        src="/assets/tone-icon.jpg"
+                        src={personality.image}
                         alt={`${personality.title} personality`}
                         className="w-full h-full object-cover"
                       />
@@ -340,7 +340,7 @@ const CreateNewBot: React.FC = () => {
               <div className="w-[340px] h-[520px] border  border-gray-300 rounded-xl overflow-hidden shadow bg-white">
                 <PublicChat
                   previewConfig={{
-                    agentId: "preview-agent",
+                    agentId: "1234",
                     username: "preview-username",
                     name: agentName || "Agent Name",
                     bio: "This is a preview agent.",
