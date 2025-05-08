@@ -15,21 +15,20 @@ import { useBotConfig } from "../../../store/useBotConfig";
 import { updateAgentBrain } from "../../../lib/serverActions";
 import { calculateSmartnessLevel } from "../../../utils/helperFn";
 
-// Set the PDF worker source
 pdfjsLib.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
-
-// Enhanced file interface with document ID
 interface UploadedFile {
   name: string;
   size: string;
+  sizeInBytes?: number;
   documentId?: string;
 }
-
-// Define Document interface locally since it's not exported from serverActions
 interface Document {
   documentId: string;
   title: string;
   content?: string;
+  size?: number; 
+  addedAt?: Date;
+  updatedAt?: Date;
 }
 
 interface BrainProps {
@@ -66,14 +65,11 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     if (activeBotData) {
       setSelectedLanguage(activeBotData.language || "English");
 
-      // Initialize smartenUpAnswers from activeBotData
       if (
         activeBotData.smartenUpAnswers &&
         activeBotData.smartenUpAnswers.length >= 4
       ) {
         setSmartenUpAnswers(activeBotData.smartenUpAnswers);
-
-        // Initialize insightsData from smartenUpAnswers
         setInsightsData({
           usp: activeBotData.smartenUpAnswers[0] || "",
           brandPersonality: activeBotData.smartenUpAnswers[1] || "",
@@ -82,7 +78,6 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         });
       }
 
-      // Calculate and set smartness level
       const newSmartnessLevel = calculateSmartnessLevel(activeBotData);
       console.log("newSmartnessLevel", newSmartnessLevel);
       setSmartnessLevel(newSmartnessLevel);
@@ -92,28 +87,26 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { adminId } = useAdminStore();
   const { activeBotId, setActiveBotId, fetchBotData } = useBotConfig();
-
-  // Fetch existing documents if agent already exists
   useEffect(() => {
     if (activeBotId) {
       fetchAgentDocuments();
     }
   }, [activeBotId]);
 
-  // Fetch documents for an agent
   const fetchAgentDocuments = async () => {
     if (!activeBotId) return;
-
+  
     try {
       const response = await listAgentDocuments(activeBotId);
-
+  
       if (!response.error && typeof response.result !== "string") {
         const docs = response.result.documents.map((doc: Document) => ({
           name: doc.title,
-          size: "N/A", // Size not stored in backend
+          size: doc.size ? formatFileSize(doc.size) : "N/A",
+          sizeInBytes: doc.size || 0,
           documentId: doc.documentId,
         }));
-
+  
         setUploadedFiles(docs);
       }
     } catch (error) {
