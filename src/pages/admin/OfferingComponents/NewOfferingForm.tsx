@@ -6,6 +6,7 @@ import EventForm from "./EventForm";
 import CheckoutStep from "./CheckoutStep";
 import PreviewStep from "./PreviewStep";
 import { addMainProduct } from "../../../lib/serverActions";
+import { useBotConfig } from "../../../store/useBotConfig";
 
 export type ProductType =
   | "Physical Product"
@@ -21,6 +22,8 @@ interface NewOfferingFormProps {
 const steps = ["Product Details", "Checkout", "Preview"];
 
 const NewOfferingForm: React.FC<NewOfferingFormProps> = ({ type, onBack }) => {
+  const { activeBotId } = useBotConfig();
+
   const [step, setStep] = useState(0);
 
   const [physicalForm, setPhysicalForm] = useState({
@@ -193,8 +196,6 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({ type, onBack }) => {
     return null;
   };
 
-  const agentId = "dc33ee6b-7db8-4115-95c3-7a8355046f77"; // TODO: Replace with real agentId from context/auth
-
   const handleSubmit = async () => {
     let typeKey = "";
     let form: any = null;
@@ -212,7 +213,7 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({ type, onBack }) => {
       form = eventForm;
     }
     try {
-      const data = await addMainProduct(type, form, agentId);
+      const data = await addMainProduct(type, form, activeBotId);
       if (data.error === false) {
         alert("Product added successfully!");
       } else {
