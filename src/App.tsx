@@ -124,21 +124,11 @@ function Dashboard() {
         />
         <Route
           path="offerings/calendar/edit"
-          element={
-            <Booking
-              isEditMode={true}
-              onSetupComplete={() => navigate("/admin/offerings/calendar")}
-            />
-          }
+          element={<BookingDashboardWrapper isEditMode={true} />}
         />
         <Route
           path="offerings/calendar/new"
-          element={
-            <Booking
-              isEditMode={false}
-              onSetupComplete={() => navigate("/admin/offerings/calendar")}
-            />
-          }
+          element={<BookingDashboardWrapper />}
         />
         <Route path="offerings/policies" element={<Policies />} />
         <Route path="crm/chat-logs" element={<ChatLogs />} />

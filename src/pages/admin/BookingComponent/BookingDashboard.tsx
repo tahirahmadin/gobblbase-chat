@@ -245,9 +245,8 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
     setRefreshTrigger(prev => prev + 1);
   };
 
-  // Handle edit settings button click
   const handleEditSettingsClick = () => {
-    window.location.href = "/admin/offerings/calendar/edit";
+    navigate('/admin/offerings/calendar/edit');
   };
 
   // Format date for display
