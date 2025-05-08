@@ -4,7 +4,6 @@ import { useAdminStore } from "../../store/useAdminStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 
-// Interface for usage data from API
 interface ClientUsageData {
   creditsInfo: {
     totalCredits: number;
@@ -29,6 +28,15 @@ interface ClientUsageData {
   totalAgentCount: number;
 }
 
+interface DailyUsage {
+  day: number;
+  month: string;
+  year: number;
+  date: string;
+  usage: number;
+  agentId: string;
+}
+
 const Usage = () => {
   const { adminId } = useAdminStore();
 
@@ -44,8 +52,7 @@ const Usage = () => {
   const [agentsList, setAgentsList] = useState<{id: string, name: string}[]>([]);
   const [usageHistory, setUsageHistory] = useState<{date: string, usage: number}[]>([]);
   const [selectedAgentTokens, setSelectedAgentTokens] = useState(0);
-  const [currentMonth, setCurrentMonth] = useState(""); 
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear()); 
+  const [allDailyUsage, setAllDailyUsage] = useState<DailyUsage[]>([]);
 
   useEffect(() => {
     const systemYear = new Date().getFullYear();
@@ -87,19 +94,31 @@ const Usage = () => {
           
           setAgentsUsed(usageData.totalAgentCount);
           
-          if (usageData.usage.agentUsage.length > 0 && 
-              usageData.usage.agentUsage[0].usageData && 
-              usageData.usage.agentUsage[0].usageData.length > 0) {
-            
-            const dateStr = usageData.usage.agentUsage[0].usageData[0].date; 
-            const dateParts = /(\d{2})([A-Z]{3})(\d{4})/.exec(dateStr);
-            
-            if (dateParts) {
-              const [_, day, monthStr, year] = dateParts;
-              setCurrentMonth(monthStr);
-              setCurrentYear(parseInt(year));
-            }
-          }
+          const dailyUsageCollection: DailyUsage[] = [];
+          
+          usageData.usage.agentUsage.forEach(agent => {
+            agent.usageData.forEach(dayData => {
+              const dateStr = dayData.date;
+              const dateParts = /(\d{2})([A-Z]{3})(\d{4})/.exec(dateStr);
+              
+              if (dateParts) {
+                const [_, dayStr, monthStr, yearStr] = dateParts;
+                const day = parseInt(dayStr);
+                const year = parseInt(yearStr);
+                
+                dailyUsageCollection.push({
+                  day,
+                  month: monthStr,
+                  year,
+                  date: dateStr,
+                  usage: dayData.totalTokensUsed,
+                  agentId: agent.agentId
+                });
+              }
+            });
+          });
+          
+          setAllDailyUsage(dailyUsageCollection);
           
           setTimeout(() => {
             generateUsageHistory(usageData, "All Agents", timeFrame);
@@ -144,129 +163,192 @@ const Usage = () => {
     return monthMap[monthAbbr] || 0;
   };
 
+  const getWeekLabel = (day: number) => {
+    if (day >= 1 && day <= 7) return 7;
+    if (day >= 8 && day <= 14) return 14;
+    if (day >= 15 && day <= 21) return 21;
+    return 28;
+  };
+  
   const generateUsageHistory = (data: ClientUsageData, agent: string, timeFrame: string) => {
     if (!data) return;
     
-    if (!currentMonth && data.usage.agentUsage.length > 0 && 
-        data.usage.agentUsage[0].usageData && 
-        data.usage.agentUsage[0].usageData.length > 0) {
-      
-      const dateStr = data.usage.agentUsage[0].usageData[0].date;
-      const dateParts = /(\d{2})([A-Z]{3})(\d{4})/.exec(dateStr);
-      
-      if (dateParts) {
-        const [_, day, monthStr, year] = dateParts;
-        setCurrentMonth(monthStr);
-        setCurrentYear(parseInt(year));
-      }
-    }
+    let agentDailyUsage: DailyUsage[] = [];
+    let selectedAgentId = "";
     
-    const monthToUse = currentMonth || 'APRIL'; 
-    const yearToUse = currentYear || new Date().getFullYear(); 
-    const monthName = getMonthName(monthToUse);
-    const monthIndex = getMonthIndex(monthToUse);
-
-    let relevantAgents = data.usage.agentUsage;
-    let agentUsageAmount = data.usage.totalTokensUsedAllAgents;
-    
-    if (agent !== "All Agents") {
-      const selectedAgentData = relevantAgents.find(a => a.agentName === agent);
+    if (agent === "All Agents") {
+      agentDailyUsage = [...allDailyUsage];
+      setCreditsUsed(data.usage.totalTokensUsedAllAgents);
+      setAgentsUsed(data.totalAgentCount);
+      setSelectedAgentTokens(data.usage.totalTokensUsedAllAgents);
+    } else {
+      const selectedAgentData = data.usage.agentUsage.find(a => a.agentName === agent);
       
       if (selectedAgentData) {
-        agentUsageAmount = selectedAgentData.totalTokensUsed;
+        selectedAgentId = selectedAgentData.agentId;
+        agentDailyUsage = allDailyUsage.filter(usage => usage.agentId === selectedAgentId);
+        
         setCreditsUsed(selectedAgentData.totalTokensUsed);
         setAgentsUsed(1);
         setSelectedAgentTokens(selectedAgentData.totalTokensUsed);
       } else {
-        agentUsageAmount = 0;
+        agentDailyUsage = [];
         setCreditsUsed(0);
         setAgentsUsed(0);
         setSelectedAgentTokens(0);
       }
-    } else {
-      agentUsageAmount = data.usage.totalTokensUsedAllAgents;
-      setCreditsUsed(data.usage.totalTokensUsedAllAgents);
-      setAgentsUsed(data.totalAgentCount);
-      setSelectedAgentTokens(data.usage.totalTokensUsedAllAgents);
     }
+    
+    let currentMonth = 'MAY';
+    let currentYear = new Date().getFullYear();
+    
+    if (agentDailyUsage.length > 0) {
+      const sortedDates = [...agentDailyUsage].sort((a, b) => {
+        if (a.year !== b.year) return b.year - a.year;
+        if (a.month !== b.month) return getMonthIndex(b.month) - getMonthIndex(a.month);
+        return b.day - a.day;
+      });
+      
+      currentMonth = sortedDates[0].month;
+      currentYear = sortedDates[0].year;
+    }
+    
+    const currentMonthName = getMonthName(currentMonth);
     
     let result: {date: string, usage: number}[] = [];
     
     switch (timeFrame) {
-      case "Today":
-        const today7Days = [];
+      case "Today": {
+        const lastDays: {date: string, usage: number}[] = [];
         
-        for (let i = 1; i <= 7; i++) {
-          today7Days.push({
-            date: `${monthName.substring(0, 3)} ${i}`,
-            usage: i === 7 ? agentUsageAmount : 0 
+        const daysInCurrentMonth = agentDailyUsage
+          .filter(d => d.month === currentMonth && d.year === currentYear)
+          .map(d => d.day);
+        
+        const maxDay = daysInCurrentMonth.length > 0 
+          ? Math.max(...daysInCurrentMonth) 
+          : new Date().getDate();
+        
+        const startDay = Math.max(1, maxDay - 6);
+        
+        for (let day = startDay; day <= maxDay; day++) {
+          const dayUsage = agentDailyUsage
+            .filter(d => d.day === day && d.month === currentMonth && d.year === currentYear)
+            .reduce((sum, d) => sum + d.usage, 0);
+          
+          lastDays.push({
+            date: `${currentMonthName.substring(0, 3)} ${day}`,
+            usage: dayUsage
           });
         }
         
-        result = today7Days;
+        result = lastDays;
         break;
+      }
+      
+      case "This Week": {
+        const weekLabels = [7, 14, 21, 28];
         
-      case "This Week":
-        const weekBreaks = [7, 14, 21, 28];
-        const weeklyData = weekBreaks.map((weekDay, index) => ({
-          date: `${monthName.substring(0, 3)} ${weekDay}`,
-          usage: index === 0 ? agentUsageAmount : 0 
+        const weeklyData = weekLabels.map(day => ({
+          date: `${currentMonthName.substring(0, 3)} ${day}`,
+          usage: 0
         }));
+        
+        agentDailyUsage
+          .filter(d => d.month === currentMonth && d.year === currentYear)
+          .forEach(dayData => {
+            const weekLabel = getWeekLabel(dayData.day);
+            const weekIndex = weekLabels.indexOf(weekLabel);
+            
+            if (weekIndex !== -1) {
+              weeklyData[weekIndex].usage += dayData.usage;
+            }
+          });
         
         result = weeklyData;
         break;
-        
-      case "This Month":
+      }
+      
+      case "This Month": {
         const months = [
           "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
         ];
         
-        const monthData = months.map((month, index) => ({
-          date: month,
-          usage: index === monthIndex ? agentUsageAmount : 0 
-        }));
+        const monthlyData = months.map((month, index) => {
+          const monthAbbr = month.toUpperCase().substring(0, 3);
+          const monthUsage = agentDailyUsage
+            .filter(d => d.month === monthAbbr && d.year === currentYear)
+            .reduce((sum, d) => sum + d.usage, 0);
+          
+          return {
+            date: month,
+            usage: monthUsage
+          };
+        });
         
-        result = monthData;
+        result = monthlyData;
         break;
+      }
+      
+      case "This Year": {
+        const yearlyData = [];
+        const startYear = 2022;
+        const endYear = currentYear + 1;
         
-      case "This Year":
-        const years = [];
-        
-        for (let year = 2022; year <= yearToUse + 1; year++) {
-          years.push({
+        for (let year = startYear; year <= endYear; year++) {
+          const yearUsage = agentDailyUsage
+            .filter(d => d.year === year)
+            .reduce((sum, d) => sum + d.usage, 0);
+          
+          yearlyData.push({
             date: year.toString(),
-            usage: year === yearToUse ? agentUsageAmount : 0 
+            usage: yearUsage
           });
         }
         
-        result = years;
+        result = yearlyData;
         break;
+      }
+      
+      case "All Time": {
+        const allTimeData = [];
+        const startYear = 2022;
+        const endYear = currentYear + 1;
         
-      case "All Time":
-        const allTimeYears = [];
-        
-        for (let year = 2022; year <= yearToUse + 1; year++) {
-          allTimeYears.push({
+        for (let year = startYear; year <= endYear; year++) {
+          const yearUsage = agentDailyUsage
+            .filter(d => d.year === year)
+            .reduce((sum, d) => sum + d.usage, 0);
+          
+          allTimeData.push({
             date: year.toString(),
-            usage: year === yearToUse ? agentUsageAmount : 0
+            usage: yearUsage
           });
         }
         
-        result = allTimeYears;
+        result = allTimeData;
         break;
+      }
+      
+      default: {
+        const defaultData = [];
+        const startYear = 2022;
+        const endYear = currentYear + 1;
         
-      default:
-        const defYears = [];
-        
-        for (let year = 2022; year <= yearToUse + 1; year++) {
-          defYears.push({
+        for (let year = startYear; year <= endYear; year++) {
+          const yearUsage = agentDailyUsage
+            .filter(d => d.year === year)
+            .reduce((sum, d) => sum + d.usage, 0);
+          
+          defaultData.push({
             date: year.toString(),
-            usage: year === yearToUse ? agentUsageAmount : 0
+            usage: yearUsage
           });
         }
         
-        result = defYears;
+        result = defaultData;
+      }
     }
     
     setUsageHistory(result);
