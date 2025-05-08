@@ -53,16 +53,17 @@ const Usage = () => {
   const [usageHistory, setUsageHistory] = useState<{date: string, usage: number}[]>([]);
   const [selectedAgentTokens, setSelectedAgentTokens] = useState(0);
   const [allDailyUsage, setAllDailyUsage] = useState<DailyUsage[]>([]);
+  const [dataInitialized, setDataInitialized] = useState(false);
 
   useEffect(() => {
-    const systemYear = new Date().getFullYear();
+    const currentYear = new Date().getFullYear();
     
     const initialData = [
       { date: "2022", usage: 0 },
       { date: "2023", usage: 0 },
       { date: "2024", usage: 0 },
-      { date: systemYear.toString(), usage: 5000 }, 
-      { date: (systemYear + 1).toString(), usage: 0 }
+      { date: currentYear.toString(), usage: 5000 }, 
+      { date: (currentYear + 1).toString(), usage: 0 }
     ];
     
     setUsageHistory(initialData);
@@ -120,9 +121,8 @@ const Usage = () => {
           
           setAllDailyUsage(dailyUsageCollection);
           
-          setTimeout(() => {
-            generateUsageHistory(usageData, "All Agents", timeFrame);
-          }, 100);
+          generateUsageHistory(usageData, "All Agents", timeFrame);
+          setDataInitialized(true);
         }
       } catch (err) {
         console.error("Error fetching usage data:", err);
@@ -134,6 +134,12 @@ const Usage = () => {
 
     fetchUsageData();
   }, [adminId]);
+
+  useEffect(() => {
+    if (dataInitialized && usageData) {
+      generateUsageHistory(usageData, selectedAgent, timeFrame);
+    }
+  }, [dataInitialized]);
 
   const getMonthName = (monthAbbr: string) => {
     const monthMap: { [key: string]: string } = {
@@ -311,7 +317,8 @@ const Usage = () => {
         break;
       }
       
-      case "All Time": {
+      case "All Time":
+      default: {
         const allTimeData = [];
         const startYear = 2022;
         const endYear = currentYear + 1;
@@ -330,28 +337,11 @@ const Usage = () => {
         result = allTimeData;
         break;
       }
-      
-      default: {
-        const defaultData = [];
-        const startYear = 2022;
-        const endYear = currentYear + 1;
-        
-        for (let year = startYear; year <= endYear; year++) {
-          const yearUsage = agentDailyUsage
-            .filter(d => d.year === year)
-            .reduce((sum, d) => sum + d.usage, 0);
-          
-          defaultData.push({
-            date: year.toString(),
-            usage: yearUsage
-          });
-        }
-        
-        result = defaultData;
-      }
     }
     
-    setUsageHistory(result);
+    if (result.length > 0) {
+      setUsageHistory(result);
+    }
   };
 
   const handleAgentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
