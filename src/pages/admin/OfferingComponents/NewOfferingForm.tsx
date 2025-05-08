@@ -5,6 +5,7 @@ import ServiceForm from "./ServiceForm";
 import EventForm from "./EventForm";
 import CheckoutStep from "./CheckoutStep";
 import PreviewStep from "./PreviewStep";
+import { addMainProduct } from "../../../lib/serverActions";
 
 export type ProductType =
   | "Physical Product"
@@ -192,6 +193,36 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({ type, onBack }) => {
     return null;
   };
 
+  const agentId = "dc33ee6b-7db8-4115-95c3-7a8355046f77"; // TODO: Replace with real agentId from context/auth
+
+  const handleSubmit = async () => {
+    let typeKey = "";
+    let form: any = null;
+    if (type === "Physical Product") {
+      typeKey = "physical";
+      form = physicalForm;
+    } else if (type === "Digital Product") {
+      typeKey = "digital";
+      form = digitalForm;
+    } else if (type === "Service") {
+      typeKey = "service";
+      form = serviceForm;
+    } else if (type === "Event") {
+      typeKey = "event";
+      form = eventForm;
+    }
+    try {
+      const data = await addMainProduct(type, form, agentId);
+      if (data.error === false) {
+        alert("Product added successfully!");
+      } else {
+        alert("Error: " + (data.result?.error || "Unknown error"));
+      }
+    } catch (err: any) {
+      alert("Network error: " + err.message);
+    }
+  };
+
   return (
     <div className="p-6 overflow-y-auto max-h-screen">
       <h2 className="text-2xl font-bold text-black mb-4">New {type}</h2>
@@ -240,7 +271,7 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({ type, onBack }) => {
         ) : (
           <button
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-            // onClick={handleSubmit}
+            onClick={handleSubmit}
           >
             Approve
           </button>

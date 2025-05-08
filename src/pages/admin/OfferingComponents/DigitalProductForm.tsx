@@ -352,8 +352,8 @@ const DigitalProductForm: React.FC<DigitalProductFormProps> = ({
               <input
                 type="radio"
                 name="quantityType"
-                value="onesize"
-                checked={form.quantityType === "onesize"}
+                value="oneSize"
+                checked={form.quantityType === "oneSize"}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, quantityType: e.target.value }))
                 }
@@ -368,7 +368,7 @@ const DigitalProductForm: React.FC<DigitalProductFormProps> = ({
                 }
                 className="border border-gray-300 rounded p-1 w-24 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white"
                 placeholder="999999.99"
-                disabled={form.quantityType !== "onesize"}
+                disabled={form.quantityType !== "oneSize"}
               />
             </label>
           </div>
