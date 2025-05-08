@@ -223,6 +223,7 @@ const CardModal: React.FC<CardModalProps> = ({ isOpen, onClose, onSubmit, loadin
             onClick={onClose} 
             className="text-gray-500 hover:text-gray-700"
             aria-label="Close"
+            disabled={loading}
           >
             <X size={20} />
           </button>
@@ -260,6 +261,7 @@ const CardModal: React.FC<CardModalProps> = ({ isOpen, onClose, onSubmit, loadin
                 placeholder="1234 5678 9012 3456"
                 className={`w-full border rounded-lg px-4 py-3 pr-10 ${errors.cardNumber ? 'border-red-500' : 'border-gray-300'}`}
                 autoComplete="cc-number"
+                disabled={loading}
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                 {getCardIcon()}
@@ -287,6 +289,7 @@ const CardModal: React.FC<CardModalProps> = ({ isOpen, onClose, onSubmit, loadin
                 placeholder="MM/YY"
                 className={`w-full border rounded-lg px-4 py-3 ${errors.expiry ? 'border-red-500' : 'border-gray-300'}`}
                 autoComplete="cc-exp"
+                disabled={loading}
               />
               {errors.expiry && (
                 <p className="mt-1 text-sm text-red-600 flex items-center">
@@ -309,6 +312,7 @@ const CardModal: React.FC<CardModalProps> = ({ isOpen, onClose, onSubmit, loadin
                 placeholder={cardData.cardType === "AMEX" ? "4 digits" : "3 digits"}
                 className={`w-full border rounded-lg px-4 py-3 ${errors.cvv ? 'border-red-500' : 'border-gray-300'}`}
                 autoComplete="cc-csc"
+                disabled={loading}
               />
               {errors.cvv && (
                 <p className="mt-1 text-sm text-red-600 flex items-center">
@@ -328,6 +332,7 @@ const CardModal: React.FC<CardModalProps> = ({ isOpen, onClose, onSubmit, loadin
                 checked={cardData.default}
                 onChange={handleInputChange}
                 className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 mr-2"
+                disabled={loading}
               />
               <span className="text-sm text-gray-700">Set as default payment method</span>
             </label>

@@ -52,7 +52,15 @@ const Billing = () => {
   const { adminId } = useAdminStore();
   
   const [billingData, setBillingData] = useState<ClientData | null>(null);
-  const [loading, setLoading] = useState(true);
+  
+  // Use separate loading states for different operations
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSavingTopDetails, setIsSavingTopDetails] = useState(false);
+  const [isSavingBottomDetails, setIsSavingBottomDetails] = useState(false);
+  const [isAddingCard, setIsAddingCard] = useState(false);
+  const [isSettingDefaultCard, setIsSettingDefaultCard] = useState(false);
+  const [isRemovingCard, setIsRemovingCard] = useState(false);
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
 
@@ -75,7 +83,7 @@ const Billing = () => {
     const fetchClientData = async () => {
       if (!adminId) return;
       
-      setLoading(true);
+      setIsLoading(true);
       try {
         const data = await getClient(adminId);
         const clientData: ClientData = {
@@ -96,12 +104,11 @@ const Billing = () => {
             zipcode: clientData.billingDetails["Zip Code"] || "",
           });
         }
-        
-        setLoading(false);
       } catch (error) {
         console.error("Error fetching client data:", error);
         toast.error("Failed to load billing data");
-        setLoading(false);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -116,10 +123,15 @@ const Billing = () => {
     }));
   };
 
-  const saveBillingDetails = async () => {
+  const saveBillingDetails = async (position: 'top' | 'bottom') => {
     if (!adminId) return;
     
-    setLoading(true);
+    if (position === 'top') {
+      setIsSavingTopDetails(true);
+    } else {
+      setIsSavingBottomDetails(true);
+    }
+    
     try {
       await updateClientBillingDetails(adminId, {
         "Individual/Organization Name": details.name,
@@ -136,7 +148,11 @@ const Billing = () => {
       console.error("Error saving billing details:", error);
       toast.error("Failed to save billing details");
     } finally {
-      setLoading(false);
+      if (position === 'top') {
+        setIsSavingTopDetails(false);
+      } else {
+        setIsSavingBottomDetails(false);
+      }
     }
   };
 
@@ -151,7 +167,7 @@ const Billing = () => {
   const submitCard = async (newCardData: NewCardData) => {
     if (!adminId || !billingData) return;
     
-    setLoading(true);
+    setIsAddingCard(true);
     try {
       // Remove spaces from card number before converting to number
       const cleanCardNumber = newCardData.cardNumber.replace(/\s/g, "");
@@ -186,7 +202,7 @@ const Billing = () => {
       console.error("Error adding card:", error);
       toast.error("Failed to add card");
     } finally {
-      setLoading(false);
+      setIsAddingCard(false);
     }
   };
 
@@ -205,7 +221,7 @@ const Billing = () => {
     
     if (!adminId || !billingData) return;
     
-    setLoading(true);
+    setIsSettingDefaultCard(true);
     try {
       const updatedBillingMethod = billingData.billingMethod.map((method, i) => ({
         ...method,
@@ -225,7 +241,7 @@ const Billing = () => {
       console.error("Error setting default card:", error);
       toast.error("Failed to set default card");
     } finally {
-      setLoading(false);
+      setIsSettingDefaultCard(false);
     }
   };
   
@@ -236,7 +252,7 @@ const Billing = () => {
     
     if (!adminId || !billingData) return;
     
-    setLoading(true);
+    setIsRemovingCard(true);
     try {
       const updatedBillingMethod = billingData.billingMethod.filter((_, i) => i !== index);
       
@@ -257,7 +273,7 @@ const Billing = () => {
       console.error("Error removing card:", error);
       toast.error("Failed to remove card");
     } finally {
-      setLoading(false);
+      setIsRemovingCard(false);
     }
   };
 
@@ -265,7 +281,7 @@ const Billing = () => {
     return `XXXX XXXX XXXX ${String(number).slice(-4)}`;
   };
 
-  if (loading && !billingData) {
+  if (isLoading && !billingData) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -307,11 +323,11 @@ const Billing = () => {
               </div>
               <div className="flex items-end">
                 <button 
-                  onClick={saveBillingDetails}
-                  disabled={loading}
+                  onClick={() => saveBillingDetails('top')}
+                  disabled={isSavingTopDetails}
                   className="bg-green-200 hover:bg-green-300 text-green-900 font-semibold px-6 py-2 rounded shadow w-full md:w-auto"
                 >
-                  {loading ? 'SAVING...' : 'SAVE'}
+                  {isSavingTopDetails ? 'SAVING...' : 'SAVE'}
                 </button>
               </div>
             </div>
@@ -372,11 +388,11 @@ const Billing = () => {
                 />
                 <div className="flex items-end mt-2">
                   <button 
-                    onClick={saveBillingDetails}
-                    disabled={loading}
+                    onClick={() => saveBillingDetails('bottom')}
+                    disabled={isSavingBottomDetails}
                     className="bg-green-200 hover:bg-green-300 text-green-900 font-semibold px-6 py-2 rounded shadow w-full md:w-auto"
                   >
-                    {loading ? 'SAVING...' : 'SAVE'}
+                    {isSavingBottomDetails ? 'SAVING...' : 'SAVE'}
                   </button>
                 </div>
               </div>
@@ -452,15 +468,17 @@ const Billing = () => {
                       <div className="mt-3 flex w-full gap-2">
                         <button
                           onClick={(e) => setDefaultCard(i, e)}
+                          disabled={isSettingDefaultCard}
                           className="bg-black text-white text-sm font-semibold py-1 px-2 rounded-full flex-1"
                         >
-                          Set as Default
+                          {isSettingDefaultCard ? 'Setting...' : 'Set as Default'}
                         </button>
                         <button
                           onClick={(e) => removeCard(i, e)}
+                          disabled={isRemovingCard}
                           className="bg-green-500 text-white text-sm font-semibold py-1 px-2 rounded-full flex-1"
                         >
-                          Remove Card
+                          {isRemovingCard ? 'Removing...' : 'Remove Card'}
                         </button>
                       </div>
                     )}
@@ -483,7 +501,7 @@ const Billing = () => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onSubmit={submitCard}
-        loading={loading}
+        loading={isAddingCard}
       />
     </div>
   );
