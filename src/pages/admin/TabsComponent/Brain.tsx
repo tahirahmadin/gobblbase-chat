@@ -16,12 +16,14 @@ import { updateAgentBrain } from "../../../lib/serverActions";
 import { calculateSmartnessLevel } from "../../../utils/helperFn";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
+
 interface UploadedFile {
   name: string;
   size: string;
   sizeInBytes?: number;
   documentId?: string;
 }
+
 interface Document {
   documentId: string;
   title: string;
@@ -46,7 +48,6 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   const [agentName, setAgentName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [processingFile, setProcessingFile] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState("");
   const [insightsData, setInsightsData] = useState({
     usp: "",
     brandPersonality: "",
@@ -70,6 +71,8 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         activeBotData.smartenUpAnswers.length >= 4
       ) {
         setSmartenUpAnswers(activeBotData.smartenUpAnswers);
+
+        // Initialize insightsData from smartenUpAnswers
         setInsightsData({
           usp: activeBotData.smartenUpAnswers[0] || "",
           brandPersonality: activeBotData.smartenUpAnswers[1] || "",
@@ -79,7 +82,6 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       }
 
       const newSmartnessLevel = calculateSmartnessLevel(activeBotData);
-      console.log("newSmartnessLevel", newSmartnessLevel);
       setSmartnessLevel(newSmartnessLevel);
     }
   }, [activeBotData]);
@@ -87,6 +89,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { adminId } = useAdminStore();
   const { activeBotId, setActiveBotId, fetchBotData } = useBotConfig();
+  
   useEffect(() => {
     if (activeBotId) {
       fetchAgentDocuments();
@@ -101,7 +104,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   
       if (!response.error && typeof response.result !== "string") {
         const docs = response.result.documents.map((doc: Document) => ({
-          name: doc.title,
+          name: truncateFileName(doc.title, 30),
           size: doc.size ? formatFileSize(doc.size) : "N/A",
           sizeInBytes: doc.size || 0,
           documentId: doc.documentId,
@@ -113,6 +116,18 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       console.error("Error fetching agent documents:", error);
       toast.error("Failed to load agent documents");
     }
+  };
+
+  // Truncate filename for display
+  const truncateFileName = (fileName: string, maxLength: number): string => {
+    if (fileName.length <= maxLength) return fileName;
+    
+    const extension = fileName.lastIndexOf('.') > 0 ? fileName.substring(fileName.lastIndexOf('.')) : '';
+    const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.') > 0 ? fileName.lastIndexOf('.') : fileName.length);
+    
+    if (nameWithoutExt.length <= maxLength - 3 - extension.length) return fileName;
+    
+    return nameWithoutExt.substring(0, maxLength - 3 - extension.length) + '...' + extension;
   };
 
   // Handle adding links
@@ -159,6 +174,12 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     try {
       setProcessingFile(fileName);
 
+      // Check if this is the last document
+      if (uploadedFiles.length <= 1) {
+        toast.error("Cannot remove the only document. An agent must have at least one document.");
+        return;
+      }
+
       // Call API to remove document
       const response = await removeDocumentFromAgent(activeBotId, documentId);
 
@@ -194,7 +215,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   };
 
   // Extract text from different file types
-  const extractTextFromFile = async (file: File): Promise<string> => {
+  const extractTextFromFile = async (file: File): Promise<string | null> => {
     const fileType = file.type;
     let extractedText = "";
 
@@ -225,30 +246,35 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         extractedText = await file.text();
       }
 
+      // Check if extracted text is empty
+      if (!extractedText.trim()) {
+        return null;
+      }
+
       return extractedText;
     } catch (error) {
       console.error("Error extracting text from file:", error);
-      throw new Error(`Failed to extract text from ${file.name}`);
+      return null;
     }
   };
 
-  // Handle file selection - UPDATED FOR MULTIPLE FILES
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Auto-upload on file selection
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const newFiles = Array.from(e.target.files);
 
     // Check if adding these files would exceed the limit
     if (uploadedFiles.length + selectedFiles.length + newFiles.length > 5) {
-      setErrorMessage("Maximum 5 files allowed");
+      toast.error("Maximum 5 files allowed");
       return;
     }
 
     // Check file sizes
     const largeFiles = newFiles.filter((f) => f.size > 15 * 1024 * 1024);
     if (largeFiles.length > 0) {
-      setErrorMessage(
+      toast.error(
         `File size should be less than 15MB: ${largeFiles
-          .map((f) => f.name)
+          .map((f) => truncateFileName(f.name, 20))
           .join(", ")}`
       );
       return;
@@ -262,27 +288,30 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     ];
     const invalidFiles = newFiles.filter((f) => !allowedTypes.includes(f.type));
     if (invalidFiles.length > 0) {
-      setErrorMessage(
+      toast.error(
         `Only PDF, DOCX, and TXT files are supported: ${invalidFiles
-          .map((f) => f.name)
+          .map((f) => truncateFileName(f.name, 20))
           .join(", ")}`
       );
       return;
     }
 
-    setErrorMessage("");
-
-    // Add new files to the selected files array
-    setSelectedFiles((prevFiles) => [...prevFiles, ...newFiles]);
+    // Add new files to the selected files array and automatically upload
+    setSelectedFiles(newFiles);
+    
+    // Auto-trigger upload if we have an active bot ID
+    if (activeBotId) {
+      await handleUpload(newFiles);
+    }
   };
 
-  // Handle drag and drop - UPDATED FOR MULTIPLE FILES
+  // Handle drag and drop
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -290,17 +319,17 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       const newFiles = Array.from(e.dataTransfer.files);
 
       // Check if adding these files would exceed the limit
-      if (uploadedFiles.length + selectedFiles.length + newFiles.length > 5) {
-        setErrorMessage("Maximum 5 files allowed");
+      if (uploadedFiles.length + newFiles.length > 5) {
+        toast.error("Maximum 5 files allowed");
         return;
       }
 
       // Check file sizes
       const largeFiles = newFiles.filter((f) => f.size > 15 * 1024 * 1024);
       if (largeFiles.length > 0) {
-        setErrorMessage(
+        toast.error(
           `File size should be less than 15MB: ${largeFiles
-            .map((f) => f.name)
+            .map((f) => truncateFileName(f.name, 20))
             .join(", ")}`
         );
         return;
@@ -316,18 +345,20 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         (f) => !allowedTypes.includes(f.type)
       );
       if (invalidFiles.length > 0) {
-        setErrorMessage(
+        toast.error(
           `Only PDF, DOCX, and TXT files are supported: ${invalidFiles
-            .map((f) => f.name)
+            .map((f) => truncateFileName(f.name, 20))
             .join(", ")}`
         );
         return;
       }
 
-      setErrorMessage("");
-
-      // Add new files to the selected files array
-      setSelectedFiles((prevFiles) => [...prevFiles, ...newFiles]);
+      // Add new files and auto-upload if we have an active bot
+      setSelectedFiles(newFiles);
+      
+      if (activeBotId) {
+        await handleUpload(newFiles);
+      }
     }
   };
 
@@ -342,160 +373,214 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     }));
   };
 
-  // Handle file upload - UPDATED FOR MULTIPLE FILES
-  const handleUpload = async () => {
+  // Handle file upload - Enhanced with automatic processing
+  const handleUpload = async (filesToUpload: File[] = selectedFiles) => {
     if (!adminId) {
-      setErrorMessage("Admin ID is required");
+      toast.error("Admin ID is required");
       return;
     }
 
-    if (selectedFiles.length === 0) {
-      setErrorMessage("Please select files to upload");
+    if (filesToUpload.length === 0) {
+      toast.error("Please select files to upload");
       return;
     }
 
     // Check if adding these files would exceed the limit
-    if (uploadedFiles.length + selectedFiles.length > 5) {
-      setErrorMessage("Maximum 5 files allowed");
+    if (uploadedFiles.length + filesToUpload.length > 5) {
+      toast.error("Maximum 5 files allowed");
       return;
     }
 
     // For new agent, validate name
     if (!activeBotId && !agentName.trim()) {
-      setErrorMessage("Agent name is required");
+      toast.error("Agent name is required");
       return;
     }
 
     setIsUploading(true);
-    setErrorMessage("");
 
     try {
       // If we don't have an agent yet, create one with the first file
       if (!activeBotId) {
         try {
-          setProcessingFile(selectedFiles[0].name);
+          setProcessingFile(filesToUpload[0].name);
 
           // Extract text from the first file
-          const firstFileContent = await extractTextFromFile(selectedFiles[0]);
-
-          // Prepare combined content with insights if available
-          let combinedContent = firstFileContent;
-
-          // Add insights data if available
-          const insights = [];
-          if (insightsData.usp) insights.push(`Brand USP: ${insightsData.usp}`);
-          if (insightsData.brandPersonality)
-            insights.push(
-              `Brand Personality: ${insightsData.brandPersonality}`
-            );
-          if (insightsData.languageTerms)
-            insights.push(`Brand Language: ${insightsData.languageTerms}`);
-          if (insightsData.frequentQuestions)
-            insights.push(
-              `Frequent Questions: ${insightsData.frequentQuestions}`
-            );
-
-          if (insights.length > 0) {
-            combinedContent = `BRAND INSIGHTS:\n${insights.join(
-              "\n\n"
-            )}\n\n${combinedContent}`;
-          }
-
-          // Create a new agent with the combined content
-          const response = await createNewAgentWithDocumentId(
-            adminId,
-            agentName.trim(),
-            {
-              name: selectedLanguage,
-              value: [],
-            },
-            {
-              mainDarkColor: "#000000",
-              mainLightColor: "#ffffff",
-              highlightColor: "#3b82f6",
-              isDark: false,
+          const firstFileContent = await extractTextFromFile(filesToUpload[0]);
+          
+          if (!firstFileContent) {
+            toast.error(`Could not extract text from ${truncateFileName(filesToUpload[0].name, 20)}. The file may be empty or corrupted.`);
+            // If this is the only file, we can't proceed
+            if (filesToUpload.length === 1) {
+              return;
             }
-          );
+            // Otherwise, continue with other files
+          } else {
+            // Prepare combined content with insights if available
+            let combinedContent = firstFileContent;
 
-          if (response.error) {
-            throw new Error(
-              typeof response.result === "string"
-                ? response.result
-                : "Failed to create agent"
-            );
-          }
+            // Add insights data if available
+            const insights = [];
+            if (insightsData.usp) insights.push(`Brand USP: ${insightsData.usp}`);
+            if (insightsData.brandPersonality)
+              insights.push(
+                `Brand Personality: ${insightsData.brandPersonality}`
+              );
+            if (insightsData.languageTerms)
+              insights.push(`Brand Language: ${insightsData.languageTerms}`);
+            if (insightsData.frequentQuestions)
+              insights.push(
+                `Frequent Questions: ${insightsData.frequentQuestions}`
+              );
 
-          const newAgentId =
-            typeof response.result !== "string" ? response.result.agentId : "";
-
-          if (!newAgentId) {
-            throw new Error("Invalid response from server");
-          }
-
-          // Add first file to the list
-          setUploadedFiles([
-            {
-              name: selectedFiles[0].name,
-              size: formatFileSize(selectedFiles[0].size),
-              documentId: newAgentId, // Use agentId as documentId for now
-            },
-          ]);
-
-          // Upload remaining files
-          if (selectedFiles.length > 1) {
-            for (let i = 1; i < selectedFiles.length; i++) {
-              await uploadFileToAgent(selectedFiles[i], newAgentId);
+            if (insights.length > 0) {
+              combinedContent = `BRAND INSIGHTS:\n${insights.join(
+                "\n\n"
+              )}\n\n${combinedContent}`;
             }
-          }
 
-          // Upload links as separate documents if available
-          if (links.length > 0) {
-            for (const link of links) {
-              try {
-                await uploadLinkToAgent(link, newAgentId);
-              } catch (error) {
-                console.error(`Error uploading link ${link}:`, error);
-                toast.error(`Failed to upload link: ${link}`);
+            // Create a new agent with the combined content
+            const response = await createNewAgentWithDocumentId(
+              adminId,
+              agentName.trim(),
+              {
+                name: selectedLanguage,
+                value: [],
+              },
+              {
+                mainDarkColor: "#000000",
+                mainLightColor: "#ffffff",
+                highlightColor: "#3b82f6",
+                isDark: false,
+              }
+            );
+
+            if (response.error) {
+              throw new Error(
+                typeof response.result === "string"
+                  ? response.result
+                  : "Failed to create agent"
+              );
+            }
+
+            const newAgentId =
+              typeof response.result !== "string" ? response.result.agentId : "";
+
+            if (!newAgentId) {
+              throw new Error("Invalid response from server");
+            }
+
+            // Add first file to the list
+            setUploadedFiles([
+              {
+                name: truncateFileName(filesToUpload[0].name, 30),
+                size: formatFileSize(filesToUpload[0].size),
+                sizeInBytes: filesToUpload[0].size,
+                documentId: newAgentId, // Use agentId as documentId for now
+              },
+            ]);
+
+            // Upload remaining files
+            let successCount = 1; // First file already processed
+            let failCount = 0;
+            
+            if (filesToUpload.length > 1) {
+              for (let i = 1; i < filesToUpload.length; i++) {
+                try {
+                  const result = await uploadFileToAgent(filesToUpload[i], newAgentId);
+                  if (result) {
+                    successCount++;
+                  } else {
+                    failCount++;
+                  }
+                } catch (error) {
+                  failCount++;
+                  console.error(`Error uploading ${filesToUpload[i].name}:`, error);
+                }
               }
             }
-          }
 
-          // Update active bot ID
-          setRefetchBotData;
+            // Upload links as separate documents if available
+            if (links.length > 0) {
+              for (const link of links) {
+                try {
+                  await uploadLinkToAgent(link, newAgentId);
+                  successCount++;
+                } catch (error) {
+                  failCount++;
+                  console.error(`Error uploading link ${link}:`, error);
+                }
+              }
+            }
 
-          toast.success("Agent created successfully!");
+            // Show success message with counts
+            if (failCount > 0) {
+              toast.success(`Agent created with ${successCount} document(s). ${failCount} document(s) failed.`);
+            } else {
+              toast.success("Agent created successfully!");
+            }
 
-          // Close modal if needed
-          if (onCancel) {
-            setTimeout(() => {
-              onCancel();
-            }, 1500);
+            // Update active bot ID
+            setRefetchBotData();
+
+            // Close modal if needed
+            if (onCancel) {
+              setTimeout(() => {
+                onCancel();
+              }, 1500);
+            }
           }
         } catch (error) {
           console.error("Error creating agent:", error);
           toast.error(
             error instanceof Error ? error.message : "Failed to create agent"
           );
-          throw error;
         }
       }
       // If we already have an agent, add files to it
       else {
-        // Process all selected files in parallel with Promise.all
-        const uploadPromises = selectedFiles.map((file) =>
-          uploadFileToAgent(file, activeBotId)
-        );
-        await Promise.all(uploadPromises);
+        // Process all selected files
+        let successCount = 0;
+        let failCount = 0;
+        
+        // Process files one by one to handle errors individually
+        for (const file of filesToUpload) {
+          try {
+            const result = await uploadFileToAgent(file, activeBotId);
+            if (result) {
+              successCount++;
+            } else {
+              failCount++;
+            }
+          } catch (error) {
+            failCount++;
+            console.error(`Error uploading ${file.name}:`, error);
+          }
+        }
 
         // Upload links as separate documents if available
         if (links.length > 0) {
-          const linkPromises = links.map((link) =>
-            uploadLinkToAgent(link, activeBotId)
-          );
-          await Promise.all(linkPromises);
+          for (const link of links) {
+            try {
+              await uploadLinkToAgent(link, activeBotId);
+              successCount++;
+            } catch (error) {
+              failCount++;
+              console.error(`Error uploading link ${link}:`, error);
+            }
+          }
         }
 
-        toast.success("All files uploaded successfully!");
+        // Show success message with counts
+        if (successCount > 0) {
+          if (failCount > 0) {
+            toast.success(`Uploaded ${successCount} document(s). ${failCount} document(s) failed.`);
+          } else {
+            toast.success(`${successCount} document(s) uploaded successfully!`);
+          }
+        } else if (failCount > 0) {
+          toast.error(`Failed to upload ${failCount} document(s).`);
+        }
       }
 
       // Reset file input and selected files
@@ -506,7 +591,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       setLinks([]);
     } catch (error) {
       console.error("Upload error:", error);
-      setErrorMessage(error instanceof Error ? error.message : "Upload failed");
+      toast.error(error instanceof Error ? error.message : "Upload failed");
     } finally {
       setIsUploading(false);
       setProcessingFile(null);
@@ -517,12 +602,18 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   const uploadFileToAgent = async (
     file: File,
     agentId: string
-  ): Promise<string> => {
+  ): Promise<boolean> => {
     setProcessingFile(file.name);
 
     try {
       // Extract text from file
       const textContent = await extractTextFromFile(file);
+      
+      // If text content is empty or null, skip this file
+      if (!textContent) {
+        toast.error(`Could not extract text from ${truncateFileName(file.name, 20)}. The file may be empty or corrupted.`);
+        return false;
+      }
 
       // Upload to agent
       const response = await addDocumentToAgent(
@@ -551,18 +642,18 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       setUploadedFiles((prev) => [
         ...prev,
         {
-          name: file.name,
+          name: truncateFileName(file.name, 30),
           size: formatFileSize(file.size),
           sizeInBytes: file.size,
           documentId,
         },
       ]);
 
-      return documentId;
+      return true;
     } catch (error) {
       console.error(`Error uploading ${file.name}:`, error);
-      toast.error(`Failed to upload ${file.name}`);
-      throw error;
+      toast.error(`Failed to upload ${truncateFileName(file.name, 20)}`);
+      return false;
     } finally {
       setProcessingFile(null);
     }
@@ -632,7 +723,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         ...prev,
         {
           name: `Web: ${hostname}`,
-          size: "Web",
+          size: formatFileSize(contentSize),
           sizeInBytes: contentSize,
           documentId,
         },
@@ -844,36 +935,33 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                 >
                   <div className="flex items-center space-x-2">
                     <FileText className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">{file.name}</span>
+                    <span className="text-sm">{truncateFileName(file.name, 30)}</span>
                     <span className="text-xs text-gray-500">
                       {formatFileSize(file.size)}
                     </span>
                     <span className="text-xs text-blue-500">(Selected)</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => {
-                        setSelectedFiles(
-                          selectedFiles.filter((f) => f.name !== file.name)
-                        );
-                      }}
-                      className="hover:text-red-600"
-                      disabled={isUploading}
-                      aria-label="Remove selected file"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                    {isUploading ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setSelectedFiles(
+                            selectedFiles.filter((f) => f.name !== file.name)
+                          );
+                        }}
+                        className="hover:text-red-600"
+                        disabled={isUploading}
+                        aria-label="Remove selected file"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
-
-            {errorMessage && (
-              <div className="text-red-500 text-sm mb-2 flex items-center">
-                <AlertCircle className="h-4 w-4 mr-1" />
-                {errorMessage}
-              </div>
-            )}
 
             <div
               className="border-2 border-dashed border-gray-300 rounded-lg p-6 mb-3 cursor-pointer"
@@ -905,32 +993,36 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-500">
-                Max File Size: 15MB | 5 Files Limit
+                Max File Size: 15MB | 5 Files Limit | At least one document is required
               </span>
-              <button
-                onClick={handleUpload}
-                disabled={
-                  isUploading ||
-                  processingFile !== null ||
-                  (selectedFiles.length === 0 && !activeBotId)
-                }
-                className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {processingFile
-                      ? `UPLOADING ${processingFile}...`
-                      : "UPLOADING..."}
-                  </>
-                ) : (
-                  `UPLOAD${
-                    selectedFiles.length > 0
-                      ? ` (${selectedFiles.length} FILES)`
-                      : ""
-                  }`
-                )}
-              </button>
+              
+              {/* Only show upload button for new agents since existing ones auto-upload */}
+              {!activeBotId && (
+                <button
+                  onClick={() => handleUpload()}
+                  disabled={
+                    isUploading ||
+                    processingFile !== null ||
+                    selectedFiles.length === 0
+                  }
+                  className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {processingFile
+                        ? `UPLOADING ${truncateFileName(processingFile, 15)}...`
+                        : "UPLOADING..."}
+                    </>
+                  ) : (
+                    `CREATE AGENT${
+                      selectedFiles.length > 0
+                        ? ` WITH ${selectedFiles.length} FILES`
+                        : ""
+                    }`
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>
