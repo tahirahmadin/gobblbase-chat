@@ -139,7 +139,7 @@ const Policies = () => {
   const currentPolicyText = policyContents[activePolicy] || "";
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-full mx-auto p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-gray-900">
           Terms & Policies
@@ -201,7 +201,7 @@ const Policies = () => {
           <div className="bg-blue-50 rounded-lg p-6">
             <div className="space-y-4">
               {/* File Upload */}
-              <div className="flex items-center space-x-2">
+              {/* <div className="flex items-center space-x-2">
                 <div className="flex-1">
                   <input
                     type="file"
@@ -219,11 +219,11 @@ const Policies = () => {
                     UPLOAD
                   </button>
                 </div>
-              </div>
+              </div> */}
 
               {/* Text Input */}
               <div>
-                <div className="text-sm text-gray-600 mb-2">Or Type/Paste</div>
+                <div className="text-sm text-gray-600 mb-2">Type/Paste</div>
                 <div className="space-y-2">
                   <textarea
                     value={currentPolicyText}
