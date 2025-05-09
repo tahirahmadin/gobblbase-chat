@@ -51,8 +51,6 @@ export default function PublicChat({
   const currentConfig = previewConfig ? previewConfig : config;
   const currentIsLoading = previewConfig ? false : isConfigLoading;
 
-  console.log("currentConfig");
-  console.log(currentConfig);
 
   const { products } = useCartStore();
   const [message, setMessage] = useState("");
@@ -70,13 +68,13 @@ export default function PublicChat({
   const [showCues, setShowCues] = useState(true);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
-  // Pricing state
   const [pricingInfo, setPricingInfo] = useState({
     isFreeSession: false,
     sessionPrice: "$0",
     sessionName: "Consultation",
   });
   const [loadingPricing, setLoadingPricing] = useState(false);
+  const [isBookingConfigured, setIsBookingConfigured] = useState(false);
 
   // safe themeColors fallback
   const theme = currentConfig?.themeColors ?? {
@@ -88,20 +86,26 @@ export default function PublicChat({
     highlightColor: "#000000",
   };
 
-  // Scroll to bottom when loading state changes (for streaming text)
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   useEffect(() => {
     if (!isLoading) {
       scrollToBottom();
     }
   }, [isLoading]);
 
-  // Scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
   useEffect(() => {
     if (previewConfig?.welcomeMessage) {
       setMessages([
         {
           id: "1",
-          content: previewConfig?.welcomeMessage || "Hi! How may I help you?",
+          content: previewConfig.welcomeMessage,
           timestamp: new Date(),
           sender: "agent",
         },
@@ -109,25 +113,22 @@ export default function PublicChat({
     }
   }, [previewConfig?.welcomeMessage]);
 
-  // Enhanced scroll to bottom function
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  // Scroll to bottom when messages change
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  // Fetch pricing information from settings
-  useEffect(() => {
-    const fetchPricing = async () => {
+    const fetchPricingAndBookingConfig = async () => {
       if (!currentConfig?.agentId) return;
 
       setLoadingPricing(true);
       try {
         const data = await getAppointmentSettings(currentConfig.agentId);
-        console.log("Fetched settings for pricing:", data);
+        console.log("Fetched settings for pricing and booking:", data);
+
+        const hasBookingConfig = data && 
+          data.availability && 
+          Array.isArray(data.availability) && 
+          data.availability.length > 0;
+        
+        setIsBookingConfigured(hasBookingConfig);
+        console.log("Booking configuration status:", hasBookingConfig);
 
         if (data && data.price) {
           const formattedPrice = data.price.isFree
@@ -144,44 +145,24 @@ export default function PublicChat({
           console.log("Dynamic price info set:", formattedPrice);
         }
       } catch (error) {
-        console.error("Failed to fetch pricing data:", error);
+        console.error("Failed to fetch pricing and booking data:", error);
+        setIsBookingConfigured(false);
       } finally {
         setLoadingPricing(false);
       }
     };
 
-    fetchPricing();
-  }, [currentConfig?.agentId]);
+    fetchPricingAndBookingConfig();
+  }, [currentConfig?.agentId, currentConfig?.sessionName]);
 
-  // fetch config on mount/params change
   useEffect(() => {
     if (!previewConfig && botUsername) {
       fetchBotData(botUsername, true);
     }
   }, [botUsername, fetchBotData, previewConfig]);
 
-  const handleSendMessage = async (
-    inputMessage?: string | React.MouseEvent<HTMLButtonElement>
-  ) => {
-    let msgToSend = typeof inputMessage === "string" ? inputMessage : message;
-
-    if (!msgToSend.trim() || !config?.agentId) return;
-
-    // user message
-    const userMsg: ExtendedChatMessage = {
-      id: Date.now().toString(),
-      content: msgToSend,
-      timestamp: new Date(),
-      sender: "user",
-    };
-    setMessages((m) => [...m, userMsg]);
-    setMessage("");
-    setShowCues(false);
-    scrollToBottom(); // Scroll immediately after user message
-
-    // detect booking intent
-    const text = msgToSend.toLowerCase();
-    const isBookingRequest = [
+  const containsBookingKeywords = (text: string): boolean => {
+    const bookingKeywords = [
       "book",
       "appointment",
       "meeting",
@@ -194,27 +175,61 @@ export default function PublicChat({
       "calls",
       "scheduling",
       "reservation",
-    ].some((kw) => text.includes(kw));
+    ];
+
+    const lowerText = text.toLowerCase();
+    return bookingKeywords.some((kw) => lowerText.includes(kw));
+  };
+
+  const handleSendMessage = async (
+    inputMessage?: string | React.MouseEvent<HTMLButtonElement>
+  ) => {
+    let msgToSend = typeof inputMessage === "string" ? inputMessage : message;
+
+    if (!msgToSend.trim() || !config?.agentId) return;
+
+    const userMsg: ExtendedChatMessage = {
+      id: Date.now().toString(),
+      content: msgToSend,
+      timestamp: new Date(),
+      sender: "user",
+    };
+    setMessages((m) => [...m, userMsg]);
+    setMessage("");
+    setShowCues(false);
+    scrollToBottom(); // Scroll immediately after user message
+
+    const isBookingRequest = containsBookingKeywords(msgToSend);
 
     if (isBookingRequest) {
-      // inject booking embed
-      const bookingMsg: ExtendedChatMessage = {
-        id: (Date.now() + 1).toString(),
-        content: "",
-        timestamp: new Date(),
-        sender: "agent",
-        type: "booking",
-      };
-      setMessages((m) => [...m, bookingMsg]);
-      return;
+      if (isBookingConfigured) {
+        const bookingMsg: ExtendedChatMessage = {
+          id: (Date.now() + 1).toString(),
+          content: "",
+          timestamp: new Date(),
+          sender: "agent",
+          type: "booking",
+        };
+        setMessages((m) => [...m, bookingMsg]);
+        return;
+      } else {
+        const notAvailableMsg: ExtendedChatMessage = {
+          id: (Date.now() + 1).toString(),
+          content: "I'm sorry, but booking appointments is not available at this time. Is there anything else I can help you with?",
+          timestamp: new Date(),
+          sender: "agent",
+        };
+        setMessages((m) => [...m, notAvailableMsg]);
+        return;
+      }
     }
 
     setIsLoading(true);
     try {
       // fetch RAG context
       const queryContext = await queryDocument(config.agentId, msgToSend);
-      let voiceTone = currentConfig?.personalityType.value.toString();
-      let systemPrompt = `You are a concise AI assistant.  Use context when relevant:\n${JSON.stringify(
+      let voiceTone = currentConfig?.personalityType?.value?.toString() || "friendly";
+      let systemPrompt = `You are a concise AI assistant. Use context when relevant:\n${JSON.stringify(
         queryContext
       )} to answer the user's question when relevant. If the context doesn't contain the answer or if the query is conversational, respond appropriately.\nRules:\n- Answer in 1-2 plain sentences only.\n- Do not add extra explanation, greetings, or conclusions.\n- No special characters, markdown, or formatting. Give outputs in following tone: ${voiceTone}`;
 
@@ -231,7 +246,6 @@ export default function PublicChat({
       - Keep responses concise (1-2 sentences)
       - No extra greetings or formatting`;
 
-      console.log(systemPrompt);
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
@@ -255,7 +269,7 @@ export default function PublicChat({
 
       await addMessages(msgToSend, agentMsg.content);
     } catch (err) {
-      console.error(err);
+      console.error("Error generating response:", err);
       setMessages((m) => [
         ...m,
         {
@@ -297,7 +311,7 @@ export default function PublicChat({
 
       {currentConfig?.themeColors && (
         <div
-          className="w-full max-w-md bg-white shadow-2xl  overflow-hidden flex flex-col relative"
+          className="w-full max-w-md bg-white shadow-2xl overflow-hidden flex flex-col relative"
           style={{
             height: previewConfig ? (chatHeight ? chatHeight : 620) : "100vh",
             backgroundColor: "white", // white mobile shell
@@ -333,10 +347,11 @@ export default function PublicChat({
                   sessionPrice: pricingInfo.sessionPrice,
                   isFreeSession: pricingInfo.isFreeSession,
                 }}
+                isBookingConfigured={isBookingConfigured}
               />
 
-              {/* cues */}
-              {showCues && (
+              {/* Cues */}
+              {showCues && currentConfig?.prompts && (
                 <div
                   className="p-2 grid grid-cols-1 gap-1"
                   style={{
@@ -391,6 +406,7 @@ export default function PublicChat({
                 sessionPrice: pricingInfo.sessionPrice,
                 isFreeSession: pricingInfo.isFreeSession,
               }}
+              isBookingConfigured={isBookingConfigured}
             />
           )}
         </div>

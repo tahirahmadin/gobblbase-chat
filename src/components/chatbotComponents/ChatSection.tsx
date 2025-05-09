@@ -17,6 +17,7 @@ interface ChatSectionProps {
     sessionPrice?: string;
     isFreeSession?: boolean;
   };
+  isBookingConfigured?: boolean;
 }
 
 export default function ChatSection({
@@ -26,6 +27,7 @@ export default function ChatSection({
   activeScreen,
   messagesEndRef,
   currentConfig,
+  isBookingConfigured = true, 
 }: ChatSectionProps) {
   const [showBookingCard, setShowBookingCard] = useState(false);
 
@@ -58,11 +60,16 @@ export default function ChatSection({
         lastMessage.sender === "user" &&
         containsBookingKeywords(lastMessage.content)
       ) {
-        console.log("Booking keywords detected, showing booking card");
-        setShowBookingCard(true);
+        if (isBookingConfigured) {
+          console.log("Booking is configured, showing booking card");
+          setShowBookingCard(true);
+        } else {
+          console.log("Booking is NOT configured, not showing booking card");
+          setShowBookingCard(false);
+        }
       }
     }
-  }, [messages]);
+  }, [messages, isBookingConfigured]);
 
   return (
     <div
@@ -104,11 +111,18 @@ export default function ChatSection({
                 <div className="prose prose-sm max-w-none text-inherit">
                   {msg.sender === "agent" ? (
                     msg.type === "booking" ? (
-                      <BrowseSection
-                        theme={theme}
-                        currentConfig={currentConfig}
-                        showOnlyBooking={true}
-                      />
+                      isBookingConfigured ? (
+                        <BrowseSection
+                          theme={theme}
+                          currentConfig={currentConfig}
+                          showOnlyBooking={true}
+                          isBookingConfigured={isBookingConfigured}
+                        />
+                      ) : (
+                        <div style={{ color: !theme.isDark ? "black" : "white" }}>
+                          I'm sorry, but booking appointments is not available at this time. Is there anything else I can help you with?
+                        </div>
+                      )
                     ) : (
                       <StreamingText
                         text={msg.content}
@@ -146,14 +160,37 @@ export default function ChatSection({
             </div>
           )}
 
-          {/* Show Booking Card when triggered */}
-          {showBookingCard && currentConfig && (
+          {/* Show Booking Card when triggered and booking is configured */}
+          {showBookingCard && currentConfig && isBookingConfigured && (
             <div className="mb-4 px-2">
               <BrowseSection
                 theme={theme}
                 currentConfig={currentConfig}
                 showOnlyBooking={true}
+                isBookingConfigured={isBookingConfigured}
               />
+            </div>
+          )}
+          
+          {/* If user tried to book but booking isn't configured, show message */}
+          {showBookingCard && !isBookingConfigured && (
+            <div className="mb-4 flex justify-start px-2">
+              <div
+                className={`max-w-[80%] rounded-xl p-3 font-medium`}
+                style={{
+                  backgroundColor: theme.isDark ? "black" : "white",
+                  color: !theme.isDark ? "black" : "white",
+                }}
+              >
+                <div className="prose prose-sm max-w-none text-inherit">
+                  <StreamingText
+                    text="I'm sorry, but booking appointments is not available at this time. Is there anything else I can help you with?"
+                    speed={15}
+                    messageId="booking-unavailable"
+                    textColor={!theme.isDark ? "black" : "white"}
+                  />
+                </div>
+              </div>
             </div>
           )}
         </>

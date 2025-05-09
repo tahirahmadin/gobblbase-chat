@@ -6,7 +6,6 @@ import { Theme } from "../../types";
 import BookingFlowComponent from "./BookingFlowComponent";
 import { getAppointmentSettings } from "../../lib/serverActions";
 
-// Currency symbols mapping
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
   EUR: "€",
@@ -27,17 +26,18 @@ interface BrowseSectionProps {
     isFreeSession?: boolean;
   };
   showOnlyBooking?: boolean;
+  isBookingConfigured?: boolean;
 }
 
 export default function BrowseSection({
   theme,
   currentConfig,
   showOnlyBooking = false,
+  isBookingConfigured: propIsBookingConfigured,
 }: BrowseSectionProps) {
   const { products } = useCartStore();
   const [showBooking, setShowBooking] = useState(showOnlyBooking);
 
-  // State for dynamic pricing from backend
   const [dynamicPrice, setDynamicPrice] = useState({
     isFree: currentConfig?.isFreeSession || false,
     amount: 0,
@@ -48,8 +48,11 @@ export default function BrowseSection({
   });
 
   const [loadingPrice, setLoadingPrice] = useState(false);
+  
+  const [isBookingConfigured, setIsBookingConfigured] = useState(
+    propIsBookingConfigured !== undefined ? propIsBookingConfigured : false
+  );
 
-  // Format price for display
   const formatPrice = (price: {
     isFree: boolean;
     amount: number;
@@ -60,13 +63,19 @@ export default function BrowseSection({
     return `${symbol}${price.amount}`;
   };
 
-  // Extract values from config with defaults
   const businessId = currentConfig?.agentId || "";
   const botName = currentConfig?.name || "AI Assistant";
   const sessionName = currentConfig?.sessionName || "Session Description";
 
-  // Load price from backend API
   useEffect(() => {
+    if (propIsBookingConfigured !== undefined) {
+      setIsBookingConfigured(propIsBookingConfigured);
+      
+      if (!propIsBookingConfigured && showOnlyBooking) {
+        return;
+      }
+    }
+    
     const fetchPriceSettings = async () => {
       if (!businessId) return;
 
@@ -74,6 +83,15 @@ export default function BrowseSection({
       try {
         const data = await getAppointmentSettings(businessId);
         console.log("Loaded settings for pricing:", data);
+
+        if (propIsBookingConfigured === undefined) {
+          const hasBookingConfig = data && 
+            data.availability && 
+            Array.isArray(data.availability) && 
+            data.availability.length > 0;
+          
+          setIsBookingConfigured(hasBookingConfig);
+        }
 
         if (data && data.price) {
           const formattedPrice = formatPrice(data.price);
@@ -101,16 +119,33 @@ export default function BrowseSection({
         }
       } catch (error) {
         console.error("Failed to load price settings:", error);
+        
+        if (propIsBookingConfigured === undefined) {
+          setIsBookingConfigured(false);
+        }
       } finally {
         setLoadingPrice(false);
       }
     };
 
     fetchPriceSettings();
-  }, [businessId, currentConfig]);
+  }, [businessId, currentConfig, propIsBookingConfigured, showOnlyBooking]);
 
-  // If showOnlyBooking is true, only show the booking section
-  if (showOnlyBooking) {
+  if (showOnlyBooking && !isBookingConfigured) {
+    return (
+      <div
+        className="p-4 rounded-xl"
+        style={{
+          backgroundColor: theme.isDark ? "#000000" : "#ffffff",
+          color: !theme.isDark ? "#000000" : "#ffffff",
+        }}
+      >
+        <p>I'm sorry, but booking appointments is not available at this time.</p>
+      </div>
+    );
+  }
+
+  if (showOnlyBooking && isBookingConfigured) {
     return (
       <div
         className="rounded-xl overflow-hidden"
@@ -137,62 +172,64 @@ export default function BrowseSection({
         backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
       }}
     >
-      {/* Book Meeting Section */}
-      <div className="pt-4 px-4">
-        <h2 className="text-sm font-medium mb-2">Book Meeting</h2>
+      {/* Book Meeting Section - Only show if booking is configured */}
+      {isBookingConfigured && (
+        <div className="pt-4 px-4">
+          <h2 className="text-sm font-medium mb-2">Book Meeting</h2>
 
-        {/* Session Description Button */}
-        <button
-          className="w-full rounded-xl p-4 flex items-center justify-between"
-          style={{
-            backgroundColor: theme.isDark ? "#000000" : "#ffffff",
-            color: !theme.isDark ? "#000000" : "#ffffff",
-          }}
-          onClick={() => setShowBooking(!showBooking)}
-        >
-          <div>
-            <div className="text-sm font-medium">{sessionName}</div>
-            <div className="text-md font-medium text-left">
-              {loadingPrice ? "Loading..." : dynamicPrice.displayPrice}
-            </div>
-          </div>
-          {showBooking ? (
-            <ChevronDown
-              className="w-5 h-5"
-              style={{ color: theme.highlightColor }}
-            />
-          ) : (
-            <ChevronRight
-              className="w-5 h-5"
-              style={{ color: theme.highlightColor }}
-            />
-          )}
-        </button>
-
-        {/* Booking Component (appears as dropdown) */}
-        {showBooking && (
-          <div
-            className="mt-2 rounded-xl overflow-hidden"
+          {/* Session Description Button */}
+          <button
+            className="w-full rounded-xl p-4 flex items-center justify-between"
             style={{
               backgroundColor: theme.isDark ? "#000000" : "#ffffff",
               color: !theme.isDark ? "#000000" : "#ffffff",
-              maxHeight: "450px",
-              overflowY: "auto",
             }}
+            onClick={() => setShowBooking(!showBooking)}
           >
-            <BookingFlowComponent
-              businessId={businessId}
-              serviceName={sessionName}
-              servicePrice={dynamicPrice.displayPrice}
-              theme={theme}
-              onClose={() => setShowBooking(false)}
-            />
-          </div>
-        )}
-      </div>
+            <div>
+              <div className="text-sm font-medium">{sessionName}</div>
+              <div className="text-md font-medium text-left">
+                {loadingPrice ? "Loading..." : dynamicPrice.displayPrice}
+              </div>
+            </div>
+            {showBooking ? (
+              <ChevronDown
+                className="w-5 h-5"
+                style={{ color: theme.highlightColor }}
+              />
+            ) : (
+              <ChevronRight
+                className="w-5 h-5"
+                style={{ color: theme.highlightColor }}
+              />
+            )}
+          </button>
 
-      {/* Browse Products Section - Only show when booking is closed and not in booking-only mode */}
-      {!showBooking && !showOnlyBooking && (
+          {/* Booking Component (appears as dropdown) */}
+          {showBooking && (
+            <div
+              className="mt-2 rounded-xl overflow-hidden"
+              style={{
+                backgroundColor: theme.isDark ? "#000000" : "#ffffff",
+                color: !theme.isDark ? "#000000" : "#ffffff",
+                maxHeight: "450px",
+                overflowY: "auto",
+              }}
+            >
+              <BookingFlowComponent
+                businessId={businessId}
+                serviceName={sessionName}
+                servicePrice={dynamicPrice.displayPrice}
+                theme={theme}
+                onClose={() => setShowBooking(false)}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Browse Products Section - Always show when not in booking view */}
+      {(!showBooking || !isBookingConfigured) && (
         <div className="px-4 mt-6">
           <h2 className="text-sm font-medium mb-2">Browse</h2>
           <div className="grid grid-cols-2 gap-4">
