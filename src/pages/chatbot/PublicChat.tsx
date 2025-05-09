@@ -12,7 +12,7 @@ import AboutSection from "../../components/chatbotComponents/AboutSection";
 import BrowseSection from "../../components/chatbotComponents/BrowseSection";
 import { useChatLogs } from "../../hooks/useChatLogs";
 
-type ExtendedChatMessage = ChatMessage & { type?: "booking" };
+type ExtendedChatMessage = ChatMessage & { type?: "booking" | "booking-intro" | "booking-loading" | "booking-calendar" };
 
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_PUBLIC_OPENAI_API_KEY,
@@ -21,7 +21,6 @@ const openai = new OpenAI({
 
 type Screen = "about" | "chat" | "browse";
 
-// Currency symbols mapping
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
   EUR: "€",
@@ -30,6 +29,31 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   CAD: "C$",
   AUD: "A$",
   JPY: "¥",
+};
+
+const usedBookingUnavailableIndices = new Set<number>();
+const usedBookingIntroIndices = new Set<number>();
+
+const bookingUnavailableMessages = [
+  "I'm sorry, but booking appointments is not available at this time. Is there anything else I can help you with?",
+  "Unfortunately, our booking system is not currently set up. I apologize for the inconvenience. Is there something else I can assist you with?",
+  "I wish I could help you book an appointment, but that feature isn't available right now. Would you like help with something else instead?",
+  "Our scheduling system is currently offline. If you'd like to arrange an appointment, please contact us directly. Can I help with anything else in the meantime?",
+  "We're still in the process of setting up our booking system. Until then, we're unable to process appointment requests through this chat. Is there another way I can assist you today?"
+];
+
+const getRandomUniqueMessage = (messages: string[], usedIndices: Set<number>): string => {
+  if (usedIndices.size >= messages.length) {
+    usedIndices.clear();
+  }
+  
+  let index;
+  do {
+    index = Math.floor(Math.random() * messages.length);
+  } while (usedIndices.has(index));
+  
+  usedIndices.add(index);
+  return messages[index];
 };
 
 export default function PublicChat({
@@ -47,10 +71,8 @@ export default function PublicChat({
   } = useBotConfig();
   const { addMessages } = useChatLogs();
 
-  // use preview or fetched config
   const currentConfig = previewConfig ? previewConfig : config;
   const currentIsLoading = previewConfig ? false : isConfigLoading;
-
 
   const { products } = useCartStore();
   const [message, setMessage] = useState("");
@@ -76,7 +98,6 @@ export default function PublicChat({
   const [loadingPricing, setLoadingPricing] = useState(false);
   const [isBookingConfigured, setIsBookingConfigured] = useState(false);
 
-  // safe themeColors fallback
   const theme = currentConfig?.themeColors ?? {
     id: "light-yellow",
     name: "Light Yellow",
@@ -84,6 +105,23 @@ export default function PublicChat({
     mainDarkColor: "#EFC715",
     mainLightColor: "#5155CD",
     highlightColor: "#000000",
+  };
+
+  const getBookingIntroMessages = () => {
+    const orgName = currentConfig?.name || "us";
+    const sessionType = pricingInfo.sessionName || "appointment";
+    const price = pricingInfo.sessionPrice || "free session";
+    const isPriceMessage = pricingInfo.isFreeSession 
+      ? "This is completely free!" 
+      : `The cost is ${price}.`;
+
+    return [
+      `Great! You can schedule a ${sessionType} with ${orgName}. ${isPriceMessage} Please select a date and time that works for you:`,
+      `I'd be happy to help you book a ${sessionType}! ${isPriceMessage} Just use the calendar below to find a time that works for you:`,
+      `Perfect timing! We have availability for ${sessionType}s with ${orgName}. ${isPriceMessage} Please choose from the available slots below:`,
+      `Absolutely! You can book a ${sessionType} right here. ${isPriceMessage} Take a look at our availability and select what works best for you:`,
+      `I can help you schedule that ${sessionType}! ${isPriceMessage} Just browse through our available time slots and pick one that's convenient for you:`
+    ];
   };
 
   const scrollToBottom = () => {
@@ -120,15 +158,12 @@ export default function PublicChat({
       setLoadingPricing(true);
       try {
         const data = await getAppointmentSettings(currentConfig.agentId);
-        console.log("Fetched settings for pricing and booking:", data);
-
         const hasBookingConfig = data && 
           data.availability && 
           Array.isArray(data.availability) && 
           data.availability.length > 0;
         
         setIsBookingConfigured(hasBookingConfig);
-        console.log("Booking configuration status:", hasBookingConfig);
 
         if (data && data.price) {
           const formattedPrice = data.price.isFree
@@ -140,9 +175,8 @@ export default function PublicChat({
           setPricingInfo({
             isFreeSession: data.price.isFree,
             sessionPrice: formattedPrice,
-            sessionName: currentConfig.sessionName || "Consultation",
+            sessionName: data.sessionType || currentConfig.sessionName || "Consultation", 
           });
-          console.log("Dynamic price info set:", formattedPrice);
         }
       } catch (error) {
         console.error("Failed to fetch pricing and booking data:", error);
@@ -163,18 +197,9 @@ export default function PublicChat({
 
   const containsBookingKeywords = (text: string): boolean => {
     const bookingKeywords = [
-      "book",
-      "appointment",
-      "meeting",
-      "schedule",
-      "call",
-      "reserve",
-      "booking",
-      "appointments",
-      "meetings",
-      "calls",
-      "scheduling",
-      "reservation",
+      "book", "appointment", "meeting", "schedule", "call", 
+      "reserve", "booking", "appointments", "meetings", 
+      "calls", "scheduling", "reservation",
     ];
 
     const lowerText = text.toLowerCase();
@@ -197,25 +222,60 @@ export default function PublicChat({
     setMessages((m) => [...m, userMsg]);
     setMessage("");
     setShowCues(false);
-    scrollToBottom(); // Scroll immediately after user message
+    scrollToBottom();
 
     const isBookingRequest = containsBookingKeywords(msgToSend);
 
     if (isBookingRequest) {
       if (isBookingConfigured) {
-        const bookingMsg: ExtendedChatMessage = {
+        // First add the intro message
+        const introMessage = getRandomUniqueMessage(getBookingIntroMessages(), usedBookingIntroIndices);
+        const bookingIntroMsg: ExtendedChatMessage = {
           id: (Date.now() + 1).toString(),
-          content: "",
+          content: introMessage,
           timestamp: new Date(),
           sender: "agent",
-          type: "booking",
+          type: "booking-intro",
         };
-        setMessages((m) => [...m, bookingMsg]);
+        setMessages((m) => [...m, bookingIntroMsg]);
+        
+        // Wait for intro message to be read
+        setTimeout(() => {
+          // Then add the loading indicator
+          const loadingMsg: ExtendedChatMessage = {
+            id: (Date.now() + 2).toString(),
+            content: "",
+            timestamp: new Date(),
+            sender: "agent",
+            type: "booking-loading",
+          };
+          setMessages((m) => [...m, loadingMsg]);
+          scrollToBottom();
+          
+          // After loading is shown, display the calendar
+          setTimeout(() => {
+            // Remove the loading message
+            setMessages((m) => m.filter(msg => msg.type !== "booking-loading"));
+            
+            // Add the calendar
+            const bookingCalendarMsg: ExtendedChatMessage = {
+              id: (Date.now() + 3).toString(),
+              content: "",
+              timestamp: new Date(),
+              sender: "agent",
+              type: "booking-calendar",
+            };
+            setMessages((m) => [...m, bookingCalendarMsg]);
+            scrollToBottom();
+          }, 2000); // Show loading for 2 seconds
+        }, 1500); // Wait 1.5 seconds after the intro message
+        
         return;
       } else {
+        const unavailableMessage = getRandomUniqueMessage(bookingUnavailableMessages, usedBookingUnavailableIndices);
         const notAvailableMsg: ExtendedChatMessage = {
           id: (Date.now() + 1).toString(),
-          content: "I'm sorry, but booking appointments is not available at this time. Is there anything else I can help you with?",
+          content: unavailableMessage,
           timestamp: new Date(),
           sender: "agent",
         };
@@ -226,7 +286,6 @@ export default function PublicChat({
 
     setIsLoading(true);
     try {
-      // fetch RAG context
       const queryContext = await queryDocument(config.agentId, msgToSend);
       let voiceTone = currentConfig?.personalityType?.value?.toString() || "friendly";
       let systemPrompt = `You are a concise AI assistant. Use context when relevant:\n${JSON.stringify(
@@ -264,8 +323,6 @@ export default function PublicChat({
         sender: "agent",
       };
       setMessages((m) => [...m, agentMsg]);
-
-      // Update chat logs with the last user message and agent response
 
       await addMessages(msgToSend, agentMsg.content);
     } catch (err) {
@@ -307,14 +364,12 @@ export default function PublicChat({
 
   return (
     <div className="w-full bg-gray-100 flex items-start justify-center">
-      {/* Simulated Mobile Frame */}
-
       {currentConfig?.themeColors && (
         <div
           className="w-full max-w-md bg-white shadow-2xl overflow-hidden flex flex-col relative"
           style={{
             height: previewConfig ? (chatHeight ? chatHeight : 620) : "100vh",
-            backgroundColor: "white", // white mobile shell
+            backgroundColor: "white",
           }}
         >
           <HeaderSection
@@ -350,7 +405,6 @@ export default function PublicChat({
                 isBookingConfigured={isBookingConfigured}
               />
 
-              {/* Cues */}
               {showCues && currentConfig?.prompts && (
                 <div
                   className="p-2 grid grid-cols-1 gap-1"

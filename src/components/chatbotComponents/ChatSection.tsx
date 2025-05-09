@@ -6,7 +6,7 @@ import BrowseSection from "./BrowseSection";
 
 interface ChatSectionProps {
   theme: Theme;
-  messages: (ChatMessage & { type?: "booking" })[];
+  messages: (ChatMessage & { type?: "booking" | "booking-intro" | "booking-loading" | "booking-calendar" })[];
   isLoading: boolean;
   activeScreen: "about" | "chat" | "browse";
   messagesEndRef: React.RefObject<HTMLDivElement>;
@@ -31,28 +31,17 @@ export default function ChatSection({
 }: ChatSectionProps) {
   const [showBookingCard, setShowBookingCard] = useState(false);
 
-  // Function to check if message contains booking-related keywords
   const containsBookingKeywords = (message: string): boolean => {
     const bookingKeywords = [
-      "book",
-      "appointment",
-      "meeting",
-      "call",
-      "schedule",
-      "reserve",
-      "booking",
-      "appointments",
-      "meetings",
-      "calls",
-      "scheduling",
-      "reservation",
+      "book", "appointment", "meeting", "call", "schedule", 
+      "reserve", "booking", "appointments", "meetings", 
+      "calls", "scheduling", "reservation"
     ];
 
     const lowerMessage = message.toLowerCase();
-    return bookingKeywords.some((keyword) => lowerMessage.includes(keyword));
+    return bookingKeywords.some(keyword => lowerMessage.includes(keyword));
   };
 
-  // Check for booking keywords in the last message
   useEffect(() => {
     if (messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
@@ -61,15 +50,65 @@ export default function ChatSection({
         containsBookingKeywords(lastMessage.content)
       ) {
         if (isBookingConfigured) {
-          console.log("Booking is configured, showing booking card");
           setShowBookingCard(true);
         } else {
-          console.log("Booking is NOT configured, not showing booking card");
           setShowBookingCard(false);
         }
       }
     }
   }, [messages, isBookingConfigured]);
+
+  const renderMessage = (msg: ChatMessage & { type?: string }) => {
+    if (msg.sender === "agent") {
+      // Different message types for agent
+      if (msg.type === "booking-intro") {
+        return (
+          <StreamingText
+            text={msg.content}
+            speed={15}
+            messageId={`${msg.id}-intro`}
+            textColor={!theme.isDark ? "black" : "white"}
+          />
+        );
+      } else if (msg.type === "booking-loading") {
+        return (
+          <LoadingBubbles textColor={theme.highlightColor} />
+        );
+      } else if (msg.type === "booking-calendar") {
+        return (
+          <BrowseSection
+            theme={theme}
+            currentConfig={currentConfig}
+            showOnlyBooking={true}
+            isBookingConfigured={isBookingConfigured}
+          />
+        );
+      } else {
+        // Regular text message
+        return (
+          <StreamingText
+            text={msg.content}
+            speed={15}
+            messageId={msg.id}
+            textColor={!theme.isDark ? "black" : "white"}
+          />
+        );
+      }
+    } else {
+      // User message
+      return (
+        <div
+          style={{
+            color: !theme.isDark ? "black" : "white",
+            paddingLeft: 10,
+            paddingRight: 10,
+          }}
+        >
+          {msg.content}
+        </div>
+      );
+    }
+  };
 
   return (
     <div
@@ -81,14 +120,6 @@ export default function ChatSection({
     >
       {activeScreen === "chat" && (
         <>
-          {/* Date Header */}
-          {/* <div
-            className="text-xs text-center my-4"
-            style={{ color: theme.highlightColor }}
-          >
-            JAN 01, 2025 AT 09:00
-          </div> */}
-
           {messages.map((msg, index) => (
             <div
               key={msg.id}
@@ -109,39 +140,7 @@ export default function ChatSection({
                 }}
               >
                 <div className="prose prose-sm max-w-none text-inherit">
-                  {msg.sender === "agent" ? (
-                    msg.type === "booking" ? (
-                      isBookingConfigured ? (
-                        <BrowseSection
-                          theme={theme}
-                          currentConfig={currentConfig}
-                          showOnlyBooking={true}
-                          isBookingConfigured={isBookingConfigured}
-                        />
-                      ) : (
-                        <div style={{ color: !theme.isDark ? "black" : "white" }}>
-                          I'm sorry, but booking appointments is not available at this time. Is there anything else I can help you with?
-                        </div>
-                      )
-                    ) : (
-                      <StreamingText
-                        text={msg.content}
-                        speed={15}
-                        messageId={msg.id}
-                        textColor={!theme.isDark ? "black" : "white"}
-                      />
-                    )
-                  ) : (
-                    <div
-                      style={{
-                        color: !theme.isDark ? "black" : "white",
-                        paddingLeft: 10,
-                        paddingRight: 10,
-                      }}
-                    >
-                      {msg.content}
-                    </div>
-                  )}
+                  {renderMessage(msg)}
                 </div>
               </div>
             </div>
@@ -156,40 +155,6 @@ export default function ChatSection({
                 }}
               >
                 <LoadingBubbles textColor={theme.highlightColor} />
-              </div>
-            </div>
-          )}
-
-          {/* Show Booking Card when triggered and booking is configured */}
-          {showBookingCard && currentConfig && isBookingConfigured && (
-            <div className="mb-4 px-2">
-              <BrowseSection
-                theme={theme}
-                currentConfig={currentConfig}
-                showOnlyBooking={true}
-                isBookingConfigured={isBookingConfigured}
-              />
-            </div>
-          )}
-          
-          {/* If user tried to book but booking isn't configured, show message */}
-          {showBookingCard && !isBookingConfigured && (
-            <div className="mb-4 flex justify-start px-2">
-              <div
-                className={`max-w-[80%] rounded-xl p-3 font-medium`}
-                style={{
-                  backgroundColor: theme.isDark ? "black" : "white",
-                  color: !theme.isDark ? "black" : "white",
-                }}
-              >
-                <div className="prose prose-sm max-w-none text-inherit">
-                  <StreamingText
-                    text="I'm sorry, but booking appointments is not available at this time. Is there anything else I can help you with?"
-                    speed={15}
-                    messageId="booking-unavailable"
-                    textColor={!theme.isDark ? "black" : "white"}
-                  />
-                </div>
               </div>
             </div>
           )}

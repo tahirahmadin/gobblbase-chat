@@ -7,9 +7,12 @@ import {
   MessageCircle,
   ShoppingCart,
   Menu,
+  Calendar,
+  ExternalLink,
 } from "lucide-react";
 import { useUserStore } from "../../store/useUserStore";
 import { BotConfig, Theme } from "../../types";
+import { getUserBookingHistory } from "../../lib/serverActions"; 
 
 // Add Google API type declaration
 declare global {
@@ -37,6 +40,23 @@ interface HeaderSectionProps {
   setActiveScreen: (screen: "about" | "chat" | "browse") => void;
 }
 
+interface Booking {
+  _id: string;
+  agentId: string;
+  userId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  status: string;
+  statusLabel: string;
+  meetingLink?: string;
+  sessionType: string;
+  notes?: string;
+  canJoin: boolean;
+  userTimezone: string;
+}
+
 function HeaderSection({
   theme,
   currentConfig,
@@ -44,8 +64,11 @@ function HeaderSection({
   setActiveScreen,
 }: HeaderSectionProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showOrderHistory, setShowOrderHistory] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [activeHistoryTab, setActiveHistoryTab] = useState<"orders" | "bookings">("orders");
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [isLoadingBookings, setIsLoadingBookings] = useState(false);
 
   const {
     isLoggedIn,
@@ -74,6 +97,80 @@ function HeaderSection({
       document.body.removeChild(script);
     };
   }, []);
+
+  useEffect(() => {
+    if (showHistoryModal && isLoggedIn && userEmail && activeHistoryTab === "bookings") {
+      fetchUserBookings();
+    }
+  }, [showHistoryModal, activeHistoryTab, isLoggedIn, userEmail]);
+
+  const fetchUserBookings = async () => {
+    try {
+      setIsLoadingBookings(true);
+      const agentId = currentConfig?.agentId;
+      
+      if (!agentId) {
+        console.error("Agent ID not found in current config");
+        setBookings([]);
+        return;
+      }
+      
+      const bookingsData = await getUserBookingHistory(userEmail, agentId);
+      setBookings(bookingsData || []);
+    } catch (error) {
+      console.error("Error fetching user bookings:", error);
+      setBookings([]);
+    } finally {
+      setIsLoadingBookings(false);
+    }
+  };
+
+  const formatBookingTime = (date: string, time: string, timezone: string) => {
+    try {
+      const [hours, minutes] = time.split(':').map(Number);
+      const dateObj = new Date(date);
+      dateObj.setHours(hours, minutes, 0, 0);
+      
+      return dateObj.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true,
+        timeZone: timezone 
+      });
+    } catch (error) {
+      return time;
+    }
+  };
+
+  const formatBookingDate = (date: string) => {
+    try {
+      const dateObj = new Date(date);
+      return dateObj.toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch (error) {
+      return date;
+    }
+  };
+
+  const formatOrderDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      }) + ' ' + date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (error) {
+      return dateString;
+    }
+  };
 
   const handleLoginClick = () => {
     console.log("Login button clicked");
@@ -176,60 +273,193 @@ function HeaderSection({
     </div>
   );
 
-  const OrderHistoryModal = () => (
+  const HistoryModal = () => (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black bg-opacity-40">
       <div
-        className="rounded-xl  w-96 max-w-full p-0 relative"
+        className="rounded-xl w-96 max-w-full p-0 relative max-h-[80vh] flex flex-col"
         style={{
           boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
           backgroundColor: theme.isDark ? "black" : "white",
           border: `1px solid ${theme.highlightColor}`,
         }}
       >
-        <button
-          className="absolute top-2 right-2"
-          style={{ color: theme.highlightColor }}
-          onClick={() => setShowOrderHistory(false)}
-        >
-          <span className="text-xl">&times;</span>
-        </button>
-        <div className="p-4 pb-2 ">
+        <div className="p-4 pb-0 flex justify-between items-center">
           <div
             className="font-semibold text-md"
             style={{ color: theme.isDark ? "white" : "black" }}
           >
-            ORDER HISTORY
+           HISTORY
           </div>
+          <button
+            style={{ color: theme.highlightColor }}
+            onClick={() => setShowHistoryModal(false)}
+          >
+            <span className="text-xl">&times;</span>
+          </button>
         </div>
-        <div className="p-4 space-y-3">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="bg-[#232323] rounded-lg px-4 py-3 flex flex-row justify-between items-center"
-            >
-              <div className="flex flex-col ">
-                <div className="text-xs text-gray-400">DD MM YYYY HH:MM</div>
-                <div className="text-yellow-400 text-sm font-semibold">
-                  Product Name
+        
+        {/* Tabs */}
+        <div className="flex px-4 pt-2">
+          <button
+            className={`py-2 px-3 text-sm font-medium rounded-t-md flex items-center`}
+            style={{
+              color: activeHistoryTab === "orders" ? theme.highlightColor : "#bfbfbf",
+              borderBottom: activeHistoryTab === "orders" ? `2px solid ${theme.highlightColor}` : "none",
+              backgroundColor: activeHistoryTab === "orders" 
+                ? (theme.isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)") 
+                : "transparent"
+            }}
+            onClick={() => setActiveHistoryTab("orders")}
+          >
+            <ShoppingCart className="h-4 w-4 mr-2" />
+            ORDERS
+          </button>
+          <button
+            className={`py-2 px-3 text-sm font-medium rounded-t-md flex items-center ml-2`}
+            style={{
+              color: activeHistoryTab === "bookings" ? theme.highlightColor : "#bfbfbf",
+              borderBottom: activeHistoryTab === "bookings" ? `2px solid ${theme.highlightColor}` : "none",
+              backgroundColor: activeHistoryTab === "bookings" 
+                ? (theme.isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)") 
+                : "transparent"
+            }}
+            onClick={() => setActiveHistoryTab("bookings")}
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            BOOKINGS
+          </button>
+        </div>
+        
+        <div
+          style={{ backgroundColor: theme.highlightColor, height: 1, opacity: 0.3 }}
+          className="mx-4 mt-2"
+        />
+        
+        {/* Content */}
+        <div className="p-4 space-y-3 overflow-y-auto">
+          {activeHistoryTab === "orders" ? (
+            [1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="rounded-lg px-4 py-3 flex flex-row justify-between items-center"
+                style={{ 
+                  backgroundColor: theme.isDark ? "#232323" : "#f3f3f3",
+                  border: `1px solid ${theme.isDark ? "#333" : "#e0e0e0"}`
+                }}
+              >
+                <div className="flex flex-col ">
+                  <div className="text-xs text-gray-400">DD MM YYYY HH:MM</div>
+                  <div className="text-sm font-semibold" style={{ color: theme.highlightColor }}>
+                    Product Name
+                  </div>
+                  <div className="text-xs text-gray-300 mb-1">Qty: XX</div>
                 </div>
-                <div className="text-xs text-gray-300 mb-1">Qty: XX</div>
+                <div className="flex flex-col justify-between items-end mb-1">
+                  <div
+                    className="text-sm font-semibold"
+                    style={{ color: theme.isDark ? "white" : "black" }}
+                  >
+                    Amount
+                  </div>
+                  <div
+                    className="text-xs"
+                    style={{ color: theme.mainLightColor }}
+                  >
+                    Paid via Stripe
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-col justify-between items-end mb-1">
-                <div
-                  className="text-sm font-semibold"
-                  style={{ color: theme.isDark ? "white" : "black" }}
-                >
-                  Amount
-                </div>
-                <div
-                  className="text-xs"
-                  style={{ color: theme.mainLightColor }}
-                >
-                  Paid via Stripe
-                </div>
+            ))
+          ) : (
+            isLoadingBookings ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2" style={{ borderColor: theme.highlightColor }}></div>
               </div>
-            </div>
-          ))}
+            ) : bookings.length > 0 ? (
+              bookings.map((booking) => (
+                <div
+                  key={booking._id}
+                  className="rounded-lg px-4 py-3 flex flex-col"
+                  style={{ 
+                    backgroundColor: theme.isDark ? "#232323" : "#f3f3f3",
+                    border: `1px solid ${theme.isDark ? "#333" : "#e0e0e0"}`,
+                    borderLeft: `3px solid ${
+                      booking.statusLabel === "upcoming" 
+                        ? "#4CAF50" 
+                        : booking.statusLabel === "cancelled" 
+                          ? "#F44336" 
+                          : "#9E9E9E"
+                    }`
+                  }}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex flex-col">
+                      <div className="text-sm font-semibold" style={{ color: theme.highlightColor }}>
+                        {booking.sessionType}
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {formatBookingDate(booking.date)}
+                      </div>
+                    </div>
+                    <div
+                      className="text-xs rounded-full px-2 py-0.5"
+                      style={{ 
+                        backgroundColor: 
+                          booking.statusLabel === "upcoming" 
+                            ? "rgba(76, 175, 80, 0.2)" 
+                            : booking.statusLabel === "cancelled" 
+                              ? "rgba(244, 67, 54, 0.2)" 
+                              : "rgba(158, 158, 158, 0.2)",
+                        color: 
+                          booking.statusLabel === "upcoming" 
+                            ? "#4CAF50" 
+                            : booking.statusLabel === "cancelled" 
+                              ? "#F44336" 
+                              : "#9E9E9E"
+                      }}
+                    >
+                      {booking.statusLabel.toUpperCase()}
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <div className="text-xs" style={{ color: theme.isDark ? "#e0e0e0" : "#333" }}>
+                      {formatBookingTime(booking.date, booking.startTime, booking.userTimezone)} - {" "}
+                      {formatBookingTime(booking.date, booking.endTime, booking.userTimezone)}
+                      <div className="text-xs text-gray-400">
+                        {booking.location === "google_meet" 
+                          ? "Google Meet" 
+                          : booking.location === "zoom" 
+                            ? "Zoom" 
+                            : booking.location === "teams" 
+                              ? "Microsoft Teams" 
+                              : "In Person"}
+                      </div>
+                    </div>
+                    
+                    {booking.canJoin && booking.meetingLink && (
+                      <a 
+                        href={booking.meetingLink} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center px-2 py-1 rounded text-xs font-medium"
+                        style={{
+                          backgroundColor: theme.highlightColor,
+                          color: theme.isDark ? "black" : "white",
+                        }}
+                      >
+                        Join <ExternalLink className="h-3 w-3 ml-1" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-400">
+                No bookings found for this agent
+              </div>
+            )
+          )}
         </div>
       </div>
     </div>
@@ -270,7 +500,7 @@ function HeaderSection({
                 color: !theme.isDark ? "white" : "black",
                 border: "2px solid #ffffff",
               }}
-              onClick={() => setShowOrderHistory(true)}
+              onClick={() => setShowHistoryModal(true)}
             >
               <History className="h-5 w-5" />
             </button>
@@ -288,7 +518,7 @@ function HeaderSection({
               </button>
               {showUserMenu && <UserDropdownMenu />}
             </div>
-            {showOrderHistory && <OrderHistoryModal />}
+            {showHistoryModal && <HistoryModal />}
           </div>
         ) : (
           <div>
@@ -308,7 +538,7 @@ function HeaderSection({
       {/* Ad Strip */}
       {currentConfig.isPromoBannerEnabled && (
         <div
-          className="flex justify-center items-center px-4 py-3"
+          className="flex justify-center items-center px-4 py-2 text-center"
           style={{
             backgroundColor: theme.isDark ? "white" : "black",
             color: theme.isDark ? "black" : "white",

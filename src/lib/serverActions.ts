@@ -730,12 +730,16 @@ export async function getAvailableSlots(
 
 export interface BookingPayload {
   agentId: string;
-  userId: string;
+  userId: string;     
+  email?: string;     
   date: string;
   startTime: string;
   endTime: string;
   location: string;
-  userTimezone?: string; // Added userTimezone field
+  userTimezone?: string;
+  name?: string;      
+  phone?: string;    
+  notes?: string;
 }
 
 export async function bookAppointment(payload: BookingPayload): Promise<any> {
@@ -1603,6 +1607,26 @@ export async function getMainProducts(agentId: string) {
     return data.result || [];
   } catch (err) {
     console.error("Error fetching products:", err);
+    return [];
+  }
+}
+
+
+export async function getUserBookingHistory(userId:string, agentId: string) {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/appointment/user-bookings`, {
+      params: { userId, agentId }
+    });
+    
+    if (response.data.error) {
+      console.error("API error:", response.data.result);
+      return [];
+    }
+    
+    return response.data.result || [];
+  } catch (error) {
+    console.error("Error fetching booking history:", error);
     return [];
   }
 }

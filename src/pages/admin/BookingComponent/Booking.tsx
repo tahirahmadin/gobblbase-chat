@@ -139,6 +139,7 @@ const Booking: React.FC<BookingProps> = ({
   const activeAgentId = propAgentId || agentIdFromUrl || activeBotId || activeBotData?.agentId;
   const [timezones, setTimezones] = useState(DEFAULT_TIMEZONES);
   const [detectedTimezoneInList, setDetectedTimezoneInList] = useState(false);
+  const [sessionType, setSessionType] = useState("Consultation");
 
   useEffect(() => {
     if (!isEditMode) {
@@ -229,6 +230,8 @@ const Booking: React.FC<BookingProps> = ({
           setBufferTime(settings.bufferTime || 10);
 
           setBreaks(settings.breaks || []);
+
+          setSessionType(settings.sessionType || "Consultation");
 
           if (settings.availability && settings.availability.length > 0) {
             setAvailability(settings.availability);
@@ -375,6 +378,7 @@ const Booking: React.FC<BookingProps> = ({
       availability,
       locations: meetingLocations.filter((l) => l.selected).map((l) => l.id),
       timezone,
+      sessionType,
       price: {
         isFree,
         amount: priceAmount,
@@ -985,6 +989,22 @@ const Booking: React.FC<BookingProps> = ({
           <div className="flex items-center mb-4">
             <DollarSign className="h-5 w-5 text-gray-600 mr-2" />
             <h3 className="font-medium">Session Pricing</h3>
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Session Type
+            </label>
+            <input
+              type="text"
+              value={sessionType}
+              onChange={(e) => setSessionType(e.target.value)}
+              className="block w-full rounded-md border-gray-300 py-2 px-3 focus:border-gray-500 focus:ring-gray-500 sm:text-sm"
+              placeholder="Consultation"
+            />
+            <p className="text-sm text-gray-500 mt-2">
+              Enter what type of session this is (e.g. "Consultation", "Therapy Session", "Coaching Call")
+            </p>
           </div>
           
           <div className="mb-6">

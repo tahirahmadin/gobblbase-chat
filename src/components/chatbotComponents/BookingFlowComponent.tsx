@@ -32,6 +32,7 @@ import {
   createInternationalPhone,
 } from "../../utils/phoneUtils";
 import { Theme } from "../../types";
+import { useUserStore } from "../../store/useUserStore"; // Import useUserStore
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -97,6 +98,9 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   onClose,
   theme
 }) => {
+  // Get user information from the user store
+  const { isLoggedIn, userEmail } = useUserStore();
+  
   const businessId = propId || "";
   const [step, setStep] = useState<
   "date" | "time" | "details" | "payment" | "confirmation"
@@ -140,6 +144,15 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     currency: "USD", // Default currency
     displayPrice: servicePrice
   });
+  
+  // Pre-fill the email if the user is logged in
+  useEffect(() => {
+    if (isLoggedIn && userEmail) {
+      setEmail(userEmail);
+      // Also validate it immediately to avoid validation errors
+      validateEmail(userEmail);
+    }
+  }, [isLoggedIn, userEmail]);
   
   // Format price for display
   const formatPrice = (priceSettings?: PriceSettings): string => {
@@ -632,9 +645,11 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           ? createInternationalPhone(phone, selectedCountryCode)
           : "";
   
+        // Send both the form email (contact email) and the login email (userId)
         await bookAppointment({
           agentId: businessId,
-          userId: email,
+          userId: isLoggedIn && userEmail ? userEmail : email, // Use logged-in email for userId if available
+          email: email, // Always use form email for contact information
           date: fmtApiDate(selectedDate!),
           startTime: businessStartTime,
           endTime: businessEndTime,
@@ -672,9 +687,11 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           ? createInternationalPhone(phone, selectedCountryCode)
           : "";
   
+        // Send both the form email (contact email) and the login email (userId)
         await bookAppointment({
           agentId: businessId,
-          userId: email,
+          userId: isLoggedIn && userEmail ? userEmail : email, // Use logged-in email for userId if available
+          email: email, // Always use form email for contact information
           date: fmtApiDate(selectedDate!),
           startTime: businessStartTime,
           endTime: businessEndTime,
@@ -722,9 +739,11 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           ? createInternationalPhone(phone, selectedCountryCode)
           : "";
   
+        // Send both the form email (contact email) and the login email (userId)
         await bookAppointment({
           agentId: businessId,
-          userId: email,
+          userId: isLoggedIn && userEmail ? userEmail : email, // Use logged-in email for userId if available
+          email: email, // Always use form email for contact information
           date: fmtApiDate(selectedDate),
           startTime: businessStartTime,
           endTime: businessEndTime,
@@ -854,20 +873,20 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       if (step === "time" && selectedDate) {
         const todayStr = selectedDate.toDateString();
         const availableSlots = slots.filter((s) => {
-        if (!s.available) return false;
-        if (selectedDate.toDateString() !== now.toDateString()) return true;
-        const [h, m] = s.startTime.split(":").map(Number);
-        const slotDate = new Date(now);
-        slotDate.setHours(h, m, 0, 0);
-        return slotDate > now;
+          if (!s.available) return false;
+          if (selectedDate.toDateString() !== now.toDateString()) return true;
+          const [h, m] = s.startTime.split(":").map(Number);
+          const slotDate = new Date(now);
+          slotDate.setHours(h, m, 0, 0);
+          return slotDate > now;
         });
-
+      
         availableSlots.sort((a, b) => {
-        const [aHour, aMin] = a.startTime.split(":").map(Number);
-        const [bHour, bMin] = b.startTime.split(":").map(Number);
-        return aHour * 60 + aMin - (bHour * 60 + bMin);
+          const [aHour, aMin] = a.startTime.split(":").map(Number);
+          const [bHour, bMin] = b.startTime.split(":").map(Number);
+          return aHour * 60 + aMin - (bHour * 60 + bMin);
         });
-
+      
         
         return (
           <div>
@@ -951,7 +970,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                 {fmtDateFull(selectedDate)}
             </div>
             </div>
-
+      
             <div className="mb-4 flex justify-between items-center">
             <div 
                 className="font-medium uppercase"
@@ -963,7 +982,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                 {fmtTime(selectedSlot.startTime)} - {fmtTime(selectedSlot.endTime)}
             </div>
             </div>
-
+      
             <form onSubmit={handleSubmit} className="space-y-3">
               <div>
                 <div className="relative">
@@ -1111,7 +1130,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           </div>
         );
       }
-
+      
       if (step === "payment" && selectedSlot && selectedDate) {
         return (
           <div>
@@ -1208,7 +1227,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           </div>
         );
       }
-    
+      
       if (step === "confirmation") {
         return (
           <div className="text-center">
@@ -1278,14 +1297,14 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           </div>
         );
       }
-    return null;
-  };
-
-  return (
-    <div className="p-4">
-      {renderContent()}
-    </div>
-  );
-};
-
-export default BookingFlowComponent;
+      return null;
+      };
+      
+      return (
+        <div className="p-4">
+          {renderContent()}
+        </div>
+      );
+      };
+      
+      export default BookingFlowComponent;
