@@ -285,79 +285,100 @@ export default function PublicChat({
     }
 
     setIsLoading(true);
-    try {
-      const queryContext = await queryDocument(config.agentId, msgToSend);
-      let voiceTone = currentConfig?.personalityType?.value?.toString() || "friendly";
-      let systemPrompt = `You are a conversational AI assistant that creates engaging, personalized responses. When context is available: ${JSON.stringify(queryContext)}, use it to provide relevant and insightful answers. For conversational queries or when context is insufficient, respond in a way that builds rapport.
+  try {
+    let enhancedQuery = msgToSend;
+    
+    if (messages.length > 0) {
+      const recentMessages = messages.slice(-3);
+      
+      if (recentMessages.length > 0) {
+        const conversationContext = recentMessages.map(msg => 
+          `${msg.sender === "agent" ? "Assistant" : "User"}: ${msg.content}`
+        ).join("\n\n");
+        
+        enhancedQuery = `${conversationContext}\n\nUser: ${msgToSend}\n\nAssistant should respond to the user's latest message with the previous context in mind.`;
+        
+        console.log("Enhanced query with extended conversation context");
+      }
+    }
+    
+    const queryContext = await queryDocument(
+      config.agentId, 
+      enhancedQuery 
+    );
 
-      Core Rules:
-      - Balance conciseness with engagement (2-3 thoughtful sentences)
-      - Personalize responses using details from user's queries
-      - Maintain a ${voiceTone} tone that connects with users
-      - Never end responses with questions
-      - Use conversational language that feels natural and warm
+    // System prompt stays the same
+    let voiceTone = currentConfig?.personalityType?.value?.toString() || "friendly";
+    let systemPrompt = `You are a conversational AI assistant creating engaging, personalized responses. When context is available: ${JSON.stringify(queryContext)}, use it for relevant answers. For conversational queries or insufficient context, build rapport.
 
-      Formatting:
-      - Use **bold** for emphasis on key points
-      - Use *italic* for subtle emphasis or important details
-      - Use bullet points (-) for easy-to-scan lists
-      - Use \`code\` for technical snippets
-      - Use > for highlighting important quotes or takeaways
-      - Use [text](url) for helpful resources
+    Core Rules:
+    - Keep responses concise yet engaging (1-2 sentences)
+    - Personalize using details from user queries
+    - Maintain a ${voiceTone} tone that connects
+    - Ask thoughtful follow-up questions when appropriate
+    - Use natural, warm language
 
-      Engagement Techniques:
-      - Acknowledge user emotions and perspectives
-      - Use relevant examples or analogies to illustrate points
-      - Offer actionable insights when possible
-      - Create a sense of collaborative problem-solving
-      - Respond with enthusiasm to user interests
-      - End with a positive, conclusive statement that doesn't require a response
+    Formatting:
+    - **Bold** for key points
+    - *Italic* for subtle emphasis
+    - Bullet points (-) for lists
+    - \`code\` for technical snippets
+    - > for important quotes
+    - [text](url) for resources
 
-      Role Boundaries:
-      - Stay focused on user inquiries and context
-      - Ask clarifying questions only when absolutely necessary for understanding
-      - Never explicitly mention your access to training data
-      - Only answer questions within your knowledge scope
-      - Politely redirect off-topic conversations
-      - Always close the conversation loop rather than opening new threads`;
+    Engagement:
+    - Acknowledge user emotions and perspectives
+    - Use relevant examples and analogies
+    - Offer actionable insights when possible
+    - Create collaborative problem-solving
+    - Show enthusiasm for user interests
+    - End with helpful suggestions or questions
 
-      let basePrompt = systemPrompt;
+    Boundaries:
+    - Focus on user inquiries and training data
+    - Ask clarifying questions when needed
+    - Never mention access to training data
+    - Stay within knowledge scope
+    - Redirect off-topic conversations politely
+    - End on a positive, forward-moving note`;
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: basePrompt },
-          { role: "user", content: msgToSend },
-        ],
-        temperature: 0.6,
-      });
+    let basePrompt = systemPrompt;
 
-      const agentMsg: ExtendedChatMessage = {
-        id: (Date.now() + 2).toString(),
-        content:
-          completion.choices[0].message.content ||
-          "Sorry, I couldn't generate a response.",
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: basePrompt },
+        { role: "user", content: enhancedQuery }, 
+      ],
+      temperature: 0.6,
+    });
+
+    const agentMsg: ExtendedChatMessage = {
+      id: (Date.now() + 2).toString(),
+      content:
+        completion.choices[0].message.content ||
+        "Sorry, I couldn't generate a response.",
+      timestamp: new Date(),
+      sender: "agent",
+    };
+    setMessages((m) => [...m, agentMsg]);
+
+    await addMessages(msgToSend, agentMsg.content);
+  } catch (err) {
+    console.error("Error generating response:", err);
+    setMessages((m) => [
+      ...m,
+      {
+        id: (Date.now() + 3).toString(),
+        content: "Sorry, there was an error. Please try again.",
         timestamp: new Date(),
         sender: "agent",
-      };
-      setMessages((m) => [...m, agentMsg]);
-
-      await addMessages(msgToSend, agentMsg.content);
-    } catch (err) {
-      console.error("Error generating response:", err);
-      setMessages((m) => [
-        ...m,
-        {
-          id: (Date.now() + 3).toString(),
-          content: "Sorry, there was an error. Please try again.",
-          timestamp: new Date(),
-          sender: "agent",
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      },
+    ]);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
