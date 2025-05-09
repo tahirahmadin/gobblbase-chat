@@ -199,7 +199,7 @@ export default function PublicChat({
     const bookingKeywords = [
       "book", "appointment", "meeting", "schedule", "call", 
       "reserve", "booking", "appointments", "meetings", 
-      "calls", "scheduling", "reservation",
+      "calls", "scheduling", "reservation", "visit"
     ];
 
     const lowerText = text.toLowerCase();
