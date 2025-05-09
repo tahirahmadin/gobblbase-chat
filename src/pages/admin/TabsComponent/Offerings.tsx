@@ -79,7 +79,11 @@ const ManageOfferingsTable = () => {
                   <td className="py-2 px-4">{p.code || p._id}</td>
                   <td className="py-2 px-4 flex items-center gap-2">
                     <img
-                      src={p.imageUrl || p.thumbnailUrl || "/placeholder.png"}
+                      src={
+                        p.thumbnail ||
+                        p.thumbnail ||
+                        "https://media.istockphoto.com/id/1409329028/vector/no-picture-available-placeholder-thumbnail-icon-illustration-design.jpg?s=612x612&w=0&k=20&c=_zOuJu755g2eEUioiOUdz_mHKJQJn-tDgIAhQzyeKUQ="
+                      }
                       alt=""
                       className="w-10 h-10 rounded object-cover"
                     />

@@ -7,6 +7,7 @@ import CheckoutStep from "./CheckoutStep";
 import PreviewStep from "./PreviewStep";
 import { addMainProduct } from "../../../lib/serverActions";
 import { useBotConfig } from "../../../store/useBotConfig";
+import { ArrowLeftCircle, ArrowLeftIcon } from "lucide-react";
 
 export type ProductType =
   | "Physical Product"
@@ -226,7 +227,38 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({ type, onBack }) => {
 
   return (
     <div className="p-6 overflow-y-auto max-h-screen">
-      <h2 className="text-2xl font-bold text-black mb-4">New {type}</h2>
+      <div className="flex justify-start items-center">
+        <div
+          className="relative w-6 h-6 flex items-center justify-center"
+          onClick={onBack}
+          style={{ cursor: "pointer" }}
+        >
+          {/* Outer Circle */}
+          <div className="absolute inset-0 rounded-full border-2 border-black bg-[#f5f7ff]" />
+          {/* Arrow (SVG) */}
+          <svg
+            className="relative z-10"
+            width="18"
+            height="18"
+            viewBox="0 0 48 48"
+            fill="none"
+            stroke="black"
+            strokeWidth="6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="30,12 18,24 30,36" />
+          </svg>
+
+          {/* Clickable area */}
+          <button
+            className="absolute inset-0 w-full h-full rounded-full focus:outline-none"
+            aria-label="Back"
+            style={{ background: "transparent" }}
+          />
+        </div>
+        <h2 className="text-2xl font-bold text-black pl-2">New {type}</h2>
+      </div>
       {/* Stepper */}
       <div className="flex gap-4 mt-6 mb-8">
         {steps.map((s, i) => (
@@ -254,30 +286,6 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({ type, onBack }) => {
       </div>
       {/* Step Content */}
       {renderStepContent()}
-      {/* Navigation */}
-      <div className="flex justify-between mt-8 max-w-4xl mx-auto">
-        <button
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-          onClick={step === 0 ? onBack : () => setStep(step - 1)}
-        >
-          {step === 0 ? "Back" : "Previous"}
-        </button>
-        {step < steps.length - 1 ? (
-          <button
-            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-            onClick={() => setStep(step + 1)}
-          >
-            Next
-          </button>
-        ) : (
-          <button
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-            onClick={handleSubmit}
-          >
-            Approve
-          </button>
-        )}
-      </div>
     </div>
   );
 };

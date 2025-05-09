@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { FaBox, FaFileAlt, FaCalendarAlt, FaUsers } from "react-icons/fa";
-import NewServiceForm from "./NewServiceForm";
 import NewOfferingForm, { ProductType } from "./NewOfferingForm";
 
 const cardData = [
