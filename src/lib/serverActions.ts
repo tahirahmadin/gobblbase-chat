@@ -1677,3 +1677,21 @@ export async function getBookingForReschedule(bookingId: string, userId: string)
     throw error;
   }
 }
+
+export async function cancelUserBooking(bookingId: string, userId: string) {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/appointment/cancel-booking",
+      { bookingId }
+    );
+    
+    if (response.data.error) {
+      throw new Error(response.data.result || "Failed to cancel booking");
+    }
+    
+    return response.data.result;
+  } catch (error) {
+    console.error("Error cancelling user booking:", error);
+    throw error;
+  }
+}
