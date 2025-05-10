@@ -56,15 +56,14 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
       address: "",
       // Event specific
       eventType: "",
-      eventTypeOther: "",
       timeZone: "Asia/Calcutta (GMT +5:30)",
       slots: [
         {
           date: "",
           start: "",
           end: "",
-          seatType: "unlimited" as const,
-          seats: "",
+          seatType: "unlimited",
+          seats: 0,
         },
       ],
     };
@@ -105,6 +104,8 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
             type={type}
             onApprove={handleApprove}
             onBack={handleBack}
+            editMode={editMode}
+            editProduct={editProduct}
           />
         );
       default:
@@ -125,7 +126,7 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
           {editMode ? `Edit ${type}` : `Add New ${type}`}
         </h1>
       </div>
-      <div className="flex-1 min-h-0 flex flex-row gap-8">
+      <div className="flex-1 min-h-0 flex flex-row gap-1">
         {/* Vertical Stepper Sidebar */}
         <div className="w-64 flex flex-col items-start pt-8">
           {steps.map((s, i) => (

@@ -178,7 +178,8 @@ export interface PersonalityOption {
 
 export type ProductType = "physical" | "digital" | "service" | "event";
 export interface Product {
-  id: string;
+  _id: string;
+  productId: string;
   title: string;
   description?: string;
   price: number;

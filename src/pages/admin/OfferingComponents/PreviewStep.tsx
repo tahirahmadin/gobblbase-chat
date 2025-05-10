@@ -1,9 +1,9 @@
 import React, { FC, useState } from "react";
-import { addMainProduct } from "../../../lib/serverActions";
+import { addMainProduct, updateMainProduct } from "../../../lib/serverActions";
 import { useBotConfig } from "../../../store/useBotConfig";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { ProductType } from "../../../types";
+import { Product, ProductType } from "../../../types";
 
 // Helper for plus/minus icons
 const PlusIcon = () => (
@@ -20,6 +20,8 @@ type PreviewStepProps = {
   form: any;
   onApprove: () => void;
   onBack?: () => void;
+  editMode: boolean;
+  editProduct: Product;
 };
 
 // Main PreviewStep
@@ -28,6 +30,8 @@ const PreviewStep: FC<PreviewStepProps> = ({
   form,
   onApprove,
   onBack,
+  editMode,
+  editProduct,
 }) => {
   const { activeBotId } = useBotConfig();
   const [loading, setLoading] = useState(false);
@@ -93,11 +97,29 @@ const PreviewStep: FC<PreviewStepProps> = ({
     if (!activeBotId) return;
     setLoading(true);
     try {
-      console.log("Adding product", form);
+      console.log("Adding/Updating product", form);
       console.log("activeBotId", activeBotId);
-      const data = await addMainProduct(type, form, activeBotId);
+
+      let data;
+      if (editMode) {
+        // Update existing product
+        data = await updateMainProduct(
+          type,
+          form,
+          activeBotId,
+          editProduct._id
+        );
+      } else {
+        // Add new product
+        data = await addMainProduct(type, form, activeBotId);
+      }
+
       if (data && data.error === false) {
-        toast.success("Product added successfully!");
+        toast.success(
+          editMode
+            ? "Product updated successfully!"
+            : "Product added successfully!"
+        );
         if (typeof onApprove === "function") onApprove();
         navigate("/admin/offerings/manage");
       } else {
@@ -223,7 +245,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
             {/* Buy Now Button */}
             <div className="w-full flex justify-center mt-2 mb-4">
               <button className="bg-yellow-400 hover:bg-yellow-300 text-black rounded-full px-8 py-3 font-bold text-lg shadow-lg">
-                {cta || "BUY NOW"}
+                {cta || "ADD TO CART"}
               </button>
             </div>
           </div>

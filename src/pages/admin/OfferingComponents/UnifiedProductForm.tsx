@@ -1,5 +1,7 @@
 import React from "react";
 import { ProductType } from "../../../types";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 type UnifiedFormType = {
   // Common fields
@@ -33,11 +35,11 @@ type UnifiedFormType = {
   eventTypeOther?: string;
   timeZone?: string;
   slots?: Array<{
-    date: string;
-    start: string;
-    end: string;
+    date: Date | null;
+    start: Date | null;
+    end: Date | null;
     seatType: "unlimited" | "limited";
-    seats: string;
+    seats: number;
   }>;
 };
 
@@ -59,7 +61,7 @@ const digitalFormats = [
   ".mp4",
 ];
 const sizeOptions = ["S", "M", "L", "XL"];
-const eventTypes = ["Event", "1:1 Session", "Workshop", "Webinar"];
+const eventTypes = ["Event", "1:1 Session", "Workshop", "Webinar", "Other"];
 
 const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
   type,
@@ -148,7 +150,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           {type === "event" && (
             <>
               <label className="font-semibold">Event Type*</label>
-              <div className="flex gap-2 mb-2">
+              <div className="gap-2 mb-2">
                 {eventTypes.map((eventType) => (
                   <button
                     key={eventType}
@@ -162,7 +164,6 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       setForm((f) => ({
                         ...f,
                         eventType,
-                        eventTypeOther: "",
                       }))
                     }
                   >
@@ -170,7 +171,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                   </button>
                 ))}
               </div>
-              <div className="flex items-center gap-2 mb-2">
+              {/* <div className="flex items-center gap-2 mb-2">
                 <span className="text-xs">Other, specify:</span>
                 <input
                   type="text"
@@ -185,7 +186,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                   className="border border-gray-300 rounded p-1 w-40"
                   placeholder="Other type..."
                 />
-              </div>
+              </div> */}
             </>
           )}
 
@@ -435,64 +436,88 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           {type === "event" && (
             <div className="mb-2 p-4 rounded-xl border border-indigo-300 bg-[#dbeafe]">
               <label className="font-semibold block mb-2">Set Slots</label>
+
               {(form.slots || []).map((slot, index) => (
                 <div key={index} className="mb-4">
                   <div className="grid grid-cols-12 gap-2 items-center mb-2">
                     <div className="col-span-4 flex items-center gap-2">
                       <span className="text-xs font-semibold">Date</span>
-                      <input
-                        type="text"
-                        placeholder="DDMMYYYY"
-                        value={slot.date}
-                        onChange={(e) =>
+                      <DatePicker
+                        selected={slot.date}
+                        onChange={(date: Date | null) =>
                           setForm((f) => {
                             const slots = [...(f.slots || [])];
                             slots[index] = {
                               ...slots[index],
-                              date: e.target.value,
+                              date: date,
                             };
                             return { ...f, slots };
                           })
                         }
-                        className="border border-gray-300 rounded p-1 w-24 text-xs"
+                        dateFormat="MM/dd/yyyy"
+                        className="border border-gray-300 rounded p-1 w-32 text-xs"
+                        placeholderText="Select date"
+                        minDate={new Date()}
+                        isClearable
+                        showPopperArrow={false}
                       />
                     </div>
                     <div className="col-span-4 flex items-center gap-2">
                       <span className="text-xs font-semibold">Start</span>
-                      <input
-                        type="text"
-                        placeholder="hhmm"
-                        value={slot.start}
-                        onChange={(e) =>
+                      <DatePicker
+                        selected={slot.start}
+                        onChange={(time: Date | null) =>
                           setForm((f) => {
                             const slots = [...(f.slots || [])];
                             slots[index] = {
                               ...slots[index],
-                              start: e.target.value,
+                              start: time,
+                              end:
+                                time && slot.end && time > slot.end
+                                  ? null
+                                  : slot.end,
                             };
                             return { ...f, slots };
                           })
                         }
-                        className="border border-gray-300 rounded p-1 w-16 text-xs"
+                        showTimeSelect
+                        showTimeSelectOnly
+                        timeIntervals={15}
+                        timeCaption="Time"
+                        dateFormat="h:mm aa"
+                        className="border border-gray-300 rounded p-1 w-24 text-xs"
+                        placeholderText="Select time"
+                        isClearable
+                        showPopperArrow={false}
+                        minTime={new Date(0, 0, 0, 0, 0, 0)}
+                        maxTime={new Date(0, 0, 0, 23, 59, 0)}
                       />
                     </div>
                     <div className="col-span-4 flex items-center gap-2">
                       <span className="text-xs font-semibold">End</span>
-                      <input
-                        type="text"
-                        placeholder="hhmm"
-                        value={slot.end}
-                        onChange={(e) =>
+                      <DatePicker
+                        selected={slot.end}
+                        onChange={(time: Date | null) =>
                           setForm((f) => {
                             const slots = [...(f.slots || [])];
                             slots[index] = {
                               ...slots[index],
-                              end: e.target.value,
+                              end: time,
                             };
                             return { ...f, slots };
                           })
                         }
-                        className="border border-gray-300 rounded p-1 w-16 text-xs"
+                        showTimeSelect
+                        showTimeSelectOnly
+                        timeIntervals={15}
+                        timeCaption="Time"
+                        dateFormat="h:mm aa"
+                        className="border border-gray-300 rounded p-1 w-24 text-xs"
+                        placeholderText="Select time"
+                        isClearable
+                        showPopperArrow={false}
+                        minTime={slot.start || new Date(0, 0, 0, 0, 0, 0)}
+                        maxTime={new Date(0, 0, 0, 23, 59, 0)}
                       />
                     </div>
                   </div>
@@ -540,7 +565,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       />
                       <span className="font-medium">Limited Seats</span>
                       <input
-                        type="text"
+                        type="number"
                         placeholder="100"
                         value={slot.seats}
                         onChange={(e) =>
@@ -548,7 +573,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                             const slots = [...(f.slots || [])];
                             slots[index] = {
                               ...slots[index],
-                              seats: e.target.value,
+                              seats: parseInt(e.target.value),
                             };
                             return { ...f, slots };
                           })
@@ -569,11 +594,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                     slots: [
                       ...((f.slots as any) || []),
                       {
-                        date: "",
-                        start: "",
-                        end: "",
+                        date: null,
+                        start: null,
+                        end: null,
                         seatType: "unlimited",
-                        seats: "",
+                        seats: 0,
                       },
                     ],
                   }))

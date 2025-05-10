@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FaBox, FaFileAlt, FaCalendarAlt, FaUsers } from "react-icons/fa";
 import NewOfferingForm from "../../OfferingComponents/NewOfferingForm";
 import { ProductType } from "../../../../types";
+import { useInventoryStore } from "../../../../store/useInventoryStore";
 
 const cardData = [
   {
@@ -29,6 +30,7 @@ const cardData = [
 
 const AddNew = () => {
   const navigate = useNavigate();
+
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>(null);
 

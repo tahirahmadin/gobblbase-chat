@@ -4,6 +4,7 @@ import { useBotConfig } from "../../../../store/useBotConfig";
 import {
   getMainProducts,
   deleteMainProduct,
+  pauseProduct,
 } from "../../../../lib/serverActions";
 import toast from "react-hot-toast";
 
@@ -23,6 +24,14 @@ const Manage = () => {
   const [loading, setLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteProductId, setDeleteProductId] = useState<string | null>(null);
+  const [loadingStates, setLoadingStates] = useState<{
+    [key: string]: boolean;
+  }>({});
+  const [showPauseModal, setShowPauseModal] = useState(false);
+  const [pauseProductId, setPauseProductId] = useState<string | null>(null);
+  const [pauseProductStatus, setPauseProductStatus] = useState<boolean | null>(
+    null
+  );
 
   // Fetch products based on tab
   useEffect(() => {
@@ -87,6 +96,54 @@ const Manage = () => {
       })
     );
     navigate("/admin/offerings/add");
+  };
+
+  const handlePauseToggle = async (
+    productId: string,
+    currentStatus: boolean
+  ) => {
+    if (!activeBotId) return;
+
+    setLoadingStates((prev) => ({ ...prev, [productId]: true }));
+    try {
+      const response = await pauseProduct(productId, !currentStatus);
+      if (response) {
+        toast.success(
+          `Product ${currentStatus ? "activated" : "paused"} successfully!`
+        );
+        // Update the product status in the local state
+        setProducts((prev) =>
+          prev.map((p) =>
+            p._id === productId ? { ...p, isPaused: !currentStatus } : p
+          )
+        );
+      } else {
+        toast.error("Failed to update product status.");
+      }
+    } catch (err: any) {
+      toast.error("Error updating product status: " + (err.message || err));
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, [productId]: false }));
+    }
+  };
+
+  const openPauseModal = (productId: string, currentStatus: boolean) => {
+    setPauseProductId(productId);
+    setPauseProductStatus(currentStatus);
+    setShowPauseModal(true);
+  };
+
+  const closePauseModal = () => {
+    setShowPauseModal(false);
+    setPauseProductId(null);
+    setPauseProductStatus(null);
+  };
+
+  const confirmPauseToggle = async () => {
+    if (pauseProductId !== null && pauseProductStatus !== null) {
+      await handlePauseToggle(pauseProductId, pauseProductStatus);
+      closePauseModal();
+    }
   };
 
   return (
@@ -170,8 +227,20 @@ const Manage = () => {
                     >
                       Edit
                     </button>
-                    <button className="bg-blue-100 px-3 py-1 rounded">
-                      Pause
+                    <button
+                      onClick={() => openPauseModal(p._id, p.isPaused)}
+                      disabled={loadingStates[p._id]}
+                      className={`${
+                        p.isPaused
+                          ? "bg-green-100 text-green-700"
+                          : "bg-blue-100 text-blue-700"
+                      } px-3 py-1 rounded hover:opacity-80 transition-opacity disabled:opacity-50`}
+                    >
+                      {loadingStates[p._id]
+                        ? "Updating..."
+                        : p.isPaused
+                        ? "Activate"
+                        : "Pause"}
                     </button>
                     <button
                       className="bg-red-100 text-red-600 px-3 py-1 rounded border border-red-300"
@@ -204,6 +273,36 @@ const Manage = () => {
               <button
                 className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 font-semibold"
                 onClick={closeDeleteModal}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pause/Activate Confirmation Modal */}
+      {showPauseModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 min-w-[320px] flex flex-col items-center">
+            <div className="text-lg font-semibold mb-4 text-center">
+              Are you sure you want to{" "}
+              {pauseProductStatus ? "activate" : "pause"} this product?
+            </div>
+            <div className="flex gap-4 mt-2">
+              <button
+                className={`${
+                  pauseProductStatus
+                    ? "bg-green-500 hover:bg-green-600"
+                    : "bg-blue-500 hover:bg-blue-600"
+                } text-white px-4 py-2 rounded font-semibold`}
+                onClick={confirmPauseToggle}
+              >
+                Yes, {pauseProductStatus ? "Activate" : "Pause"}
+              </button>
+              <button
+                className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 font-semibold"
+                onClick={closePauseModal}
               >
                 Cancel
               </button>

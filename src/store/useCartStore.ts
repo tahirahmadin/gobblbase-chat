@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { getMainProducts } from "../lib/serverActions";
+import { getMainProductsForUser } from "../lib/serverActions";
 import { Product } from "../types";
 
 interface CartItem extends Product {
@@ -30,7 +30,7 @@ export const useCartStore = create<CartStore>()(
       products: [],
       selectedProduct: null,
       isProductsLoading: false,
-      setSelectedProduct: (product: Product) => {
+      setSelectedProduct: (product: Product | null) => {
         set({ selectedProduct: product });
       },
       removeSelectedProduct: () => {
@@ -85,7 +85,7 @@ export const useCartStore = create<CartStore>()(
         );
       },
       getProductsInventory: async (inputAgentId: string) => {
-        let response = await getMainProducts(inputAgentId);
+        let response = await getMainProductsForUser(inputAgentId);
         console.log(response);
         set({ products: response });
       },
