@@ -1630,3 +1630,50 @@ export async function getUserBookingHistory(userId:string, agentId: string) {
     return [];
   }
 }
+
+export async function userRescheduleBooking(payload: {
+  bookingId: string;
+  userId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  userTimezone: string;
+  notes?: string;
+}): Promise<any> {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/appointment/user-reschedule",
+      payload
+    );
+    
+    if (response.data.error) {
+      throw new Error(response.data.result || "Failed to reschedule booking");
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error("Error rescheduling booking:", error);
+    throw error;
+  }
+}
+
+export async function getBookingForReschedule(bookingId: string, userId: string): Promise<any> {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/appointment/booking-for-reschedule`,
+      {
+        params: { bookingId, userId }
+      }
+    );
+    
+    if (response.data.error) {
+      throw new Error(response.data.result || "Failed to fetch booking details");
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching booking for reschedule:", error);
+    throw error;
+  }
+}
