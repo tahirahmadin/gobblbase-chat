@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import { useBotConfig } from "../../../store/useBotConfig";
+import { useBotConfig } from "../../../../store/useBotConfig";
 import {
   updateAgentPrompts,
   queryDocument,
   updateGeneratedPrompts,
-} from "../../../lib/serverActions";
-import PublicChat from "../../chatbot/PublicChat";
+} from "../../../../lib/serverActions";
+import PublicChat from "../../../chatbot/PublicChat";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import OpenAI from "openai";

@@ -2,7 +2,7 @@ import React from "react";
 
 export default function TryFreeBanner() {
   return (
-    <div className="mt-auto w-full shadow-lg">
+    <div className="fixed bottom-0 left-0 right-0 mt-auto w-full shadow-lg">
       {/* Create Agent Banner */}
       <div
         className="flex items-center justify-between  p-2"

@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Upload, Link2, Copy, Check, X } from "lucide-react";
-import PublicChat from "../../chatbot/PublicChat";
+import PublicChat from "../../../chatbot/PublicChat";
 import {
   uploadProfilePicture,
   updateAgentUsername,
   updateAgentNameAndBio,
   updateSocialHandles,
   updatePromotionalBanner,
-} from "../../../lib/serverActions";
-import { useBotConfig } from "../../../store/useBotConfig";
+} from "../../../../lib/serverActions";
+import { useBotConfig } from "../../../../store/useBotConfig";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { calculateSmartnessLevel } from "../../../utils/helperFn";
+import { calculateSmartnessLevel } from "../../../../utils/helperFn";
 
 interface SocialMediaLinks {
   instagram: string;

@@ -1,14 +1,23 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { getProducts } from "../lib/serverActions";
+import { getMainProducts } from "../lib/serverActions";
 
 interface Product {
-  _id: string;
-  title: string;
-  image: string;
-  price: string;
-  currency: string;
+  images: string[];
+  agentId: string;
+  category: string;
+  ctaButton: string;
   description: string;
+  fileFormat: string[];
+  isPaused: boolean;
+  name: string;
+  price: number | null;
+  quantity: number;
+  quantityType: string;
+  quantityUnlimited: boolean;
+  slots: any[];
+  type: string;
+  _id: string;
 }
 
 interface CartItem extends Product {
@@ -37,12 +46,12 @@ export const useCartStore = create<CartStore>()(
       addItem: (product) => {
         set((state) => {
           const existingItem = state.items.find(
-            (item) => item.id === product.id
+            (item) => item._id === product._id
           );
           if (existingItem) {
             return {
               items: state.items.map((item) =>
-                item.id === product.id
+                item._id === product._id
                   ? { ...item, quantity: item.quantity + 1 }
                   : item
               ),
@@ -55,7 +64,7 @@ export const useCartStore = create<CartStore>()(
       },
       removeItem: (productId) => {
         set((state) => ({
-          items: state.items.filter((item) => item.id !== productId),
+          items: state.items.filter((item) => item._id !== productId),
         }));
       },
       updateQuantity: (productId, quantity) => {
@@ -65,7 +74,7 @@ export const useCartStore = create<CartStore>()(
         }
         set((state) => ({
           items: state.items.map((item) =>
-            item.id === productId ? { ...item, quantity } : item
+            item._id === productId ? { ...item, quantity } : item
           ),
         }));
       },
@@ -77,12 +86,14 @@ export const useCartStore = create<CartStore>()(
       },
       getTotalPrice: () => {
         return get().items.reduce(
-          (total, item) => total + parseFloat(item.price) * item.quantity,
+          (total, item) =>
+            total + (item.price ? item.price : 0) * item.quantity,
           0
         );
       },
       getProductsInventory: async (inputAgentId: string) => {
-        let response = await getProducts(inputAgentId);
+        let response = await getMainProducts(inputAgentId);
+        console.log(response);
         set({ products: response });
       },
     }),

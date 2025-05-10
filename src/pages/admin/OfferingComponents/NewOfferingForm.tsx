@@ -1,291 +1,167 @@
 import React, { useState } from "react";
-import PhysicalProductForm from "./PhysicalProductForm";
-import DigitalProductForm from "./DigitalProductForm";
-import ServiceForm from "./ServiceForm";
-import EventForm from "./EventForm";
-import CheckoutStep from "./CheckoutStep";
+import UnifiedProductForm from "./UnifiedProductForm";
 import PreviewStep from "./PreviewStep";
-import { addMainProduct } from "../../../lib/serverActions";
-import { useBotConfig } from "../../../store/useBotConfig";
-import { ArrowLeftCircle, ArrowLeftIcon } from "lucide-react";
+import CheckoutStep from "./CheckoutStep";
+import { ProductType } from "../../../types";
 
-export type ProductType =
-  | "Physical Product"
-  | "Digital Product"
-  | "Service"
-  | "Event";
-
-interface NewOfferingFormProps {
+type NewOfferingFormProps = {
   type: ProductType;
   onBack: () => void;
-}
+  editProduct?: any;
+  editMode?: boolean;
+};
 
 const steps = ["Product Details", "Checkout", "Preview"];
 
-const NewOfferingForm: React.FC<NewOfferingFormProps> = ({ type, onBack }) => {
-  const { activeBotId } = useBotConfig();
-
+const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
+  type,
+  onBack,
+  editProduct,
+  editMode = false,
+}) => {
   const [step, setStep] = useState(0);
-
-  const [physicalForm, setPhysicalForm] = useState({
-    productName: "",
-    category: "",
-    description: "",
-    descriptionEnabled: true,
-    quantityType: "unlimited",
-    quantity: "",
-    customQuantity: "",
-    priceType: "free",
-    price: "",
-    cta: "Buy Now",
-    thumbnail: null as File | null,
-    thumbnailUrl: "",
-    images: [null, null, null] as (File | null)[],
-    imagesUrl: ["", "", ""] as string[],
-    customerDetails: ["Customer Name", "Email"],
-    customFields: [] as string[],
-    customFieldInput: "",
-    emailSubject: "",
-    emailBody: "",
-  });
-
-  const [digitalForm, setDigitalForm] = useState({
-    productName: "",
-    category: "",
-    description: "",
-    descriptionEnabled: true,
-    fileFormat: [] as string[],
-    uploadType: "file",
-    file: null as File | null,
-    fileUrl: "",
-    quantityType: "unlimited",
-    quantity: "",
-    priceType: "free",
-    price: "",
-    cta: "Buy Now",
-    thumbnail: null as File | null,
-    thumbnailUrl: "",
-    images: [null, null, null] as (File | null)[],
-    imagesUrl: ["", "", ""] as string[],
-    customerDetails: ["Customer Name", "Email"],
-    customFields: [] as string[],
-    customFieldInput: "",
-    emailSubject: "",
-    emailBody: "",
-  });
-
-  const [serviceForm, setServiceForm] = useState({
-    serviceName: "",
-    category: "",
-    description: "",
-    descriptionEnabled: true,
-    quantityType: "unlimited",
-    quantity: "",
-    locationType: "online",
-    address: "",
-    priceType: "free",
-    price: "",
-    cta: "Buy Now",
-    thumbnail: null as File | null,
-    thumbnailUrl: "",
-    images: [null, null, null] as (File | null)[],
-    imagesUrl: ["", "", ""] as string[],
-  });
-
-  const [eventForm, setEventForm] = useState({
-    eventName: "",
-    eventType: "",
-    eventTypeOther: "",
-    description: "",
-    descriptionEnabled: true,
-    timeZone: "Asia/Calcutta (GMT +5:30)",
-    slots: [
-      {
-        date: "",
-        start: "",
-        end: "",
-        seatType: "unlimited",
-        seats: "",
-      },
-    ],
-    thumbnail: null,
-    thumbnailUrl: "",
-    images: [null, null, null],
-    imagesUrl: ["", "", ""],
-    priceType: "free",
-    price: "",
-    cta: "Reserve your Spot",
-  });
-
-  const getCurrentForm = () => {
-    switch (type) {
-      case "Physical Product":
-        return physicalForm;
-      case "Digital Product":
-        return digitalForm;
-      case "Service":
-        return serviceForm;
-      case "Event":
-        return eventForm;
+  const [form, setForm] = useState(() => {
+    if (editProduct) {
+      return {
+        ...editProduct,
+        descriptionEnabled: true,
+        images: editProduct.images || [],
+        imagesUrl: editProduct.imagesUrl || [],
+      };
     }
+    return {
+      title: "",
+      category: "",
+      description: "",
+      descriptionEnabled: true,
+      price: "0",
+      priceType: "free",
+      cta: "Buy Now",
+      thumbnail: null,
+      thumbnailUrl: "",
+      images: [],
+      imagesUrl: [],
+      quantityType: "unlimited",
+      quantity: "",
+      // Digital Product specific
+      fileFormat: "",
+      uploadType: "file",
+      file: null,
+      fileUrl: "",
+      // Physical Product specific
+      customQuantity: "",
+      variedSizes: [],
+      // Service specific
+      locationType: "online",
+      address: "",
+      // Event specific
+      eventType: "",
+      eventTypeOther: "",
+      timeZone: "Asia/Calcutta (GMT +5:30)",
+      slots: [
+        {
+          date: "",
+          start: "",
+          end: "",
+          seatType: "unlimited" as const,
+          seats: "",
+        },
+      ],
+    };
+  });
+
+  const handleNext = () => {
+    setStep(step + 1);
   };
-  const getCurrentSetForm = () => {
-    switch (type) {
-      case "Physical Product":
-        return setPhysicalForm;
-      case "Digital Product":
-        return setDigitalForm;
-      case "Service":
-        return setServiceForm;
-      case "Event":
-        return setEventForm;
-    }
+
+  const handleBack = () => {
+    setStep(step - 1);
+  };
+
+  const handleApprove = () => {
+    // Handle form submission
+    console.log("Form submitted:", form);
   };
 
   const renderStepContent = () => {
-    if (step === 0) {
-      switch (type) {
-        case "Physical Product":
-          return (
-            <PhysicalProductForm
-              form={physicalForm}
-              setForm={setPhysicalForm}
-              onNext={() => setStep(1)}
-            />
-          );
-        case "Digital Product":
-          return (
-            <DigitalProductForm
-              form={digitalForm}
-              setForm={setDigitalForm}
-              onNext={() => setStep(1)}
-            />
-          );
-        case "Service":
-          return (
-            <ServiceForm
-              form={serviceForm}
-              setForm={setServiceForm}
-              onNext={() => setStep(1)}
-            />
-          );
-        case "Event":
-          return (
-            <EventForm
-              form={eventForm}
-              setForm={setEventForm}
-              onNext={() => setStep(1)}
-            />
-          );
-        default:
-          return null;
-      }
-    }
-    if (step === 1) {
-      return (
-        <CheckoutStep
-          type={type}
-          form={getCurrentForm()}
-          setForm={getCurrentSetForm()}
-          onNext={() => setStep(2)}
-        />
-      );
-    }
-    if (step === 2) {
-      return <PreviewStep type={type} form={getCurrentForm()} />;
-    }
-    return null;
-  };
-
-  const handleSubmit = async () => {
-    let typeKey = "";
-    let form: any = null;
-    if (type === "Physical Product") {
-      typeKey = "physical";
-      form = physicalForm;
-    } else if (type === "Digital Product") {
-      typeKey = "digital";
-      form = digitalForm;
-    } else if (type === "Service") {
-      typeKey = "service";
-      form = serviceForm;
-    } else if (type === "Event") {
-      typeKey = "event";
-      form = eventForm;
-    }
-    try {
-      const data = await addMainProduct(type, form, activeBotId);
-      if (data.error === false) {
-        alert("Product added successfully!");
-      } else {
-        alert("Error: " + (data.result?.error || "Unknown error"));
-      }
-    } catch (err: any) {
-      alert("Network error: " + err.message);
+    switch (step) {
+      case 0:
+        return (
+          <UnifiedProductForm
+            type={type}
+            form={form}
+            setForm={setForm}
+            onNext={handleNext}
+          />
+        );
+      case 1:
+        return (
+          <CheckoutStep form={form} setForm={setForm} onNext={handleNext} />
+        );
+      case 2:
+        return (
+          <PreviewStep
+            form={form}
+            type={type}
+            onApprove={handleApprove}
+            onBack={handleBack}
+          />
+        );
+      default:
+        return null;
     }
   };
 
   return (
-    <div className="p-6 overflow-y-auto max-h-screen">
-      <div className="flex justify-start items-center">
-        <div
-          className="relative w-6 h-6 flex items-center justify-center"
+    <div className="h-screen flex flex-col">
+      <div className="flex items-center gap-2 mb-2">
+        <button
           onClick={onBack}
-          style={{ cursor: "pointer" }}
+          className="text-gray-600 hover:text-gray-800 text-lg font-semibold"
         >
-          {/* Outer Circle */}
-          <div className="absolute inset-0 rounded-full border-2 border-black bg-[#f5f7ff]" />
-          {/* Arrow (SVG) */}
-          <svg
-            className="relative z-10"
-            width="18"
-            height="18"
-            viewBox="0 0 48 48"
-            fill="none"
-            stroke="black"
-            strokeWidth="6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="30,12 18,24 30,36" />
-          </svg>
-
-          {/* Clickable area */}
-          <button
-            className="absolute inset-0 w-full h-full rounded-full focus:outline-none"
-            aria-label="Back"
-            style={{ background: "transparent" }}
-          />
-        </div>
-        <h2 className="text-2xl font-bold text-black pl-2">New {type}</h2>
+          ← Back
+        </button>
+        <h1 className="text-2xl font-bold text-gray-900">
+          {editMode ? `Edit ${type}` : `Add New ${type}`}
+        </h1>
       </div>
-      {/* Stepper */}
-      <div className="flex gap-4 mt-6 mb-8">
-        {steps.map((s, i) => (
-          <div
-            key={s}
-            className={`flex items-center gap-2 ${
-              i === step ? "text-green-700 font-bold" : "text-gray-500"
-            }`}
-          >
-            <div
-              className={`rounded-full w-7 h-7 flex items-center justify-center border-2 ${
-                i <= step
-                  ? "bg-green-200 border-green-500"
-                  : "bg-white border-gray-300"
-              }`}
-            >
-              {i + 1}
+      <div className="flex-1 min-h-0 flex flex-row gap-8">
+        {/* Vertical Stepper Sidebar */}
+        <div className="w-64 flex flex-col items-start pt-8">
+          {steps.map((s, i) => (
+            <div key={s} className="flex items-center mb-8">
+              <div
+                className={`w-9 h-9 flex items-center justify-center rounded-full border-2 text-lg font-bold transition-all duration-200
+                ${
+                  i === step
+                    ? "bg-[#4f46e5] border-[#4f46e5] text-white"
+                    : i < step
+                    ? "bg-green-400 border-green-400 text-white"
+                    : "bg-white border-gray-300 text-gray-500"
+                }
+              `}
+              >
+                {i + 1}
+              </div>
+              <span
+                className={`ml-4 text-base font-semibold ${
+                  i === step
+                    ? "text-[#4f46e5]"
+                    : i < step
+                    ? "text-green-600"
+                    : "text-gray-500"
+                }`}
+              >
+                {s}
+              </span>
             </div>
-            <span>{s}</span>
-            {i < steps.length - 1 && (
-              <div className="w-8 h-0.5 bg-gray-300 mx-2" />
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
+        {/* Card-like Step Content */}
+        <div className="flex-1 min-h-0 h-full bg-[#e7eafe] rounded-xl shadow-md overflow-y-auto">
+          <div className="p-2 pb-32">{renderStepContent()}</div>
+        </div>
       </div>
-      {/* Step Content */}
-      {renderStepContent()}
     </div>
   );
 };

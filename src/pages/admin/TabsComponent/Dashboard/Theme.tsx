@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
 
-import { useBotConfig } from "../../../store/useBotConfig";
-import PublicChat from "../../chatbot/PublicChat";
+import { useBotConfig } from "../../../../store/useBotConfig";
 import { toast } from "react-hot-toast";
-import { updateBotTheme } from "../../../lib/serverActions";
-import { AVAILABLE_THEMES } from "../../../utils/constants";
-import { Theme } from "../../../types";
+import { updateBotTheme } from "../../../../lib/serverActions";
+import { AVAILABLE_THEMES } from "../../../../utils/constants";
+import { Theme } from "../../../../types";
 import { MessageSquare, Mic } from "lucide-react";
 
 const CustomTheme = () => {

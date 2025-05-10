@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { useBotConfig } from "../../../store/useBotConfig";
-import { updateAgentWelcomeMessage } from "../../../lib/serverActions";
-import PublicChat from "../../chatbot/PublicChat";
+import { useBotConfig } from "../../../../store/useBotConfig";
+import { updateAgentWelcomeMessage } from "../../../../lib/serverActions";
+import PublicChat from "../../../chatbot/PublicChat";
 import { toast } from "react-hot-toast";
 
 const welcomeTemplates = [

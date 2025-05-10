@@ -1,9 +1,9 @@
 import React, { FC, useState } from "react";
-import { ProductType } from "./CheckoutStep";
 import { addMainProduct } from "../../../lib/serverActions";
 import { useBotConfig } from "../../../store/useBotConfig";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { ProductType } from "../../../types";
 
 // Helper for plus/minus icons
 const PlusIcon = () => (
@@ -19,10 +19,16 @@ type PreviewStepProps = {
   type: ProductType;
   form: any;
   onApprove: () => void;
+  onBack?: () => void;
 };
 
 // Main PreviewStep
-const PreviewStep: FC<PreviewStepProps> = ({ type, form, onApprove }) => {
+const PreviewStep: FC<PreviewStepProps> = ({
+  type,
+  form,
+  onApprove,
+  onBack,
+}) => {
   const { activeBotId } = useBotConfig();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -39,8 +45,8 @@ const PreviewStep: FC<PreviewStepProps> = ({ type, form, onApprove }) => {
   let size = "One Size";
   let totalCost = priceType === "paid" && price ? `$${price}` : "$22";
 
-  if (type === "Physical Product") {
-    name = form.productName || "Product Name";
+  if (type === "physical") {
+    name = form.productTitle || "Product Name";
     price = form.price;
     priceType = form.priceType;
     cta = form.cta || "BUY NOW";
@@ -56,7 +62,7 @@ const PreviewStep: FC<PreviewStepProps> = ({ type, form, onApprove }) => {
         ? form.variedSizes[0]
         : "One Size";
     totalCost = priceType === "paid" && price ? `$${price}` : "$22";
-  } else if (type === "Digital Product") {
+  } else if (type === "digital") {
     name = form.productName || "Product Name";
     price = form.price;
     priceType = form.priceType;
@@ -64,7 +70,7 @@ const PreviewStep: FC<PreviewStepProps> = ({ type, form, onApprove }) => {
     description = form.description;
     descriptionEnabled = form.descriptionEnabled;
     thumbnailUrl = form.thumbnailUrl;
-  } else if (type === "Service") {
+  } else if (type === "service") {
     name = form.serviceName || "Service Name";
     price = form.price;
     priceType = form.priceType;
@@ -72,7 +78,7 @@ const PreviewStep: FC<PreviewStepProps> = ({ type, form, onApprove }) => {
     description = form.description;
     descriptionEnabled = form.descriptionEnabled;
     thumbnailUrl = form.thumbnailUrl;
-  } else if (type === "Event") {
+  } else if (type === "event") {
     name = "Event Name";
     price = 0;
     priceType = "free";
@@ -83,10 +89,12 @@ const PreviewStep: FC<PreviewStepProps> = ({ type, form, onApprove }) => {
   }
 
   // Approve handler
-  const handleApprove = async () => {
+  const handleAddProduct = async () => {
     if (!activeBotId) return;
     setLoading(true);
     try {
+      console.log("Adding product", form);
+      console.log("activeBotId", activeBotId);
       const data = await addMainProduct(type, form, activeBotId);
       if (data && data.error === false) {
         toast.success("Product added successfully!");
@@ -104,6 +112,15 @@ const PreviewStep: FC<PreviewStepProps> = ({ type, form, onApprove }) => {
 
   return (
     <div className="bg-[#e7eaff] rounded-xl p-6 max-w-6xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <button
+          onClick={onBack}
+          className="text-gray-600 hover:text-gray-800 flex items-center gap-2"
+        >
+          ← Back to Form
+        </button>
+        <h2 className="text-2xl font-semibold text-gray-900">Preview</h2>
+      </div>
       <div className="flex flex-row gap-8 items-start">
         {/* Stepper & Card View */}
         <div className="flex flex-col items-start min-w-[180px]">
@@ -219,7 +236,7 @@ const PreviewStep: FC<PreviewStepProps> = ({ type, form, onApprove }) => {
           <button
             className="bg-green-500 hover:bg-green-600 text-white rounded px-8 py-2 font-bold shadow border border-green-700"
             style={{ minWidth: 120 }}
-            onClick={handleApprove}
+            onClick={handleAddProduct}
             disabled={loading}
           >
             {loading ? "APPROVING..." : "APPROVE"}

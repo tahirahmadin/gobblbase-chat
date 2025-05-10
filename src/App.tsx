@@ -14,18 +14,18 @@ import { Toaster } from "react-hot-toast";
 import { useBotConfig } from "./store/useBotConfig";
 
 import AdminLayout from "./components/adminComponents/AdminLayout";
-import Profile from "./pages/admin/TabsComponent/Profile";
-import Brain from "./pages/admin/TabsComponent/Brain";
-import Voice from "./pages/admin/TabsComponent/Voice";
-import Theme from "./pages/admin/TabsComponent/Theme";
-import WelcomeText from "./pages/admin/TabsComponent/WelcomeText";
-import Prompts from "./pages/admin/TabsComponent/Prompts";
+import Profile from "./pages/admin/TabsComponent/Dashboard/Profile";
+import AiModel from "./pages/admin/TabsComponent/Dashboard/AiModel";
+import Brain from "./pages/admin/TabsComponent/Dashboard/Brain";
+import Voice from "./pages/admin/TabsComponent/Dashboard/Voice";
+import Theme from "./pages/admin/TabsComponent/Dashboard/Theme";
+import WelcomeText from "./pages/admin/TabsComponent/Dashboard/WelcomeText";
+import Prompts from "./pages/admin/TabsComponent/Dashboard/Prompts";
 import Business from "./pages/admin/TabsComponent/Business";
-import Offerings from "./pages/admin/TabsComponent/Offerings";
+import Offerings from "./pages/admin/TabsComponent/Offerings/Offerings";
 import Policies from "./pages/admin/TabsComponent/Policies";
 import ChatLogs from "./pages/admin/TabsComponent/ChatLogs";
 import CustomerLeads from "./pages/admin/TabsComponent/CustomerLeads";
-import Booking from "./pages/admin/BookingComponent/Booking";
 import BookingDashboardWrapper from "./pages/admin/BookingComponent/BookingDashboardWrapper";
 import Login from "./pages/admin/Login";
 import { useAdminStore } from "./store/useAdminStore";
@@ -33,7 +33,6 @@ import CreateNewBot from "./pages/admin/CreateNewBot";
 import Plans from "./pages/admin/Plans";
 import Billing from "./pages/admin/Billing";
 import Usage from "./pages/admin/Usage";
-import AiModel from "./pages/admin/TabsComponent/AiModel";
 
 // Add type definition for window
 declare global {

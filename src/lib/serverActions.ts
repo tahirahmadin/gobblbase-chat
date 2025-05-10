@@ -730,15 +730,15 @@ export async function getAvailableSlots(
 
 export interface BookingPayload {
   agentId: string;
-  userId: string;     
-  email?: string;     
+  userId: string;
+  email?: string;
   date: string;
   startTime: string;
   endTime: string;
   location: string;
   userTimezone?: string;
-  name?: string;      
-  phone?: string;    
+  name?: string;
+  phone?: string;
   notes?: string;
 }
 
@@ -913,19 +913,17 @@ export const deleteProduct = async (id: string, agentId: string) => {
 };
 
 export const getProducts = async (agentId: string) => {
-  try {
-    let url = `https://rag.gobbl.ai/zoho/items?agentId=${agentId}`;
-    const response = await axios.get(url);
-
-    if (response.data.error) {
-      throw new Error("Failed to fetch products");
-    }
-
-    return response.data.result;
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    throw error;
-  }
+  // try {
+  //   let url = `https://rag.gobbl.ai/zoho/items?agentId=${agentId}`;
+  //   const response = await axios.get(url);
+  //   if (response.data.error) {
+  //     throw new Error("Failed to fetch products");
+  //   }
+  //   return response.data.result;
+  // } catch (error) {
+  //   console.error("Error fetching products:", error);
+  //   throw error;
+  // }
 };
 
 export const updateProductImage = async (data: {
@@ -1503,13 +1501,16 @@ export async function addMainProduct(type: string, form: any, agentId: string) {
   let formData = new FormData();
   let typeKey = "";
 
-  if (type === "Physical Product") {
+  if (type === "physical") {
     typeKey = "physical";
+    formData.append("type", typeKey);
+    formData.append("agentId", agentId);
     formData.append("file", form.thumbnail);
-    formData.append("name", form.productName);
+    formData.append("title", form.title);
     formData.append("description", form.description);
     formData.append("category", form.category);
     formData.append("price", form.price);
+    formData.append("priceType", form.priceType);
     formData.append("quantity", form.quantity);
     formData.append(
       "quantityUnlimited",
@@ -1517,18 +1518,20 @@ export async function addMainProduct(type: string, form: any, agentId: string) {
     );
     formData.append("quantityType", form.quantityType);
     formData.append("ctaButton", form.cta);
-    formData.append("agentId", agentId);
-    formData.append("type", typeKey);
+
     form.images.forEach((img: File | null, idx: number) => {
       if (img) formData.append(`image${idx + 1}`, img);
     });
-  } else if (type === "Digital Product") {
+  } else if (type === "digital") {
     typeKey = "digital";
+    formData.append("type", typeKey);
+    formData.append("agentId", agentId);
     formData.append("file", form.thumbnail);
-    formData.append("name", form.productName);
+    formData.append("title", form.title);
     formData.append("description", form.description);
     formData.append("category", form.category);
     formData.append("price", form.price);
+    formData.append("priceType", form.priceType);
     formData.append("quantity", form.quantity);
     formData.append(
       "quantityUnlimited",
@@ -1536,23 +1539,25 @@ export async function addMainProduct(type: string, form: any, agentId: string) {
     );
     formData.append("quantityType", form.quantityType);
     formData.append("ctaButton", form.cta);
-    formData.append("agentId", agentId);
-    formData.append("type", typeKey);
     form.images.forEach((img: File | null, idx: number) => {
       if (img) formData.append(`image${idx + 1}`, img);
     });
-    if (form.fileFormat && form.fileFormat.length > 0) {
-      formData.append("fileFormat", form.fileFormat.join(","));
+    if (form.fileFormat) {
+      formData.append("fileFormat", form.fileFormat);
     }
     if (form.file) formData.append("digitalFile", form.file);
     if (form.fileUrl) formData.append("fileUrl", form.fileUrl);
-  } else if (type === "Service") {
+    if (form.uploadType) formData.append("uploadType", form.uploadType);
+  } else if (type === "service") {
     typeKey = "service";
+    formData.append("agentId", agentId);
+    formData.append("type", typeKey);
     formData.append("file", form.thumbnail);
-    formData.append("name", form.serviceName);
+    formData.append("title", form.title);
     formData.append("description", form.description);
     formData.append("category", form.category);
     formData.append("price", form.price);
+    formData.append("priceType", form.priceType);
     formData.append("quantity", form.quantity);
     formData.append(
       "quantityUnlimited",
@@ -1560,23 +1565,23 @@ export async function addMainProduct(type: string, form: any, agentId: string) {
     );
     formData.append("quantityType", form.quantityType);
     formData.append("ctaButton", form.cta);
-    formData.append("agentId", agentId);
-    formData.append("type", typeKey);
+
     formData.append("locationType", form.locationType);
     formData.append("address", form.address);
     form.images.forEach((img: File | null, idx: number) => {
       if (img) formData.append(`image${idx + 1}`, img);
     });
-  } else if (type === "Event") {
+  } else if (type === "event") {
     typeKey = "event";
+    formData.append("agentId", agentId);
+    formData.append("type", typeKey);
     formData.append("file", form.thumbnail);
-    formData.append("name", form.eventName);
+    formData.append("title", form.title);
     formData.append("description", form.description);
     formData.append("category", form.eventTypeOther || form.eventType);
     formData.append("price", form.price);
     formData.append("ctaButton", form.cta);
-    formData.append("agentId", agentId);
-    formData.append("type", typeKey);
+
     formData.append("timeZone", form.timeZone);
     if (form.slots && form.slots[0]) {
       formData.append("slotDate", form.slots[0].date);
@@ -1589,7 +1594,7 @@ export async function addMainProduct(type: string, form: any, agentId: string) {
       if (img) formData.append(`image${idx + 1}`, img);
     });
   }
-
+  console.log(formData);
   const response = await fetch("https://rag.gobbl.ai/product/addProduct", {
     method: "POST",
     body: formData,
@@ -1611,19 +1616,20 @@ export async function getMainProducts(agentId: string) {
   }
 }
 
-
-export async function getUserBookingHistory(userId:string, agentId: string) {
+export async function getUserBookingHistory(userId: string, agentId: string) {
   try {
     const response = await axios.get(
-      `https://rag.gobbl.ai/appointment/user-bookings`, {
-      params: { userId, agentId }
-    });
-    
+      `https://rag.gobbl.ai/appointment/user-bookings`,
+      {
+        params: { userId, agentId },
+      }
+    );
+
     if (response.data.error) {
       console.error("API error:", response.data.result);
       return [];
     }
-    
+
     return response.data.result || [];
   } catch (error) {
     console.error("Error fetching booking history:", error);
@@ -1646,11 +1652,11 @@ export async function userRescheduleBooking(payload: {
       "https://rag.gobbl.ai/appointment/user-reschedule",
       payload
     );
-    
+
     if (response.data.error) {
       throw new Error(response.data.result || "Failed to reschedule booking");
     }
-    
+
     return response.data;
   } catch (error) {
     console.error("Error rescheduling booking:", error);
@@ -1658,19 +1664,24 @@ export async function userRescheduleBooking(payload: {
   }
 }
 
-export async function getBookingForReschedule(bookingId: string, userId: string): Promise<any> {
+export async function getBookingForReschedule(
+  bookingId: string,
+  userId: string
+): Promise<any> {
   try {
     const response = await axios.get(
       `https://rag.gobbl.ai/appointment/booking-for-reschedule`,
       {
-        params: { bookingId, userId }
+        params: { bookingId, userId },
       }
     );
-    
+
     if (response.data.error) {
-      throw new Error(response.data.result || "Failed to fetch booking details");
+      throw new Error(
+        response.data.result || "Failed to fetch booking details"
+      );
     }
-    
+
     return response.data;
   } catch (error) {
     console.error("Error fetching booking for reschedule:", error);
@@ -1682,16 +1693,32 @@ export async function cancelUserBooking(bookingId: string, userId: string) {
   try {
     const response = await axios.post(
       "https://rag.gobbl.ai/appointment/cancel-booking",
-      { bookingId }  
+      { bookingId }
     );
-    
+
     if (response.data.error) {
       throw new Error(response.data.result || "Failed to cancel booking");
     }
-    
+
     return response.data.result;
   } catch (error) {
     console.error("Error cancelling user booking:", error);
     throw error;
+  }
+}
+
+// Delete main product by productId and agentId
+export async function deleteMainProduct(productId: string, agentId: string) {
+  try {
+    const response = await axios.delete(
+      "https://rag.gobbl.ai/product/deleteProduct",
+      {
+        data: { productId, agentId },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Error deleting product:", err);
+    throw err;
   }
 }

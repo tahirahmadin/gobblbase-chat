@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Check } from "lucide-react";
-import { updateAgentVoicePersonality } from "../../../lib/serverActions";
-import { useBotConfig } from "../../../store/useBotConfig";
+import { updateAgentVoicePersonality } from "../../../../lib/serverActions";
+import { useBotConfig } from "../../../../store/useBotConfig";
 import toast from "react-hot-toast";
-import { PERSONALITY_OPTIONS } from "../../../utils/constants";
-import { PersonalityOption } from "../../../types";
+import { PERSONALITY_OPTIONS } from "../../../../utils/constants";
+import { PersonalityOption } from "../../../../types";
 
 const personalityOptions: PersonalityOption[] = PERSONALITY_OPTIONS;
 

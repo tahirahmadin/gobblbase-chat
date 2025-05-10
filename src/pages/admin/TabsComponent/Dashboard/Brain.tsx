@@ -8,12 +8,11 @@ import {
   addDocumentToAgent,
   removeDocumentFromAgent,
   listAgentDocuments,
-  updateDocumentInAgent,
-} from "../../../lib/serverActions";
-import { useAdminStore } from "../../../store/useAdminStore";
-import { useBotConfig } from "../../../store/useBotConfig";
-import { updateAgentBrain } from "../../../lib/serverActions";
-import { calculateSmartnessLevel } from "../../../utils/helperFn";
+} from "../../../../lib/serverActions";
+import { useAdminStore } from "../../../../store/useAdminStore";
+import { useBotConfig } from "../../../../store/useBotConfig";
+import { updateAgentBrain } from "../../../../lib/serverActions";
+import { calculateSmartnessLevel } from "../../../../utils/helperFn";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
 
@@ -28,7 +27,7 @@ interface Document {
   documentId: string;
   title: string;
   content?: string;
-  size?: number; 
+  size?: number;
   addedAt?: Date;
   updatedAt?: Date;
 }
@@ -89,7 +88,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { adminId } = useAdminStore();
   const { activeBotId, setActiveBotId, fetchBotData } = useBotConfig();
-  
+
   useEffect(() => {
     if (activeBotId) {
       fetchAgentDocuments();
@@ -98,10 +97,10 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
   const fetchAgentDocuments = async () => {
     if (!activeBotId) return;
-  
+
     try {
       const response = await listAgentDocuments(activeBotId);
-  
+
       if (!response.error && typeof response.result !== "string") {
         const docs = response.result.documents.map((doc: Document) => ({
           name: truncateFileName(doc.title, 30),
@@ -109,7 +108,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           sizeInBytes: doc.size || 0,
           documentId: doc.documentId,
         }));
-  
+
         setUploadedFiles(docs);
       }
     } catch (error) {
@@ -121,13 +120,26 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   // Truncate filename for display
   const truncateFileName = (fileName: string, maxLength: number): string => {
     if (fileName.length <= maxLength) return fileName;
-    
-    const extension = fileName.lastIndexOf('.') > 0 ? fileName.substring(fileName.lastIndexOf('.')) : '';
-    const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.') > 0 ? fileName.lastIndexOf('.') : fileName.length);
-    
-    if (nameWithoutExt.length <= maxLength - 3 - extension.length) return fileName;
-    
-    return nameWithoutExt.substring(0, maxLength - 3 - extension.length) + '...' + extension;
+
+    const extension =
+      fileName.lastIndexOf(".") > 0
+        ? fileName.substring(fileName.lastIndexOf("."))
+        : "";
+    const nameWithoutExt = fileName.substring(
+      0,
+      fileName.lastIndexOf(".") > 0
+        ? fileName.lastIndexOf(".")
+        : fileName.length
+    );
+
+    if (nameWithoutExt.length <= maxLength - 3 - extension.length)
+      return fileName;
+
+    return (
+      nameWithoutExt.substring(0, maxLength - 3 - extension.length) +
+      "..." +
+      extension
+    );
   };
 
   // Handle adding links
@@ -176,7 +188,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
       // Check if this is the last document
       if (uploadedFiles.length <= 1) {
-        toast.error("Cannot remove the only document. An agent must have at least one document.");
+        toast.error(
+          "Cannot remove the only document. An agent must have at least one document."
+        );
         return;
       }
 
@@ -298,7 +312,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
     // Add new files to the selected files array and automatically upload
     setSelectedFiles(newFiles);
-    
+
     // Auto-trigger upload if we have an active bot ID
     if (activeBotId) {
       await handleUpload(newFiles);
@@ -355,7 +369,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
       // Add new files and auto-upload if we have an active bot
       setSelectedFiles(newFiles);
-      
+
       if (activeBotId) {
         await handleUpload(newFiles);
       }
@@ -407,9 +421,14 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
           // Extract text from the first file
           const firstFileContent = await extractTextFromFile(filesToUpload[0]);
-          
+
           if (!firstFileContent) {
-            toast.error(`Could not extract text from ${truncateFileName(filesToUpload[0].name, 20)}. The file may be empty or corrupted.`);
+            toast.error(
+              `Could not extract text from ${truncateFileName(
+                filesToUpload[0].name,
+                20
+              )}. The file may be empty or corrupted.`
+            );
             // If this is the only file, we can't proceed
             if (filesToUpload.length === 1) {
               return;
@@ -421,7 +440,8 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
             // Add insights data if available
             const insights = [];
-            if (insightsData.usp) insights.push(`Brand USP: ${insightsData.usp}`);
+            if (insightsData.usp)
+              insights.push(`Brand USP: ${insightsData.usp}`);
             if (insightsData.brandPersonality)
               insights.push(
                 `Brand Personality: ${insightsData.brandPersonality}`
@@ -464,7 +484,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             }
 
             const newAgentId =
-              typeof response.result !== "string" ? response.result.agentId : "";
+              typeof response.result !== "string"
+                ? response.result.agentId
+                : "";
 
             if (!newAgentId) {
               throw new Error("Invalid response from server");
@@ -483,11 +505,14 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             // Upload remaining files
             let successCount = 1; // First file already processed
             let failCount = 0;
-            
+
             if (filesToUpload.length > 1) {
               for (let i = 1; i < filesToUpload.length; i++) {
                 try {
-                  const result = await uploadFileToAgent(filesToUpload[i], newAgentId);
+                  const result = await uploadFileToAgent(
+                    filesToUpload[i],
+                    newAgentId
+                  );
                   if (result) {
                     successCount++;
                   } else {
@@ -495,7 +520,10 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                   }
                 } catch (error) {
                   failCount++;
-                  console.error(`Error uploading ${filesToUpload[i].name}:`, error);
+                  console.error(
+                    `Error uploading ${filesToUpload[i].name}:`,
+                    error
+                  );
                 }
               }
             }
@@ -515,7 +543,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
             // Show success message with counts
             if (failCount > 0) {
-              toast.success(`Agent created with ${successCount} document(s). ${failCount} document(s) failed.`);
+              toast.success(
+                `Agent created with ${successCount} document(s). ${failCount} document(s) failed.`
+              );
             } else {
               toast.success("Agent created successfully!");
             }
@@ -542,7 +572,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         // Process all selected files
         let successCount = 0;
         let failCount = 0;
-        
+
         // Process files one by one to handle errors individually
         for (const file of filesToUpload) {
           try {
@@ -574,7 +604,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         // Show success message with counts
         if (successCount > 0) {
           if (failCount > 0) {
-            toast.success(`Uploaded ${successCount} document(s). ${failCount} document(s) failed.`);
+            toast.success(
+              `Uploaded ${successCount} document(s). ${failCount} document(s) failed.`
+            );
           } else {
             toast.success(`${successCount} document(s) uploaded successfully!`);
           }
@@ -608,10 +640,15 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     try {
       // Extract text from file
       const textContent = await extractTextFromFile(file);
-      
+
       // If text content is empty or null, skip this file
       if (!textContent) {
-        toast.error(`Could not extract text from ${truncateFileName(file.name, 20)}. The file may be empty or corrupted.`);
+        toast.error(
+          `Could not extract text from ${truncateFileName(
+            file.name,
+            20
+          )}. The file may be empty or corrupted.`
+        );
         return false;
       }
 
@@ -935,7 +972,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                 >
                   <div className="flex items-center space-x-2">
                     <FileText className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">{truncateFileName(file.name, 30)}</span>
+                    <span className="text-sm">
+                      {truncateFileName(file.name, 30)}
+                    </span>
                     <span className="text-xs text-gray-500">
                       {formatFileSize(file.size)}
                     </span>
@@ -993,9 +1032,10 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-500">
-                Max File Size: 15MB | 5 Files Limit | At least one document is required
+                Max File Size: 15MB | 5 Files Limit | At least one document is
+                required
               </span>
-              
+
               {/* Only show upload button for new agents since existing ones auto-upload */}
               {!activeBotId && (
                 <button

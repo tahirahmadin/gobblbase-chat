@@ -1,13 +1,6 @@
 import React from "react";
 
-export type ProductType =
-  | "Physical Product"
-  | "Digital Product"
-  | "Service"
-  | "Event";
-
 type CheckoutStepProps = {
-  type: ProductType;
   form: any;
   setForm: React.Dispatch<any>;
   onNext: () => void;
@@ -22,7 +15,6 @@ const defaultCustomerFields = [
 ];
 
 const CheckoutStep: React.FC<CheckoutStepProps> = ({
-  type,
   form,
   setForm,
   onNext,
@@ -54,7 +46,7 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
   };
 
   return (
-    <div className="bg-indigo-100 rounded-2xl p-8 mt-6 max-w-4xl mx-auto">
+    <div className=" rounded-2xl p-4 mt-2 mx-auto">
       <div className="flex flex-col md:flex-row gap-8">
         <div className="flex-1">
           <div className="font-semibold mb-2">Choose Customer Details</div>
@@ -71,7 +63,7 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
               </label>
             ))}
           </div>
-          <div className="mt-4 font-semibold">CUSTOM</div>
+          {/* <div className="mt-4 font-semibold">CUSTOM</div>
           <div className="flex gap-2 mt-1">
             <input
               value={customFieldInput}
@@ -98,7 +90,7 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
             >
               ADD
             </button>
-          </div>
+          </div> */}
           <div className="mt-2 text-xs text-gray-600">
             {(customFields || []).map((f: string, i: number) => (
               <span

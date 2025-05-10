@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { MODEL_PRESETS } from "../../../utils/constants";
-import { useBotConfig } from "../../../store/useBotConfig";
-import { updateAgentModel } from "../../../lib/serverActions";
+import { MODEL_PRESETS } from "../../../../utils/constants";
+import { useBotConfig } from "../../../../store/useBotConfig";
+import { updateAgentModel } from "../../../../lib/serverActions";
 import toast from "react-hot-toast";
 
 const AiModel = () => {
