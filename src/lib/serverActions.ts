@@ -1682,10 +1682,7 @@ export async function cancelUserBooking(bookingId: string, userId: string) {
   try {
     const response = await axios.post(
       "https://rag.gobbl.ai/appointment/cancel-booking",
-      { 
-        bookingId,
-        contactEmail: userId  
-      }
+      { bookingId }  
     );
     
     if (response.data.error) {
