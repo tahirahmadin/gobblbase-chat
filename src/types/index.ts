@@ -179,10 +179,11 @@ export interface PersonalityOption {
 export type ProductType = "physical" | "digital" | "service" | "event";
 export interface Product {
   id: string;
-  name: string;
+  title: string;
   description?: string;
   price: number;
   type: "digital" | "service" | "event" | "physical";
-  images?: string[];
-  thumbnail?: string;
+  images: string[];
+  category: string;
+  priceType: "paid" | "free";
 }

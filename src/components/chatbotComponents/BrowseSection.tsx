@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { useCartStore } from "../../store/useCartStore";
 import TryFreeBanner from "./TryFreeBanner";
-import { Theme } from "../../types";
+import { Product, Theme } from "../../types";
 import BookingSection from "./BookingSection";
 import ProductDetailPage from "./ProductDetailPage";
 import { useBotConfig } from "../../store/useBotConfig";
@@ -26,11 +26,15 @@ export default function BrowseSection({
   showOnlyBooking = false,
   isBookingConfigured: propIsBookingConfigured,
 }: BrowseSectionProps) {
-  const { products, addItem, getProductsInventory } = useCartStore();
+  const {
+    products,
+    addItem,
+    getProductsInventory,
+    selectedProduct,
+    setSelectedProduct,
+  } = useCartStore();
   const { activeBotId } = useBotConfig();
-  const [selectedProductIndex, setSelectedProductIndex] = useState<
-    number | null
-  >(null);
+
   const [isBookingConfigured, setIsBookingConfigured] = useState(
     propIsBookingConfigured !== undefined ? propIsBookingConfigured : false
   );
@@ -48,29 +52,16 @@ export default function BrowseSection({
     }
   }, [propIsBookingConfigured]);
 
-  const handleProductClick = (index: number) => {
-    setSelectedProductIndex(index);
+  const handleProductClick = (inputProduct: Product) => {
+    setSelectedProduct(inputProduct);
   };
   const handleBackToGrid = () => {
-    setSelectedProductIndex(null);
-  };
-  const handlePrevProduct = () => {
-    if (selectedProductIndex !== null && selectedProductIndex > 0) {
-      setSelectedProductIndex(selectedProductIndex - 1);
-    }
-  };
-  const handleNextProduct = () => {
-    if (
-      selectedProductIndex !== null &&
-      selectedProductIndex < products.length - 1
-    ) {
-      setSelectedProductIndex(selectedProductIndex + 1);
-    }
+    setSelectedProduct(null);
   };
   const handleAddToCart = (quantity: number) => {
-    if (selectedProductIndex !== null) {
+    if (selectedProduct !== null) {
       for (let i = 0; i < quantity; i++) {
-        addItem(products[selectedProductIndex]);
+        addItem(selectedProduct);
       }
     }
   };
@@ -84,15 +75,10 @@ export default function BrowseSection({
       }}
     >
       {/* Product Details Page (not modal) */}
-      {selectedProductIndex !== null ? (
+      {selectedProduct !== null ? (
         <ProductDetailPage
           theme={theme}
-          product={products[selectedProductIndex]}
-          selectedProductIndex={selectedProductIndex}
-          totalProducts={products.length}
           onBack={handleBackToGrid}
-          onPrevProduct={handlePrevProduct}
-          onNextProduct={handleNextProduct}
           onAddToCart={handleAddToCart}
         />
       ) : (
@@ -117,7 +103,7 @@ export default function BrowseSection({
                 Browse
               </h2>
               <div className="grid grid-cols-2 gap-6 ">
-                {products.map((product, index) => (
+                {products.map((singleProduct, index) => (
                   <div
                     key={index}
                     className="rounded-xl overflow-hidden cursor-pointer"
@@ -125,17 +111,17 @@ export default function BrowseSection({
                       backgroundColor: theme.isDark ? "#000000" : "#ffffff",
                       color: !theme.isDark ? "#000000" : "#ffffff",
                     }}
-                    onClick={() => handleProductClick(index)}
+                    onClick={() => handleProductClick(singleProduct)}
                   >
                     {/* Product Image */}
                     <div className="aspect-square relative overflow-hidden">
                       <img
                         src={
-                          product.images?.[0] ||
+                          singleProduct.images?.[0] ||
                           "https://media.istockphoto.com/id/1409329028/vector/no-picture-available-placeholder-thumbnail-icon-illustration-design.jpg?s=612x612&w=0&k=20&c=_zOuJu755g2eEUioiOUdz_mHKJQJn-tDgIAhQzyeKUQ="
                         }
-                        alt={product.name || "Product"}
-                        className="absolute inset-0 w-full h-full object-cover p-4 rounded-3xl"
+                        alt={singleProduct.title || "Product"}
+                        className="absolute inset-0 w-full h-full object-cover p-3 rounded-3xl"
                       />
                     </div>
                     {/* Product Info */}
@@ -145,22 +131,22 @@ export default function BrowseSection({
                           className="text-xs line-clamp-2"
                           style={{ color: theme.isDark ? "#fff" : "#000" }}
                         >
-                          {product.title}
+                          {singleProduct.title}
                         </div>
                         <div
                           className="text-sm font-semibold py-2"
                           style={{ color: theme.isDark ? "#fff" : "#000" }}
                         >
-                          ${product.price}
+                          ${singleProduct.price}
                         </div>
                       </div>
                       <button
-                        className="w-6 h-6 rounded-full flex items-center justify-center"
+                        className="w-5 h-5 rounded-full flex items-center justify-center"
                         style={{ backgroundColor: theme.highlightColor }}
-                        // onClick={(e) => {
-                        //   e.stopPropagation();
-                        //   handleProductClick(index);
-                        // }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleProductClick(singleProduct);
+                        }}
                       >
                         <Plus className="w-4 h-4 text-black" />
                       </button>
@@ -173,7 +159,7 @@ export default function BrowseSection({
         </>
       )}
       {/* Always show TryFreeBanner */}
-      <TryFreeBanner />
+      {/* <TryFreeBanner /> */}
     </div>
   );
 }

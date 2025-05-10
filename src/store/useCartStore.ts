@@ -1,24 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { getMainProducts } from "../lib/serverActions";
-
-interface Product {
-  images: string[];
-  agentId: string;
-  category: string;
-  ctaButton: string;
-  description: string;
-  fileFormat: string[];
-  isPaused: boolean;
-  name: string;
-  price: number | null;
-  quantity: number;
-  quantityType: string;
-  quantityUnlimited: boolean;
-  slots: any[];
-  type: string;
-  _id: string;
-}
+import { Product } from "../types";
 
 interface CartItem extends Product {
   quantity: number;
@@ -35,6 +18,9 @@ interface CartStore {
   getTotalPrice: () => number;
   getProductsInventory: (inputAgentId: string) => Promise<void>;
   isProductsLoading: boolean;
+  selectedProduct: Product | null;
+  setSelectedProduct: (product: Product | null) => void;
+  removeSelectedProduct: () => void;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -42,7 +28,14 @@ export const useCartStore = create<CartStore>()(
     (set, get) => ({
       items: [],
       products: [],
+      selectedProduct: null,
       isProductsLoading: false,
+      setSelectedProduct: (product: Product) => {
+        set({ selectedProduct: product });
+      },
+      removeSelectedProduct: () => {
+        set({ selectedProduct: null });
+      },
       addItem: (product) => {
         set((state) => {
           const existingItem = state.items.find(
