@@ -9,12 +9,20 @@ import {
   Menu,
   Calendar,
   ExternalLink,
+  RefreshCcw,
+  X,
+  Loader2,
+  Clock,
+  ArrowDown,
 } from "lucide-react";
 import { useUserStore } from "../../store/useUserStore";
 import { BotConfig, Theme } from "../../types";
-import { getUserBookingHistory } from "../../lib/serverActions"; 
+import { 
+  getUserBookingHistory,
+  cancelUserBooking 
+} from "../../lib/serverActions"; 
+import RescheduleFlowComponent from "./RescheduleFlowComponent";
 
-// Add Google API type declaration
 declare global {
   interface Window {
     google: {
@@ -55,6 +63,18 @@ interface Booking {
   notes?: string;
   canJoin: boolean;
   userTimezone: string;
+  rescheduledFrom?: {
+    date: string;
+    startTime: string;
+    endTime: string;
+  };
+  rescheduledTo?: string; 
+  isRescheduled?: boolean;
+  rescheduledToData?: { 
+    date: string;
+    startTime: string;
+    endTime: string;
+  };
 }
 
 function HeaderSection({
@@ -78,6 +98,15 @@ function HeaderSection({
     handleGoogleLoginError: userGoogleLoginError,
     logout: userLogout,
   } = useUserStore();
+  
+  // Booking management state
+  const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
+  const [bookingActionError, setBookingActionError] = useState<string | null>(null);
+  const [bookingActionSuccess, setBookingActionSuccess] = useState<string | null>(null);
+  
+  // Reschedule modal state
+  const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false);
+  const [selectedBookingForReschedule, setSelectedBookingForReschedule] = useState<Booking | null>(null);
 
   useEffect(() => {
     // Load Google Identity Services script
@@ -116,7 +145,19 @@ function HeaderSection({
       }
       
       const bookingsData = await getUserBookingHistory(userEmail, agentId);
-      setBookings(bookingsData || []);
+      // Process bookings to identify rescheduled ones
+      const processedBookings = (bookingsData || []).map((booking: Booking) => {
+        // Check if the booking has rescheduling data
+        if (booking.status === 'cancelled' && booking.isRescheduled) {
+          return {
+            ...booking,
+            statusLabel: 'rescheduled'
+          };
+        }
+        return booking;
+      });
+      
+      setBookings(processedBookings);
     } catch (error) {
       console.error("Error fetching user bookings:", error);
       setBookings([]);
@@ -152,23 +193,6 @@ function HeaderSection({
       });
     } catch (error) {
       return date;
-    }
-  };
-
-  const formatOrderDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      }) + ' ' + date.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
-      });
-    } catch (error) {
-      return dateString;
     }
   };
 
@@ -229,6 +253,75 @@ function HeaderSection({
     }
   };
 
+  // Handle reschedule click
+  const handleRescheduleClick = (booking: Booking) => {
+    setSelectedBookingForReschedule(booking);
+    setRescheduleModalOpen(true);
+  };
+
+  // Handle reschedule success
+  const handleRescheduleSuccess = () => {
+    setRescheduleModalOpen(false);
+    setSelectedBookingForReschedule(null);
+    setBookingActionSuccess("Appointment rescheduled successfully!");
+    fetchUserBookings(); // Refresh bookings
+  };
+
+  // Handle cancel booking
+  const handleCancelBooking = async (booking: Booking) => {
+    // Validate if booking can be cancelled
+    if (booking.statusLabel !== "upcoming") {
+      setBookingActionError("Only upcoming bookings can be cancelled");
+      return;
+    }
+
+    // Check if booking is too close to start time (e.g., within 24 hours)
+    const bookingDate = new Date(booking.date);
+    const startTime = booking.startTime.split(':');
+    bookingDate.setHours(parseInt(startTime[0]), parseInt(startTime[1]));
+    
+    const hoursUntilBooking = (bookingDate.getTime() - Date.now()) / (1000 * 60 * 60);
+    
+    if (hoursUntilBooking < 24) {
+      if (!confirm("This booking is within 24 hours. Are you sure you want to cancel? You may not be eligible for a refund.")) {
+        return;
+      }
+    } else {
+      if (!confirm("Are you sure you want to cancel this booking?")) {
+        return;
+      }
+    }
+
+    setCancellingBookingId(booking._id);
+    setBookingActionError(null);
+    setBookingActionSuccess(null);
+
+    try {
+      await cancelUserBooking(booking._id, userEmail);
+      setBookingActionSuccess("Booking cancelled successfully");
+      
+      // Refresh bookings
+      await fetchUserBookings();
+    } catch (error) {
+      console.error("Error cancelling booking:", error);
+      setBookingActionError("Failed to cancel booking. Please try again.");
+    } finally {
+      setCancellingBookingId(null);
+    }
+  };
+
+  // Clear messages after timeout
+  useEffect(() => {
+    if (bookingActionSuccess || bookingActionError) {
+      const timer = setTimeout(() => {
+        setBookingActionSuccess(null);
+        setBookingActionError(null);
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [bookingActionSuccess, bookingActionError]);
+
   const UserDropdownMenu = () => (
     <div
       className="absolute right-0 top-full mt-2 w-64 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-20"
@@ -257,7 +350,7 @@ function HeaderSection({
             {userEmail || "email@email.com"}
           </div>
         </div>
-      </div>{" "}
+      </div>
       <div
         style={{ backgroundColor: theme.highlightColor, height: 1 }}
         className="mx-4"
@@ -273,6 +366,166 @@ function HeaderSection({
     </div>
   );
 
+  const BookingCard = ({ booking }: { booking: Booking }) => {
+    const getStatusColor = (status: string) => {
+      switch (status) {
+        case "upcoming":
+          return "#4CAF50";
+        case "cancelled":
+          return "#F44336";
+        case "rescheduled":
+          return "#FF9800";
+        default:
+          return "#9E9E9E";
+      }
+    };
+
+    const statusColor = getStatusColor(booking.statusLabel);
+
+    return (
+      <div
+        className="rounded-lg px-4 py-3 flex flex-col"
+        style={{ 
+          backgroundColor: theme.isDark ? "#232323" : "#f3f3f3",
+          border: `1px solid ${theme.isDark ? "#333" : "#e0e0e0"}`,
+          borderLeft: `3px solid ${statusColor}`
+        }}
+      >
+        {/* Header: Session Type and Status */}
+        <div className="flex justify-between items-start mb-2">
+          <div className="flex flex-col">
+            <div className="text-sm font-semibold" style={{ color: theme.highlightColor }}>
+              {booking.sessionType}
+            </div>
+          </div>
+          <div
+            className="text-xs rounded-full px-2 py-0.5"
+            style={{ 
+              backgroundColor: `${statusColor}20`,
+              color: statusColor
+            }}
+          >
+            {booking.statusLabel.toUpperCase()}
+          </div>
+        </div>
+        
+        {/* Date and Time Information */}
+        {booking.statusLabel === "rescheduled" && booking.rescheduledFrom ? (
+          <div className="space-y-1 mb-2">
+            {/* Old date and time (strikethrough) */}
+            <div className="flex items-center text-xs opacity-60 line-through">
+              <Calendar className="h-3 w-3 mr-1" />
+              <span>
+                {formatBookingDate(booking.rescheduledFrom.date)}
+              </span>
+              <Clock className="h-3 w-3 ml-2 mr-1" />
+              <span>
+                {formatBookingTime(booking.rescheduledFrom.date, booking.rescheduledFrom.startTime, booking.userTimezone)} - {" "}
+                {formatBookingTime(booking.rescheduledFrom.date, booking.rescheduledFrom.endTime, booking.userTimezone)}
+              </span>
+            </div>
+            
+            {/* Arrow */}
+            <div className="flex items-center justify-start ml-4">
+              <ArrowDown className="h-3 w-3" style={{ color: theme.highlightColor }} />
+            </div>
+            
+            {/* New date and time */}
+            <div className="flex items-center text-xs" style={{ color: theme.highlightColor }}>
+              <Calendar className="h-3 w-3 mr-1" />
+              <span className="font-medium">
+                {booking.rescheduledToData ? formatBookingDate(booking.rescheduledToData.date) : "Date not available"}
+              </span>
+              <Clock className="h-3 w-3 ml-2 mr-1" />
+              <span className="font-medium">
+                {booking.rescheduledToData ? (
+                  <>
+                    {formatBookingTime(booking.rescheduledToData.date, booking.rescheduledToData.startTime, booking.userTimezone)} - {" "}
+                    {formatBookingTime(booking.rescheduledToData.date, booking.rescheduledToData.endTime, booking.userTimezone)}
+                  </>
+                ) : (
+                  "Time not available"
+                )}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Regular date and time */}
+            <div className="text-xs mb-1" style={{ color: theme.isDark ? "#e0e0e0" : "#333" }}>
+              {formatBookingDate(booking.date)}
+            </div>
+            <div className="flex items-center text-xs mb-2" style={{ color: theme.isDark ? "#e0e0e0" : "#333" }}>
+              <Clock className="h-3 w-3 mr-1" />
+              {formatBookingTime(booking.date, booking.startTime, booking.userTimezone)} - {" "}
+              {formatBookingTime(booking.date, booking.endTime, booking.userTimezone)}
+            </div>
+          </>
+        )}
+        
+        {/* Location */}
+        <div className="text-xs text-gray-400">
+          {booking.location === "google_meet" 
+            ? "Google Meet" 
+            : booking.location === "zoom" 
+              ? "Zoom" 
+              : booking.location === "teams" 
+                ? "Microsoft Teams" 
+                : "In Person"}
+        </div>
+
+        {/* Action buttons for upcoming bookings */}
+        {booking.statusLabel === "upcoming" && (
+          <div className="flex gap-2 mt-3">
+            {booking.canJoin && booking.meetingLink && (
+              <a 
+                href={booking.meetingLink} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex-1 text-center px-2 py-1 rounded text-xs font-medium"
+                style={{
+                  backgroundColor: theme.highlightColor,
+                  color: theme.isDark ? "black" : "white",
+                }}
+              >
+                Join
+              </a>
+            )}
+            
+            <button
+              onClick={() => handleRescheduleClick(booking)}
+              className="flex-1 flex items-center justify-center px-2 py-1 rounded text-xs font-medium"
+              style={{
+                backgroundColor: theme.mainLightColor,
+                color: "white"
+              }}
+            >
+              <RefreshCcw className="h-3 w-3 mr-1" />
+              Reschedule
+            </button>
+            
+            <button
+              onClick={() => handleCancelBooking(booking)}
+              disabled={cancellingBookingId === booking._id}
+              className="flex-1 px-2 py-1 rounded text-xs font-medium"
+              style={{
+                backgroundColor: "#ef4444",
+                color: "white",
+                opacity: cancellingBookingId === booking._id ? 0.7 : 1
+              }}
+            >
+              {cancellingBookingId === booking._id ? (
+                <Loader2 className="h-3 w-3 animate-spin mx-auto" />
+              ) : (
+                "Cancel"
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const HistoryModal = () => (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black bg-opacity-40">
       <div
@@ -283,6 +536,7 @@ function HeaderSection({
           border: `1px solid ${theme.highlightColor}`,
         }}
       >
+        {/* Modal header */}
         <div className="p-4 pb-0 flex justify-between items-center">
           <div
             className="font-semibold text-md"
@@ -292,7 +546,11 @@ function HeaderSection({
           </div>
           <button
             style={{ color: theme.highlightColor }}
-            onClick={() => setShowHistoryModal(false)}
+            onClick={() => {
+              setShowHistoryModal(false);
+              setBookingActionError(null);
+              setBookingActionSuccess(null);
+            }}
           >
             <span className="text-xl">&times;</span>
           </button>
@@ -335,8 +593,24 @@ function HeaderSection({
           className="mx-4 mt-2"
         />
         
+        {/* Messages */}
+        {(bookingActionSuccess || bookingActionError) && (
+          <div className="px-4 pt-2">
+            {bookingActionSuccess && (
+              <div className="p-2 bg-green-100 text-green-700 rounded text-sm mb-2">
+                {bookingActionSuccess}
+              </div>
+            )}
+            {bookingActionError && (
+              <div className="p-2 bg-red-100 text-red-700 rounded text-sm mb-2">
+                {bookingActionError}
+              </div>
+            )}
+          </div>
+        )}
+        
         {/* Content */}
-        <div className="p-4 space-y-3 overflow-y-auto">
+        <div className="p-4 space-y-3 overflow-y-auto" style={{ maxHeight: "400px" }}>
           {activeHistoryTab === "orders" ? (
             [1, 2, 3, 4].map((i) => (
               <div
@@ -377,82 +651,7 @@ function HeaderSection({
               </div>
             ) : bookings.length > 0 ? (
               bookings.map((booking) => (
-                <div
-                  key={booking._id}
-                  className="rounded-lg px-4 py-3 flex flex-col"
-                  style={{ 
-                    backgroundColor: theme.isDark ? "#232323" : "#f3f3f3",
-                    border: `1px solid ${theme.isDark ? "#333" : "#e0e0e0"}`,
-                    borderLeft: `3px solid ${
-                      booking.statusLabel === "upcoming" 
-                        ? "#4CAF50" 
-                        : booking.statusLabel === "cancelled" 
-                          ? "#F44336" 
-                          : "#9E9E9E"
-                    }`
-                  }}
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex flex-col">
-                      <div className="text-sm font-semibold" style={{ color: theme.highlightColor }}>
-                        {booking.sessionType}
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        {formatBookingDate(booking.date)}
-                      </div>
-                    </div>
-                    <div
-                      className="text-xs rounded-full px-2 py-0.5"
-                      style={{ 
-                        backgroundColor: 
-                          booking.statusLabel === "upcoming" 
-                            ? "rgba(76, 175, 80, 0.2)" 
-                            : booking.statusLabel === "cancelled" 
-                              ? "rgba(244, 67, 54, 0.2)" 
-                              : "rgba(158, 158, 158, 0.2)",
-                        color: 
-                          booking.statusLabel === "upcoming" 
-                            ? "#4CAF50" 
-                            : booking.statusLabel === "cancelled" 
-                              ? "#F44336" 
-                              : "#9E9E9E"
-                      }}
-                    >
-                      {booking.statusLabel.toUpperCase()}
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <div className="text-xs" style={{ color: theme.isDark ? "#e0e0e0" : "#333" }}>
-                      {formatBookingTime(booking.date, booking.startTime, booking.userTimezone)} - {" "}
-                      {formatBookingTime(booking.date, booking.endTime, booking.userTimezone)}
-                      <div className="text-xs text-gray-400">
-                        {booking.location === "google_meet" 
-                          ? "Google Meet" 
-                          : booking.location === "zoom" 
-                            ? "Zoom" 
-                            : booking.location === "teams" 
-                              ? "Microsoft Teams" 
-                              : "In Person"}
-                      </div>
-                    </div>
-                    
-                    {booking.canJoin && booking.meetingLink && (
-                      <a 
-                        href={booking.meetingLink} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex items-center px-2 py-1 rounded text-xs font-medium"
-                        style={{
-                          backgroundColor: theme.highlightColor,
-                          color: theme.isDark ? "black" : "white",
-                        }}
-                      >
-                        Join <ExternalLink className="h-3 w-3 ml-1" />
-                      </a>
-                    )}
-                  </div>
-                </div>
+                <BookingCard key={booking._id} booking={booking} />
               ))
             ) : (
               <div className="text-center py-8 text-gray-400">
@@ -535,6 +734,7 @@ function HeaderSection({
           </div>
         )}
       </div>
+      
       {/* Ad Strip */}
       {currentConfig.isPromoBannerEnabled && (
         <div
@@ -616,6 +816,47 @@ function HeaderSection({
           BROWSE
         </button>
       </div>
+
+      {/* Reschedule Modal */}
+      {rescheduleModalOpen && selectedBookingForReschedule && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-50">
+          <div 
+            className="rounded-xl w-96 max-w-full p-0 relative max-h-[80vh] overflow-y-auto"
+            style={{
+              backgroundColor: theme.isDark ? "black" : "white",
+              border: `1px solid ${theme.highlightColor}`,
+            }}
+          >
+            <div className="sticky top-0 p-4 border-b flex justify-between items-center"
+                 style={{ 
+                   backgroundColor: theme.isDark ? "black" : "white",
+                   borderColor: theme.highlightColor 
+                 }}>
+              <h2 className="font-semibold">Reschedule Appointment</h2>
+              <button
+                onClick={() => {
+                  setRescheduleModalOpen(false);
+                  setSelectedBookingForReschedule(null);
+                }}
+                style={{ color: theme.highlightColor }}
+              >
+                                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <RescheduleFlowComponent
+              bookingId={selectedBookingForReschedule._id}
+              userId={userEmail}
+              theme={theme}
+              onClose={() => {
+                setRescheduleModalOpen(false);
+                setSelectedBookingForReschedule(null);
+              }}
+              onSuccess={handleRescheduleSuccess}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

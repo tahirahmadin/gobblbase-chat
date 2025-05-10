@@ -1707,6 +1707,33 @@ export async function cancelUserBooking(bookingId: string, userId: string) {
   }
 }
 
+export async function sendRescheduleRequestEmail(payload: {
+  bookingId: string;
+  email: string;
+  rescheduleLink: string;
+  agentName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  userTimezone: string;
+}): Promise<any> {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/appointment/send-reschedule-email",
+      payload
+    );
+    
+    if (response.data.error) {
+      throw new Error(response.data.result || "Failed to send reschedule email");
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error("Error sending reschedule email:", error);
+    throw error;
+  }
+}
+
 // Delete main product by productId and agentId
 export async function deleteMainProduct(productId: string, agentId: string) {
   try {
