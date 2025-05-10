@@ -33,6 +33,7 @@ import CreateNewBot from "./pages/admin/CreateNewBot";
 import Plans from "./pages/admin/Plans";
 import Billing from "./pages/admin/Billing";
 import Usage from "./pages/admin/Usage";
+import RescheduleBookingWrapper from "./components/chatbotComponents/RescheduleBookingWrapper";
 
 // Add type definition for window
 declare global {
@@ -47,12 +48,6 @@ function Dashboard() {
   const { isAdminLoggedIn, totalAgents, adminId, adminEmail, agents } =
     useAdminStore();
 
-  console.log(totalAgents);
-  console.log(isAdminLoggedIn);
-  console.log(adminId);
-  console.log(adminEmail);
-  console.log(agents);
-
   // Handle redirect to signup when user has no agents
   useEffect(() => {
     if (!isAdminLoggedIn) {
@@ -61,39 +56,6 @@ function Dashboard() {
       }
     }
   }, [isAdminLoggedIn, navigate, location.pathname]);
-
-  // Check for redirect from public chat
-  // useEffect(() => {
-  //   // Check if we have a redirect parameter in localStorage
-  //   const redirectAgentId = localStorage.getItem("redirectToAgentBooking");
-  //   if (redirectAgentId) {
-  //     console.log("Redirecting to booking tab for agent:", redirectAgentId);
-
-  //     // Set the active bot ID
-  //     setActiveBotId(redirectAgentId);
-
-  //     // Set the active tab to booking
-  //     setActiveTab("booking");
-
-  //     // Clear the localStorage item
-  //     localStorage.removeItem("redirectToAgentBooking");
-  //   }
-  // }, [setActiveBotId]);
-
-  // Make setActiveTab function available to children through window
-  // useEffect(() => {
-  //   // Add the function to window so it can be called from within iframes
-  //   window.setActiveAdminTab = (tab) => {
-  //     if (tab === "booking") {
-  //       setActiveTab("booking");
-  //     }
-  //   };
-
-  //   // Clean up
-  //   return () => {
-  //     delete window.setActiveAdminTab;
-  //   };
-  // }, []);
 
   // If logged in and agent selected, show admin layout with content
   return (
@@ -165,6 +127,7 @@ function App() {
         <Route path="/admin/signup" element={<Login />} />
         <Route path="/admin/dashboard/create-bot" element={<CreateNewBot />} />
         <Route path="/book/:agentId" element={<CustomerBookingPage />} />
+        <Route path="/reschedule/:bookingId" element={<RescheduleBookingWrapper />} />
         <Route
           path="/:botUsername"
           element={<PublicChat previewConfig={null} />}

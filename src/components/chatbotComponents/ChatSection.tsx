@@ -3,10 +3,14 @@ import { ChatMessage, Theme } from "../../types";
 import StreamingText from "./otherComponents/StreamingText";
 import LoadingBubbles from "./otherComponents/LoadingBubbles";
 import BrowseSection from "./BrowseSection";
+import BookingManagementComponent from "./BookingManagementComponent";
 
 interface ChatSectionProps {
   theme: Theme;
-  messages: (ChatMessage & { type?: "booking" | "booking-intro" | "booking-loading" | "booking-calendar" })[];
+  messages: (ChatMessage & { 
+    type?: "booking" | "booking-intro" | "booking-loading" | "booking-calendar" | 
+           "booking-management-intro" | "booking-management" 
+  })[];
   isLoading: boolean;
   activeScreen: "about" | "chat" | "browse";
   messagesEndRef: React.RefObject<HTMLDivElement>;
@@ -61,7 +65,7 @@ export default function ChatSection({
   const renderMessage = (msg: ChatMessage & { type?: string }) => {
     if (msg.sender === "agent") {
       // Different message types for agent
-      if (msg.type === "booking-intro") {
+      if (msg.type === "booking-intro" || msg.type === "booking-management-intro") {
         return (
           <StreamingText
             text={msg.content}
@@ -75,13 +79,28 @@ export default function ChatSection({
           <LoadingBubbles textColor={theme.highlightColor} />
         );
       } else if (msg.type === "booking-calendar") {
+        // Simplified rendering without transformations that can cause issues
         return (
-          <BrowseSection
-            theme={theme}
-            currentConfig={currentConfig}
-            showOnlyBooking={true}
-            isBookingConfigured={isBookingConfigured}
-          />
+          <div className="w-full">
+            <BrowseSection
+              theme={theme}
+              currentConfig={currentConfig}
+              showOnlyBooking={true}
+              isBookingConfigured={isBookingConfigured}
+            />
+          </div>
+        );
+      } else if (msg.type === "booking-management") {
+        // Simplified rendering without transformations that can cause issues
+        return (
+          <div className="w-full">
+            <BookingManagementComponent
+              theme={theme}
+              agentId={currentConfig?.agentId || ''}
+              sessionName={currentConfig?.sessionName || 'Consultation'}
+              botName={currentConfig?.name || 'Assistant'}
+            />
+          </div>
         );
       } else {
         // Regular text message
@@ -95,15 +114,9 @@ export default function ChatSection({
         );
       }
     } else {
-      // User message
+      // User message - simplified for consistency
       return (
-        <div
-          style={{
-            color: !theme.isDark ? "black" : "white",
-            paddingLeft: 10,
-            paddingRight: 10,
-          }}
-        >
+        <div style={{ color: !theme.isDark ? "black" : "white" }}>
           {msg.content}
         </div>
       );
@@ -127,27 +140,45 @@ export default function ChatSection({
                 msg.sender === "agent" ? "justify-start" : "justify-end"
               }`}
             >
-              <div
-                className={`max-w-[80%] rounded-xl p-3 font-medium`}
-                style={{
-                  backgroundColor:
-                    msg.sender === "agent"
-                      ? theme.isDark
-                        ? "black"
-                        : "white"
-                      : theme.mainDarkColor,
-                  color: !theme.isDark ? "black" : "white",
-                }}
-              >
-                <div className="prose prose-sm max-w-none text-inherit">
+              {msg.sender === "agent" && (msg.type === "booking-calendar" || msg.type === "booking-management") ? (
+                // Special booking component with simple styling to prevent issues
+                <div
+                  className="rounded-xl overflow-hidden"
+                  style={{
+                    backgroundColor: theme.isDark ? "black" : "white",
+                    width: "95%",
+                    maxWidth: "95%",
+                    margin: "0 auto 0 0" // Left align
+                  }}
+                >
                   {renderMessage(msg)}
                 </div>
-              </div>
+              ) : (
+                // Regular message layout
+                <div
+                  className={`max-w-[80%] rounded-xl p-3 font-medium`}
+                  style={{
+                    backgroundColor:
+                      msg.sender === "agent"
+                        ? theme.isDark
+                          ? "black"
+                          : "white"
+                        : theme.mainDarkColor,
+                    color: msg.sender === "agent" 
+                      ? (!theme.isDark ? "black" : "white")
+                      : "black", // Ensure user messages have consistent text color
+                  }}
+                >
+                  <div className="prose prose-sm max-w-none text-inherit">
+                    {renderMessage(msg)}
+                  </div>
+                </div>
+              )}
             </div>
           ))}
 
           {isLoading && (
-            <div className="mb-4 flex justify-start px-2">
+            <div className="mb-4 flex justify-start">
               <div
                 className="rounded-2xl p-3"
                 style={{

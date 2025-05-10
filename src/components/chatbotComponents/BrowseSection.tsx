@@ -18,6 +18,7 @@ interface BrowseSectionProps {
   };
   showOnlyBooking?: boolean;
   isBookingConfigured?: boolean;
+  containerStyle?: React.CSSProperties;
 }
 
 export default function BrowseSection({
@@ -25,6 +26,7 @@ export default function BrowseSection({
   currentConfig,
   showOnlyBooking = false,
   isBookingConfigured: propIsBookingConfigured,
+  containerStyle,
 }: BrowseSectionProps) {
   const {
     products,
@@ -45,7 +47,8 @@ export default function BrowseSection({
     if (activeBotId) {
       getProductsInventory(activeBotId);
     }
-  }, [activeBotId]);
+  }, [activeBotId, getProductsInventory]);
+  
   useEffect(() => {
     if (propIsBookingConfigured !== undefined) {
       setIsBookingConfigured(propIsBookingConfigured);
@@ -55,9 +58,11 @@ export default function BrowseSection({
   const handleProductClick = (inputProduct: Product) => {
     setSelectedProduct(inputProduct);
   };
+  
   const handleBackToGrid = () => {
     setSelectedProduct(null);
   };
+  
   const handleAddToCart = (quantity: number) => {
     if (selectedProduct !== null) {
       for (let i = 0; i < quantity; i++) {
@@ -66,15 +71,20 @@ export default function BrowseSection({
     }
   };
 
+  // Special styles for when in chat or showOnlyBooking mode
+  const inChatMode = showOnlyBooking && isBookingConfigured;
+
   return (
     <div
-      className="flex flex-col px-4 overflow-y-auto h-full"
+      className={`flex flex-col overflow-y-auto ${inChatMode ? 'p-0 m-0' : 'px-4'}`}
       style={{
         backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
-        paddingBottom: "100px",
+        paddingBottom: inChatMode ? "0" : "100px",
+        margin: inChatMode ? "0" : undefined,
+        width: inChatMode ? "100%" : undefined,
+        ...containerStyle
       }}
     >
-      {/* Product Details Page (not modal) */}
       {selectedProduct !== null ? (
         <ProductDetailPage
           theme={theme}
@@ -83,17 +93,18 @@ export default function BrowseSection({
         />
       ) : (
         <>
-          {/* Book Meeting Section - Only show if booking is configured */}
           {isBookingConfigured && (
-            <BookingSection
-              theme={theme}
-              businessId={activeBotId || ""}
-              sessionName={sessionName}
-              isBookingConfigured={isBookingConfigured}
-              showOnlyBooking={showOnlyBooking}
-            />
+            <div className={inChatMode ? "p-0 m-0 w-full" : ""}>
+              <BookingSection
+                theme={theme}
+                businessId={currentConfig?.agentId || activeBotId || ""}
+                sessionName={sessionName}
+                isBookingConfigured={isBookingConfigured}
+                showOnlyBooking={showOnlyBooking}
+              />
+            </div>
           )}
-          {/* Browse Products Section - Always show when not in booking view */}
+          
           {(!showOnlyBooking || !isBookingConfigured) && (
             <div className="px-4 mt-6">
               <h2
@@ -102,7 +113,7 @@ export default function BrowseSection({
               >
                 Browse
               </h2>
-              <div className="grid grid-cols-2 gap-6 ">
+              <div className="grid grid-cols-2 gap-6">
                 {products.map((singleProduct, index) => (
                   <div
                     key={index}
@@ -113,7 +124,6 @@ export default function BrowseSection({
                     }}
                     onClick={() => handleProductClick(singleProduct)}
                   >
-                    {/* Product Image */}
                     <div className="aspect-square relative overflow-hidden">
                       <img
                         src={
@@ -124,7 +134,6 @@ export default function BrowseSection({
                         className="absolute inset-0 w-full h-full object-cover p-3 rounded-3xl"
                       />
                     </div>
-                    {/* Product Info */}
                     <div className="px-3 flex items-center justify-between">
                       <div>
                         <div
@@ -158,8 +167,6 @@ export default function BrowseSection({
           )}
         </>
       )}
-      {/* Always show TryFreeBanner */}
-      {/* <TryFreeBanner /> */}
     </div>
   );
 }

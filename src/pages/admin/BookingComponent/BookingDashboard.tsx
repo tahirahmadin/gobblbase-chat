@@ -248,7 +248,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
     setSendingEmailId(meeting._id);
     
     try {
-      const rescheduleLink = `${window.location.origin}/reschedule/${meeting._id}`;
+      const rescheduleLink = `${window.location.origin}/reschedule/${meeting._id}?userId=${encodeURIComponent(meeting.userId)}`;
       
       await sendRescheduleRequestEmail({
         bookingId: meeting._id,

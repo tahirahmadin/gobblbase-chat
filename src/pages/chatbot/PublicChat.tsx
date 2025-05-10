@@ -12,7 +12,10 @@ import AboutSection from "../../components/chatbotComponents/AboutSection";
 import BrowseSection from "../../components/chatbotComponents/BrowseSection";
 import { useChatLogs } from "../../hooks/useChatLogs";
 
-type ExtendedChatMessage = ChatMessage & { type?: "booking" | "booking-intro" | "booking-loading" | "booking-calendar" };
+type ExtendedChatMessage = ChatMessage & { 
+  type?: "booking" | "booking-intro" | "booking-loading" | "booking-calendar" | 
+         "booking-management-intro" | "booking-management" 
+};
 
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_PUBLIC_OPENAI_API_KEY,
@@ -33,6 +36,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 
 const usedBookingUnavailableIndices = new Set<number>();
 const usedBookingIntroIndices = new Set<number>();
+const usedManagementIntroIndices = new Set<number>();
 
 const bookingUnavailableMessages = [
   "I'm sorry, but booking appointments is not available at this time. Is there anything else I can help you with?",
@@ -40,6 +44,14 @@ const bookingUnavailableMessages = [
   "I wish I could help you book an appointment, but that feature isn't available right now. Would you like help with something else instead?",
   "Our scheduling system is currently offline. If you'd like to arrange an appointment, please contact us directly. Can I help with anything else in the meantime?",
   "We're still in the process of setting up our booking system. Until then, we're unable to process appointment requests through this chat. Is there another way I can assist you today?"
+];
+
+const bookingManagementIntroMessages = [
+  "I'll help you manage your upcoming appointments. Here are your confirmed bookings:",
+  "Sure! Let me show you your scheduled appointments that you can reschedule or cancel:",
+  "I understand you want to manage your bookings. Here are your upcoming appointments:",
+  "No problem! Here are your confirmed bookings that you can modify:",
+  "I can help you with that. Here are your scheduled appointments:",
 ];
 
 const getRandomUniqueMessage = (messages: string[], usedIndices: Set<number>): string => {
@@ -195,15 +207,63 @@ export default function PublicChat({
     }
   }, [botUsername, fetchBotData, previewConfig]);
 
-  const containsBookingKeywords = (text: string): boolean => {
-    const bookingKeywords = [
-      "book", "appointment", "meeting", "schedule", "call", 
-      "reserve", "booking", "appointments", "meetings", 
-      "calls", "scheduling", "reservation", "visit"
+  const containsBookingManagementKeywords = (text: string): boolean => {
+    const managementKeywords = [
+      "reschedule", "rescheduling", "reschedules", "rescheduled",
+      "cancel", "canceling", "cancels", "cancelled", "cancellation",
+      "change", "changing", "modify", "modifying", "update", "updating",
+      "manage", "managing", "view", "check", "see",
+      "change appointment", "change booking", "change meeting",
+      "change my appointment", "change my booking", "change my meeting",
+      "modify appointment", "modify booking", "modify meeting",
+      "modify my appointment", "modify my booking", "modify my meeting",
+      "cancel appointment", "cancel booking", "cancel meeting", 
+      "cancel my appointment", "cancel my booking", "cancel my meeting",
+      "manage booking", "manage appointment", "manage meeting",
+      "view bookings", "view appointments", "view meetings",
+      "my appointments", "my bookings", "my meetings",
+      "upcoming appointments", "upcoming bookings", "upcoming meetings",
+      "scheduled appointments", "scheduled bookings", "scheduled meetings",
+      "existing appointment", "existing booking", "existing meeting",
+      "current appointment", "current booking", "current meeting",
+      "time change", "date change", "change time", "change date",
+      "different time", "different date", "new time", "new date"
     ];
 
     const lowerText = text.toLowerCase();
-    return bookingKeywords.some((kw) => lowerText.includes(kw));
+    
+    if (lowerText.includes("reschedule") && 
+       (lowerText.includes("appointment") || lowerText.includes("booking") || lowerText.includes("meeting"))) {
+      return true;
+    }
+    
+    return managementKeywords.some((kw) => lowerText.includes(kw));
+  };
+
+  const containsNewBookingKeywords = (text: string): boolean => {
+    if (containsBookingManagementKeywords(text)) {
+      return false;
+    }
+    
+    const newBookingKeywords = [
+      "book new", "book a", "book an", "make appointment", "make a booking",
+      "schedule new", "schedule a", "schedule an", "create appointment",
+      "create booking", "set up appointment", "set up meeting",
+      "arrange appointment", "arrange meeting", "arrange call",
+      "reserve slot", "reserve time", "book slot", "book time",
+      "i want to book", "i'd like to book", "can i book",
+      "i need to book", "i want to schedule", "i'd like to schedule",
+      "can i schedule", "i need to schedule", "i want an appointment",
+      "i need an appointment", "available slots", "available times",
+      "availability", "when can i", "when are you available",
+      "book appointment", "book meeting", "book call",
+      "schedule appointment", "schedule meeting", "schedule call",
+      "make an appointment", "make a meeting",
+      "reservation", "make reservation", "create reservation"
+    ];
+
+    const lowerText = text.toLowerCase();
+    return newBookingKeywords.some((kw) => lowerText.includes(kw));
   };
 
   const handleSendMessage = async (
@@ -211,7 +271,7 @@ export default function PublicChat({
   ) => {
     let msgToSend = typeof inputMessage === "string" ? inputMessage : message;
 
-    if (!msgToSend.trim() || !config?.agentId) return;
+    if (!msgToSend.trim() || !currentConfig?.agentId) return;
 
     const userMsg: ExtendedChatMessage = {
       id: Date.now().toString(),
@@ -224,11 +284,51 @@ export default function PublicChat({
     setShowCues(false);
     scrollToBottom();
 
-    const isBookingRequest = containsBookingKeywords(msgToSend);
+    if (containsBookingManagementKeywords(msgToSend)) {
+      const introMessage = getRandomUniqueMessage(bookingManagementIntroMessages, usedManagementIntroIndices);
+      
+      const managementIntroMsg: ExtendedChatMessage = {
+        id: (Date.now() + 1).toString(),
+        content: introMessage,
+        timestamp: new Date(),
+        sender: "agent",
+        type: "booking-management-intro",
+      };
+      
+      setMessages((m) => [...m, managementIntroMsg]);
+      scrollToBottom();
+      
+      setTimeout(() => {
+        const loadingMsg: ExtendedChatMessage = {
+          id: (Date.now() + 2).toString(),
+          content: "",
+          timestamp: new Date(),
+          sender: "agent",
+          type: "booking-loading",
+        };
+        setMessages((m) => [...m, loadingMsg]);
+        scrollToBottom();
+        
+        setTimeout(() => {
+          setMessages((m) => m.filter(msg => msg.type !== "booking-loading"));
+          
+          const managementMsg: ExtendedChatMessage = {
+            id: (Date.now() + 3).toString(),
+            content: "",
+            timestamp: new Date(),
+            sender: "agent",
+            type: "booking-management",
+          };
+          setMessages((m) => [...m, managementMsg]);
+          scrollToBottom();
+        }, 1000);
+      }, 1500);
+      
+      return;
+    }
 
-    if (isBookingRequest) {
+    if (containsNewBookingKeywords(msgToSend)) {
       if (isBookingConfigured) {
-        // First add the intro message
         const introMessage = getRandomUniqueMessage(getBookingIntroMessages(), usedBookingIntroIndices);
         const bookingIntroMsg: ExtendedChatMessage = {
           id: (Date.now() + 1).toString(),
@@ -238,10 +338,9 @@ export default function PublicChat({
           type: "booking-intro",
         };
         setMessages((m) => [...m, bookingIntroMsg]);
+        scrollToBottom();
         
-        // Wait for intro message to be read
         setTimeout(() => {
-          // Then add the loading indicator
           const loadingMsg: ExtendedChatMessage = {
             id: (Date.now() + 2).toString(),
             content: "",
@@ -252,12 +351,9 @@ export default function PublicChat({
           setMessages((m) => [...m, loadingMsg]);
           scrollToBottom();
           
-          // After loading is shown, display the calendar
           setTimeout(() => {
-            // Remove the loading message
             setMessages((m) => m.filter(msg => msg.type !== "booking-loading"));
             
-            // Add the calendar
             const bookingCalendarMsg: ExtendedChatMessage = {
               id: (Date.now() + 3).toString(),
               content: "",
@@ -267,8 +363,8 @@ export default function PublicChat({
             };
             setMessages((m) => [...m, bookingCalendarMsg]);
             scrollToBottom();
-          }, 2000); // Show loading for 2 seconds
-        }, 1500); // Wait 1.5 seconds after the intro message
+          }, 1000);
+        }, 1500);
         
         return;
       } else {
@@ -285,100 +381,95 @@ export default function PublicChat({
     }
 
     setIsLoading(true);
-  try {
-    let enhancedQuery = msgToSend;
-    
-    if (messages.length > 0) {
-      const recentMessages = messages.slice(-3);
+    try {
+      let enhancedQuery = msgToSend;
       
-      if (recentMessages.length > 0) {
-        const conversationContext = recentMessages.map(msg => 
-          `${msg.sender === "agent" ? "Assistant" : "User"}: ${msg.content}`
-        ).join("\n\n");
+      if (messages.length > 0) {
+        const recentMessages = messages.slice(-3);
         
-        enhancedQuery = `${conversationContext}\n\nUser: ${msgToSend}\n\nAssistant should respond to the user's latest message with the previous context in mind.`;
-        
-        console.log("Enhanced query with extended conversation context");
+        if (recentMessages.length > 0) {
+          const conversationContext = recentMessages.map(msg => 
+            `${msg.sender === "agent" ? "Assistant" : "User"}: ${msg.content}`
+          ).join("\n\n");
+          
+          enhancedQuery = `${conversationContext}\n\nUser: ${msgToSend}\n\nAssistant should respond to the user's latest message with the previous context in mind.`;
+        }
       }
-    }
-    
-    const queryContext = await queryDocument(
-      config.agentId, 
-      enhancedQuery 
-    );
+      
+      const queryContext = await queryDocument(
+        currentConfig.agentId, 
+        enhancedQuery 
+      );
 
-    // System prompt stays the same
-    let voiceTone = currentConfig?.personalityType?.value?.toString() || "friendly";
-    let systemPrompt = `You are a conversational AI assistant creating engaging, personalized responses. When context is available: ${JSON.stringify(queryContext)}, use it for relevant answers. For conversational queries or insufficient context, build rapport.
+      let voiceTone = currentConfig?.personalityType?.value?.toString() || "friendly";
+      let systemPrompt = `You are a conversational AI assistant creating engaging, personalized responses. When context is available: ${JSON.stringify(queryContext)}, use it for relevant answers. For conversational queries or insufficient context, build rapport.
 
-    Core Rules:
-    - Keep responses concise yet engaging (1-2 sentences)
-    - Personalize using details from user queries
-    - Maintain a ${voiceTone} tone that connects
-    - Ask thoughtful follow-up questions when appropriate
-    - Use natural, warm language
+      Core Rules:
+      - Keep responses concise yet engaging (1-2 sentences)
+      - Personalize using details from user queries
+      - Maintain a ${voiceTone} tone that connects
+      - Ask thoughtful follow-up questions when appropriate
+      - Use natural, warm language
 
-    Formatting:
-    - **Bold** for key points
-    - *Italic* for subtle emphasis
-    - Bullet points (-) for lists
-    - \`code\` for technical snippets
-    - > for important quotes
-    - [text](url) for resources
+      Formatting:
+      - **Bold** for key points
+      - *Italic* for subtle emphasis
+      - Bullet points (-) for lists
+      - \`code\` for technical snippets
+      - > for important quotes
+      - [text](url) for resources
 
-    Engagement:
-    - Acknowledge user emotions and perspectives
-    - Use relevant examples and analogies
-    - Offer actionable insights when possible
-    - Create collaborative problem-solving
-    - Show enthusiasm for user interests
-    - End with helpful suggestions or questions
+      Engagement:
+      - Acknowledge user emotions and perspectives
+      - Use relevant examples and analogies
+      - Offer actionable insights when possible
+      - Create collaborative problem-solving
+      - Show enthusiasm for user interests
+      - End with helpful suggestions or questions
 
-    Boundaries:
-    - Focus on user inquiries and training data
-    - Ask clarifying questions when needed
-    - Never mention access to training data
-    - Stay within knowledge scope
-    - Redirect off-topic conversations politely
-    - End on a positive, forward-moving note`;
+      Boundaries:
+      - Focus on user inquiries and training data
+      - Ask clarifying questions when needed
+      - Never mention access to training data
+      - Stay within knowledge scope
+      - Redirect off-topic conversations politely
+      - End on a positive, forward-moving note`;
 
-    let basePrompt = systemPrompt;
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: enhancedQuery }, 
+        ],
+        temperature: 0.6,
+      });
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: basePrompt },
-        { role: "user", content: enhancedQuery }, 
-      ],
-      temperature: 0.6,
-    });
-
-    const agentMsg: ExtendedChatMessage = {
-      id: (Date.now() + 2).toString(),
-      content:
-        completion.choices[0].message.content ||
-        "Sorry, I couldn't generate a response.",
-      timestamp: new Date(),
-      sender: "agent",
-    };
-    setMessages((m) => [...m, agentMsg]);
-
-    await addMessages(msgToSend, agentMsg.content);
-  } catch (err) {
-    console.error("Error generating response:", err);
-    setMessages((m) => [
-      ...m,
-      {
-        id: (Date.now() + 3).toString(),
-        content: "Sorry, there was an error. Please try again.",
+      const agentMsg: ExtendedChatMessage = {
+        id: (Date.now() + 2).toString(),
+        content:
+          completion.choices[0].message.content ||
+          "Sorry, I couldn't generate a response.",
         timestamp: new Date(),
         sender: "agent",
-      },
-    ]);
-  } finally {
-    setIsLoading(false);
-  }
-};
+      };
+      setMessages((m) => [...m, agentMsg]);
+
+      await addMessages(msgToSend, agentMsg.content);
+    } catch (err) {
+      console.error("Error generating response:", err);
+      setMessages((m) => [
+        ...m,
+        {
+          id: (Date.now() + 3).toString(),
+          content: "Sorry, there was an error. Please try again.",
+          timestamp: new Date(),
+          sender: "agent",
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -435,8 +526,8 @@ export default function PublicChat({
                 activeScreen={activeScreen}
                 messagesEndRef={messagesEndRef}
                 currentConfig={{
-                  agentId: config?.agentId,
-                  name: config?.name,
+                  agentId: currentConfig?.agentId,
+                  name: currentConfig?.name,
                   sessionName: pricingInfo.sessionName,
                   sessionPrice: pricingInfo.sessionPrice,
                   isFreeSession: pricingInfo.isFreeSession,
@@ -493,8 +584,8 @@ export default function PublicChat({
             <BrowseSection
               theme={theme}
               currentConfig={{
-                agentId: config?.agentId,
-                name: config?.name,
+                agentId: currentConfig?.agentId,
+                name: currentConfig?.name,
                 sessionName: pricingInfo.sessionName,
                 sessionPrice: pricingInfo.sessionPrice,
                 isFreeSession: pricingInfo.isFreeSession,
