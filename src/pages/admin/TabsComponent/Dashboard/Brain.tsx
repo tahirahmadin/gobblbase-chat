@@ -154,7 +154,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         setTotalDocumentsSize(totalSize);
         
         const filteredDocs = allDocs.filter(
-          (doc) => doc.title !== "Kifor.ai Platform Guide"
+          (doc) => doc.title !== "Kifor.ai Platform Guide" && doc.title !== "Brand Insights"
         );
     
         const docs = filteredDocs.map((doc) => ({

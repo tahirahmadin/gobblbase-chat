@@ -94,7 +94,6 @@ export default function ChatSection({
       } else if (msg.type === "booking-loading") {
         return <LoadingBubbles textColor={theme.highlightColor} />;
       } else if (msg.type === "booking-calendar") {
-        // Simplified rendering without transformations that can cause issues
         return (
           <div className="w-full">
             <BrowseSection
@@ -106,7 +105,6 @@ export default function ChatSection({
           </div>
         );
       } else if (msg.type === "booking-management") {
-        // Simplified rendering without transformations that can cause issues
         return (
           <div className="w-full">
             <BookingManagementComponent
@@ -197,7 +195,7 @@ export default function ChatSection({
             </div>
           ))}
 
-          {isLoading && (
+          {/* {isLoading && (
             <div className="mb-4 flex justify-start">
               <div
                 className="rounded-2xl p-3"
@@ -208,7 +206,7 @@ export default function ChatSection({
                 <LoadingBubbles textColor={theme.highlightColor} />
               </div>
             </div>
-          )}
+          )} */}
         </>
       )}
 

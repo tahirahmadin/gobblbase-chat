@@ -435,41 +435,58 @@ export default function PublicChat({
       - Redirect off-topic conversations politely
       - End on a positive, forward-moving note`;
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: enhancedQuery }, 
-        ],
-        temperature: 0.6,
-      });
+      const streamingMsgId = (Date.now() + 2).toString();
+    const streamingMsg: ExtendedChatMessage = {
+      id: streamingMsgId,
+      content: "",
+      timestamp: new Date(),
+      sender: "agent",
+    };
+    setMessages((m) => [...m, streamingMsg]);
 
-      const agentMsg: ExtendedChatMessage = {
-        id: (Date.now() + 2).toString(),
-        content:
-          completion.choices[0].message.content ||
-          "Sorry, I couldn't generate a response.",
+    const stream = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: enhancedQuery }, 
+      ],
+      temperature: 0.6,
+      stream: true,
+    });
+
+    let fullResponse = "";
+    
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || "";
+      fullResponse += content;
+      
+      setMessages((messages) => 
+        messages.map((msg) => 
+          msg.id === streamingMsgId 
+            ? { ...msg, content: fullResponse } 
+            : msg
+        )
+      );
+      
+      scrollToBottom();
+    }
+
+    await addMessages(msgToSend, fullResponse);
+  } catch (err) {
+    console.error("Error generating response:", err);
+    setMessages((m) => [
+      ...m,
+      {
+        id: (Date.now() + 3).toString(),
+        content: "Sorry, there was an error. Please try again.",
         timestamp: new Date(),
         sender: "agent",
-      };
-      setMessages((m) => [...m, agentMsg]);
-
-      await addMessages(msgToSend, agentMsg.content);
-    } catch (err) {
-      console.error("Error generating response:", err);
-      setMessages((m) => [
-        ...m,
-        {
-          id: (Date.now() + 3).toString(),
-          content: "Sorry, there was an error. Please try again.",
-          timestamp: new Date(),
-          sender: "agent",
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      },
+    ]);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
