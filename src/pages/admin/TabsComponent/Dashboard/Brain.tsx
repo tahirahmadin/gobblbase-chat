@@ -9,6 +9,7 @@ import {
   removeDocumentFromAgent,
   listAgentDocuments,
   getPlans,
+  updateDocumentInAgent,
 } from "../../../../lib/serverActions";
 import { useAdminStore } from "../../../../store/useAdminStore";
 import { useBotConfig } from "../../../../store/useBotConfig";
@@ -863,23 +864,85 @@ const handleRemoveFile = async (fileName: string, documentId?: string) => {
       toast.error("No agent selected");
       return;
     }
-
+  
     try {
       setIsSaving(true);
-
-      // Map insights to their corresponding positions in smartenUpAnswers
+  
       const updatedAnswers = [
         insightsData.usp || "",
         insightsData.brandPersonality || "",
         insightsData.languageTerms || "",
         insightsData.frequentQuestions || "",
       ];
-
+  
       await updateAgentBrain(
         activeBotData.agentId,
         selectedLanguage,
         updatedAnswers
       );
+  
+      const formattedInsights = `
+  BRAND INSIGHTS:
+  
+  1. What makes you/your brand unique? The main USP:
+  ${insightsData.usp}
+  
+  2. How would your most loyal follower/customer describe you or your brand's personality?
+  ${insightsData.brandPersonality}
+  
+  3. What specific language, terms, or phrases should your AI agent use (or avoid) to authentically represent your brand voice?
+  ${insightsData.languageTerms}
+  
+  4. What questions do your customers most frequently ask?
+  ${insightsData.frequentQuestions}
+  `.trim();
+  
+      if (formattedInsights.trim().length > 0) {
+        const docSize = new TextEncoder().encode(formattedInsights).length;
+        
+        try {
+          const existingDocuments = await listAgentDocuments(activeBotData.agentId);
+          let existingInsightsDoc = null;
+          
+          if (!existingDocuments.error && typeof existingDocuments.result !== "string") {
+            const documents = existingDocuments.result.documents;
+            existingInsightsDoc = documents.find(doc => doc.title === "Brand Insights");
+          }
+          
+          if (existingInsightsDoc) {
+            const removeResponse = await removeDocumentFromAgent(
+              activeBotData.agentId, 
+              existingInsightsDoc.documentId
+            );
+            
+            if (removeResponse.error) {
+              console.warn("Could not remove existing Brand Insights document:", 
+                typeof removeResponse.result === "string" 
+                  ? removeResponse.result 
+                  : "Unknown error"
+              );
+            }
+          }
+          
+          const addResponse = await addDocumentToAgent(
+            activeBotData.agentId,
+            formattedInsights,
+            "Brand Insights",
+            docSize
+          );
+          
+          if (addResponse.error) {
+            console.error("Failed to add Brand Insights document:", 
+              typeof addResponse.result === "string" 
+                ? addResponse.result 
+                : "Unknown error"
+            );
+          }
+        } catch (docError) {
+          console.error("Error managing Brand Insights document:", docError);
+        }
+      }
+  
       setRefetchBotData();
       toast.success("Agent brain updated successfully");
     } catch (error: any) {
@@ -889,7 +952,6 @@ const handleRemoveFile = async (fileName: string, documentId?: string) => {
       setIsSaving(false);
     }
   };
-
 
   const getRemainingStorage = (): string => {
     if (!currentPlan) return "Calculating...";
