@@ -97,7 +97,7 @@ export default function BrowseSection({
           inChatMode ? "p-0 m-0" : "px-1"
         }`}
         style={{
-          paddingBottom: "100px", // Space for the banner
+          paddingBottom: showOnlyBooking ? "0" : "100px",
         }}
       >
         {cartView ? (
@@ -190,8 +190,7 @@ export default function BrowseSection({
         )}
       </div>
 
-      {/* Banner at the bottom - no wrapper needed */}
-      <TryFreeBanner />
+      {!showOnlyBooking && <TryFreeBanner />}
     </div>
   );
 }
