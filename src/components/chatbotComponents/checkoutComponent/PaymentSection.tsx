@@ -399,13 +399,13 @@ export function PaymentSection({
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4" style={{ paddingBottom: "100px" }}>
       <h3 className="mb-4" style={{ color: theme.isDark ? "#fff" : "#000" }}>
         Pay with
       </h3>
 
       {/* Payment Method Selection */}
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-4  pb-10">
         {activeBotData?.paymentMethods.stripe?.enabled && (
           <button
             onClick={() => setSelectedMethod("stripe")}
