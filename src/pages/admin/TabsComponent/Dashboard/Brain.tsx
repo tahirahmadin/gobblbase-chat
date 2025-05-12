@@ -8,6 +8,7 @@ import {
   addDocumentToAgent,
   removeDocumentFromAgent,
   listAgentDocuments,
+  getPlans,
 } from "../../../../lib/serverActions";
 import { useAdminStore } from "../../../../store/useAdminStore";
 import { useBotConfig } from "../../../../store/useBotConfig";
@@ -36,6 +37,21 @@ interface BrainProps {
   onCancel?: () => void;
 }
 
+interface PlanData {
+  id: string;
+  name: string;
+  price: number;
+  totalPrice: number;
+  totalDocSize: number;
+  currency: string;
+  credits: number;
+  recurrence: string;
+  description: string;
+  isCurrentPlan: boolean;
+  agentLimit: number;
+  features: string[];
+}
+
 const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   const { activeBotData, setRefetchBotData } = useBotConfig();
   const [smartnessLevel, setSmartnessLevel] = useState(0);
@@ -60,6 +76,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     "",
   ]);
   const [isSaving, setIsSaving] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState<PlanData | null>(null);
+  const [totalDocumentsSize, setTotalDocumentsSize] = useState(0);
+  const [isFetchingPlan, setIsFetchingPlan] = useState(false);
 
   useEffect(() => {
     if (activeBotData) {
@@ -89,11 +108,38 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   const { adminId } = useAdminStore();
   const { activeBotId, setActiveBotId, fetchBotData } = useBotConfig();
 
+  // Fetch the user's current plan
+  useEffect(() => {
+    if (adminId) {
+      fetchCurrentPlan();
+    }
+  }, [adminId]);
+
+  // Fetch agent documents and calculate total size
   useEffect(() => {
     if (activeBotId) {
       fetchAgentDocuments();
     }
   }, [activeBotId]);
+
+  const fetchCurrentPlan = async () => {
+    if (!adminId) return;
+
+    try {
+      setIsFetchingPlan(true);
+      const plans = await getPlans(adminId);
+      const userPlan = plans.find(plan => plan.isCurrentPlan);
+      
+      if (userPlan) {
+        setCurrentPlan(userPlan);
+      }
+    } catch (error) {
+      console.error("Error fetching current plan:", error);
+      toast.error("Failed to fetch your current plan");
+    } finally {
+      setIsFetchingPlan(false);
+    }
+  };
 
   const fetchAgentDocuments = async () => {
     if (!activeBotId) return;
@@ -110,6 +156,10 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         }));
 
         setUploadedFiles(docs);
+        
+        // Calculate total size of all documents
+        const totalSize = docs.reduce((total, doc) => total + (doc.sizeInBytes || 0), 0);
+        setTotalDocumentsSize(totalSize);
       }
     } catch (error) {
       console.error("Error fetching agent documents:", error);
@@ -198,11 +248,18 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       const response = await removeDocumentFromAgent(activeBotId, documentId);
 
       if (!response.error) {
+        // Find the file being removed to get its size
+        const removedFile = uploadedFiles.find(file => file.documentId === documentId);
+        const removedSize = removedFile?.sizeInBytes || 0;
+        
         // Remove from UI
         const updatedFiles = uploadedFiles.filter(
           (file) => file.documentId !== documentId
         );
         setUploadedFiles(updatedFiles);
+        
+        // Update total size
+        setTotalDocumentsSize(prevSize => prevSize - removedSize);
 
         toast.success("Document removed successfully");
       } else {
@@ -272,27 +329,28 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     }
   };
 
+  // Check if adding new files would exceed the plan's document size limit
+  const checkSizeLimits = (newFiles: File[]): boolean => {
+    if (!currentPlan) return true; // Allow if we don't have plan info yet
+    
+    const newFilesSize = newFiles.reduce((total, file) => total + file.size, 0);
+    const projectedTotalSize = totalDocumentsSize + newFilesSize;
+    
+    if (projectedTotalSize > currentPlan.totalDocSize) {
+      const overageInBytes = projectedTotalSize - currentPlan.totalDocSize;
+      const formattedOverage = formatFileSize(overageInBytes);
+      
+      toast.error(`Upload exceeds your plan's storage limit by ${formattedOverage}. Please upgrade your plan or remove some documents.`);
+      return false;
+    }
+    
+    return true;
+  };
+
   // Auto-upload on file selection
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const newFiles = Array.from(e.target.files);
-
-    // Check if adding these files would exceed the limit
-    if (uploadedFiles.length + selectedFiles.length + newFiles.length > 5) {
-      toast.error("Maximum 5 files allowed");
-      return;
-    }
-
-    // Check file sizes
-    const largeFiles = newFiles.filter((f) => f.size > 15 * 1024 * 1024);
-    if (largeFiles.length > 0) {
-      toast.error(
-        `File size should be less than 15MB: ${largeFiles
-          .map((f) => truncateFileName(f.name, 20))
-          .join(", ")}`
-      );
-      return;
-    }
 
     // Check file types
     const allowedTypes = [
@@ -307,6 +365,11 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           .map((f) => truncateFileName(f.name, 20))
           .join(", ")}`
       );
+      return;
+    }
+
+    // Check if adding these files would exceed the plan's document size limit
+    if (!checkSizeLimits(newFiles)) {
       return;
     }
 
@@ -332,23 +395,6 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const newFiles = Array.from(e.dataTransfer.files);
 
-      // Check if adding these files would exceed the limit
-      if (uploadedFiles.length + newFiles.length > 5) {
-        toast.error("Maximum 5 files allowed");
-        return;
-      }
-
-      // Check file sizes
-      const largeFiles = newFiles.filter((f) => f.size > 15 * 1024 * 1024);
-      if (largeFiles.length > 0) {
-        toast.error(
-          `File size should be less than 15MB: ${largeFiles
-            .map((f) => truncateFileName(f.name, 20))
-            .join(", ")}`
-        );
-        return;
-      }
-
       // Check file types
       const allowedTypes = [
         "application/pdf",
@@ -364,6 +410,11 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             .map((f) => truncateFileName(f.name, 20))
             .join(", ")}`
         );
+        return;
+      }
+
+      // Check if adding these files would exceed the plan's document size limit
+      if (!checkSizeLimits(newFiles)) {
         return;
       }
 
@@ -399,9 +450,8 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       return;
     }
 
-    // Check if adding these files would exceed the limit
-    if (uploadedFiles.length + filesToUpload.length > 5) {
-      toast.error("Maximum 5 files allowed");
+    // Check if adding these files would exceed the plan's document size limit
+    if (!checkSizeLimits(filesToUpload)) {
       return;
     }
 
@@ -501,6 +551,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                 documentId: newAgentId, // Use agentId as documentId for now
               },
             ]);
+            
+            // Update total documents size
+            setTotalDocumentsSize(filesToUpload[0].size);
 
             // Upload remaining files
             let successCount = 1; // First file already processed
@@ -685,6 +738,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           documentId,
         },
       ]);
+      
+      // Update total size
+      setTotalDocumentsSize(prev => prev + file.size);
 
       return true;
     } catch (error) {
@@ -727,6 +783,14 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       const contentSize = new TextEncoder().encode(
         extractionData.content
       ).length;
+      
+      // Check if adding this content would exceed the plan's document size limit
+      if (currentPlan && totalDocumentsSize + contentSize > currentPlan.totalDocSize) {
+        const overageInBytes = (totalDocumentsSize + contentSize) - currentPlan.totalDocSize;
+        const formattedOverage = formatFileSize(overageInBytes);
+        toast.error(`Extract from ${link} exceeds your plan's storage limit by ${formattedOverage}. Please upgrade your plan or remove some documents.`);
+        throw new Error("Content size exceeds plan limit");
+      }
 
       // Get URL hostname for document title
       const urlObj = new URL(link);
@@ -765,6 +829,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           documentId,
         },
       ]);
+      
+      // Update total size
+      setTotalDocumentsSize(prev => prev + contentSize);
 
       return documentId;
     } catch (error) {
@@ -811,6 +878,14 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+
+  const getRemainingStorage = (): string => {
+    if (!currentPlan) return "Calculating...";
+    
+    const remainingBytes = Math.max(0, currentPlan.totalDocSize - totalDocumentsSize);
+    return formatFileSize(remainingBytes);
   };
 
   return (
@@ -1022,7 +1097,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                   Click to select files or drag and drop
                 </p>
                 <p className="text-xs text-gray-500">
-                  Supported formats: PDF, DOCX, TXT (Max 15MB)
+                  Supported formats: PDF, DOCX, TXT
                 </p>
                 <p className="text-xs text-blue-500 mt-1">
                   You can select multiple files at once
@@ -1032,8 +1107,11 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-500">
-                Max File Size: 15MB | 5 Files Limit | At least one document is
-                required
+                {!isFetchingPlan && currentPlan ? (
+                  <>Max total size: {formatFileSize(currentPlan.totalDocSize)} | Available: {getRemainingStorage()} | At least one document is required</>
+                ) : (
+                  <>Loading storage information...</>
+                )}
               </span>
 
               {/* Only show upload button for new agents since existing ones auto-upload */}
