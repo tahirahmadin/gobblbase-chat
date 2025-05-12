@@ -863,8 +863,8 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
               value={form.cta || ""}
               onChange={(e) => setForm((f) => ({ ...f, cta: e.target.value }))}
             >
-              {/* <option>Buy Now</option> */}
-              <option>Add to Cart</option>
+              <option>Buy Now</option>
+              {/* <option>Add to Cart</option> */}
               {/* <option>Download Now</option>
               <option>Get Quote</option>
               <option>Book Service</option>

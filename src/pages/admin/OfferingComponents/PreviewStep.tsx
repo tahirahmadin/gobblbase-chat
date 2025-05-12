@@ -245,7 +245,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
             {/* Buy Now Button */}
             <div className="w-full flex justify-center mt-2 mb-4">
               <button className="bg-yellow-400 hover:bg-yellow-300 text-black rounded-full px-8 py-3 font-bold text-lg shadow-lg">
-                {cta || "ADD TO CART"}
+                {cta || "Buy Now"}
               </button>
             </div>
           </div>

@@ -787,48 +787,9 @@ function HeaderSection({
           className="flex items-center relative gap-2"
           style={{ minHeight: 48 }}
         >
-          {/* Cart Icon - always visible */}
-          <div className="relative">
-            <button
-              className="p-2 rounded-full hover:bg-opacity-10 hover:bg-white"
-              style={{
-                backgroundColor: theme.highlightColor,
-                color: !theme.isDark ? "white" : "black",
-                border: "2px solid #ffffff",
-              }}
-              onClick={() => {
-                setActiveScreen("browse");
-                setCartView(true);
-              }}
-            >
-              <ShoppingCart className="h-5 w-5" />
-              {getTotalItems() > 0 && (
-                <span
-                  style={{
-                    position: "absolute",
-                    top: 2,
-                    right: 2,
-                    background: "#fff",
-                    color: theme.highlightColor,
-                    borderRadius: "50%",
-                    width: 18,
-                    height: 18,
-                    fontSize: 12,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: 700,
-                    border: `2px solid ${theme.highlightColor}`,
-                  }}
-                >
-                  {getTotalItems()}
-                </span>
-              )}
-            </button>
-          </div>
           {isLoggedIn ? (
             <>
-              <div className="relative">
+              <div className="flex items-center relative gap-1">
                 <button
                   className="p-2 rounded-full hover:bg-opacity-10 hover:bg-white"
                   style={{

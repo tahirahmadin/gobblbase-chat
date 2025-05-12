@@ -5,7 +5,7 @@ import { useUserStore } from "../../../store/useUserStore";
 import toast from "react-hot-toast";
 import { LoginCard } from "../otherComponents/LoginCard";
 import { OrderSuccessScreen } from "../otherComponents/OrderSuccessScreen";
-import { Cross, CrossIcon, X, ShoppingBag } from "lucide-react";
+import { Cross, CrossIcon, X } from "lucide-react";
 import { PaymentSection } from "./PaymentSection";
 
 interface CheckoutProps {
@@ -24,8 +24,7 @@ const countries = [
 ];
 
 export function Checkout({ theme, onBack }: CheckoutProps) {
-  const { items, getTotalPrice, removeItem, setCartView, setSelectedProduct } =
-    useCartStore();
+  const { selectedProduct, setCartView, setSelectedProduct } = useCartStore();
   const [step, setStep] = useState<1 | 2>(1);
   const [shipping, setShipping] = useState({
     name: "",
@@ -41,7 +40,7 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
   const { isLoggedIn } = useUserStore();
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderDetails, setOrderDetails] = useState<{
-    items: any[];
+    product: any;
     total: number;
     orderId?: string;
     paymentMethod?: string;
@@ -86,51 +85,15 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
     });
   };
 
-  // Empty cart view
-  const EmptyCartView = () => (
-    <div className="flex flex-col items-center justify-center p-8 min-h-[60vh]">
-      <div
-        className="w-full max-w-md p-8 rounded-xl text-center"
-        style={{
-          backgroundColor: theme.isDark ? "#232323" : "#f3f3f3",
-          border: `1px solid ${theme.highlightColor}`,
-        }}
-      >
-        <div
-          className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: theme.highlightColor }}
-        >
-          <ShoppingBag
-            className="h-8 w-8"
-            style={{ color: theme.isDark ? "black" : "white" }}
-          />
-        </div>
-        <h2
-          className="text-xl font-semibold mb-2"
-          style={{ color: theme.isDark ? "white" : "black" }}
-        >
-          Your Cart is Empty
-        </h2>
-        <p
-          className="text-sm mb-6"
-          style={{ color: theme.isDark ? "#e0e0e0" : "#666666" }}
-        >
-          Please add products to your cart to proceed with checkout
-        </p>
-        <button
-          onClick={handleContinueShopping}
-          className="w-full py-3 rounded-lg font-medium flex items-center justify-center space-x-2"
-          style={{
-            backgroundColor: theme.highlightColor,
-            color: theme.isDark ? "black" : "white",
-          }}
-        >
-          <ShoppingBag className="h-5 w-5" />
-          <span>Continue Shopping</span>
-        </button>
-      </div>
-    </div>
-  );
+  const handleOrderDetails = (details: {
+    product: any;
+    total: number;
+    orderId?: string;
+    paymentMethod?: string;
+    paymentDate?: string;
+  }) => {
+    setOrderDetails(details);
+  };
 
   if (isSuccess && orderDetails) {
     return (
@@ -163,48 +126,56 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
 
       {!isLoggedIn ? (
         <LoginCard theme={theme} />
-      ) : items.length === 0 ? (
-        <EmptyCartView />
+      ) : !selectedProduct ? (
+        <div className="flex flex-col items-center justify-center p-8 min-h-[60vh]">
+          <div
+            className="w-full max-w-md p-8 rounded-xl text-center"
+            style={{
+              backgroundColor: theme.isDark ? "#232323" : "#f3f3f3",
+              border: `1px solid ${theme.highlightColor}`,
+            }}
+          >
+            <h2
+              className="text-xl font-semibold mb-2"
+              style={{ color: theme.isDark ? "white" : "black" }}
+            >
+              No Product Selected
+            </h2>
+            <p
+              className="text-sm mb-6"
+              style={{ color: theme.isDark ? "#e0e0e0" : "#666666" }}
+            >
+              Please select a product to proceed with checkout
+            </p>
+            <button
+              onClick={handleContinueShopping}
+              className="w-full py-3 rounded-lg font-medium"
+              style={{
+                backgroundColor: theme.highlightColor,
+                color: theme.isDark ? "black" : "white",
+              }}
+            >
+              Continue Shopping
+            </button>
+          </div>
+        </div>
       ) : (
         <>
           {/* Order Summary */}
           <div className="p-4">
-            {items.map((singleItem) => {
-              return (
-                <div key={singleItem._id}>
-                  <div className="flex justify-between items-center mb-4">
-                    <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
-                      {singleItem.quantity}x {singleItem.title}
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                      <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
-                        ${(singleItem.price * singleItem.quantity).toFixed(2)}
-                      </div>
-                      <button
-                        onClick={() => {
-                          console.log("Removing item:", singleItem._id);
-                          removeItem(singleItem._id);
-                        }}
-                        className="ml-2 p-1 hover:bg-opacity-10 rounded-full transition-colors"
-                        style={{
-                          color: theme.isDark ? "#fff" : "#000",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <X className="h-6 w-6" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            <div className="flex justify-between items-center mb-4">
+              <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
+                {selectedProduct.title}
+              </div>
+              <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
+                ${selectedProduct.price}
+              </div>
+            </div>
             <div className="flex justify-between items-center mb-4 font-bold">
               <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
                 Total Amount
               </div>
-              <div style={{ color: "#FFD700" }}>
-                ${getTotalPrice().toFixed(2)}
-              </div>
+              <div style={{ color: "#FFD700" }}>${selectedProduct.price}</div>
             </div>
           </div>
 
@@ -412,7 +383,8 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
             <PaymentSection
               theme={theme}
               onSuccess={() => setIsSuccess(true)}
-              onOrderDetails={setOrderDetails}
+              onOrderDetails={handleOrderDetails}
+              product={selectedProduct}
             />
           )}
         </>

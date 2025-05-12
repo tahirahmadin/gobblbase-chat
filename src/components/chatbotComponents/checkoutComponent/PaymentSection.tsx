@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -6,7 +6,6 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import { useCartStore } from "../../../store/useCartStore";
 import { useBotConfig } from "../../../store/useBotConfig";
 import { useUserStore } from "../../../store/useUserStore";
 import toast from "react-hot-toast";
@@ -19,12 +18,20 @@ interface PaymentSectionProps {
   };
   onSuccess: () => void;
   onOrderDetails: (details: {
-    items: any[];
+    product: any;
     total: number;
     orderId?: string;
     paymentMethod?: string;
     paymentDate?: string;
   }) => void;
+  product: {
+    _id: string;
+    price: number;
+    title: string;
+    description?: string;
+    images?: string[];
+    [key: string]: any;
+  };
 }
 
 type PaymentMethod = "stripe" | "razorpay" | "usdt" | "usdc";
@@ -32,13 +39,14 @@ type PaymentMethod = "stripe" | "razorpay" | "usdt" | "usdc";
 function StripePaymentForm({
   onSuccess,
   onOrderDetails,
+  product,
 }: {
   onSuccess: () => void;
   onOrderDetails: (details: any) => void;
+  product: PaymentSectionProps["product"];
 }) {
   const stripe = useStripe();
   const elements = useElements();
-  const { items, getTotalPrice, clearCart } = useCartStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -52,13 +60,11 @@ function StripePaymentForm({
     setIsSubmitting(true);
 
     try {
-      // First validate the form
       const { error: submitError } = await elements.submit();
       if (submitError) {
         throw submitError;
       }
 
-      // Then confirm the payment
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
@@ -72,15 +78,13 @@ function StripePaymentForm({
       }
 
       if (paymentIntent && paymentIntent.status === "succeeded") {
-        // Store order details before clearing cart
         onOrderDetails({
-          items: items,
-          total: getTotalPrice(),
+          product: product,
+          total: product.price,
           orderId: paymentIntent.id,
           paymentMethod: "Credit Card",
           paymentDate: new Date().toLocaleDateString(),
         });
-        clearCart();
         onSuccess();
       } else {
         throw new Error("Payment was not successful");
@@ -121,21 +125,20 @@ function StripePaymentForm({
 function RazorpayPaymentForm({
   onSuccess,
   onOrderDetails,
+  product,
 }: {
   onSuccess: () => void;
   onOrderDetails: (details: any) => void;
+  product: PaymentSectionProps["product"];
 }) {
-  const { items, getTotalPrice, clearCart } = useCartStore();
-
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     onOrderDetails({
-      items: items,
-      total: getTotalPrice(),
+      product: product,
+      total: product.price,
       paymentMethod: "Razorpay",
       paymentDate: new Date().toLocaleDateString(),
     });
-    clearCart();
     onSuccess();
   };
 
@@ -164,23 +167,23 @@ function CryptoPaymentForm({
   onSuccess,
   onOrderDetails,
   type,
+  product,
 }: {
   onSuccess: () => void;
   onOrderDetails: (details: any) => void;
   type: "usdt" | "usdc";
+  product: PaymentSectionProps["product"];
 }) {
-  const { items, getTotalPrice, clearCart } = useCartStore();
   const { activeBotData } = useBotConfig();
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     onOrderDetails({
-      items: items,
-      total: getTotalPrice(),
+      product: product,
+      total: product.price,
       paymentMethod: type.toUpperCase(),
       paymentDate: new Date().toLocaleDateString(),
     });
-    clearCart();
     onSuccess();
   };
 
@@ -233,30 +236,46 @@ export function PaymentSection({
   theme,
   onSuccess,
   onOrderDetails,
+  product,
 }: PaymentSectionProps) {
-  const { items, getTotalPrice } = useCartStore();
   const { activeBotId, activeBotData } = useBotConfig();
   const { userId, userEmail } = useUserStore();
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("stripe");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  let stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY, {
-    stripeAccount: activeBotData?.paymentMethods.stripe.accountId,
-  });
+  const stripePromise = useMemo(() => {
+    if (!activeBotData?.paymentMethods.stripe?.accountId) {
+      console.log("No Stripe account ID found in bot data");
+      return null;
+    }
+    return loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY, {
+      stripeAccount: activeBotData.paymentMethods.stripe.accountId,
+    });
+  }, [activeBotData?.paymentMethods.stripe?.accountId]);
 
   useEffect(() => {
     const createPaymentIntent = async () => {
+      if (!product || !product.price || product.price <= 0) {
+        setError("Invalid product price");
+        return;
+      }
+
       if (
         clientSecret ||
-        !items ||
         !activeBotData ||
-        items.length === 0 ||
-        selectedMethod !== "stripe"
+        selectedMethod !== "stripe" ||
+        !stripePromise
       ) {
         return;
       }
 
+      setIsLoading(true);
+      setError(null);
+
       try {
+        console.log("Creating payment intent for product:", product);
         const response = await fetch(
           "https://rag.gobbl.ai/product/create-payment-intent",
           {
@@ -265,65 +284,103 @@ export function PaymentSection({
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              lineItems: items.map((item) => ({
-                id: item._id,
-                quantity: item.quantity,
-              })),
+              cart: [product],
               agentId: activeBotId,
               userId: userId,
               userEmail: userEmail,
-              cart: items,
-              stripeAccountId:
-                activeBotData?.paymentMethods.stripe.accountId || "",
-              amount: getTotalPrice() * 100,
-              currency: activeBotData?.currency || "USD",
+              stripeAccountId: activeBotData.paymentMethods.stripe.accountId,
+              amount: Math.round(product.price * 100),
+              currency: activeBotData.currency || "USD",
             }),
           }
         );
 
         if (!response.ok) {
-          throw new Error("Failed to create payment intent");
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(
+            errorData.message || "Failed to create payment intent"
+          );
         }
 
         const data = await response.json();
+        console.log("Payment intent created successfully:", data);
         setClientSecret(data.clientSecret);
       } catch (error: any) {
+        console.error("Payment intent creation error:", error);
+        setError(error.message || "Failed to initialize payment");
         toast.error(error.message || "Failed to initialize payment");
+      } finally {
+        setIsLoading(false);
       }
     };
 
     createPaymentIntent();
   }, [
-    items,
+    product,
     activeBotData,
     clientSecret,
     activeBotId,
     userId,
     userEmail,
-    getTotalPrice,
     selectedMethod,
+    stripePromise,
   ]);
 
   const renderPaymentMethod = () => {
     switch (selectedMethod) {
       case "stripe":
-        return clientSecret ? (
+        if (error) {
+          return (
+            <div className="p-4 text-red-500 text-center">
+              {error}
+              <button
+                onClick={() => {
+                  setError(null);
+                  setClientSecret(null);
+                }}
+                className="mt-2 text-sm underline"
+              >
+                Try Again
+              </button>
+            </div>
+          );
+        }
+        if (isLoading) {
+          return (
+            <div className="flex items-center justify-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
+            </div>
+          );
+        }
+        if (!stripePromise) {
+          return (
+            <div className="p-4 text-red-500 text-center">
+              Stripe is not properly configured. Please contact support.
+            </div>
+          );
+        }
+        if (!clientSecret) {
+          return (
+            <div className="p-4 text-red-500 text-center">
+              Unable to initialize payment. Please try again.
+            </div>
+          );
+        }
+        return (
           <Elements stripe={stripePromise} options={{ clientSecret }}>
             <StripePaymentForm
               onSuccess={onSuccess}
               onOrderDetails={onOrderDetails}
+              product={product}
             />
           </Elements>
-        ) : (
-          <div className="flex items-center justify-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
-          </div>
         );
       case "razorpay":
         return (
           <RazorpayPaymentForm
             onSuccess={onSuccess}
             onOrderDetails={onOrderDetails}
+            product={product}
           />
         );
       case "usdt":
@@ -333,6 +390,7 @@ export function PaymentSection({
             onSuccess={onSuccess}
             onOrderDetails={onOrderDetails}
             type={selectedMethod}
+            product={product}
           />
         );
       default:

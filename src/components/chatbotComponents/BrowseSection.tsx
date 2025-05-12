@@ -33,12 +33,9 @@ export default function BrowseSection({
 }: BrowseSectionProps) {
   const {
     products,
-    addItem,
     getProductsInventory,
     selectedProduct,
     setSelectedProduct,
-    items: cartItems,
-
     cartView,
     setCartView,
   } = useCartStore();
@@ -72,9 +69,7 @@ export default function BrowseSection({
 
   const handleAddToCart = (quantity: number) => {
     if (selectedProduct !== null) {
-      for (let i = 0; i < quantity; i++) {
-        addItem(selectedProduct);
-      }
+      setCartView(true);
     }
   };
 
@@ -91,7 +86,6 @@ export default function BrowseSection({
       }}
     >
       {/* Main content with scrolling */}
-
       <div
         className={`flex-grow overflow-y-auto h-full ${
           inChatMode ? "p-0 m-0" : "px-1"
@@ -112,85 +106,57 @@ export default function BrowseSection({
             onBack={handleBackToGrid}
             onAddToCart={handleAddToCart}
           />
+        ) : showOnlyBooking && isBookingConfigured ? (
+          <BookingSection
+            theme={theme}
+            businessId={currentConfig?.agentId || activeBotId || ""}
+            sessionName={sessionName}
+            isBookingConfigured={isBookingConfigured}
+            showOnlyBooking={showOnlyBooking}
+          />
         ) : (
-          <>
-            {isBookingConfigured && (
-              <div className={inChatMode ? "p-0 m-0 w-full" : ""}>
-                <BookingSection
-                  theme={theme}
-                  businessId={currentConfig?.agentId || activeBotId || ""}
-                  sessionName={sessionName}
-                  isBookingConfigured={isBookingConfigured}
-                  showOnlyBooking={showOnlyBooking}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+            {products.map((product) => (
+              <div
+                key={product._id}
+                className="bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => handleProductClick(product)}
+              >
+                <img
+                  src={product.images?.[0] || "/placeholder-image.png"}
+                  alt={product.title}
+                  className="w-full h-48 object-cover"
                 />
-              </div>
-            )}
-
-            {(!showOnlyBooking || !isBookingConfigured) && (
-              <div className={inChatMode ? "" : "mt-6"}>
-                <h2
-                  className="text-md font-medium mb-2"
-                  style={{ color: theme.isDark ? "#fff" : "#000" }}
-                >
-                  Browse
-                </h2>
-                <div className="grid grid-cols-2 gap-6">
-                  {products.map((singleProduct, index) => (
-                    <div
-                      key={index}
-                      className="rounded-xl overflow-hidden cursor-pointer"
-                      style={{
-                        backgroundColor: theme.isDark ? "#000000" : "#ffffff",
-                        color: !theme.isDark ? "#000000" : "#ffffff",
+                <div className="p-4">
+                  <h3 className="text-lg font-medium text-gray-900 mb-1">
+                    {product.title}
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-2">
+                    {product.description}
+                  </p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-medium text-gray-900">
+                      ${product.price}
+                    </span>
+                    <button
+                      className="p-2 rounded-full bg-gray-100 hover:bg-gray-200"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleProductClick(product);
                       }}
-                      onClick={() => handleProductClick(singleProduct)}
                     >
-                      <div className="aspect-square relative overflow-hidden">
-                        <img
-                          src={
-                            singleProduct.images?.[0] ||
-                            "https://media.istockphoto.com/id/1409329028/vector/no-picture-available-placeholder-thumbnail-icon-illustration-design.jpg?s=612x612&w=0&k=20&c=_zOuJu755g2eEUioiOUdz_mHKJQJn-tDgIAhQzyeKUQ="
-                          }
-                          alt={singleProduct.title || "Product"}
-                          className="absolute inset-0 w-full h-full object-cover p-3 rounded-3xl"
-                        />
-                      </div>
-                      <div className="px-3 flex items-center justify-between">
-                        <div>
-                          <div
-                            className="text-xs line-clamp-2"
-                            style={{ color: theme.isDark ? "#fff" : "#000" }}
-                          >
-                            {singleProduct.title}
-                          </div>
-                          <div
-                            className="text-sm font-semibold py-2"
-                            style={{ color: theme.isDark ? "#fff" : "#000" }}
-                          >
-                            ${singleProduct.price}
-                          </div>
-                        </div>
-                        <button
-                          className="w-5 h-5 rounded-full flex items-center justify-center"
-                          style={{ backgroundColor: theme.highlightColor }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleProductClick(singleProduct);
-                          }}
-                        >
-                          <Plus className="w-4 h-4 text-black" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                      <Plus className="h-5 w-5 text-gray-600" />
+                    </button>
+                  </div>
                 </div>
               </div>
-            )}
-          </>
+            ))}
+          </div>
         )}
       </div>
 
-      {!showOnlyBooking && <TryFreeBanner />}
+      {/* Try Free Banner */}
+      {/* {!inChatMode && <TryFreeBanner />} */}
     </div>
   );
 }

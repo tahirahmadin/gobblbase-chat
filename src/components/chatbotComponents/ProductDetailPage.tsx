@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
+import React, { useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Theme, Product } from "../../types";
 import { useCartStore } from "../../store/useCartStore";
 import toast from "react-hot-toast";
@@ -15,32 +15,15 @@ export default function ProductDetailPage({
   onBack,
   onAddToCart,
 }: ProductDetailPageProps) {
-  const { selectedProduct, items, removeItem } = useCartStore();
-  const [isInCart, setIsInCart] = useState(false);
-
+  const { selectedProduct, setCartView } = useCartStore();
   const [quantity, setQuantity] = useState(1);
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  useEffect(() => {
-    // Check if the selected product is in the cart
-    const productInCart = items.find(
-      (item) => item._id === selectedProduct?._id
-    );
-    setIsInCart(!!productInCart);
-  }, [items, selectedProduct]);
-
-  const handleAddToCart = () => {
+  const handleBuyNow = () => {
     onAddToCart(quantity);
-    toast.success(`${selectedProduct?.title} added to cart successfully!`);
-  };
-
-  const handleRemoveFromCart = () => {
-    if (selectedProduct?._id) {
-      removeItem(selectedProduct._id);
-      toast.success(`${selectedProduct.title} removed from cart`);
-    }
+    setCartView(true);
   };
 
   const handlePreviousImage = () => {
@@ -274,7 +257,7 @@ export default function ProductDetailPage({
         <div className="flex items-center justify-between pt-2">
           {/* Back Button */}
           <button
-            className=" flex items-center gap-1"
+            className="flex items-center gap-1"
             style={{ color: theme.highlightColor }}
             onClick={onBack}
           >
@@ -359,30 +342,16 @@ export default function ProductDetailPage({
                   : "FREE"}
               </div>
             </div>
-            {isInCart ? (
-              <button
-                className="w-fit px-5 py-2 rounded-full text-sm font-bold flex items-center gap-2"
-                style={{
-                  backgroundColor: "#ef4444",
-                  color: "white",
-                }}
-                onClick={handleRemoveFromCart}
-              >
-                <Trash2 className="h-4 w-4" />
-                REMOVE
-              </button>
-            ) : (
-              <button
-                className="w-fit px-5 py-2 rounded-full text-sm font-bold"
-                style={{
-                  backgroundColor: theme.highlightColor,
-                  color: "#222",
-                }}
-                onClick={handleAddToCart}
-              >
-                ADD TO CART
-              </button>
-            )}
+            <button
+              className="w-fit px-5 py-2 rounded-full text-sm font-bold"
+              style={{
+                backgroundColor: theme.highlightColor,
+                color: "#222",
+              }}
+              onClick={handleBuyNow}
+            >
+              Buy Now
+            </button>
           </div>
         </div>
       </div>
