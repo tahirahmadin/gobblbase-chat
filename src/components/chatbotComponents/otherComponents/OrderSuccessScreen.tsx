@@ -18,6 +18,10 @@ interface OrderSuccessScreenProps {
     orderId?: string;
     paymentMethod?: string;
     paymentDate?: string;
+    product: {
+      title: string;
+      price: number;
+    };
   };
 }
 
@@ -71,68 +75,47 @@ export const OrderSuccessScreen: React.FC<OrderSuccessScreenProps> = ({
               backgroundColor: theme.isDark ? "#1a1a1a" : "#f8f8f8",
             }}
           >
-            {orderDetails.items.map((item, index) => (
+            <div className="mb-6 text-left">
               <div
-                key={index}
                 className="flex justify-between items-center py-2"
                 style={{ color: theme.isDark ? "#e0e0e0" : "#333333" }}
               >
                 <div className="flex items-center">
                   <span className="mr-2">•</span>
-                  <span>
-                    {item.quantity}x {item.title}
-                  </span>
+                  <span>1x {orderDetails.product.title}</span>
                 </div>
-                <span>${(item.price * item.quantity).toFixed(2)}</span>
+                <span>${orderDetails.product.price.toFixed(2)}</span>
               </div>
-            ))}
-            <div
-              className="border-t mt-2 pt-2 flex justify-between items-center font-semibold"
-              style={{
-                borderColor: theme.isDark ? "#333" : "#e0e0e0",
-                color: theme.isDark ? "white" : "black",
-              }}
-            >
-              <span>Total</span>
-              <span>${orderDetails.total.toFixed(2)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Payment Details */}
-        <div className="mb-8">
-          <h3
-            className="text-lg font-semibold mb-4"
-            style={{ color: theme.isDark ? "white" : "black" }}
-          >
-            Payment Details
-          </h3>
-          <div
-            className="rounded-lg p-4"
-            style={{
-              backgroundColor: theme.isDark ? "#1a1a1a" : "#f8f8f8",
-            }}
-          >
-            <div
-              className="flex justify-between items-center py-2"
-              style={{ color: theme.isDark ? "#e0e0e0" : "#333333" }}
-            >
-              <span>Order ID</span>
-              <span>{orderDetails.orderId || "N/A"}</span>
-            </div>
-            <div
-              className="flex justify-between items-center py-2"
-              style={{ color: theme.isDark ? "#e0e0e0" : "#333333" }}
-            >
-              <span>Payment Method</span>
-              <span>{orderDetails.paymentMethod || "Credit Card"}</span>
-            </div>
-            <div
-              className="flex justify-between items-center py-2"
-              style={{ color: theme.isDark ? "#e0e0e0" : "#333333" }}
-            >
-              <span>Payment Date</span>
-              <span>{orderDetails.paymentDate}</span>
+              <p
+                className="text-sm mb-2"
+                style={{ color: theme.isDark ? "#e0e0e0" : "#666666" }}
+              >
+                <strong>Order ID:</strong> {orderDetails.orderId}
+              </p>
+              <p
+                className="text-sm mb-2"
+                style={{ color: theme.isDark ? "#e0e0e0" : "#666666" }}
+              >
+                <strong>Product:</strong> {orderDetails.product.title}
+              </p>
+              <p
+                className="text-sm mb-2"
+                style={{ color: theme.isDark ? "#e0e0e0" : "#666666" }}
+              >
+                <strong>Total Amount:</strong> ${orderDetails.total}
+              </p>
+              <p
+                className="text-sm mb-2"
+                style={{ color: theme.isDark ? "#e0e0e0" : "#666666" }}
+              >
+                <strong>Payment Method:</strong> {orderDetails.paymentMethod}
+              </p>
+              <p
+                className="text-sm"
+                style={{ color: theme.isDark ? "#e0e0e0" : "#666666" }}
+              >
+                <strong>Date:</strong> {orderDetails.paymentDate}
+              </p>
             </div>
           </div>
         </div>

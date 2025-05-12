@@ -114,7 +114,7 @@ export default function BookingSection({
   }
 
   return (
-    <div className="pt-4 px-4">
+    <div className="pt-4 px-2">
       <h2
         className="text-md font-medium mb-2"
         style={{ color: theme.isDark ? "#fff" : "#000" }}

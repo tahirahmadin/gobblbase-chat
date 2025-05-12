@@ -88,7 +88,7 @@ export default function BrowseSection({
       {/* Main content with scrolling */}
       <div
         className={`flex-grow overflow-y-auto h-full ${
-          inChatMode ? "p-0 m-0" : "px-1"
+          inChatMode ? "p-0 m-0" : "px-3"
         }`}
         style={{
           paddingBottom: showOnlyBooking ? "0" : "100px",
@@ -106,52 +106,60 @@ export default function BrowseSection({
             onBack={handleBackToGrid}
             onAddToCart={handleAddToCart}
           />
-        ) : showOnlyBooking && isBookingConfigured ? (
-          <BookingSection
-            theme={theme}
-            businessId={currentConfig?.agentId || activeBotId || ""}
-            sessionName={sessionName}
-            isBookingConfigured={isBookingConfigured}
-            showOnlyBooking={showOnlyBooking}
-          />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-            {products.map((product) => (
-              <div
-                key={product._id}
-                className="bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => handleProductClick(product)}
-              >
-                <img
-                  src={product.images?.[0] || "/placeholder-image.png"}
-                  alt={product.title}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-4">
-                  <h3 className="text-lg font-medium text-gray-900 mb-1">
-                    {product.title}
-                  </h3>
-                  <p className="text-sm text-gray-500 mb-2">
-                    {product.description}
-                  </p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-medium text-gray-900">
-                      ${product.price}
-                    </span>
-                    <button
-                      className="p-2 rounded-full bg-gray-100 hover:bg-gray-200"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleProductClick(product);
-                      }}
-                    >
-                      <Plus className="h-5 w-5 text-gray-600" />
-                    </button>
+          <>
+            {/* Always show BookingSection if configured */}
+            {isBookingConfigured && (
+              <BookingSection
+                theme={theme}
+                businessId={currentConfig?.agentId || activeBotId || ""}
+                sessionName={sessionName}
+                isBookingConfigured={isBookingConfigured}
+                showOnlyBooking={showOnlyBooking}
+              />
+            )}
+            <h2
+              className="text-md font-medium mb-2 py-2"
+              style={{ color: theme.isDark ? "#fff" : "#000" }}
+            >
+              Browse
+            </h2>
+            {/* Product grid always visible */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 p-4">
+              {products.map((product) => (
+                <div
+                  key={product._id}
+                  className="rounded-lg shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => handleProductClick(product)}
+                  style={{
+                    backgroundColor: theme.isDark ? "#000" : "#fff",
+                    color: theme.isDark ? "#fff" : "#000",
+                  }}
+                >
+                  <img
+                    src={product.images?.[0] || "/placeholder-image.png"}
+                    alt={product.title}
+                    className="w-full h-36 object-cover"
+                  />
+                  <div className="p-4">
+                    <h3 className="text-sm font-medium mb-1">
+                      {product.title}
+                    </h3>
+                    <div className="flex justify-between items-center">
+                      <span
+                        className="text-lg font-medium "
+                        style={{
+                          color: theme.highlightColor,
+                        }}
+                      >
+                        ${product.price}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 

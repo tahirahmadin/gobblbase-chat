@@ -112,7 +112,6 @@ const Orders = () => {
                     <td className="py-4 px-4 align-top">
                       {order.items.map((item, i) => (
                         <div key={i} className="flex items-center text-sm">
-                          <span className="mr-1">Qty: {item.quantity}</span>
                           <span className="mr-1">{item.title}</span>
                           <span>
                             {item.price} {order.currency}

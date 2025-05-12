@@ -4,7 +4,11 @@ interface OrderSuccessScreenProps {
   theme: any;
   onContinueShopping: () => void;
   orderDetails: {
-    product: any;
+    product: {
+      title: string;
+      price: number;
+      // ...other fields
+    };
     total: number;
     orderId?: string;
     paymentMethod?: string;
@@ -60,6 +64,16 @@ export function OrderSuccessScreen({
           Thank you for your purchase. Your order has been confirmed.
         </p>
         <div className="mb-6 text-left">
+          <div
+            className="flex justify-between items-center py-2"
+            style={{ color: theme.isDark ? "#e0e0e0" : "#333333" }}
+          >
+            <div className="flex items-center">
+              <span className="mr-2">•</span>
+              <span>1x {orderDetails.product.title}</span>
+            </div>
+            <span>${orderDetails.product.price.toFixed(2)}</span>
+          </div>
           <p
             className="text-sm mb-2"
             style={{ color: theme.isDark ? "#e0e0e0" : "#666666" }}
