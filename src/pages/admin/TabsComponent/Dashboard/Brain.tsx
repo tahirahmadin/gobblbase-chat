@@ -27,10 +27,9 @@ interface UploadedFile {
 interface Document {
   documentId: string;
   title: string;
-  content?: string;
-  size?: number;
-  addedAt?: Date;
-  updatedAt?: Date;
+  size: number;
+  addedAt: string;
+  updatedAt: string;
 }
 
 interface BrainProps {
@@ -143,23 +142,28 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
   const fetchAgentDocuments = async () => {
     if (!activeBotId) return;
-
+  
     try {
       const response = await listAgentDocuments(activeBotId);
-
+  
       if (!response.error && typeof response.result !== "string") {
-        const docs = response.result.documents.map((doc: Document) => ({
+        const allDocs = response.result.documents as Document[];
+        
+        const totalSize = allDocs.reduce((total, doc) => total + doc.size, 0);
+        setTotalDocumentsSize(totalSize);
+        
+        const filteredDocs = allDocs.filter(
+          (doc) => doc.title !== "Kifor.ai Platform Guide"
+        );
+    
+        const docs = filteredDocs.map((doc) => ({
           name: truncateFileName(doc.title, 30),
-          size: doc.size ? formatFileSize(doc.size) : "N/A",
-          sizeInBytes: doc.size || 0,
+          size: formatFileSize(doc.size),
+          sizeInBytes: doc.size,
           documentId: doc.documentId,
         }));
-
+    
         setUploadedFiles(docs);
-        
-        // Calculate total size of all documents
-        const totalSize = docs.reduce((total, doc) => total + (doc.sizeInBytes || 0), 0);
-        setTotalDocumentsSize(totalSize);
       }
     } catch (error) {
       console.error("Error fetching agent documents:", error);
@@ -223,67 +227,73 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     setLinks(links.filter((link) => link !== linkToRemove));
   };
 
-  // Handle removing files
-  const handleRemoveFile = async (fileName: string, documentId?: string) => {
-    if (!documentId || !activeBotId) {
-      // Just remove from UI if no document ID (not yet uploaded to server)
-      setUploadedFiles(uploadedFiles.filter((file) => file.name !== fileName));
-      // Also remove from selectedFiles if it's there
-      setSelectedFiles(selectedFiles.filter((file) => file.name !== fileName));
-      return;
-    }
+const handleRemoveFile = async (fileName: string, documentId?: string) => {
+  if (!documentId || !activeBotId) {
+    setUploadedFiles(uploadedFiles.filter((file) => file.name !== fileName));
+    setSelectedFiles(selectedFiles.filter((file) => file.name !== fileName));
+    return;
+  }
 
-    try {
-      setProcessingFile(fileName);
+  try {
+    setProcessingFile(fileName);
 
-      // Check if this is the last document
-      if (uploadedFiles.length <= 1) {
+    const docsResponse = await listAgentDocuments(activeBotId);
+    if (!docsResponse.error && typeof docsResponse.result !== "string") {
+      const allDocuments = docsResponse.result.documents as Document[];
+      
+      const doc = allDocuments.find(d => d.documentId === documentId);
+      if (doc && doc.title === "Kifor.ai Platform Guide") {
+        toast.error("This document cannot be removed as it contains essential platform information.");
+        setProcessingFile(null);
+        return;
+      }
+      
+      const hasKiforGuide = allDocuments.some(d => d.title === "Kifor.ai Platform Guide");
+      
+      if (!hasKiforGuide && allDocuments.length <= 1) {
         toast.error(
           "Cannot remove the only document. An agent must have at least one document."
         );
+        setProcessingFile(null);
         return;
       }
-
-      // Call API to remove document
-      const response = await removeDocumentFromAgent(activeBotId, documentId);
-
-      if (!response.error) {
-        // Find the file being removed to get its size
-        const removedFile = uploadedFiles.find(file => file.documentId === documentId);
-        const removedSize = removedFile?.sizeInBytes || 0;
-        
-        // Remove from UI
-        const updatedFiles = uploadedFiles.filter(
-          (file) => file.documentId !== documentId
-        );
-        setUploadedFiles(updatedFiles);
-        
-        // Update total size
-        setTotalDocumentsSize(prevSize => prevSize - removedSize);
-
-        toast.success("Document removed successfully");
-      } else {
-        // Check if we have the only document error
-        const errorMsg =
-          typeof response.result === "string"
-            ? response.result
-            : "Failed to remove document";
-
-        if (errorMsg.includes("Cannot remove the only document")) {
-          toast.error(
-            "Cannot remove the only document. An agent must have at least one document."
-          );
-        } else {
-          toast.error(errorMsg);
-        }
-      }
-    } catch (error) {
-      console.error("Error removing document:", error);
-      toast.error("Failed to remove document");
-    } finally {
-      setProcessingFile(null);
     }
-  };
+
+    const removeResponse = await removeDocumentFromAgent(activeBotId, documentId);
+
+    if (!removeResponse.error) {
+      const removedFile = uploadedFiles.find(file => file.documentId === documentId);
+      const removedSize = removedFile?.sizeInBytes || 0;
+      
+      const updatedFiles = uploadedFiles.filter(
+        (file) => file.documentId !== documentId
+      );
+      setUploadedFiles(updatedFiles);
+      
+      setTotalDocumentsSize(prevSize => prevSize - removedSize);
+
+      toast.success("Document removed successfully");
+    } else {
+      const errorMsg =
+        typeof removeResponse.result === "string"
+          ? removeResponse.result
+          : "Failed to remove document";
+
+      if (errorMsg.includes("Cannot remove the only document")) {
+        toast.error(
+          "Cannot remove the only document. An agent must have at least one document."
+        );
+      } else {
+        toast.error(errorMsg);
+      }
+    }
+  } catch (error) {
+    console.error("Error removing document:", error);
+    toast.error("Failed to remove document");
+  } finally {
+    setProcessingFile(null);
+  }
+};
 
   // Extract text from different file types
   const extractTextFromFile = async (file: File): Promise<string | null> => {
