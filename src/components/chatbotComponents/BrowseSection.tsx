@@ -6,6 +6,7 @@ import { Product, Theme } from "../../types";
 import BookingSection from "./BookingSection";
 import ProductDetailPage from "./ProductDetailPage";
 import { useBotConfig } from "../../store/useBotConfig";
+import { Checkout } from "./checkoutComponent/Checkout";
 
 interface BrowseSectionProps {
   theme: Theme;
@@ -19,6 +20,7 @@ interface BrowseSectionProps {
   showOnlyBooking?: boolean;
   isBookingConfigured?: boolean;
   containerStyle?: React.CSSProperties;
+  setActiveScreen: (screen: "chat" | "book" | "browse") => void;
 }
 
 export default function BrowseSection({
@@ -27,6 +29,7 @@ export default function BrowseSection({
   showOnlyBooking = false,
   isBookingConfigured: propIsBookingConfigured,
   containerStyle,
+  setActiveScreen,
 }: BrowseSectionProps) {
   const {
     products,
@@ -34,6 +37,10 @@ export default function BrowseSection({
     getProductsInventory,
     selectedProduct,
     setSelectedProduct,
+    items: cartItems,
+
+    cartView,
+    setCartView,
   } = useCartStore();
   const { activeBotId } = useBotConfig();
 
@@ -48,7 +55,7 @@ export default function BrowseSection({
       getProductsInventory(activeBotId);
     }
   }, [activeBotId, getProductsInventory]);
-  
+
   useEffect(() => {
     if (propIsBookingConfigured !== undefined) {
       setIsBookingConfigured(propIsBookingConfigured);
@@ -58,11 +65,11 @@ export default function BrowseSection({
   const handleProductClick = (inputProduct: Product) => {
     setSelectedProduct(inputProduct);
   };
-  
+
   const handleBackToGrid = () => {
     setSelectedProduct(null);
   };
-  
+
   const handleAddToCart = (quantity: number) => {
     if (selectedProduct !== null) {
       for (let i = 0; i < quantity; i++) {
@@ -79,17 +86,27 @@ export default function BrowseSection({
       className="flex flex-col h-full"
       style={{
         backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
-        ...containerStyle
+        ...containerStyle,
+        position: "relative",
       }}
     >
       {/* Main content with scrolling */}
-      <div 
-        className={`flex-grow overflow-y-auto ${inChatMode ? 'p-0 m-0' : 'px-4'}`}
+
+      <div
+        className={`flex-grow overflow-y-auto h-full ${
+          inChatMode ? "p-0 m-0" : "px-1"
+        }`}
         style={{
           paddingBottom: "100px", // Space for the banner
         }}
       >
-        {selectedProduct !== null ? (
+        {cartView ? (
+          <Checkout
+            theme={theme}
+            onBack={() => setCartView(false)}
+            setActiveScreen={setActiveScreen}
+          />
+        ) : selectedProduct !== null ? (
           <ProductDetailPage
             theme={theme}
             onBack={handleBackToGrid}
@@ -108,7 +125,7 @@ export default function BrowseSection({
                 />
               </div>
             )}
-            
+
             {(!showOnlyBooking || !isBookingConfigured) && (
               <div className={inChatMode ? "" : "mt-6"}>
                 <h2

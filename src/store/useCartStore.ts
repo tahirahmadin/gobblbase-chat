@@ -21,6 +21,8 @@ interface CartStore {
   selectedProduct: Product | null;
   setSelectedProduct: (product: Product | null) => void;
   removeSelectedProduct: () => void;
+  cartView: boolean;
+  setCartView: (show: boolean) => void;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -30,6 +32,8 @@ export const useCartStore = create<CartStore>()(
       products: [],
       selectedProduct: null,
       isProductsLoading: false,
+      cartView: false,
+      setCartView: (show: boolean) => set({ cartView: show }),
       setSelectedProduct: (product: Product | null) => {
         set({ selectedProduct: product });
       },

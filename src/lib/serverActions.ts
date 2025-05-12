@@ -63,21 +63,6 @@ interface AddProductData {
   agentId: string;
 }
 
-interface StripeConfig {
-  isEnabled: boolean;
-  sellerId: string;
-  currency: string;
-}
-
-interface Transaction {
-  id: string;
-  amount: number;
-  currency: string;
-  status: string;
-  createdAt: string;
-  productName: string;
-}
-
 interface Document {
   documentId: string;
   title: string;
@@ -954,9 +939,7 @@ export const updateStripeAccountIdCurrency = async (data: {
   }
 };
 
-export const getTransactions = async (
-  agentId: string
-): Promise<Transaction[]> => {
+export const getTransactions = async (agentId: string): Promise<any[]> => {
   try {
     const response = await axios.get(
       `https://rag.gobbl.ai/client/getAgentOrders?agentId=${agentId}`

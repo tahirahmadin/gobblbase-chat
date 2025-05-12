@@ -7,9 +7,14 @@ import BookingManagementComponent from "./BookingManagementComponent";
 
 interface ChatSectionProps {
   theme: Theme;
-  messages: (ChatMessage & { 
-    type?: "booking" | "booking-intro" | "booking-loading" | "booking-calendar" | 
-           "booking-management-intro" | "booking-management" 
+  messages: (ChatMessage & {
+    type?:
+      | "booking"
+      | "booking-intro"
+      | "booking-loading"
+      | "booking-calendar"
+      | "booking-management-intro"
+      | "booking-management";
   })[];
   isLoading: boolean;
   activeScreen: "about" | "chat" | "browse";
@@ -31,19 +36,28 @@ export default function ChatSection({
   activeScreen,
   messagesEndRef,
   currentConfig,
-  isBookingConfigured = true, 
+  isBookingConfigured = true,
 }: ChatSectionProps) {
   const [showBookingCard, setShowBookingCard] = useState(false);
 
   const containsBookingKeywords = (message: string): boolean => {
     const bookingKeywords = [
-      "book", "appointment", "meeting", "call", "schedule", 
-      "reserve", "booking", "appointments", "meetings", 
-      "calls", "scheduling", "reservation"
+      "book",
+      "appointment",
+      "meeting",
+      "call",
+      "schedule",
+      "reserve",
+      "booking",
+      "appointments",
+      "meetings",
+      "calls",
+      "scheduling",
+      "reservation",
     ];
 
     const lowerMessage = message.toLowerCase();
-    return bookingKeywords.some(keyword => lowerMessage.includes(keyword));
+    return bookingKeywords.some((keyword) => lowerMessage.includes(keyword));
   };
 
   useEffect(() => {
@@ -65,7 +79,10 @@ export default function ChatSection({
   const renderMessage = (msg: ChatMessage & { type?: string }) => {
     if (msg.sender === "agent") {
       // Different message types for agent
-      if (msg.type === "booking-intro" || msg.type === "booking-management-intro") {
+      if (
+        msg.type === "booking-intro" ||
+        msg.type === "booking-management-intro"
+      ) {
         return (
           <StreamingText
             text={msg.content}
@@ -75,9 +92,7 @@ export default function ChatSection({
           />
         );
       } else if (msg.type === "booking-loading") {
-        return (
-          <LoadingBubbles textColor={theme.highlightColor} />
-        );
+        return <LoadingBubbles textColor={theme.highlightColor} />;
       } else if (msg.type === "booking-calendar") {
         // Simplified rendering without transformations that can cause issues
         return (
@@ -96,9 +111,9 @@ export default function ChatSection({
           <div className="w-full">
             <BookingManagementComponent
               theme={theme}
-              agentId={currentConfig?.agentId || ''}
-              sessionName={currentConfig?.sessionName || 'Consultation'}
-              botName={currentConfig?.name || 'Assistant'}
+              agentId={currentConfig?.agentId || ""}
+              sessionName={currentConfig?.sessionName || "Consultation"}
+              botName={currentConfig?.name || "Assistant"}
             />
           </div>
         );
@@ -140,7 +155,9 @@ export default function ChatSection({
                 msg.sender === "agent" ? "justify-start" : "justify-end"
               }`}
             >
-              {msg.sender === "agent" && (msg.type === "booking-calendar" || msg.type === "booking-management") ? (
+              {msg.sender === "agent" &&
+              (msg.type === "booking-calendar" ||
+                msg.type === "booking-management") ? (
                 // Special booking component with simple styling to prevent issues
                 <div
                   className="rounded-xl overflow-hidden"
@@ -148,7 +165,7 @@ export default function ChatSection({
                     backgroundColor: theme.isDark ? "black" : "white",
                     width: "95%",
                     maxWidth: "95%",
-                    margin: "0 auto 0 0" // Left align
+                    margin: "0 auto 0 0", // Left align
                   }}
                 >
                   {renderMessage(msg)}
@@ -164,9 +181,12 @@ export default function ChatSection({
                           ? "black"
                           : "white"
                         : theme.mainDarkColor,
-                    color: msg.sender === "agent" 
-                      ? (!theme.isDark ? "black" : "white")
-                      : "black", // Ensure user messages have consistent text color
+                    color:
+                      msg.sender === "agent"
+                        ? !theme.isDark
+                          ? "black"
+                          : "white"
+                        : "black", // Ensure user messages have consistent text color
                   }}
                 >
                   <div className="prose prose-sm max-w-none text-inherit">

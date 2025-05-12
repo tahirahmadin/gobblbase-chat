@@ -127,10 +127,13 @@ function App() {
         <Route path="/admin/signup" element={<Login />} />
         <Route path="/admin/dashboard/create-bot" element={<CreateNewBot />} />
         <Route path="/book/:agentId" element={<CustomerBookingPage />} />
-        <Route path="/reschedule/:bookingId" element={<RescheduleBookingWrapper />} />
+        <Route
+          path="/reschedule/:bookingId"
+          element={<RescheduleBookingWrapper />}
+        />
         <Route
           path="/:botUsername"
-          element={<PublicChat previewConfig={null} />}
+          element={<PublicChat chatHeight={null} previewConfig={null} />}
         />
         <Route path="/admin/*" element={<Dashboard />} />
         <Route path="/" element={<Navigate to="/admin" replace />} />

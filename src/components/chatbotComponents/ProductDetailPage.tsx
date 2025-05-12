@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { Theme, Product } from "../../types";
 import { useCartStore } from "../../store/useCartStore";
+import toast from "react-hot-toast";
 
 interface ProductDetailPageProps {
   theme: Theme;
@@ -14,13 +15,33 @@ export default function ProductDetailPage({
   onBack,
   onAddToCart,
 }: ProductDetailPageProps) {
-  const { selectedProduct } = useCartStore();
+  const { selectedProduct, items, removeItem } = useCartStore();
+  const [isInCart, setIsInCart] = useState(false);
 
   const [quantity, setQuantity] = useState(1);
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
-  const [eventSlot, setEventSlot] = useState("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    // Check if the selected product is in the cart
+    const productInCart = items.find(
+      (item) => item._id === selectedProduct?._id
+    );
+    setIsInCart(!!productInCart);
+  }, [items, selectedProduct]);
+
+  const handleAddToCart = () => {
+    onAddToCart(quantity);
+    toast.success(`${selectedProduct?.title} added to cart successfully!`);
+  };
+
+  const handleRemoveFromCart = () => {
+    if (selectedProduct?._id) {
+      removeItem(selectedProduct._id);
+      toast.success(`${selectedProduct.title} removed from cart`);
+    }
+  };
 
   const handlePreviousImage = () => {
     if (selectedProduct?.images && selectedProduct.images.length > 0) {
@@ -243,13 +264,10 @@ export default function ProductDetailPage({
   }
 
   return (
-    <div className="flex flex-col items-center justify-center w-full p-1">
+    <div className="flex flex-col items-center justify-center w-full">
       <div
-        className="rounded-xl w-full max-w-full p-2 relative mt-2"
+        className="rounded-xl w-full max-w-full relative mt-2"
         style={{
-          boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
-          backgroundColor: theme.isDark ? "#111" : "#111",
-          border: `2px solid ${theme.highlightColor}`,
           color: "#fff",
         }}
       >
@@ -341,16 +359,30 @@ export default function ProductDetailPage({
                   : "FREE"}
               </div>
             </div>
-            <button
-              className="w-fit px-5 py-2 rounded-full text-sm font-bold"
-              style={{
-                backgroundColor: theme.highlightColor,
-                color: "#222",
-              }}
-              onClick={() => onAddToCart(quantity)}
-            >
-              ADD TO CART
-            </button>
+            {isInCart ? (
+              <button
+                className="w-fit px-5 py-2 rounded-full text-sm font-bold flex items-center gap-2"
+                style={{
+                  backgroundColor: "#ef4444",
+                  color: "white",
+                }}
+                onClick={handleRemoveFromCart}
+              >
+                <Trash2 className="h-4 w-4" />
+                REMOVE
+              </button>
+            ) : (
+              <button
+                className="w-fit px-5 py-2 rounded-full text-sm font-bold"
+                style={{
+                  backgroundColor: theme.highlightColor,
+                  color: "#222",
+                }}
+                onClick={handleAddToCart}
+              >
+                ADD TO CART
+              </button>
+            )}
           </div>
         </div>
       </div>
