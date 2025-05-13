@@ -52,8 +52,8 @@ const AddNew = () => {
   };
 
   return (
-    <div className="min-h-screen h-full">
-      <div>
+    <div className="min-h-screen h-full w-full overflow-x-hidden">
+      <div className="max-w-[1200px] mx-auto px-4">
         {selectedType ? (
           <div>
             <NewOfferingForm
@@ -74,7 +74,7 @@ const AddNew = () => {
             <div className="text-sm text-gray-500 mb-6">
               Choose the perfect format to showcase and sell your offering
             </div>
-            <div className="flex flex-wrap gap-6">
+            <div className="flex flex-wrap gap-6 justify-start">
               {cardData.map((card) => (
                 <button
                   key={card.label}

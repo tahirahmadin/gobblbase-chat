@@ -56,17 +56,17 @@ const CustomTheme = () => {
 
   return (
     <div
-      className="grid grid-cols-5 w-full bg-white"
+      className="grid grid-cols-1 lg:grid-cols-5 w-full bg-white"
       style={{ height: "calc(100vh - 64px)" }}
     >
-      <div className="col-span-3 p-6 overflow-y-auto h-full">
+      <div className="col-span-1 lg:col-span-3 p-4 lg:p-6 overflow-y-auto h-full">
         <div className="mb-8">
           <h2 className="text-xl font-bold text-black">Display Theme</h2>
           <p className="text-sm font-[500] text-black mt-1">
             Select a theme that visually represents your brand's personality
           </p>
         </div>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {themes.map((currentTheme) => (
             <div
               key={currentTheme.id}
@@ -172,11 +172,23 @@ const CustomTheme = () => {
         </div>
       </div>
       <div
-        className="col-span-2 h-full sticky top-0 flex items-center justify-center"
+        className="hidden lg:block col-span-2 h-full sticky top-0 flex items-center justify-center"
         style={{ backgroundColor: "#eaefff" }}
       >
-        <div className="mx-auto" style={{ maxWidth: 400 }}>
-          <PublicChat previewConfig={previewConfig || activeBotData} />
+        <div
+          className="mx-auto"
+          style={{
+            maxWidth: 400,
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <PublicChat
+            previewConfig={previewConfig || activeBotData}
+            chatHeight={null}
+          />
         </div>
       </div>
     </div>

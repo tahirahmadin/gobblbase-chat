@@ -64,7 +64,7 @@ const Voice = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-6 h-full overflow-y-auto">
       <div className="mb-8">
         <h2 className="text-xl font-bold text-black">Voice Personality</h2>
         <p className="text-sm font-[500] text-black mt-1">
@@ -72,7 +72,7 @@ const Voice = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-10">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {personalityOptions.map((personality) => (
           <div
             key={personality.id}

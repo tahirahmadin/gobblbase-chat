@@ -85,8 +85,8 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
   };
 
   return (
-    <div className="bg-[#e7eafe] rounded-2xl p-6 mx-auto">
-      <div className="flex flex-col md:flex-row gap-8">
+    <div className="bg-[#e7eafe] rounded-2xl p-6 mx-auto w-full">
+      <div className="flex flex-col lg:flex-row gap-8">
         {/* Left Side */}
         <div className="flex-1 flex flex-col gap-2 min-w-0">
           <label className="font-semibold">{getTitle()}</label>
@@ -150,7 +150,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           {type === "event" && (
             <>
               <label className="font-semibold">Event Type*</label>
-              <div className="gap-2 mb-2">
+              <div className="flex flex-wrap gap-2 mb-2">
                 {eventTypes.map((eventType) => (
                   <button
                     key={eventType}
@@ -171,22 +171,6 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                   </button>
                 ))}
               </div>
-              {/* <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs">Other, specify:</span>
-                <input
-                  type="text"
-                  value={form.eventTypeOther || ""}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      eventType: "Other",
-                      eventTypeOther: e.target.value,
-                    }))
-                  }
-                  className="border border-gray-300 rounded p-1 w-40"
-                  placeholder="Other type..."
-                />
-              </div> */}
             </>
           )}
 
@@ -231,7 +215,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           </div>
 
           {/* Images Section */}
-          <div className="flex gap-4 mt-2">
+          <div className="flex flex-wrap gap-4 mt-2">
             {/* Thumbnail */}
             <div>
               <label className="font-semibold">Thumbnail</label>
@@ -286,7 +270,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
               <label className="font-semibold">
                 Additional Images (optional)
               </label>
-              <div className="flex gap-2 mt-1">
+              <div className="flex flex-wrap gap-2 mt-1">
                 {[0, 1, 2].map((i) => (
                   <div
                     key={i}
@@ -355,7 +339,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
         </div>
 
         {/* Right Side */}
-        <div className="flex-1 flex flex-col gap-4">
+        <div className="flex-1 flex flex-col gap-4 min-w-0">
           {/* Digital Product Specific */}
           {type === "digital" && (
             <div className="p-4 rounded-lg border border-indigo-200 bg-white mb-2">

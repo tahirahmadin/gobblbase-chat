@@ -265,11 +265,11 @@ const Profile = () => {
 
   return (
     <div
-      className="grid grid-cols-5 w-full bg-white"
+      className="grid grid-cols-1 lg:grid-cols-5 w-full bg-white"
       style={{ height: "calc(100vh - 64px)" }}
     >
-      <div className="col-span-3 overflow-y-auto h-full">
-        <div className="max-w-3xl mx-auto p-6 space-y-6">
+      <div className="col-span-1 lg:col-span-3 overflow-y-auto h-full">
+        <div className="max-w-3xl mx-auto p-4 lg:p-6 space-y-6">
           <div className="p-6 shadow-sm">
             {/* Profile Image Upload */}
             <div className="flex items-start mb-6">
@@ -641,22 +641,20 @@ const Profile = () => {
         </div>
       </div>
       <div
-        className="col-span-2 h-full sticky top-0 flex items-center justify-center"
+        className="hidden lg:block col-span-2 h-full sticky top-0 flex items-center justify-center"
         style={{ backgroundColor: "#eaefff" }}
       >
-        <div className="mx-auto w-full" style={{ maxWidth: 360 }}>
-          <PublicChat
-            agentUsernamePlayground={null}
-            previewConfig={{
-              ...activeBotData,
-              name: agentName,
-              logo: activeBotData?.logo || "",
-              promotionalBanner: promotionalBanner,
-              isPromoBannerEnabled: isPromoBannerEnabled,
-              socials: socialMedia,
-              bio: agentBio,
-            }}
-          />
+        <div
+          className="mx-auto"
+          style={{
+            maxWidth: 400,
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <PublicChat previewConfig={activeBotData} chatHeight={null} />
         </div>
       </div>
     </div>
