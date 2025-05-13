@@ -15,6 +15,11 @@ const Header = styled.header`
   padding: 18px 32px 18px 24px;
   background: #fff;
   border-bottom: 1px solid #e5e7eb;
+  @media (max-width: 600px) {
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 8px;
+  }
 `;
 
 const Logo = styled.div`
@@ -39,12 +44,23 @@ const HeroSection = styled.section`
   text-align: center;
   position: relative;
   min-height: 540px;
+  @media (max-width: 900px) {
+    padding: 60px 0 60px 0;
+    min-height: 400px;
+  }
+  @media (max-width: 600px) {
+    padding: 36px 0 36px 0;
+    min-height: 320px;
+  }
 `;
 
 const Headline = styled.h1`
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 12px;
+  @media (max-width: 600px) {
+    font-size: 1.3rem;
+  }
 `;
 
 const Subheadline = styled.p`
@@ -53,6 +69,14 @@ const Subheadline = styled.p`
   margin-bottom: 24px;
   width: 40%;
   margin: 0 auto;
+  @media (max-width: 900px) {
+    width: 70%;
+    font-size: 0.95rem;
+  }
+  @media (max-width: 600px) {
+    width: 95%;
+    font-size: 0.9rem;
+  }
 `;
 
 const CTAButton = styled.button`
@@ -69,6 +93,10 @@ const CTAButton = styled.button`
   transition: background 0.2s;
   &:hover {
     background: #7be88e;
+  }
+  @media (max-width: 600px) {
+    padding: 10px 18px;
+    font-size: 1rem;
   }
 `;
 
@@ -94,12 +122,30 @@ const SpeechBubble = styled.div<SpeechBubbleProps>`
   min-width: 120px;
   max-width: 220px;
   z-index: 2;
+  @media (max-width: 900px) {
+    font-size: 0.92rem;
+    min-width: 90px;
+    max-width: 170px;
+    padding: 7px 10px;
+  }
+  @media (max-width: 600px) {
+    font-size: 0.8rem;
+    min-width: 70px;
+    max-width: 120px;
+    padding: 5px 7px;
+  }
 `;
 
 const PracticalSection = styled.section`
   background: #f5f6fa;
   padding: 48px 0 64px 0;
   text-align: center;
+  @media (max-width: 900px) {
+    padding: 32px 0 40px 0;
+  }
+  @media (max-width: 600px) {
+    padding: 18px 0 24px 0;
+  }
 `;
 
 const PracticalTitle = styled.h2`
@@ -107,12 +153,19 @@ const PracticalTitle = styled.h2`
   font-weight: 700;
   margin-bottom: 10px;
   color: #222;
+  @media (max-width: 600px) {
+    font-size: 1.2rem;
+  }
 `;
 
 const PracticalDesc = styled.p`
   color: #444;
   font-size: 1.1rem;
   margin-bottom: 36px;
+  @media (max-width: 600px) {
+    font-size: 0.95rem;
+    margin-bottom: 18px;
+  }
 `;
 
 const CardsRow = styled.div`
@@ -120,6 +173,14 @@ const CardsRow = styled.div`
   justify-content: center;
   gap: 32px;
   flex-wrap: wrap;
+  @media (max-width: 900px) {
+    gap: 18px;
+  }
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
 `;
 
 const Card = styled.div`
@@ -132,6 +193,15 @@ const Card = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  @media (max-width: 900px) {
+    width: 240px;
+    padding: 20px 12px 18px 12px;
+  }
+  @media (max-width: 600px) {
+    width: 90vw;
+    min-width: 0;
+    padding: 14px 6vw 14px 6vw;
+  }
 `;
 
 const CardImage = styled.div`
@@ -150,12 +220,19 @@ const CardTitle = styled.h3`
   font-size: 1.25rem;
   font-weight: 700;
   margin-bottom: 10px;
+  @media (max-width: 600px) {
+    font-size: 1.05rem;
+  }
 `;
 
 const CardDesc = styled.p`
   font-size: 1rem;
   color: #333;
   margin-bottom: 18px;
+  @media (max-width: 600px) {
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+  }
 `;
 
 const CardTag = styled.div`
@@ -166,11 +243,18 @@ const CardTag = styled.div`
   font-size: 0.95rem;
   font-weight: 600;
   margin-bottom: 8px;
+  @media (max-width: 600px) {
+    font-size: 0.85rem;
+    padding: 4px 10px;
+  }
 `;
 
 const CardSuitable = styled.div`
   font-size: 0.98rem;
   color: #222;
+  @media (max-width: 600px) {
+    font-size: 0.85rem;
+  }
 `;
 
 const features = [
@@ -221,6 +305,12 @@ const features = [
 const FeaturesSection = styled.section`
   background: #fff;
   padding: 56px 140px 48px 140px;
+  @media (max-width: 1200px) {
+    padding: 40px 30px 32px 30px;
+  }
+  @media (max-width: 900px) {
+    padding: 30px 10px 24px 10px;
+  }
 `;
 
 const FeaturesTitle = styled.h2`
@@ -229,6 +319,10 @@ const FeaturesTitle = styled.h2`
   margin-bottom: 32px;
   color: #222;
   text-align: left;
+  @media (max-width: 600px) {
+    font-size: 1.1rem;
+    margin-bottom: 18px;
+  }
 `;
 
 const FeaturesContent = styled.div`
@@ -237,13 +331,33 @@ const FeaturesContent = styled.div`
   max-width: 1100px;
   width: 100%;
   justify-content: flex-start;
+  @media (max-width: 900px) {
+    flex-direction: column;
+    gap: 18px;
+    align-items: flex-start;
+  }
+  @media (max-width: 600px) {
+    gap: 10px;
+    max-width: 100vw;
+  }
 `;
 
 const FeaturesTabs = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
-  min-width: 320px;
+  min-width: 220px;
+  @media (max-width: 900px) {
+    flex-direction: row;
+    min-width: 0;
+    gap: 8px;
+    overflow-x: auto;
+    width: 100vw;
+  }
+  @media (max-width: 600px) {
+    gap: 4px;
+    width: 100vw;
+  }
 `;
 
 const FeatureTab = styled.button<{ selected: boolean }>`
@@ -259,12 +373,28 @@ const FeatureTab = styled.button<{ selected: boolean }>`
   box-shadow: ${({ selected }) =>
     selected ? "0 2px 8px rgba(76, 34, 143, 0.08)" : "none"};
   transition: background 0.2s, border 0.2s;
+  @media (max-width: 900px) {
+    min-width: 120px;
+    font-size: 0.85rem;
+    padding: 6px 10px;
+  }
+  @media (max-width: 600px) {
+    min-width: 90px;
+    font-size: 0.8rem;
+    padding: 4px 7px;
+  }
 `;
 
 const FeatureDesc = styled.div`
   font-size: 0.8rem;
   color: #555;
   font-weight: 400;
+  @media (max-width: 900px) {
+    font-size: 0.75rem;
+  }
+  @media (max-width: 600px) {
+    font-size: 0.7rem;
+  }
 `;
 
 const FeatureImageBox = styled.div`
@@ -272,10 +402,24 @@ const FeatureImageBox = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  color: #4e2b8f;
-  font-weight: 700;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  background: #e6eaff;
+  width: 400px;
+  height: 340px;
+  @media (max-width: 900px) {
+    width: 90vw;
+    height: 220px;
+  }
+  @media (max-width: 600px) {
+    width: 95vw;
+    height: 120px;
+    border-radius: 10px;
+  }
+  img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+  }
 `;
 
 const FeaturesFooter = styled.div`
@@ -283,6 +427,10 @@ const FeaturesFooter = styled.div`
   font-size: 1.2rem;
   color: #222;
   font-weight: 600;
+  @media (max-width: 600px) {
+    font-size: 0.95rem;
+    margin-top: 16px;
+  }
 `;
 
 const PlatformSection = styled.section`
@@ -542,6 +690,27 @@ const IntegrationsGrid = styled.div`
   grid-template-rows: repeat(4, 100px);
   gap: 28px;
   justify-content: start;
+  padding: 20px;
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(4, 80px);
+    grid-template-rows: repeat(6, 80px);
+    gap: 16px;
+    padding: 10px;
+  }
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(3, 80px);
+    grid-template-rows: repeat(8, 80px);
+    gap: 10px;
+    padding: 4px;
+    overflow-x: auto;
+  }
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, 60px);
+    grid-template-rows: repeat(12, 60px);
+    gap: 6px;
+    padding: 2px;
+    overflow-x: auto;
+  }
 `;
 
 const IntegrationBox = styled.div`
@@ -557,7 +726,26 @@ const IntegrationBox = styled.div`
   width: 100px;
   height: 100px;
   text-align: center;
-  padding: 20px;
+  padding: 0;
+  @media (max-width: 1200px) {
+    width: 80px;
+    height: 80px;
+  }
+  @media (max-width: 900px) {
+    width: 80px;
+    height: 80px;
+  }
+  @media (max-width: 600px) {
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    font-size: 1.1rem;
+  }
+  img {
+    max-width: 80%;
+    max-height: 80%;
+    object-fit: contain;
+  }
 `;
 
 const integrationsGrid = [
