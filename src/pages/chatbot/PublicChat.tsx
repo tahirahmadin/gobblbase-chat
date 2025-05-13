@@ -259,21 +259,78 @@ export default function PublicChat({
       "book appointment", "book meeting", "book call",
       "schedule appointment", "schedule meeting", "schedule call",
       "make an appointment", "make a meeting",
-      "reservation", "make reservation", "create reservation"
+      "reservation", "make reservation", "create reservation", "do a booking", "do"
     ];
 
     const lowerText = text.toLowerCase();
     return newBookingKeywords.some((kw) => lowerText.includes(kw));
   };
 
-  const handleSendMessage = async (
-    inputMessage?: string | React.MouseEvent<HTMLButtonElement>
-  ) => {
+  const shouldUseContext = (newQuery, recentMessages) => {
+    if (!newQuery || typeof newQuery !== 'string') return false;
+
+    const query = newQuery.toLowerCase().trim();
+
+    const followUpIndicators = [
+      /\b(it|they|them|those|that|this|these|he|she|his|her|its)\b/i,
+      /\b(also|too|as well|additionally|furthermore|moreover|besides|otherwise|however|though)\b/i,
+      /\b(previous|earlier|before|above|mentioned|you said|you mentioned|what about)\b/i,
+      /\b(instead|rather|why not|then what|and how|so what|but how|and what|so how)\b/i,
+      /\b(why|how come|what if|can you explain)\b/i,
+      /^(and|but|so|then|what about|how about|tell me more|continue)/i,
+      /^(is it|are they|does it|do they|can it|will it|would it|should it|has it|have they)/i
+    ];
+    
+    const hasFollowUpMarkers = followUpIndicators.some(pattern => pattern.test(query));
+    if (hasFollowUpMarkers) return true;
+    
+    const wordCount = query.split(/\s+/).filter(word => word.length > 0).length;
+    if (wordCount <= 3 && recentMessages.length > 0) {
+      const lastBotMessage = [...recentMessages].reverse().find(msg => msg.sender === "agent");
+      if (lastBotMessage && lastBotMessage.content) {
+        const lastBotContent = lastBotMessage.content.toLowerCase();
+        
+        const botAskedQuestion = /\?/.test(lastBotContent);
+        if (botAskedQuestion) return true;
+      }
+    }
+    
+    if (recentMessages.length > 0) {
+      const lastUserMessage = [...recentMessages].reverse().find(msg => msg.sender === "user");
+      const lastBotMessage = [...recentMessages].reverse().find(msg => msg.sender === "agent");
+      
+      if (lastUserMessage?.content || lastBotMessage?.content) {
+        const lastContent = [
+          lastUserMessage?.content || "", 
+          lastBotMessage?.content || ""
+        ].join(" ").toLowerCase();
+        
+        const stopwords = new Set(["the", "and", "that", "have", "for", "not", "with", "you", "this", "but", "his", "her", "she", "they", "from", "will", "would", "could", "should", "what", "when", "where", "how", "there", "here", "their", "your", "about"]);
+        
+        const lastContentWords = lastContent.split(/\W+/)
+          .filter(word => word.length > 3) 
+          .filter(word => !stopwords.has(word)) 
+          .filter(word => !/^\d+$/.test(word)); 
+        
+        const queryWords = query.split(/\W+/)
+          .filter(word => word.length > 3)
+          .filter(word => !stopwords.has(word))
+          .filter(word => !/^\d+$/.test(word));
+        
+        const sharedWords = lastContentWords.filter(word => queryWords.includes(word));
+        if (sharedWords.length >= 1) return true;
+      }
+    }
+    
+    return false;
+  };
+
+  const handleSendMessage = async (inputMessage) => {
     let msgToSend = typeof inputMessage === "string" ? inputMessage : message;
 
     if (!msgToSend.trim() || !currentConfig?.agentId) return;
 
-    const userMsg: ExtendedChatMessage = {
+    const userMsg = {
       id: Date.now().toString(),
       content: msgToSend,
       timestamp: new Date(),
@@ -287,7 +344,7 @@ export default function PublicChat({
     if (containsBookingManagementKeywords(msgToSend)) {
       const introMessage = getRandomUniqueMessage(bookingManagementIntroMessages, usedManagementIntroIndices);
       
-      const managementIntroMsg: ExtendedChatMessage = {
+      const managementIntroMsg = {
         id: (Date.now() + 1).toString(),
         content: introMessage,
         timestamp: new Date(),
@@ -299,7 +356,7 @@ export default function PublicChat({
       scrollToBottom();
       
       setTimeout(() => {
-        const loadingMsg: ExtendedChatMessage = {
+        const loadingMsg = {
           id: (Date.now() + 2).toString(),
           content: "",
           timestamp: new Date(),
@@ -312,7 +369,7 @@ export default function PublicChat({
         setTimeout(() => {
           setMessages((m) => m.filter(msg => msg.type !== "booking-loading"));
           
-          const managementMsg: ExtendedChatMessage = {
+          const managementMsg = {
             id: (Date.now() + 3).toString(),
             content: "",
             timestamp: new Date(),
@@ -330,7 +387,7 @@ export default function PublicChat({
     if (containsNewBookingKeywords(msgToSend)) {
       if (isBookingConfigured) {
         const introMessage = getRandomUniqueMessage(getBookingIntroMessages(), usedBookingIntroIndices);
-        const bookingIntroMsg: ExtendedChatMessage = {
+        const bookingIntroMsg = {
           id: (Date.now() + 1).toString(),
           content: introMessage,
           timestamp: new Date(),
@@ -341,7 +398,7 @@ export default function PublicChat({
         scrollToBottom();
         
         setTimeout(() => {
-          const loadingMsg: ExtendedChatMessage = {
+          const loadingMsg = {
             id: (Date.now() + 2).toString(),
             content: "",
             timestamp: new Date(),
@@ -354,7 +411,7 @@ export default function PublicChat({
           setTimeout(() => {
             setMessages((m) => m.filter(msg => msg.type !== "booking-loading"));
             
-            const bookingCalendarMsg: ExtendedChatMessage = {
+            const bookingCalendarMsg = {
               id: (Date.now() + 3).toString(),
               content: "",
               timestamp: new Date(),
@@ -369,7 +426,7 @@ export default function PublicChat({
         return;
       } else {
         const unavailableMessage = getRandomUniqueMessage(bookingUnavailableMessages, usedBookingUnavailableIndices);
-        const notAvailableMsg: ExtendedChatMessage = {
+        const notAvailableMsg = {
           id: (Date.now() + 1).toString(),
           content: unavailableMessage,
           timestamp: new Date(),
@@ -382,18 +439,37 @@ export default function PublicChat({
 
     setIsLoading(true);
     try {
-      let enhancedQuery = msgToSend;
+      const kiforVariations = [
+        'kifor', 
+        'ki for', 
+        'key for', 
+        'ki 4',
+        'key 4',
+        'key-for',
+        'ki-for',
+        'k for',
+        'k4',
+        'kiframe',
+        'ki frame',
+        'ki-frame',
+        'key frame',
+        'k frame'
+      ];
+      const lowercaseMsg = msgToSend.toLowerCase();
+      const containsKifor = kiforVariations.some(variation => lowercaseMsg.includes(variation));
       
-      if (messages.length > 0) {
-        const recentMessages = messages.slice(-3);
+      const recentMessages = messages.slice(-1);
+      const useContext = !containsKifor && shouldUseContext(msgToSend, recentMessages);
+      let enhancedQuery;
+      if (useContext && recentMessages.length > 0) {
+        const conversationContext = recentMessages.map(msg => 
+          `${msg.sender === "agent" ? "Assistant" : "User"}: ${msg.content}`
+        ).join("\n\n");
         
-        if (recentMessages.length > 0) {
-          const conversationContext = recentMessages.map(msg => 
-            `${msg.sender === "agent" ? "Assistant" : "User"}: ${msg.content}`
-          ).join("\n\n");
-          
-          enhancedQuery = `${conversationContext}\n\nUser: ${msgToSend}\n\nAssistant should respond to the user's latest message with the previous context in mind.`;
-        }
+        enhancedQuery = `${conversationContext}\n\nUser: ${msgToSend}\n\nAssistant should respond to the user's latest message with the previous context in mind.`;
+        
+      } else {
+        enhancedQuery = msgToSend;
       }
       
       const queryContext = await queryDocument(
@@ -410,6 +486,8 @@ export default function PublicChat({
       - Maintain a ${voiceTone} tone that connects
       - Ask thoughtful follow-up questions when appropriate
       - Use natural, warm language
+      - Greeting should be replied with greeting only.
+      - Dont include Kifor Information anywhere untill it is asked by the user in query.
 
       Formatting:
       - **Bold** for key points
@@ -436,57 +514,57 @@ export default function PublicChat({
       - End on a positive, forward-moving note`;
 
       const streamingMsgId = (Date.now() + 2).toString();
-    const streamingMsg: ExtendedChatMessage = {
-      id: streamingMsgId,
-      content: "",
-      timestamp: new Date(),
-      sender: "agent",
-    };
-    setMessages((m) => [...m, streamingMsg]);
-
-    const stream = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: enhancedQuery }, 
-      ],
-      temperature: 0.6,
-      stream: true,
-    });
-
-    let fullResponse = "";
-    
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content || "";
-      fullResponse += content;
-      
-      setMessages((messages) => 
-        messages.map((msg) => 
-          msg.id === streamingMsgId 
-            ? { ...msg, content: fullResponse } 
-            : msg
-        )
-      );
-      
-      scrollToBottom();
-    }
-
-    await addMessages(msgToSend, fullResponse);
-  } catch (err) {
-    console.error("Error generating response:", err);
-    setMessages((m) => [
-      ...m,
-      {
-        id: (Date.now() + 3).toString(),
-        content: "Sorry, there was an error. Please try again.",
+      const streamingMsg = {
+        id: streamingMsgId,
+        content: "",
         timestamp: new Date(),
         sender: "agent",
-      },
-    ]);
-  } finally {
-    setIsLoading(false);
-  }
-};
+      };
+      setMessages((m) => [...m, streamingMsg]);
+
+      const stream = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: enhancedQuery }, 
+        ],
+        temperature: 0.6,
+        stream: true,
+      });
+
+      let fullResponse = "";
+      
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content || "";
+        fullResponse += content;
+        
+        setMessages((messages) => 
+          messages.map((msg) => 
+            msg.id === streamingMsgId 
+              ? { ...msg, content: fullResponse } 
+              : msg
+          )
+        );
+        
+        scrollToBottom();
+      }
+
+      await addMessages(msgToSend, fullResponse);
+    } catch (err) {
+      console.error("Error generating response:", err);
+      setMessages((m) => [
+        ...m,
+        {
+          id: (Date.now() + 3).toString(),
+          content: "Sorry, there was an error. Please try again.",
+          timestamp: new Date(),
+          sender: "agent",
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
