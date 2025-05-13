@@ -206,9 +206,7 @@ const Payments = () => {
       {/* Payment Methods Configuration */}
       <div className="w-1/2 p-6 overflow-y-auto h-screen overflow-y-auto">
         <div className=" bg-white pb-4 z-10">
-          <h2 className="text-xl font-semibold text-gray-900">
-            Payment Methods
-          </h2>
+          <h2 className="text-xl font-bold text-black">Payment Methods</h2>
         </div>
 
         <div className="space-y-6 mt-4 pb-20">

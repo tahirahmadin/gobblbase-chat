@@ -524,13 +524,13 @@ const Integrations: React.FC = () => {
 
   return (
     <div className="space-y-6 p-4">
+      <div className="mb-8">
+        <h2 className="text-xl font-bold text-black">Integrations</h2>
+        <p className="text-sm font-[500] text-gray-600 mt-1">
+          Connect your different services to enhance your bot's capabilities
+        </p>
+      </div>
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
-          <h2 className="text-xl font-semibold text-gray-800">Integrations</h2>
-          <p className="mt-2 text-gray-600">
-            Connect your different services to enhance your bot's capabilities
-          </p>
-        </div>
         {!showConfigForm ? renderZohoCard() : renderZohoIntegration()}
       </div>
     </div>

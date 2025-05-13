@@ -27,7 +27,7 @@ const Operations = () => {
 
   return (
     <div className="container bg-white min-h-screen">
-      <div className="py-6">{renderContent()}</div>
+      <div>{renderContent()}</div>
     </div>
   );
 };
