@@ -34,6 +34,7 @@ import Usage from "./pages/admin/Usage";
 import RescheduleBookingWrapper from "./components/chatbotComponents/RescheduleBookingWrapper";
 import Commerce from "./pages/admin/TabsComponent/Commerce/Commerce";
 import Operations from "./pages/admin/TabsComponent/Operations";
+import Home from "./pages/landing/Home";
 
 // Add type definition for window
 declare global {
@@ -129,11 +130,11 @@ function App() {
           element={<RescheduleBookingWrapper />}
         />
         <Route
-          path="/:botUsername"
+          path=":botUsername"
           element={<PublicChat chatHeight={null} previewConfig={null} />}
         />
         <Route path="/admin/*" element={<Dashboard />} />
-        <Route path="/" element={<Navigate to="/admin" replace />} />
+        <Route path="/" element={<Home />} />
       </Routes>
     </Router>
   );

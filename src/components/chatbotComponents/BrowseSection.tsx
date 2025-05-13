@@ -137,7 +137,9 @@ export default function BrowseSection({
                   }}
                 >
                   <img
-                    src={product.images?.[0] || "/placeholder-image.png"}
+                    src={
+                      product.images?.[0] || "https://i.imgur.com/EJLFNOwg.jpg"
+                    }
                     alt={product.title}
                     className="w-full h-36 object-cover"
                   />

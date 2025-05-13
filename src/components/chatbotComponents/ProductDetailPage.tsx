@@ -125,9 +125,10 @@ export default function ProductDetailPage({
         <div>
           <div className="text-xs font-semibold mb-1 text-left">LOCATION</div>
           <button
-            className="px-3 py-1 rounded-full border border-[#fff] text-xs font-semibold"
+            className="px-3 py-1 rounded-full border text-xs font-semibold"
             style={{
               color: theme.highlightColor,
+              borderColor: theme.isDark ? "#fff" : "#000",
             }}
           >
             Online
@@ -140,7 +141,7 @@ export default function ProductDetailPage({
           <div className="flex items-center gap-2">
             <button
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              className="px-2 py-1 rounded-full border border-[#fff] text-lg font-bold"
+              className="px-2 py-1 rounded-full border text-lg font-bold"
               style={{
                 backgroundColor: theme.highlightColor,
                 color: !theme.isDark ? "#fff" : "#000000",
@@ -149,7 +150,7 @@ export default function ProductDetailPage({
               -
             </button>
             <span
-              className="px-3 py-1 rounded-full border border-[#fff] text-xs font-semibold"
+              className="px-3 py-1 rounded-full border  text-xs font-semibold"
               style={{
                 backgroundColor: theme.mainLightColor,
                 color: theme.isDark ? "#fff" : "#000000",
@@ -159,7 +160,7 @@ export default function ProductDetailPage({
             </span>
             <button
               onClick={() => setQuantity((q) => q + 1)}
-              className="px-2 py-1 rounded-full border border-[#fff] text-lg font-bold"
+              className="px-2 py-1 rounded-full  text-lg font-bold"
               style={{
                 backgroundColor: theme.highlightColor,
                 color: !theme.isDark ? "#fff" : "#000000",
@@ -212,7 +213,7 @@ export default function ProductDetailPage({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                className="px-2 py-1 rounded-full border border-[#fff] text-lg font-bold"
+                className="px-2 py-1 rounded-full   text-lg font-bold"
                 style={{
                   backgroundColor: theme.highlightColor,
                   color: !theme.isDark ? "#fff" : "#000000",
@@ -221,7 +222,7 @@ export default function ProductDetailPage({
                 -
               </button>
               <span
-                className="px-3 py-1 rounded-full border border-[#fff] text-xs font-semibold"
+                className="px-3 py-1 rounded-full  text-xs font-semibold"
                 style={{
                   backgroundColor: theme.mainLightColor,
                   color: theme.isDark ? "#fff" : "#000000",
@@ -231,7 +232,7 @@ export default function ProductDetailPage({
               </span>
               <button
                 onClick={() => setQuantity((q) => q + 1)}
-                className="px-2 py-1 rounded-full border border-[#fff] text-lg font-bold"
+                className="px-2 py-1 rounded-full  text-lg font-bold"
                 style={{
                   backgroundColor: theme.highlightColor,
                   color: !theme.isDark ? "#fff" : "#000000",
@@ -251,7 +252,7 @@ export default function ProductDetailPage({
       <div
         className="rounded-xl w-full max-w-full relative mt-2"
         style={{
-          color: "#fff",
+          color: theme.isDark ? "#fff" : "#000",
         }}
       >
         <div className="flex items-center justify-between pt-2">
@@ -289,7 +290,7 @@ export default function ProductDetailPage({
           <img
             src={
               selectedProduct?.images?.[currentImageIndex] ||
-              "/placeholder-image.png"
+              "https://i.imgur.com/EJLFNOwg.jpg"
             }
             alt={selectedProduct?.title || "Product"}
             className="w-48 h-48 object-contain mx-auto rounded-xl"
@@ -328,7 +329,10 @@ export default function ProductDetailPage({
           <div className="text-lg font-semibold mb-1">
             {selectedProduct?.title || "Product Name"}
           </div>
-          <div className="w-12 mx-auto border-b-4 border-[#fff] mb-2 opacity-90" />
+          <div
+            className="w-12 mx-auto border-b-4 mb-2 opacity-90"
+            style={{ borderColor: theme.isDark ? "#fff" : "#000" }}
+          />
           <div className="text-xs mb-2 text-left opacity-90">
             {selectedProduct?.description || "Product Bio "}
           </div>
@@ -346,7 +350,7 @@ export default function ProductDetailPage({
               className="w-fit px-5 py-2 rounded-full text-sm font-bold"
               style={{
                 backgroundColor: theme.highlightColor,
-                color: "#222",
+                color: !theme.isDark ? "#fff" : "#000",
               }}
               onClick={handleBuyNow}
             >
