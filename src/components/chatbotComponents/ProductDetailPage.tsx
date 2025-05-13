@@ -8,12 +8,14 @@ interface ProductDetailPageProps {
   theme: Theme;
   onBack: () => void;
   onAddToCart: (quantity: number) => void;
+  inChatMode?: boolean;
 }
 
 export default function ProductDetailPage({
   theme,
   onBack,
   onAddToCart,
+  inChatMode = false,
 }: ProductDetailPageProps) {
   const { selectedProduct, setCartView } = useCartStore();
   const [quantity, setQuantity] = useState(1);
@@ -42,14 +44,20 @@ export default function ProductDetailPage({
     }
   };
 
-  // UI blocks
+  // Adjust sizes based on inChatMode
+  const imageSize = inChatMode ? "w-36 h-36" : "w-48 h-48";
+  const titleSize = inChatMode ? "text-md" : "text-lg";
+  const descriptionSize = inChatMode ? "text-xs leading-tight" : "text-xs";
+  const buttonSize = inChatMode ? "text-xs py-1.5 px-4" : "text-sm py-2 px-5";
+  const sectionPadding = inChatMode ? "px-4" : "px-6";
+  const borderWidth = inChatMode ? "w-10" : "w-12";
+  const contentMaxWidth = inChatMode ? "max-w-full" : "max-w-full";
 
-  console.log("selectedProduct");
-  console.log(selectedProduct);
+  // UI blocks
   let extraFields = null;
   if (selectedProduct?.type === "physical") {
     extraFields = (
-      <div className="flex flex-row justify-between gap-2 py-3">
+      <div className={`flex flex-row justify-between gap-2 ${inChatMode ? 'py-2' : 'py-3'}`}>
         <div>
           <div className="text-xs font-semibold mb-1 text-left">
             SELECT SIZE
@@ -103,7 +111,7 @@ export default function ProductDetailPage({
     );
   } else if (selectedProduct?.type === "digital") {
     extraFields = (
-      <div className="flex flex-col gap-3 mb-3">
+      <div className={`flex flex-col gap-${inChatMode ? '2' : '3'} mb-${inChatMode ? '2' : '3'}`}>
         <div>
           <div className="text-xs font-semibold mb-1 text-left">
             AVAILABLE FORMATS
@@ -121,7 +129,7 @@ export default function ProductDetailPage({
     );
   } else if (selectedProduct?.type === "service") {
     extraFields = (
-      <div className="flex flex-row justify-between gap-2 mb-2">
+      <div className={`flex flex-row justify-between gap-2 mb-${inChatMode ? '1' : '2'}`}>
         <div>
           <div className="text-xs font-semibold mb-1 text-left">LOCATION</div>
           <button
@@ -174,7 +182,7 @@ export default function ProductDetailPage({
     );
   } else if (selectedProduct?.type === "event") {
     extraFields = (
-      <div className="flex flex-col gap-3 mb-3">
+      <div className={`flex flex-col gap-${inChatMode ? '2' : '3'} mb-${inChatMode ? '2' : '3'}`}>
         <div className="flex flex-row gap-4">
           <div>
             <div className="text-xs font-semibold mb-1 text-left">DATE</div>
@@ -250,7 +258,7 @@ export default function ProductDetailPage({
   return (
     <div className="flex flex-col items-center justify-center w-full">
       <div
-        className="rounded-xl w-full max-w-full relative mt-2"
+        className={`rounded-xl w-full ${contentMaxWidth} relative ${inChatMode ? 'mt-1' : 'mt-2'}`}
         style={{
           color: theme.isDark ? "#fff" : "#000",
         }}
@@ -262,8 +270,8 @@ export default function ProductDetailPage({
             style={{ color: theme.highlightColor }}
             onClick={onBack}
           >
-            <ChevronLeft className="w-5 h-5" />
-            <span className="text-md font-semibold">Back</span>
+            <ChevronLeft className={inChatMode ? "w-4 h-4" : "w-5 h-5"} />
+            <span className={inChatMode ? "text-sm font-semibold" : "text-md font-semibold"}>Back</span>
           </button>
           {/* Category */}
           <div className="text-xs font-semibold px-4 pb-2 opacity-70 text-center">
@@ -285,7 +293,7 @@ export default function ProductDetailPage({
                   : 1,
             }}
           >
-            <ChevronLeft className="w-7 h-7 text-[#7a4fff]" />
+            <ChevronLeft className={inChatMode ? "w-6 h-6 text-[#7a4fff]" : "w-7 h-7 text-[#7a4fff]"} />
           </button>
           <img
             src={
@@ -293,7 +301,7 @@ export default function ProductDetailPage({
               "https://i.imgur.com/EJLFNOwg.jpg"
             }
             alt={selectedProduct?.title || "Product"}
-            className="w-48 h-48 object-contain mx-auto rounded-xl"
+            className={`${imageSize} object-contain mx-auto rounded-xl`}
             style={{ background: "#fff" }}
           />
           <button
@@ -309,14 +317,14 @@ export default function ProductDetailPage({
                   : 1,
             }}
           >
-            <ChevronRight className="w-7 h-7 text-[#7a4fff]" />
+            <ChevronRight className={inChatMode ? "w-6 h-6 text-[#7a4fff]" : "w-7 h-7 text-[#7a4fff]"} />
           </button>
           {selectedProduct?.images && selectedProduct.images.length > 1 && (
             <div className="absolute bottom-2 flex gap-1">
               {selectedProduct.images.map((_, index) => (
                 <div
                   key={index}
-                  className={`w-1.5 h-1.5 rounded-full ${
+                  className={`${inChatMode ? 'w-1 h-1' : 'w-1.5 h-1.5'} rounded-full ${
                     index === currentImageIndex ? "bg-[#7a4fff]" : "bg-white/50"
                   }`}
                 />
@@ -325,8 +333,8 @@ export default function ProductDetailPage({
           )}
         </div>
         {/* Product Info */}
-        <div className="px-6 pt-4 pb-2 text-center">
-          <div className="text-lg font-semibold mb-1">
+        <div className={`${sectionPadding} ${inChatMode ? 'pt-3 pb-2' : 'pt-4 pb-2'} text-center`}>
+          <div className={`${titleSize} font-semibold mb-1`}>
             {selectedProduct?.title || "Product Name"}
           </div>
           <div
@@ -337,17 +345,17 @@ export default function ProductDetailPage({
             {selectedProduct?.description || "Product Bio "}
           </div>
           {extraFields}
-          <div className="flex flex-row justify-between items-center py-2">
-            <div className="flex flex-col justify-between items-start mt-4 mb-2">
+          <div className={`flex flex-row justify-between items-center ${inChatMode ? 'py-1' : 'py-2'}`}>
+            <div className={`flex flex-col justify-between items-start ${inChatMode ? 'mt-2 mb-1' : 'mt-4 mb-2'}`}>
               <div className="text-xs opacity-70 text-left">TOTAL COST</div>
-              <div className="text-md font-bold">
+              <div className={inChatMode ? "text-sm font-bold" : "text-md font-bold"}>
                 {selectedProduct?.priceType === "paid"
                   ? `$${selectedProduct?.price ?? 0}`
                   : "FREE"}
               </div>
             </div>
             <button
-              className="w-fit px-5 py-2 rounded-full text-sm font-bold"
+              className={`w-fit ${buttonSize} rounded-full font-bold`}
               style={{
                 backgroundColor: theme.highlightColor,
                 color: !theme.isDark ? "#fff" : "#000",

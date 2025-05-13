@@ -14,7 +14,9 @@ import { useChatLogs } from "../../hooks/useChatLogs";
 
 type ExtendedChatMessage = ChatMessage & { 
   type?: "booking" | "booking-intro" | "booking-loading" | "booking-calendar" | 
-         "booking-management-intro" | "booking-management" 
+         "booking-management-intro" | "booking-management" | "products-intro" | 
+         "products-loading" | "products-display" | "contact-intro" | 
+         "contact-loading" | "contact-form"
 };
 
 const openai = new OpenAI({
@@ -37,6 +39,9 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 const usedBookingUnavailableIndices = new Set<number>();
 const usedBookingIntroIndices = new Set<number>();
 const usedManagementIntroIndices = new Set<number>();
+const usedProductIntroIndices = new Set<number>();
+const usedProductUnavailableIndices = new Set<number>();
+const usedContactIntroIndices = new Set<number>();
 
 const bookingUnavailableMessages = [
   "I'm sorry, but booking appointments is not available at this time. Is there anything else I can help you with?",
@@ -52,6 +57,30 @@ const bookingManagementIntroMessages = [
   "I understand you want to manage your bookings. Here are your upcoming appointments:",
   "No problem! Here are your confirmed bookings that you can modify:",
   "I can help you with that. Here are your scheduled appointments:",
+];
+
+const productIntroMessages = [
+  "Here's what I have available for you to browse:",
+  "I'd be happy to show you our products. Take a look at what we offer:",
+  "Great! Here are the products we currently have available:",
+  "Sure thing! Here's our product catalog for you to browse:",
+  "Of course! Take a look at our selection of products:"
+];
+
+const productUnavailableMessages = [
+  "I'm sorry, but we don't have any products available at the moment. Is there anything else I can help you with?",
+  "Unfortunately, our product catalog is currently empty. Please check back later. Can I assist you with something else?",
+  "We don't have any items for sale right now. Is there anything else you'd like to know?",
+  "Our store is currently being updated and products aren't available for viewing. Would you like help with something else instead?",
+  "I don't see any products in our catalog at the moment. Would you like to know more about our services instead?"
+];
+
+const contactIntroMessages = [
+  "I'd be happy to help you get in touch with us. Please fill out this form with your information:",
+  "Sure, let me connect you with our team. Please share your details using this form:",
+  "Great! To best assist you, please provide some information through this contact form:",
+  "I'll help you reach out to our team. Please complete this contact form:",
+  "Let's get you connected with our team. Please fill in your details below:"
 ];
 
 const getRandomUniqueMessage = (messages: string[], usedIndices: Set<number>): string => {
@@ -208,36 +237,133 @@ export default function PublicChat({
   }, [botUsername, fetchBotData, previewConfig]);
 
   const containsBookingManagementKeywords = (text: string): boolean => {
-    const managementKeywords = [
-      "reschedule", "rescheduling", "reschedules", "rescheduled",
-      "cancel", "canceling", "cancels", "cancelled", "cancellation",
-      "change", "changing", "modify", "modifying", "update", "updating",
-      "manage", "managing", "view", "check", "see",
-      "change appointment", "change booking", "change meeting",
-      "change my appointment", "change my booking", "change my meeting",
-      "modify appointment", "modify booking", "modify meeting",
-      "modify my appointment", "modify my booking", "modify my meeting",
-      "cancel appointment", "cancel booking", "cancel meeting", 
-      "cancel my appointment", "cancel my booking", "cancel my meeting",
-      "manage booking", "manage appointment", "manage meeting",
-      "view bookings", "view appointments", "view meetings",
-      "my appointments", "my bookings", "my meetings",
-      "upcoming appointments", "upcoming bookings", "upcoming meetings",
-      "scheduled appointments", "scheduled bookings", "scheduled meetings",
-      "existing appointment", "existing booking", "existing meeting",
-      "current appointment", "current booking", "current meeting",
-      "time change", "date change", "change time", "change date",
-      "different time", "different date", "new time", "new date"
+    const personalPhrases = [
+      "my appointment", "my booking", "my meeting", 
+      "my scheduled", "i have an appointment", "i have a booking",
+      "i have a meeting", "my existing", "my current"
     ];
-
+    
     const lowerText = text.toLowerCase();
+    
+    const hasPersonalContext = personalPhrases.some(phrase => lowerText.includes(phrase));
     
     if (lowerText.includes("reschedule") && 
        (lowerText.includes("appointment") || lowerText.includes("booking") || lowerText.includes("meeting"))) {
       return true;
     }
     
-    return managementKeywords.some((kw) => lowerText.includes(kw));
+    if (hasPersonalContext) {
+      const managementActions = [
+        "reschedule", "cancel", "change", "modify", "update", 
+        "manage", "view", "check", "see", "upcoming"
+      ];
+      
+      return managementActions.some(action => lowerText.includes(action));
+    }
+    
+    const specificManagementPhrases = [
+      "manage booking", "manage appointment", "manage meeting",
+      "view bookings", "view appointments", "view meetings",
+      "cancel booking", "cancel appointment", "cancel meeting",
+      "reschedule booking", "reschedule appointment", "reschedule meeting",
+      "change booking", "change appointment", "change meeting",
+      "modify booking", "modify appointment", "modify meeting",
+      "upcoming bookings", "upcoming appointments", "upcoming meetings",
+      "scheduled bookings", "scheduled appointments", "scheduled meetings"
+    ];
+    
+    return specificManagementPhrases.some(phrase => lowerText.includes(phrase));
+  };
+
+  const containsProductKeywords = (text: string): boolean => {
+    const productKeywords = [
+      "product", "products", "catalog", "catalogue", "shop", "store", 
+      "buy", "purchase", "order", "item", "items", "merchandise", 
+      "good", "goods", "sale", "shopping", "browse", "browsing"
+    ];
+    
+    const productPhrases = [
+      "show me what you have", "show me what you're selling", 
+      "what do you sell", "what are you selling", "what's for sale",
+      "see your products", "view products", "display products", 
+      "what products", "check out products", "browse products",
+      "buy something", "purchase something", "get something", 
+      "inventory", "stock", "collection", "selections", "offerings"
+    ];
+  
+    const lowerText = text.toLowerCase();
+    
+    if (productPhrases.some(phrase => lowerText.includes(phrase))) {
+      return true;
+    }
+    
+    for (const keyword of productKeywords) {
+      if (lowerText.includes(keyword)) {
+        const buyingPatterns = [
+          `your ${keyword}`, `the ${keyword}`, `show ${keyword}`, 
+          `view ${keyword}`, `see ${keyword}`, `browse ${keyword}`,
+          `available ${keyword}`, `${keyword} available`, `${keyword} you have`,
+          `${keyword} for sale`, `${keyword} to buy`, `${keyword} to purchase`
+        ];
+        
+        if (buyingPatterns.some(pattern => lowerText.includes(pattern))) {
+          return true;
+        }
+        
+        const simpleProductQueries = [
+          `${keyword}?`, `${keyword}.`, `${keyword}!`, 
+          `${keyword} `, ` ${keyword}`
+        ];
+        
+        if (simpleProductQueries.some(pattern => lowerText.includes(pattern))) {
+          return true;
+        }
+        
+        if (lowerText.startsWith(keyword)) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  };
+
+  const containsContactKeywords = (text: string): boolean => {
+    const contactKeywords = [
+      "contact", "reach out", "get in touch", "talk to", "speak with", 
+      "connect with", "email", "call", "phone", "message", 
+      "contact form", "contact us", "customer service", "support",
+      "representative", "agent", "team", "feedback", "inquiry",
+      "question", "help desk", "assistance"
+    ];
+    
+    const contactPhrases = [
+      "how can i contact", "i want to contact", "i need to contact",
+      "how do i reach", "i want to talk to", "i need to speak with",
+      "how can i get in touch", "i want to get in touch", 
+      "can i talk to someone", "can i speak to someone",
+      "is there someone i can talk to", "is there a way to contact",
+      "i have a question for", "need human assistance", 
+      "talk to a human", "speak to a human", "talk to a person",
+      "speak to a person", "talk to a representative", 
+      "speak to a representative", "talk to support",
+      "speak to support", "need help from a person",
+      "real person", "leave feedback", "submit feedback",
+      "send a message to"
+    ];
+  
+    const lowerText = text.toLowerCase();
+    
+    if (contactPhrases.some(phrase => lowerText.includes(phrase))) {
+      return true;
+    }
+    
+    // Check for simple keywords
+    return contactKeywords.some(keyword => {
+      // Make sure it's a standalone word or part of a relevant phrase
+      const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+      return regex.test(lowerText);
+    });
   };
 
   const containsNewBookingKeywords = (text: string): boolean => {
@@ -245,7 +371,7 @@ export default function PublicChat({
       return false;
     }
     
-    const newBookingKeywords = [
+    const bookingPhrases = [
       "book new", "book a", "book an", "make appointment", "make a booking",
       "schedule new", "schedule a", "schedule an", "create appointment",
       "create booking", "set up appointment", "set up meeting",
@@ -259,11 +385,11 @@ export default function PublicChat({
       "book appointment", "book meeting", "book call",
       "schedule appointment", "schedule meeting", "schedule call",
       "make an appointment", "make a meeting",
-      "reservation", "make reservation", "create reservation", "do a booking", "do"
+      "reservation", "make reservation", "create reservation", "do a booking", "do booking"
     ];
 
     const lowerText = text.toLowerCase();
-    return newBookingKeywords.some((kw) => lowerText.includes(kw));
+    return bookingPhrases.some(phrase => lowerText.includes(phrase));
   };
 
   const shouldUseContext = (newQuery, recentMessages) => {
@@ -436,6 +562,110 @@ export default function PublicChat({
         return;
       }
     }
+
+    if (containsProductKeywords(msgToSend)) {
+      if (products && products.length > 0) {
+        const introMessage = getRandomUniqueMessage(productIntroMessages, usedProductIntroIndices);
+        
+        const productIntroMsg = {
+          id: (Date.now() + 1).toString(),
+          content: introMessage,
+          timestamp: new Date(),
+          sender: "agent",
+          type: "products-intro",
+        };
+        
+        setMessages((m) => [...m, productIntroMsg]);
+        scrollToBottom();
+        
+        setTimeout(() => {
+          const loadingMsg = {
+            id: (Date.now() + 2).toString(),
+            content: "",
+            timestamp: new Date(),
+            sender: "agent",
+            type: "products-loading",
+          };
+          setMessages((m) => [...m, loadingMsg]);
+          scrollToBottom();
+          
+          setTimeout(() => {
+            setMessages((m) => m.filter(msg => msg.type !== "products-loading"));
+            
+            const productsMsg = {
+              id: (Date.now() + 3).toString(),
+              content: "",
+              timestamp: new Date(),
+              sender: "agent",
+              type: "products-display",
+            };
+            setMessages((m) => [...m, productsMsg]);
+            scrollToBottom();
+          }, 1000);
+        }, 1500);
+        
+        return;
+      } else {
+        const unavailableMessage = getRandomUniqueMessage(productUnavailableMessages, usedProductUnavailableIndices);
+        const notAvailableMsg = {
+          id: (Date.now() + 1).toString(),
+          content: unavailableMessage,
+          timestamp: new Date(),
+          sender: "agent",
+        };
+        setMessages((m) => [...m, notAvailableMsg]);
+        return;
+      }
+    }
+
+    if (containsContactKeywords(msgToSend)) {
+      if (currentConfig?.customerLeadFlag) {
+        const introMessage = getRandomUniqueMessage(contactIntroMessages, usedContactIntroIndices);
+        
+        const contactIntroMsg = {
+          id: (Date.now() + 1).toString(),
+          content: introMessage,
+          timestamp: new Date(),
+          sender: "agent",
+          type: "contact-intro",
+        };
+        
+        setMessages((m) => [...m, contactIntroMsg]);
+        scrollToBottom();
+        
+        setTimeout(() => {
+          const loadingMsg = {
+            id: (Date.now() + 2).toString(),
+            content: "",
+            timestamp: new Date(),
+            sender: "agent",
+            type: "contact-loading",
+          };
+          setMessages((m) => [...m, loadingMsg]);
+          scrollToBottom();
+          
+          setTimeout(() => {
+            setMessages((m) => m.filter(msg => msg.type !== "contact-loading"));
+            
+            const contactFormMsg = {
+              id: (Date.now() + 3).toString(),
+              content: "",
+              timestamp: new Date(),
+              sender: "agent",
+              type: "contact-form",
+            };
+            setMessages((m) => [...m, contactFormMsg]);
+            scrollToBottom();
+          }, 1000);
+        }, 1500);
+        
+        return;
+      } else {
+        // If contact form is not enabled, continue with normal chat flow
+        // Let the normal AI response handle this case
+      }
+    }
+    
 
     setIsLoading(true);
     try {
@@ -628,6 +858,7 @@ export default function PublicChat({
                   isFreeSession: pricingInfo.isFreeSession,
                 }}
                 isBookingConfigured={isBookingConfigured}
+                setActiveScreen={setActiveScreen}
               />
 
               {showCues && currentConfig?.prompts && (
@@ -686,6 +917,7 @@ export default function PublicChat({
                 isFreeSession: pricingInfo.isFreeSession,
               }}
               isBookingConfigured={isBookingConfigured}
+              setActiveScreen={setActiveScreen}
             />
           )}
         </div>

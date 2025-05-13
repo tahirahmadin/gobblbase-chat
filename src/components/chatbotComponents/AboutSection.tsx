@@ -39,6 +39,8 @@ interface AboutSectionProps {
     policy: PolicyContent,
     policyName: string
   ) => void;
+  showContactForm?: boolean; 
+  contactFormMessage?: string; 
 }
 
 interface PolicyContent {
@@ -61,6 +63,7 @@ interface CustomerLeadFormProps {
   currentConfig: {
     agentId?: string;
   };
+  initialMessage?: string; 
 }
 
 const PolicyPopup: React.FC<PolicyPopupProps> = ({
@@ -100,15 +103,22 @@ const CustomerLeadForm: React.FC<CustomerLeadFormProps> = ({
   onClose,
   theme,
   currentConfig,
+  initialMessage = "",
 }) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
-    message: "",
+    message: initialMessage,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialMessage) {
+      setFormData(prev => ({ ...prev, message: initialMessage }));
+    }
+  }, [initialMessage]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -258,6 +268,8 @@ export default function AboutSection({
   theme,
   socials,
   onPolicyClick,
+  showContactForm,
+  contactFormMessage,
 }: AboutSectionProps) {
   const [policies, setPolicies] = useState<{ [key: string]: PolicyContent }>(
     {}
@@ -267,7 +279,13 @@ export default function AboutSection({
     content: string;
     name: string;
   } | null>(null);
-  const [showContactForm, setShowContactForm] = useState(false);
+  const [showContactFormState, setShowContactFormState] = useState(showContactForm || false);
+
+  useEffect(() => {
+    if (showContactForm !== undefined) {
+      setShowContactFormState(showContactForm);
+    }
+  }, [showContactForm]);
 
   //Fetching policies from the database
   useEffect(() => {
@@ -427,7 +445,7 @@ export default function AboutSection({
           {currentConfig?.customerLeadFlag && (
             <div className="w-full px-6 mt-4">
               <button
-                onClick={() => setShowContactForm(true)}
+                onClick={() => setShowContactFormState(true)}
                 className="w-full py-3 rounded-full font-medium flex items-center justify-center space-x-2 hover:opacity-90 transition-opacity"
                 style={{
                   backgroundColor: theme.highlightColor,
@@ -496,10 +514,11 @@ export default function AboutSection({
 
       {/* Customer Lead Form */}
       <CustomerLeadForm
-        isOpen={showContactForm}
-        onClose={() => setShowContactForm(false)}
+        isOpen={showContactFormState}
+        onClose={() => setShowContactFormState(false)}
         theme={theme}
         currentConfig={currentConfig}
+        initialMessage={contactFormMessage || ""}
       />
     </div>
   );

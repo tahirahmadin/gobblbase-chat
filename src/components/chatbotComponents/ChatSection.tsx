@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { ChatMessage, Theme } from "../../types";
 import StreamingText from "./otherComponents/StreamingText";
 import LoadingBubbles from "./otherComponents/LoadingBubbles";
-import BrowseSection from "./BrowseSection";
+import BookingSection from "./BookingSection";
 import BookingManagementComponent from "./BookingManagementComponent";
+import ContactFormComponent from "./ContactFormComponent";
+import ChatProductDisplay from "./ChatProductDisplay";
 
 interface ChatSectionProps {
   theme: Theme;
@@ -14,7 +16,13 @@ interface ChatSectionProps {
       | "booking-loading"
       | "booking-calendar"
       | "booking-management-intro"
-      | "booking-management";
+      | "booking-management"
+      | "products-intro" 
+      | "products-loading" 
+      | "products-display"
+      | "contact-intro" 
+      | "contact-loading" 
+      | "contact-form";  
   })[];
   isLoading: boolean;
   activeScreen: "about" | "chat" | "browse";
@@ -27,6 +35,7 @@ interface ChatSectionProps {
     isFreeSession?: boolean;
   };
   isBookingConfigured?: boolean;
+  setActiveScreen?: (screen: "about" | "chat" | "browse") => void;
 }
 
 export default function ChatSection({
@@ -37,6 +46,7 @@ export default function ChatSection({
   messagesEndRef,
   currentConfig,
   isBookingConfigured = true,
+  setActiveScreen,
 }: ChatSectionProps) {
   const [showBookingCard, setShowBookingCard] = useState(false);
 
@@ -81,7 +91,9 @@ export default function ChatSection({
       // Different message types for agent
       if (
         msg.type === "booking-intro" ||
-        msg.type === "booking-management-intro"
+        msg.type === "booking-management-intro" ||
+        msg.type === "products-intro" ||
+        msg.type === "contact-intro" 
       ) {
         return (
           <StreamingText
@@ -91,16 +103,42 @@ export default function ChatSection({
             textColor={!theme.isDark ? "black" : "white"}
           />
         );
-      } else if (msg.type === "booking-loading") {
+      } else if (
+        msg.type === "booking-loading" ||
+        msg.type === "products-loading" ||
+        msg.type === "contact-loading"
+      ) {
         return <LoadingBubbles textColor={theme.highlightColor} />;
+      } else if (msg.type === "contact-form") {  
+        return (
+          <div className="w-full">
+            <ContactFormComponent
+              theme={theme}
+              agentId={currentConfig?.agentId}
+              botName={currentConfig?.name}
+            />
+          </div>
+        );
       } else if (msg.type === "booking-calendar") {
         return (
           <div className="w-full">
-            <BrowseSection
+            <BookingSection
+              theme={theme}
+              businessId={currentConfig?.agentId || ""}
+              sessionName={currentConfig?.sessionName || "Consultation"}
+              isBookingConfigured={isBookingConfigured}
+              showOnlyBooking={true}
+            />
+          </div>
+        );
+      } else if (msg.type === "products-display") { 
+        return (
+          <div className="w-full">
+            <ChatProductDisplay
               theme={theme}
               currentConfig={currentConfig}
-              showOnlyBooking={true}
-              isBookingConfigured={isBookingConfigured}
+              messageId={msg.id}
+              setActiveScreen={setActiveScreen}
             />
           </div>
         );
@@ -155,15 +193,16 @@ export default function ChatSection({
             >
               {msg.sender === "agent" &&
               (msg.type === "booking-calendar" ||
-                msg.type === "booking-management") ? (
-                // Special booking component with simple styling to prevent issues
+                msg.type === "booking-management" ||
+                msg.type === "products-display" ||
+                msg.type === "contact-form") ? ( 
                 <div
                   className="rounded-xl overflow-hidden"
                   style={{
                     backgroundColor: theme.isDark ? "black" : "white",
-                    width: "95%",
-                    maxWidth: "95%",
-                    margin: "0 auto 0 0", // Left align
+                    width: "80%",
+                    maxWidth: "600px",
+                    margin: "0 auto 0 0", 
                   }}
                 >
                   {renderMessage(msg)}
