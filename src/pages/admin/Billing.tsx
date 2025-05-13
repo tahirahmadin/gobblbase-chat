@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { 
-  getClient, 
-  updateClientBillingDetails, 
-  updateClientBillingMethod
+import {
+  getClient,
+  updateClientBillingDetails,
+  updateClientBillingMethod,
 } from "../../lib/serverActions";
 import { useAdminStore } from "../../store/useAdminStore";
 import { toast } from "react-hot-toast";
@@ -10,9 +10,9 @@ import CardModal from "./CardModal"; // Import the new card modal component
 
 interface BillingDetails {
   "Individual/Organization Name"?: string;
-  "Email"?: string;
-  "Country"?: string;
-  "State"?: string;
+  Email?: string;
+  Country?: string;
+  State?: string;
   "Address Line 1"?: string;
   "Address Line 2"?: string;
   "Zip Code"?: string;
@@ -50,9 +50,9 @@ interface NewCardData {
 
 const Billing = () => {
   const { adminId } = useAdminStore();
-  
+
   const [billingData, setBillingData] = useState<ClientData | null>(null);
-  
+
   // Use separate loading states for different operations
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingTopDetails, setIsSavingTopDetails] = useState(false);
@@ -60,9 +60,11 @@ const Billing = () => {
   const [isAddingCard, setIsAddingCard] = useState(false);
   const [isSettingDefaultCard, setIsSettingDefaultCard] = useState(false);
   const [isRemovingCard, setIsRemovingCard] = useState(false);
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
+  const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(
+    null
+  );
 
   const [details, setDetails] = useState<DetailsForm>({
     name: "",
@@ -73,7 +75,7 @@ const Billing = () => {
     address2: "",
     zipcode: "",
   });
-  
+
   const [history] = useState([
     { id: 102, date: "DD MM YYYY", amount: "$100", status: "pay" },
     { id: 101, date: "DD MM YYYY", amount: "$100", status: "paid" },
@@ -82,22 +84,25 @@ const Billing = () => {
   useEffect(() => {
     const fetchClientData = async () => {
       if (!adminId) return;
-      
+
       setIsLoading(true);
       try {
         const data = await getClient(adminId);
         const clientData: ClientData = {
           ...data,
-          billingMethod: data.billingMethod || []
+          billingMethod: data.billingMethod || [],
         };
-        
+
         setBillingData(clientData);
-        
+
         if (clientData.billingDetails) {
           setDetails({
-            name: clientData.billingDetails["Individual/Organization Name"] || "",
+            name:
+              clientData.billingDetails["Individual/Organization Name"] || "",
             email: clientData.billingDetails["Email"] || "",
-            country: clientData.billingDetails["Country"] || "United States of America",
+            country:
+              clientData.billingDetails["Country"] ||
+              "United States of America",
             state: clientData.billingDetails["State"] || "",
             address1: clientData.billingDetails["Address Line 1"] || "",
             address2: clientData.billingDetails["Address Line 2"] || "",
@@ -115,40 +120,42 @@ const Billing = () => {
     fetchClientData();
   }, [adminId]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setDetails(prev => ({
+    setDetails((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
-  const saveBillingDetails = async (position: 'top' | 'bottom') => {
+  const saveBillingDetails = async (position: "top" | "bottom") => {
     if (!adminId) return;
-    
-    if (position === 'top') {
+
+    if (position === "top") {
       setIsSavingTopDetails(true);
     } else {
       setIsSavingBottomDetails(true);
     }
-    
+
     try {
       await updateClientBillingDetails(adminId, {
         "Individual/Organization Name": details.name,
-        "Email": details.email,
-        "Country": details.country,
-        "State": details.state,
+        Email: details.email,
+        Country: details.country,
+        State: details.state,
         "Zip Code": details.zipcode,
         "Address Line 1": details.address1,
-        "Address Line 2": details.address2
+        "Address Line 2": details.address2,
       });
-      
+
       toast.success("Billing details saved successfully");
     } catch (error) {
       console.error("Error saving billing details:", error);
       toast.error("Failed to save billing details");
     } finally {
-      if (position === 'top') {
+      if (position === "top") {
         setIsSavingTopDetails(false);
       } else {
         setIsSavingBottomDetails(false);
@@ -166,36 +173,36 @@ const Billing = () => {
 
   const submitCard = async (newCardData: NewCardData) => {
     if (!adminId || !billingData) return;
-    
+
     setIsAddingCard(true);
     try {
       // Remove spaces from card number before converting to number
       const cleanCardNumber = newCardData.cardNumber.replace(/\s/g, "");
-      
+
       const newCard: CardMethod = {
         cardType: newCardData.cardType,
         // Convert to number (storing all 16 digits)
         cardNumber: parseInt(cleanCardNumber),
         expiry: newCardData.expiry,
-        default: newCardData.default
+        default: newCardData.default,
       };
-      
+
       let updatedBillingMethod = [...billingData.billingMethod, newCard];
-      
+
       if (newCardData.default) {
         updatedBillingMethod = updatedBillingMethod.map((method, index) => ({
           ...method,
-          default: index === updatedBillingMethod.length - 1
+          default: index === updatedBillingMethod.length - 1,
         }));
       }
-      
+
       await updateClientBillingMethod(adminId, updatedBillingMethod);
-      
+
       setBillingData({
         ...billingData,
-        billingMethod: updatedBillingMethod
+        billingMethod: updatedBillingMethod,
       });
-      
+
       toast.success("Card added successfully");
       handleCloseModal();
     } catch (error) {
@@ -218,25 +225,27 @@ const Billing = () => {
     if (e) {
       e.stopPropagation();
     }
-    
+
     if (!adminId || !billingData) return;
-    
+
     setIsSettingDefaultCard(true);
     try {
-      const updatedBillingMethod = billingData.billingMethod.map((method, i) => ({
-        ...method,
-        default: i === index
-      }));
-      
+      const updatedBillingMethod = billingData.billingMethod.map(
+        (method, i) => ({
+          ...method,
+          default: i === index,
+        })
+      );
+
       await updateClientBillingMethod(adminId, updatedBillingMethod);
-      
+
       setBillingData({
         ...billingData,
-        billingMethod: updatedBillingMethod
+        billingMethod: updatedBillingMethod,
       });
-      
+
       toast.success("Default payment method updated");
-      setSelectedCardIndex(null); 
+      setSelectedCardIndex(null);
     } catch (error) {
       console.error("Error setting default card:", error);
       toast.error("Failed to set default card");
@@ -244,31 +253,36 @@ const Billing = () => {
       setIsSettingDefaultCard(false);
     }
   };
-  
+
   const removeCard = async (index: number, e?: React.MouseEvent) => {
     if (e) {
       e.stopPropagation();
     }
-    
+
     if (!adminId || !billingData) return;
-    
+
     setIsRemovingCard(true);
     try {
-      const updatedBillingMethod = billingData.billingMethod.filter((_, i) => i !== index);
-      
-      if (billingData.billingMethod[index].default && updatedBillingMethod.length > 0) {
+      const updatedBillingMethod = billingData.billingMethod.filter(
+        (_, i) => i !== index
+      );
+
+      if (
+        billingData.billingMethod[index].default &&
+        updatedBillingMethod.length > 0
+      ) {
         updatedBillingMethod[0].default = true;
       }
-      
+
       await updateClientBillingMethod(adminId, updatedBillingMethod);
-      
+
       setBillingData({
         ...billingData,
-        billingMethod: updatedBillingMethod
+        billingMethod: updatedBillingMethod,
       });
-      
+
       toast.success("Card removed successfully");
-      setSelectedCardIndex(null); 
+      setSelectedCardIndex(null);
     } catch (error) {
       console.error("Error removing card:", error);
       toast.error("Failed to remove card");
@@ -290,7 +304,7 @@ const Billing = () => {
   }
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="p-8 max-w-6xl mx-auto overflow-y-auto h-full">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Billing Details */}
         <div className="md:col-span-2">
@@ -322,12 +336,12 @@ const Billing = () => {
                 />
               </div>
               <div className="flex items-end">
-                <button 
-                  onClick={() => saveBillingDetails('top')}
+                <button
+                  onClick={() => saveBillingDetails("top")}
                   disabled={isSavingTopDetails}
                   className="bg-green-200 hover:bg-green-300 text-green-900 font-semibold px-6 py-2 rounded shadow w-full md:w-auto"
                 >
-                  {isSavingTopDetails ? 'SAVING...' : 'SAVE'}
+                  {isSavingTopDetails ? "SAVING..." : "SAVE"}
                 </button>
               </div>
             </div>
@@ -387,12 +401,12 @@ const Billing = () => {
                   placeholder="Type your Pincode..."
                 />
                 <div className="flex items-end mt-2">
-                  <button 
-                    onClick={() => saveBillingDetails('bottom')}
+                  <button
+                    onClick={() => saveBillingDetails("bottom")}
                     disabled={isSavingBottomDetails}
                     className="bg-green-200 hover:bg-green-300 text-green-900 font-semibold px-6 py-2 rounded shadow w-full md:w-auto"
                   >
-                    {isSavingBottomDetails ? 'SAVING...' : 'SAVE'}
+                    {isSavingBottomDetails ? "SAVING..." : "SAVE"}
                   </button>
                 </div>
               </div>
@@ -443,49 +457,54 @@ const Billing = () => {
                 Payment Cards
               </div>
               <div className="space-y-3">
-                {billingData?.billingMethod && billingData.billingMethod.map((card, i) => (
-                  <div
-                    key={i}
-                    className="bg-white rounded-lg p-4 flex flex-col border-2 border-blue-200 relative cursor-pointer"
-                    onClick={() => handleCardClick(i)}
-                  >
-                    <div className="flex justify-between mb-1">
-                      <div className="font-semibold">{card.cardType}</div>
-                      <div className="text-gray-500 text-sm">Exp. {card.expiry}</div>
-                    </div>
-                    <div className="text-gray-500">
-                      {formatCardNumber(card.cardNumber)}
-                    </div>
-                    
-                    {card.default && (
-                      <span className="absolute top-2 right-2 bg-black text-white text-xs px-3 py-1 rounded-full">
-                        Default Card
-                      </span>
-                    )}
-                    
-                    {/* Show action buttons for selected card */}
-                    {selectedCardIndex === i && (
-                      <div className="mt-3 flex w-full gap-2">
-                        <button
-                          onClick={(e) => setDefaultCard(i, e)}
-                          disabled={isSettingDefaultCard}
-                          className="bg-black text-white text-sm font-semibold py-1 px-2 rounded-full flex-1"
-                        >
-                          {isSettingDefaultCard ? 'Setting...' : 'Set as Default'}
-                        </button>
-                        <button
-                          onClick={(e) => removeCard(i, e)}
-                          disabled={isRemovingCard}
-                          className="bg-green-500 text-white text-sm font-semibold py-1 px-2 rounded-full flex-1"
-                        >
-                          {isRemovingCard ? 'Removing...' : 'Remove Card'}
-                        </button>
+                {billingData?.billingMethod &&
+                  billingData.billingMethod.map((card, i) => (
+                    <div
+                      key={i}
+                      className="bg-white rounded-lg p-4 flex flex-col border-2 border-blue-200 relative cursor-pointer"
+                      onClick={() => handleCardClick(i)}
+                    >
+                      <div className="flex justify-between mb-1">
+                        <div className="font-semibold">{card.cardType}</div>
+                        <div className="text-gray-500 text-sm">
+                          Exp. {card.expiry}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                ))}
-                <button 
-                  onClick={addCard} 
+                      <div className="text-gray-500">
+                        {formatCardNumber(card.cardNumber)}
+                      </div>
+
+                      {card.default && (
+                        <span className="absolute top-2 right-2 bg-black text-white text-xs px-3 py-1 rounded-full">
+                          Default Card
+                        </span>
+                      )}
+
+                      {/* Show action buttons for selected card */}
+                      {selectedCardIndex === i && (
+                        <div className="mt-3 flex w-full gap-2">
+                          <button
+                            onClick={(e) => setDefaultCard(i, e)}
+                            disabled={isSettingDefaultCard}
+                            className="bg-black text-white text-sm font-semibold py-1 px-2 rounded-full flex-1"
+                          >
+                            {isSettingDefaultCard
+                              ? "Setting..."
+                              : "Set as Default"}
+                          </button>
+                          <button
+                            onClick={(e) => removeCard(i, e)}
+                            disabled={isRemovingCard}
+                            className="bg-green-500 text-white text-sm font-semibold py-1 px-2 rounded-full flex-1"
+                          >
+                            {isRemovingCard ? "Removing..." : "Remove Card"}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                <button
+                  onClick={addCard}
                   className="w-full flex items-center justify-center border-2 border-blue-300 rounded-lg py-2 text-blue-700 font-semibold bg-blue-50 hover:bg-blue-200"
                 >
                   <span className="mr-2 text-xl">+</span> Add Card
@@ -497,7 +516,7 @@ const Billing = () => {
       </div>
 
       {/* New Credit Card Modal Component */}
-      <CardModal 
+      <CardModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onSubmit={submitCard}

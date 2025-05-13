@@ -223,7 +223,9 @@ const Policies = () => {
 
               {/* Text Input */}
               <div>
-                <div className="text-sm text-gray-600 mb-2">Type/Paste</div>
+                <div className="text-sm text-gray-600 mb-2">
+                  Enter policy content:
+                </div>
                 <div className="space-y-2">
                   <textarea
                     value={currentPolicyText}
