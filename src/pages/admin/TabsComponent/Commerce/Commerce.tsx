@@ -2,12 +2,12 @@ import { useLocation } from "react-router-dom";
 import AddNew from "./AddNew";
 import Manage from "./Manage";
 
-const Offerings = () => {
+const Commerce = () => {
   const location = useLocation();
   const currentPath = location.pathname;
 
   const renderContent = () => {
-    if (currentPath.includes("/offerings/add")) {
+    if (currentPath.includes("/commerce/add")) {
       return <AddNew />;
     }
     return <Manage />;
@@ -20,4 +20,4 @@ const Offerings = () => {
   );
 };
 
-export default Offerings;
+export default Commerce;

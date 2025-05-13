@@ -121,7 +121,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
             : "Product added successfully!"
         );
         if (typeof onApprove === "function") onApprove();
-        navigate("/admin/offerings/manage");
+        navigate("//admin/commerce/manage");
       } else {
         toast.error("Error: " + (data?.result?.error || "Unknown error"));
       }

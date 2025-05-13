@@ -95,7 +95,7 @@ const Manage = () => {
         type,
       })
     );
-    navigate("/admin/offerings/add");
+    navigate("/admin/commerce/add");
   };
 
   const handlePauseToggle = async (
@@ -153,7 +153,7 @@ const Manage = () => {
           Manage Offerings
         </h1>
         <button
-          onClick={() => navigate("/admin/offerings/add")}
+          onClick={() => navigate("/admin/commerce/add")}
           className="bg-black text-white px-4 py-2 rounded font-semibold"
         >
           Add New Offering

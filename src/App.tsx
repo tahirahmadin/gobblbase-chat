@@ -21,8 +21,6 @@ import Voice from "./pages/admin/TabsComponent/Dashboard/Voice";
 import Theme from "./pages/admin/TabsComponent/Dashboard/Theme";
 import WelcomeText from "./pages/admin/TabsComponent/Dashboard/WelcomeText";
 import Prompts from "./pages/admin/TabsComponent/Dashboard/Prompts";
-import Business from "./pages/admin/TabsComponent/Business";
-import Offerings from "./pages/admin/TabsComponent/Offerings/Offerings";
 import Policies from "./pages/admin/TabsComponent/Policies";
 import ChatLogs from "./pages/admin/TabsComponent/ChatLogs";
 import CustomerLeads from "./pages/admin/TabsComponent/CustomerLeads";
@@ -34,6 +32,8 @@ import Plans from "./pages/admin/Plans";
 import Billing from "./pages/admin/Billing";
 import Usage from "./pages/admin/Usage";
 import RescheduleBookingWrapper from "./components/chatbotComponents/RescheduleBookingWrapper";
+import Commerce from "./pages/admin/TabsComponent/Commerce/Commerce";
+import Operations from "./pages/admin/TabsComponent/Operations";
 
 // Add type definition for window
 declare global {
@@ -68,30 +68,27 @@ function Dashboard() {
         <Route path="dashboard/theme" element={<Theme />} />
         <Route path="dashboard/welcome" element={<WelcomeText />} />
         <Route path="dashboard/prompts" element={<Prompts />} />
-        <Route path="business" element={<Business />} />
-        <Route path="business/payments" element={<Business />} />
-        <Route path="business/integrations" element={<Business />} />
-        <Route path="business/embed" element={<Business />} />
-        <Route path="business/orders" element={<Business />} />
-        <Route path="business/email" element={<Business />} />
-        <Route path="offerings" element={<Offerings />} />
-        <Route path="offerings/add" element={<Offerings />} />
-        <Route path="offerings/manage" element={<Offerings />} />
+        <Route path="operations" element={<Operations />} />
+        <Route path="operations/payments" element={<Operations />} />
+        <Route path="operations/integrations" element={<Operations />} />
+        <Route path="operations/embed" element={<Operations />} />
+        <Route path="operations/orders" element={<Operations />} />
+        <Route path="operations/email" element={<Operations />} />
+        <Route path="commerce" element={<Commerce />} />
+        <Route path="commerce/add" element={<Commerce />} />
+        <Route path="commerce/manage" element={<Commerce />} />
 
         {/* Modified Calendar Routes */}
+        <Route path="commerce/calendar" element={<BookingDashboardWrapper />} />
         <Route
-          path="offerings/calendar"
-          element={<BookingDashboardWrapper />}
-        />
-        <Route
-          path="offerings/calendar/edit"
+          path="commerce/calendar/edit"
           element={<BookingDashboardWrapper isEditMode={true} />}
         />
         <Route
-          path="offerings/calendar/new"
+          path="commerce/calendar/new"
           element={<BookingDashboardWrapper />}
         />
-        <Route path="offerings/policies" element={<Policies />} />
+        <Route path="commerce/policies" element={<Policies />} />
         <Route path="crm/chat-logs" element={<ChatLogs />} />
         <Route path="crm/leads" element={<CustomerLeads />} />
         <Route path="account/billing" element={<Billing />} />

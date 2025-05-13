@@ -8,14 +8,14 @@ import {
   User,
   Users,
   Check,
-  DollarSign
+  DollarSign,
 } from "lucide-react";
 import { useBotConfig } from "../../../store/useBotConfig";
 import {
   updateAppointmentSettings,
   getAppointmentSettings,
 } from "../../../lib/serverActions";
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from "react-router-dom";
 
 interface TimeSlot {
   startTime: string;
@@ -47,10 +47,30 @@ interface BookingProps {
 }
 
 const DEFAULT_MEETING_LOCATIONS = [
-  { id: "google_meet", name: "Google Meet", icon: <Video className="h-5 w-5" />, selected: true },
-  { id: "zoom", name: "Zoom", icon: <Video className="h-5 w-5" />, selected: false },
-  { id: "teams", name: "Microsoft Teams", icon: <Video className="h-5 w-5" />, selected: false },
-  { id: "in_person", name: "In-person", icon: <MapPin className="h-5 w-5" />, selected: false },
+  {
+    id: "google_meet",
+    name: "Google Meet",
+    icon: <Video className="h-5 w-5" />,
+    selected: true,
+  },
+  {
+    id: "zoom",
+    name: "Zoom",
+    icon: <Video className="h-5 w-5" />,
+    selected: false,
+  },
+  {
+    id: "teams",
+    name: "Microsoft Teams",
+    icon: <Video className="h-5 w-5" />,
+    selected: false,
+  },
+  {
+    id: "in_person",
+    name: "In-person",
+    icon: <MapPin className="h-5 w-5" />,
+    selected: false,
+  },
 ];
 
 const CURRENCIES = [
@@ -60,7 +80,7 @@ const CURRENCIES = [
   { code: "INR", symbol: "₹", name: "Indian Rupee" },
   { code: "CAD", symbol: "C$", name: "Canadian Dollar" },
   { code: "AUD", symbol: "A$", name: "Australian Dollar" },
-  { code: "JPY", symbol: "¥", name: "Japanese Yen" }
+  { code: "JPY", symbol: "¥", name: "Japanese Yen" },
 ];
 
 const DURATION_OPTIONS = [
@@ -134,9 +154,10 @@ const Booking: React.FC<BookingProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const agentIdFromUrl = queryParams.get('agentId');
+  const agentIdFromUrl = queryParams.get("agentId");
   const { activeBotData, activeBotId } = useBotConfig();
-  const activeAgentId = propAgentId || agentIdFromUrl || activeBotId || activeBotData?.agentId;
+  const activeAgentId =
+    propAgentId || agentIdFromUrl || activeBotId || activeBotData?.agentId;
   const [timezones, setTimezones] = useState(DEFAULT_TIMEZONES);
   const [detectedTimezoneInList, setDetectedTimezoneInList] = useState(false);
   const [sessionType, setSessionType] = useState("Consultation");
@@ -179,10 +200,10 @@ const Booking: React.FC<BookingProps> = ({
       }
     }
   }, [isEditMode]);
-  
+
   // State for active step
   const [currentStep, setCurrentStep] = useState<number>(1);
-  
+
   // Form state
   const [bookingType, setBookingType] = useState<string>("individual");
   const [bookingsPerSlot, setBookingsPerSlot] = useState(2);
@@ -191,9 +212,13 @@ const Booking: React.FC<BookingProps> = ({
   const [breaks, setBreaks] = useState<Break[]>([]);
   const [newBreakStart, setNewBreakStart] = useState("12:00");
   const [newBreakEnd, setNewBreakEnd] = useState("13:00");
-  const [availability, setAvailability] = useState<AvailabilityDay[]>(DEFAULT_AVAILABILITY);
-  const [meetingLocations, setMeetingLocations] = useState<MeetingLocation[]>(DEFAULT_MEETING_LOCATIONS);
-  const [selectedLocation, setSelectedLocation] = useState<string>("google_meet");
+  const [availability, setAvailability] =
+    useState<AvailabilityDay[]>(DEFAULT_AVAILABILITY);
+  const [meetingLocations, setMeetingLocations] = useState<MeetingLocation[]>(
+    DEFAULT_MEETING_LOCATIONS
+  );
+  const [selectedLocation, setSelectedLocation] =
+    useState<string>("google_meet");
   const [timezone, setTimezone] = useState<string>(
     Intl.DateTimeFormat().resolvedOptions().timeZone
   );
@@ -208,7 +233,7 @@ const Booking: React.FC<BookingProps> = ({
 
   // Navigation functions
   const goToNextStep = () => {
-    setCurrentStep(prev => Math.min(prev + 1, 5));
+    setCurrentStep((prev) => Math.min(prev + 1, 5));
   };
 
   // Fetch existing settings if in edit mode
@@ -245,9 +270,9 @@ const Booking: React.FC<BookingProps> = ({
               })
             );
             setMeetingLocations(updatedLocations);
-            
+
             // Set the first selected location as the current one
-            const firstSelected = updatedLocations.find(loc => loc.selected);
+            const firstSelected = updatedLocations.find((loc) => loc.selected);
             if (firstSelected) {
               setSelectedLocation(firstSelected.id);
             }
@@ -283,7 +308,7 @@ const Booking: React.FC<BookingProps> = ({
               }
             }
           }
-            
+
           // Load pricing data if available
           if (settings.price) {
             setIsFree(settings.price.isFree);
@@ -305,14 +330,14 @@ const Booking: React.FC<BookingProps> = ({
 
   // Helper functions
   const toggleDayAvailability = (dayIndex: number) => {
-    setAvailability(prev => {
+    setAvailability((prev) => {
       const updated = [...prev];
       const current = updated[dayIndex];
       updated[dayIndex] = {
         ...current,
         available: !current.available,
-        timeSlots: current.available 
-          ? [] 
+        timeSlots: current.available
+          ? []
           : [{ startTime: "09:00", endTime: "17:00" }],
       };
       return updated;
@@ -324,7 +349,7 @@ const Booking: React.FC<BookingProps> = ({
     field: "startTime" | "endTime",
     value: string
   ) => {
-    setAvailability(prev => {
+    setAvailability((prev) => {
       const updated = [...prev];
       if (updated[dayIndex]?.timeSlots[0]) {
         updated[dayIndex].timeSlots[0][field] = value;
@@ -335,10 +360,12 @@ const Booking: React.FC<BookingProps> = ({
 
   const selectMeetingLocation = (locationId: string) => {
     setSelectedLocation(locationId);
-    setMeetingLocations(prev => prev.map(loc => ({
-      ...loc,
-      selected: loc.id === locationId
-    })));
+    setMeetingLocations((prev) =>
+      prev.map((loc) => ({
+        ...loc,
+        selected: loc.id === locationId,
+      }))
+    );
   };
 
   const selectCurrency = (currencyCode: string) => {
@@ -349,13 +376,13 @@ const Booking: React.FC<BookingProps> = ({
   const handlePriceAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Remove non-numeric characters except decimal point
     const rawValue = e.target.value.replace(/[^0-9.]/g, "");
-    
+
     // Handle decimal points properly
     if (rawValue === "" || rawValue === ".") {
       setPriceAmount(0);
       return;
     }
-    
+
     // Ensure only valid numbers are entered
     const numValue = parseFloat(rawValue);
     if (!isNaN(numValue)) {
@@ -382,22 +409,22 @@ const Booking: React.FC<BookingProps> = ({
       price: {
         isFree,
         amount: priceAmount,
-        currency: selectedCurrency
-      }
+        currency: selectedCurrency,
+      },
     };
 
     try {
       await updateAppointmentSettings(payload);
-      
+
       if (onSetupComplete) {
         onSetupComplete();
       } else {
         // Use this simpler approach for testing
-        console.log("Navigation triggered to: /admin/offerings/calendar");
-        navigate('/admin/offerings/calendar');
-        
+        console.log("Navigation triggered to: //admin/commerce/calendar");
+        navigate("//admin/commerce/calendar");
+
         // If that doesn't work, try with the full path:
-        // window.location.href = '/admin/offerings/calendar';
+        // window.location.href = '//admin/commerce/calendar';
       }
     } catch (error) {
       console.error("Failed to save booking settings:", error);
@@ -409,7 +436,9 @@ const Booking: React.FC<BookingProps> = ({
   const renderHeader = () => (
     <div>
       <h1 className="text-2xl font-semibold">Set up Calendar</h1>
-      <p className="text-gray-600 text-sm mt-1">Configure your calendar for appointments & 1:1 meetings</p>
+      <p className="text-gray-600 text-sm mt-1">
+        Configure your calendar for appointments & 1:1 meetings
+      </p>
     </div>
   );
 
@@ -423,7 +452,7 @@ const Booking: React.FC<BookingProps> = ({
           </div>
           <h3 className="ml-3 text-lg font-medium">Booking Type</h3>
         </div>
-        
+
         <div className="grid grid-cols-2 gap-4">
           {/* Individual Sessions Option */}
           <div
@@ -494,9 +523,9 @@ const Booking: React.FC<BookingProps> = ({
             )}
           </div>
         </div>
-        
+
         <div className="flex justify-end mt-6">
-          <button 
+          <button
             className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
             onClick={goToNextStep}
           >
@@ -504,7 +533,7 @@ const Booking: React.FC<BookingProps> = ({
           </button>
         </div>
       </div>
-      
+
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-medium">
@@ -513,16 +542,18 @@ const Booking: React.FC<BookingProps> = ({
           <h3 className="ml-3 text-lg font-medium text-gray-400">Duration</h3>
         </div>
       </div>
-      
+
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-medium">
             3
           </div>
-          <h3 className="ml-3 text-lg font-medium text-gray-400">Availability</h3>
+          <h3 className="ml-3 text-lg font-medium text-gray-400">
+            Availability
+          </h3>
         </div>
       </div>
-      
+
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-medium">
@@ -531,7 +562,7 @@ const Booking: React.FC<BookingProps> = ({
           <h3 className="ml-3 text-lg font-medium text-gray-400">Location</h3>
         </div>
       </div>
-      
+
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-medium">
@@ -554,7 +585,7 @@ const Booking: React.FC<BookingProps> = ({
           <h3 className="ml-3 text-lg font-medium">Booking Type</h3>
         </div>
       </div>
-      
+
       <div className="mt-4 bg-blue-50 p-6 rounded-lg">
         <div className="flex items-center mb-6">
           <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-medium">
@@ -562,7 +593,7 @@ const Booking: React.FC<BookingProps> = ({
           </div>
           <h3 className="ml-3 text-lg font-medium">Duration</h3>
         </div>
-        
+
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
             <label className="text-sm font-medium">Your Time Zone</label>
@@ -579,11 +610,12 @@ const Booking: React.FC<BookingProps> = ({
             </select>
           </div>
         </div>
-        
+
         <div className="mb-6">
           <div className="flex items-start mb-2">
             <label className="text-sm font-medium block min-w-32">
-              Duration<br />
+              Duration
+              <br />
               <span className="text-xs text-gray-500">Meeting slot</span>
             </label>
             <div className="flex flex-wrap gap-2">
@@ -603,11 +635,12 @@ const Booking: React.FC<BookingProps> = ({
             </div>
           </div>
         </div>
-        
+
         <div className="mb-6">
           <div className="flex items-start mb-2">
             <label className="text-sm font-medium block min-w-32">
-              Buffer<br />
+              Buffer
+              <br />
               <span className="text-xs text-gray-500">Between meetings</span>
             </label>
             <div className="flex flex-wrap gap-2">
@@ -627,62 +660,84 @@ const Booking: React.FC<BookingProps> = ({
             </div>
           </div>
         </div>
-        
+
         {/* Break Section */}
         <div className="mb-6">
           <div className="flex items-center mb-2">
             <span className="text-sm font-medium">Break</span>
             <span className="text-xs text-gray-500 ml-2">Blocked-off time</span>
           </div>
-          
+
           {/* Add Break Form */}
           <div className="flex items-center space-x-4 mb-3">
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Start Time</label>
+              <label className="block text-xs text-gray-500 mb-1">
+                Start Time
+              </label>
               <select
                 value={newBreakStart}
                 onChange={(e) => setNewBreakStart(e.target.value)}
                 className="p-1 border border-gray-300 rounded"
               >
                 {Array.from({ length: 24 }).map((_, hour) => (
-                  <option key={hour} value={`${hour.toString().padStart(2, "0")}:00`}>
+                  <option
+                    key={hour}
+                    value={`${hour.toString().padStart(2, "0")}:00`}
+                  >
                     {`${hour.toString().padStart(2, "0")}:00`}
                   </option>
                 ))}
               </select>
             </div>
-            
+
             <div>
-              <label className="block text-xs text-gray-500 mb-1">End Time</label>
+              <label className="block text-xs text-gray-500 mb-1">
+                End Time
+              </label>
               <select
                 value={newBreakEnd}
                 onChange={(e) => setNewBreakEnd(e.target.value)}
                 className="p-1 border border-gray-300 rounded"
               >
                 {Array.from({ length: 24 }).map((_, hour) => (
-                  <option key={hour} value={`${hour.toString().padStart(2, "0")}:00`}>
+                  <option
+                    key={hour}
+                    value={`${hour.toString().padStart(2, "0")}:00`}
+                  >
                     {`${hour.toString().padStart(2, "0")}:00`}
                   </option>
                 ))}
               </select>
             </div>
-            
+
             <button
               className="mt-5 flex items-center justify-center w-8 h-8 bg-green-500 text-white rounded-full"
-              onClick={() => setBreaks((prev) => [...prev, { startTime: newBreakStart, endTime: newBreakEnd }])}
+              onClick={() =>
+                setBreaks((prev) => [
+                  ...prev,
+                  { startTime: newBreakStart, endTime: newBreakEnd },
+                ])
+              }
             >
               <Plus className="h-4 w-4" />
             </button>
           </div>
-          
+
           {/* Break List */}
           <div className="space-y-2">
             {breaks.map((breakItem, index) => (
-              <div key={index} className="flex justify-between items-center p-2 bg-white rounded">
-                <span>{breakItem.startTime} — {breakItem.endTime}</span>
+              <div
+                key={index}
+                className="flex justify-between items-center p-2 bg-white rounded"
+              >
+                <span>
+                  {breakItem.startTime} — {breakItem.endTime}
+                </span>
                 <button
                   className="text-red-500 text-sm"
-                  onClick={() => setBreaks((prev) => prev.filter((_, i) => i !== index))}
+                  onClick={() =>
+                    setBreaks((prev) => prev.filter((_, i) => i !== index))
+                  }
                 >
                   Remove
                 </button>
@@ -690,9 +745,9 @@ const Booking: React.FC<BookingProps> = ({
             ))}
           </div>
         </div>
-        
+
         <div className="flex justify-end mt-6">
-          <button 
+          <button
             className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
             onClick={goToNextStep}
           >
@@ -700,16 +755,18 @@ const Booking: React.FC<BookingProps> = ({
           </button>
         </div>
       </div>
-      
+
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-medium">
             3
           </div>
-          <h3 className="ml-3 text-lg font-medium text-gray-400">Availability</h3>
+          <h3 className="ml-3 text-lg font-medium text-gray-400">
+            Availability
+          </h3>
         </div>
       </div>
-      
+
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-medium">
@@ -718,7 +775,7 @@ const Booking: React.FC<BookingProps> = ({
           <h3 className="ml-3 text-lg font-medium text-gray-400">Location</h3>
         </div>
       </div>
-      
+
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-medium">
@@ -741,7 +798,7 @@ const Booking: React.FC<BookingProps> = ({
           <h3 className="ml-3 text-lg font-medium">Booking Type</h3>
         </div>
       </div>
-      
+
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center">
@@ -750,24 +807,24 @@ const Booking: React.FC<BookingProps> = ({
           <h3 className="ml-3 text-lg font-medium">Duration</h3>
         </div>
       </div>
-      
+
       <div className="mt-4 bg-blue-50 p-6 rounded-lg">
         <div className="flex items-center mb-6">
-        <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-medium">
+          <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-medium">
             3
           </div>
           <h3 className="ml-3 text-lg font-medium">Availability</h3>
         </div>
-        
+
         <div className="mb-4">
           <div className="text-sm font-medium">Set your weekly hours</div>
         </div>
-        
+
         <div className="space-y-4">
           {availability.map((day, dayIndex) => (
             <div key={day.day} className="flex items-center justify-between">
               <div className="w-32 font-medium uppercase">{day.day}</div>
-              
+
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
@@ -775,9 +832,11 @@ const Booking: React.FC<BookingProps> = ({
                   onChange={() => toggleDayAvailability(dayIndex)}
                   className="sr-only"
                 />
-                <div className={`w-10 h-6 rounded-full peer ${
-                  day.available ? "bg-green-500" : "bg-gray-200"
-                }`}>
+                <div
+                  className={`w-10 h-6 rounded-full peer ${
+                    day.available ? "bg-green-500" : "bg-gray-200"
+                  }`}
+                >
                   <div
                     className={`absolute w-4 h-4 rounded-full bg-white transition-all ${
                       day.available ? "right-1" : "left-1"
@@ -785,31 +844,41 @@ const Booking: React.FC<BookingProps> = ({
                   ></div>
                 </div>
               </label>
-              
+
               {day.available && day.timeSlots.length > 0 && (
                 <div className="flex items-center">
                   <Clock className="h-4 w-4 text-gray-400 mr-1" />
                   <select
                     value={day.timeSlots[0].startTime}
-                    onChange={(e) => updateTimeSlot(dayIndex, "startTime", e.target.value)}
+                    onChange={(e) =>
+                      updateTimeSlot(dayIndex, "startTime", e.target.value)
+                    }
                     className="p-1 border border-gray-200 rounded-md"
                   >
                     {Array.from({ length: 24 }).map((_, i) => (
-                      <option key={i} value={`${i.toString().padStart(2, "0")}:00`}>
+                      <option
+                        key={i}
+                        value={`${i.toString().padStart(2, "0")}:00`}
+                      >
                         {`${i.toString().padStart(2, "0")}:00`}
                       </option>
                     ))}
                   </select>
-                  
+
                   <span className="mx-2">—</span>
-                  
+
                   <select
                     value={day.timeSlots[0].endTime}
-                    onChange={(e) => updateTimeSlot(dayIndex, "endTime", e.target.value)}
+                    onChange={(e) =>
+                      updateTimeSlot(dayIndex, "endTime", e.target.value)
+                    }
                     className="p-1 border border-gray-200 rounded-md"
                   >
                     {Array.from({ length: 24 }).map((_, i) => (
-                      <option key={i} value={`${i.toString().padStart(2, "0")}:00`}>
+                      <option
+                        key={i}
+                        value={`${i.toString().padStart(2, "0")}:00`}
+                      >
                         {`${i.toString().padStart(2, "0")}:00`}
                       </option>
                     ))}
@@ -819,9 +888,9 @@ const Booking: React.FC<BookingProps> = ({
             </div>
           ))}
         </div>
-        
+
         <div className="flex justify-end mt-6">
-          <button 
+          <button
             className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
             onClick={goToNextStep}
           >
@@ -829,7 +898,7 @@ const Booking: React.FC<BookingProps> = ({
           </button>
         </div>
       </div>
-      
+
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-medium">
@@ -838,7 +907,7 @@ const Booking: React.FC<BookingProps> = ({
           <h3 className="ml-3 text-lg font-medium text-gray-400">Location</h3>
         </div>
       </div>
-      
+
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-medium">
@@ -861,7 +930,7 @@ const Booking: React.FC<BookingProps> = ({
           <h3 className="ml-3 text-lg font-medium">Booking Type</h3>
         </div>
       </div>
-      
+
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center">
@@ -870,7 +939,7 @@ const Booking: React.FC<BookingProps> = ({
           <h3 className="ml-3 text-lg font-medium">Duration</h3>
         </div>
       </div>
-      
+
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center">
@@ -879,7 +948,7 @@ const Booking: React.FC<BookingProps> = ({
           <h3 className="ml-3 text-lg font-medium">Availability</h3>
         </div>
       </div>
-      
+
       <div className="mt-4 bg-blue-50 p-6 rounded-lg">
         <div className="flex items-center mb-6">
           <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-medium">
@@ -887,38 +956,52 @@ const Booking: React.FC<BookingProps> = ({
           </div>
           <h3 className="ml-3 text-lg font-medium">Location</h3>
         </div>
-        
+
         <div className="mb-4">
-          <div className="text-sm font-medium">Choose your preferred meeting method</div>
+          <div className="text-sm font-medium">
+            Choose your preferred meeting method
+          </div>
         </div>
-        
+
         <div className="grid grid-cols-4 gap-4 mb-6">
           {meetingLocations.map((location) => (
-            <div 
+            <div
               key={location.id}
               className={`p-6 bg-white border rounded-lg flex flex-col items-center cursor-pointer ${
-                location.id === selectedLocation ? "border-green-500 bg-green-50" : "border-gray-200"
+                location.id === selectedLocation
+                  ? "border-green-500 bg-green-50"
+                  : "border-gray-200"
               }`}
               onClick={() => selectMeetingLocation(location.id)}
             >
-              <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                location.id === selectedLocation ? "bg-green-500" : "bg-gray-100"
-              }`}>
+              <div
+                className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                  location.id === selectedLocation
+                    ? "bg-green-500"
+                    : "bg-gray-100"
+                }`}
+              >
                 <div className="text-center">
                   {React.cloneElement(location.icon as React.ReactElement, {
-                    className: `h-5 w-5 ${location.id === selectedLocation ? "text-white" : "text-gray-500"}`
+                    className: `h-5 w-5 ${
+                      location.id === selectedLocation
+                        ? "text-white"
+                        : "text-gray-500"
+                    }`,
                   })}
                 </div>
               </div>
               <div className="mt-3 text-center">
-                <span className="font-medium text-sm">{location.id === "in_person" ? "IN-PERSON" : location.name}</span>
+                <span className="font-medium text-sm">
+                  {location.id === "in_person" ? "IN-PERSON" : location.name}
+                </span>
               </div>
             </div>
           ))}
         </div>
-        
+
         <div className="flex justify-end mt-6">
-          <button 
+          <button
             className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
             onClick={goToNextStep}
           >
@@ -926,7 +1009,7 @@ const Booking: React.FC<BookingProps> = ({
           </button>
         </div>
       </div>
-      
+
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-medium">
@@ -949,7 +1032,7 @@ const Booking: React.FC<BookingProps> = ({
           <h3 className="ml-3 text-lg font-medium">Booking Type</h3>
         </div>
       </div>
-      
+
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center">
@@ -958,7 +1041,7 @@ const Booking: React.FC<BookingProps> = ({
           <h3 className="ml-3 text-lg font-medium">Duration</h3>
         </div>
       </div>
-      
+
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center">
@@ -967,7 +1050,7 @@ const Booking: React.FC<BookingProps> = ({
           <h3 className="ml-3 text-lg font-medium">Availability</h3>
         </div>
       </div>
-      
+
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center">
@@ -976,7 +1059,7 @@ const Booking: React.FC<BookingProps> = ({
           <h3 className="ml-3 text-lg font-medium">Location</h3>
         </div>
       </div>
-      
+
       <div className="mt-4 bg-blue-50 p-6 rounded-lg">
         <div className="flex items-center mb-6">
           <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-medium">
@@ -984,7 +1067,7 @@ const Booking: React.FC<BookingProps> = ({
           </div>
           <h3 className="ml-3 text-lg font-medium">Pricing</h3>
         </div>
-        
+
         <div className="bg-white p-6 rounded-lg mb-6">
           <div className="flex items-center mb-4">
             <DollarSign className="h-5 w-5 text-gray-600 mr-2" />
@@ -1003,10 +1086,11 @@ const Booking: React.FC<BookingProps> = ({
               placeholder="Consultation"
             />
             <p className="text-sm text-gray-500 mt-2">
-              Enter what type of session this is (e.g. "Consultation", "Therapy Session", "Coaching Call")
+              Enter what type of session this is (e.g. "Consultation", "Therapy
+              Session", "Coaching Call")
             </p>
           </div>
-          
+
           <div className="mb-6">
             <label className="flex items-center justify-between cursor-pointer">
               <span className="font-medium">Free Session</span>
@@ -1031,12 +1115,12 @@ const Booking: React.FC<BookingProps> = ({
               </div>
             </label>
             <p className="text-sm text-gray-500 mt-2">
-              {isFree 
-                ? "Your sessions will be offered for free." 
+              {isFree
+                ? "Your sessions will be offered for free."
                 : "Your sessions will require payment."}
             </p>
           </div>
-          
+
           {!isFree && (
             <div className="space-y-4">
               <div>
@@ -1046,7 +1130,8 @@ const Booking: React.FC<BookingProps> = ({
                 <div className="mt-1 relative rounded-md shadow-sm">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <span className="text-gray-500">
-                      {CURRENCIES.find(c => c.code === selectedCurrency)?.symbol || ''}
+                      {CURRENCIES.find((c) => c.code === selectedCurrency)
+                        ?.symbol || ""}
                     </span>
                   </div>
                   <input
@@ -1063,7 +1148,7 @@ const Booking: React.FC<BookingProps> = ({
                     onChange={(e) => setSelectedCurrency(e.target.value)}
                     className="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
                   >
-                    {CURRENCIES.map(currency => (
+                    {CURRENCIES.map((currency) => (
                       <option key={currency.code} value={currency.code}>
                         {currency.name} ({currency.symbol})
                       </option>
@@ -1074,18 +1159,34 @@ const Booking: React.FC<BookingProps> = ({
             </div>
           )}
         </div>
-        
+
         <div className="flex justify-end mt-6">
-          <button 
+          <button
             className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
             onClick={saveSettings}
             disabled={isLoading}
           >
             {isLoading ? (
               <span className="flex items-center">
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 Saving...
               </span>
@@ -1103,9 +1204,25 @@ const Booking: React.FC<BookingProps> = ({
     if (isFetchingSettings) {
       return (
         <div className="flex items-center justify-center py-20">
-          <svg className="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          <svg
+            className="animate-spin h-8 w-8 text-blue-500"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
           </svg>
           <span className="ml-3 text-lg">Loading settings...</span>
         </div>

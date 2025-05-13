@@ -31,7 +31,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    name: "Dashboard",
+    name: "Agent Setup",
     icon: <LayoutDashboard className="w-5 h-5" />,
     path: "/admin/dashboard",
     expandable: true,
@@ -46,28 +46,28 @@ const navItems: NavItem[] = [
     ],
   },
   {
-    name: "Business",
+    name: "Operations",
     icon: <Briefcase className="w-5 h-5" />,
-    path: "/admin/business",
+    path: "/admin/operations",
     expandable: true,
     subItems: [
-      { name: "Orders", path: "/admin/business/orders" },
-      { name: "Payments", path: "/admin/business/payments" },
-      { name: "Email", path: "/admin/business/email" },
-      { name: "Integrations", path: "/admin/business/integrations" },
-      { name: "Embed", path: "/admin/business/embed" },
+      { name: "Orders", path: "/admin/operations/orders" },
+      { name: "Payments", path: "/admin/operations/payments" },
+      { name: "Email", path: "/admin/operations/email" },
+      { name: "Integrations", path: "/admin/operations/integrations" },
+      { name: "Embed", path: "/admin/operations/embed" },
     ],
   },
   {
-    name: "Offerings",
+    name: "Commerce",
     icon: <Package className="w-5 h-5" />,
-    path: "/admin/offerings",
+    path: "/admin/commerce",
     expandable: true,
     subItems: [
-      { name: "Add New", path: "/admin/offerings/add" },
-      { name: "Manage", path: "/admin/offerings/manage" },
-      { name: "Calendar", path: "/admin/offerings/calendar" },
-      { name: "Policies", path: "/admin/offerings/policies" },
+      { name: "Products", path: "/admin/commerce/products" },
+      { name: "Orders", path: "/admin/commerce/orders" },
+      { name: "Payments", path: "/admin/commerce/payments" },
+      { name: "Policies", path: "/admin/commerce/policies" },
     ],
   },
   {

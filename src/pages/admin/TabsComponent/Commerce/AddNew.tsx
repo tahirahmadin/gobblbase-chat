@@ -48,7 +48,7 @@ const AddNew = () => {
     if (editData) {
       localStorage.removeItem("editingProduct");
     }
-    navigate("/admin/offerings/manage");
+    navigate("/admin/commerce/manage");
   };
 
   return (

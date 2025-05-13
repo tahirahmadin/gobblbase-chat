@@ -34,6 +34,16 @@ const socialMediaIcons = {
   snapchat: "https://cdn-icons-png.flaticon.com/512/2111/2111890.png",
 };
 
+const socialMediaBaseUrls = {
+  instagram: "https://www.instagram.com/",
+  twitter: "https://twitter.com/",
+  tiktok: "https://www.tiktok.com/@",
+  facebook: "https://www.facebook.com/",
+  youtube: "https://www.youtube.com/@",
+  linkedin: "https://www.linkedin.com/in/",
+  snapchat: "https://www.snapchat.com/add/",
+};
+
 const Profile = () => {
   const navigate = useNavigate();
   const [agentName, setAgentName] = useState("");
@@ -561,40 +571,54 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Social Media Links */}
+          {/* Social Media Handles */}
           <div className="space-y-4">
             <label className="block text-sm font-medium text-gray-700">
-              Social Media(URL)
+              Social Media Handles
             </label>
-            {Object.entries(socialMedia).map(([platform, url]) => (
-              <div key={platform} className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
-                  <img
-                    src={
-                      socialMediaIcons[
-                        platform as keyof typeof socialMediaIcons
-                      ]
-                    }
-                    alt={platform}
-                    className="w-5 h-5 object-contain"
-                  />
+            {Object.entries(socialMedia).map(([platform, url]) => {
+              // Extract username from full URL if it exists
+              const baseUrl =
+                socialMediaBaseUrls[
+                  platform as keyof typeof socialMediaBaseUrls
+                ];
+              const username = url.startsWith(baseUrl)
+                ? url.slice(baseUrl.length)
+                : url;
+
+              return (
+                <div key={platform} className="flex items-center space-x-2">
+                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                    <img
+                      src={
+                        socialMediaIcons[
+                          platform as keyof typeof socialMediaIcons
+                        ]
+                      }
+                      alt={platform}
+                      className="w-5 h-5 object-contain"
+                    />
+                  </div>
+                  <div className="flex-1 flex items-center border border-gray-300 rounded-md overflow-hidden">
+                    <span className="px-3 py-2 bg-gray-100 text-gray-500 text-sm whitespace-nowrap">
+                      {baseUrl}
+                    </span>
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) =>
+                        setSocialMedia({
+                          ...socialMedia,
+                          [platform]: e.target.value,
+                        })
+                      }
+                      placeholder={`Enter ${platform} handle`}
+                      className="flex-1 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
                 </div>
-                <input
-                  type="text"
-                  value={url}
-                  onChange={(e) =>
-                    setSocialMedia({
-                      ...socialMedia,
-                      [platform]: e.target.value,
-                    })
-                  }
-                  placeholder={`${
-                    platform.charAt(0).toUpperCase() + platform.slice(1)
-                  } URL`}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            ))}
+              );
+            })}
             <div className="flex justify-end">
               <button
                 onClick={handleSaveSocials}

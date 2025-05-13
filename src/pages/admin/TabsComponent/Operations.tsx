@@ -5,21 +5,21 @@ import Embed from "./Embed";
 import Orders from "./Orders";
 import EmailTemplates from "./EmailTemplates";
 
-const Business = () => {
+const Operations = () => {
   const location = useLocation();
   const currentPath = location.pathname;
 
   const renderContent = () => {
-    if (currentPath.includes("/business/integrations")) {
+    if (currentPath.includes("/operations/integrations")) {
       return <Integrations />;
     }
-    if (currentPath.includes("/business/embed")) {
+    if (currentPath.includes("/operations/embed")) {
       return <Embed />;
     }
-    if (currentPath.includes("/business/orders")) {
+    if (currentPath.includes("/operations/orders")) {
       return <Orders />;
     }
-    if (currentPath.includes("/business/email")) {
+    if (currentPath.includes("/operations/email")) {
       return <EmailTemplates />;
     }
     return <Payments />;
@@ -32,4 +32,4 @@ const Business = () => {
   );
 };
 
-export default Business;
+export default Operations;
