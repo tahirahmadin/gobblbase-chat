@@ -826,36 +826,45 @@ const Home = () => {
         </PracticalDesc>
         <CardsRow>
           <Card>
-            <CardImage>🧑‍💼</CardImage>
             <CardTitle>Solopreneurs</CardTitle>
             <CardDesc>
               The power of a full team powered by AI, without traditional hiring
               costs.
             </CardDesc>
+            <img
+              src="assets/landing-asset/business/solo.png"
+              alt="Solopreneurs"
+            />
             <CardTag>SUITABLE FOR</CardTag>
             <CardSuitable>
               Creators, Freelancers, Coaches & Consultants
             </CardSuitable>
           </Card>
           <Card>
-            <CardImage>📦</CardImage>
             <CardTitle>E-Commerce</CardTitle>
             <CardDesc>
               Your intelligent storefront guides customers, answers queries, and
               closes sales—all automatically.
             </CardDesc>
+            <img
+              src="assets/landing-asset/business/commerce.png"
+              alt="Solopreneurs"
+            />
             <CardTag>SUITABLE FOR</CardTag>
             <CardSuitable>
               E-commerce, D2C brands & Influencer storefronts
             </CardSuitable>
           </Card>
           <Card>
-            <CardImage>🛎️</CardImage>
             <CardTitle>Service Providers</CardTitle>
             <CardDesc>
               Your AI front desk handles bookings, captures leads, and nurtures
               client relationships 24/7.
             </CardDesc>
+            <img
+              src="assets/landing-asset/business/service.png"
+              alt="Solopreneurs"
+            />
             <CardTag>SUITABLE FOR</CardTag>
             <CardSuitable>
               Hospitality, Wellness, Legal & Home Services
