@@ -58,7 +58,7 @@ const Header = () => {
       className="bg-white border-b border-gray-200 shadow-lg z-10"
       style={{ backgroundColor: "#eaefff" }}
     >
-      <div className="flex justify-between items-center px-6 py-3">
+      <div className="flex justify-between items-center px-6 py-4 pl-16">
         <div className="flex items-center space-x-4">
           <div className="relative" ref={dropdownRef}>
             <button
@@ -133,8 +133,13 @@ const Header = () => {
             )}
           </div>
         </div>
-        <div>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+        <div className="hidden lg:block">
+          <button
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+            onClick={() => {
+              navigate("/admin/account/plans");
+            }}
+          >
             Upgrade Plan
           </button>
         </div>

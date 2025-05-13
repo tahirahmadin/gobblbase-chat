@@ -63,21 +63,6 @@ interface AddProductData {
   agentId: string;
 }
 
-interface StripeConfig {
-  isEnabled: boolean;
-  sellerId: string;
-  currency: string;
-}
-
-interface Transaction {
-  id: string;
-  amount: number;
-  currency: string;
-  status: string;
-  createdAt: string;
-  productName: string;
-}
-
 interface Document {
   documentId: string;
   title: string;
@@ -125,6 +110,34 @@ export interface RemoveDocumentResponse {
 interface DirectoryLink {
   label: string;
   url: string;
+}
+
+interface PlanData {
+  id: string;
+  name: string;
+  price: number;
+  currency: string;
+  credits: number;
+  recurrence: string;
+  description: string;
+  isCurrentPlan: boolean;
+}
+
+interface BillingDetails {
+  individualOrganizationName: string;
+  email: string;
+  country: string;
+  state: string;
+  addressLine1: string;
+  addressLine2: string;
+  zipCode: string;
+}
+
+interface CardDetails {
+  cardType: string;
+  cardNumber: string;
+  expiry: string;
+  default: boolean;
 }
 
 export async function extractContentFromURL(
@@ -703,11 +716,15 @@ export async function getAvailableSlots(
 export interface BookingPayload {
   agentId: string;
   userId: string;
+  email?: string;
   date: string;
   startTime: string;
   endTime: string;
   location: string;
-  userTimezone?: string; // Added userTimezone field
+  userTimezone?: string;
+  name?: string;
+  phone?: string;
+  notes?: string;
 }
 
 export async function bookAppointment(payload: BookingPayload): Promise<any> {
@@ -831,32 +848,6 @@ export const addProduct = async (data: AddProductData) => {
   }
 };
 
-export const updateProduct = async (data: {
-  productId: string;
-  title: string;
-  description: string;
-  price: string;
-  about?: string;
-  agentId: string;
-  stock: number;
-}) => {
-  try {
-    const response = await axios.put(
-      "https://rag.gobbl.ai/product/updateProduct",
-      data
-    );
-
-    if (response.data.error) {
-      throw new Error("Failed to update product");
-    }
-
-    return response.data.result;
-  } catch (error) {
-    console.error("Error updating product:", error);
-    throw error;
-  }
-};
-
 export const deleteProduct = async (id: string, agentId: string) => {
   try {
     const response = await axios.delete(
@@ -881,20 +872,17 @@ export const deleteProduct = async (id: string, agentId: string) => {
 };
 
 export const getProducts = async (agentId: string) => {
-  try {
-    let url = `https://rag.gobbl.ai/zoho/items?agentId=${agentId}`;
-    // let url = `https://rag.gobbl.ai/product/getProducts?agentId=${agentId}`;
-    const response = await axios.get(url);
-
-    if (response.data.error) {
-      throw new Error("Failed to fetch products");
-    }
-
-    return response.data.result;
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    throw error;
-  }
+  // try {
+  //   let url = `https://rag.gobbl.ai/zoho/items?agentId=${agentId}`;
+  //   const response = await axios.get(url);
+  //   if (response.data.error) {
+  //     throw new Error("Failed to fetch products");
+  //   }
+  //   return response.data.result;
+  // } catch (error) {
+  //   console.error("Error fetching products:", error);
+  //   throw error;
+  // }
 };
 
 export const updateProductImage = async (data: {
@@ -951,9 +939,7 @@ export const updateStripeAccountIdCurrency = async (data: {
   }
 };
 
-export const getTransactions = async (
-  agentId: string
-): Promise<Transaction[]> => {
+export const getTransactions = async (agentId: string): Promise<any[]> => {
   try {
     const response = await axios.get(
       `https://rag.gobbl.ai/client/getAgentOrders?agentId=${agentId}`
@@ -1323,5 +1309,578 @@ export async function saveCustomerLead(
       result:
         error instanceof Error ? error.message : "Failed to save customer lead",
     };
+  }
+}
+
+export async function getPlans(clientId: string): Promise<PlanData[]> {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/client/getPlans/${clientId}`
+    );
+
+    if (response.data.error) {
+      throw new Error("Failed to fetch plans");
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching plans:", error);
+    throw error;
+  }
+}
+
+export async function subscribeToPlan(
+  clientId: string,
+  planId: string
+): Promise<any> {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/client/subscribeToCredits",
+      {
+        clientId,
+        planId,
+      }
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.error || "Failed to subscribe to plan");
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error subscribing to plan:", error);
+    throw error;
+  }
+}
+
+export async function getClient(clientId: string) {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/client/getClient/${clientId}`
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.result || "Failed to fetch client data");
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching client data:", error);
+    throw error;
+  }
+}
+
+export async function updateClientBillingDetails(
+  clientId: string,
+  billingDetails: {
+    "Individual/Organization Name": string;
+    Email: string;
+    Country: string;
+    State: string;
+    "Zip Code": string;
+    "Address Line 1": string;
+    "Address Line 2": string;
+  }
+): Promise<any> {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/client/updateClientBillingDetails",
+      {
+        clientId,
+        billingDetails,
+      }
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating billing details:", error);
+    throw new Error("Failed to update billing details");
+  }
+}
+
+export async function updateClientBillingMethod(
+  clientId: string,
+  billingMethod: Array<{
+    cardType: string;
+    cardNumber: number;
+    expiry: string;
+    default: boolean;
+  }>
+): Promise<any> {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/client/updateClientBillingMethod",
+      {
+        clientId,
+        billingMethod,
+      }
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating billing method:", error);
+    throw new Error("Failed to update billing method");
+  }
+}
+
+export const updateProduct = async (data: {
+  productId: string;
+  title: string;
+  description: string;
+  price: string;
+  about?: string;
+  agentId: string;
+  stock: number;
+}) => {
+  try {
+    const response = await axios.put(
+      "https://rag.gobbl.ai/product/updateProduct",
+      data
+    );
+
+    if (response.data.error) {
+      throw new Error("Failed to update product");
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating product:", error);
+    throw error;
+  }
+};
+
+export async function getClientUsage(clientId: string) {
+  try {
+    const response = await fetch(
+      `https://rag.gobbl.ai/client/getClientUsage/${clientId}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch client usage data");
+    }
+
+    const data = await response.json();
+
+    if (data.error) {
+      throw new Error(data.result || "Failed to fetch client usage data");
+    }
+
+    return data.result;
+  } catch (error) {
+    console.error("Error fetching client usage data:", error);
+    throw error;
+  }
+}
+
+export async function getUserBookingHistory(userId: string, agentId: string) {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/appointment/user-bookings`,
+      {
+        params: { userId, agentId },
+      }
+    );
+
+    if (response.data.error) {
+      console.error("API error:", response.data.result);
+      return [];
+    }
+
+    return response.data.result || [];
+  } catch (error) {
+    console.error("Error fetching booking history:", error);
+    return [];
+  }
+}
+
+export async function userRescheduleBooking(payload: {
+  bookingId: string;
+  userId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  userTimezone: string;
+  notes?: string;
+}): Promise<any> {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/appointment/user-reschedule",
+      payload
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.result || "Failed to reschedule booking");
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Error rescheduling booking:", error);
+    throw error;
+  }
+}
+
+export async function getBookingForReschedule(
+  bookingId: string,
+  userId: string
+): Promise<any> {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/appointment/booking-for-reschedule`,
+      {
+        params: { bookingId, userId },
+      }
+    );
+
+    if (response.data.error) {
+      throw new Error(
+        response.data.result || "Failed to fetch booking details"
+      );
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching booking for reschedule:", error);
+    throw error;
+  }
+}
+
+export async function cancelUserBooking(bookingId: string, userId: string) {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/appointment/cancel-booking",
+      { bookingId }
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.result || "Failed to cancel booking");
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error cancelling user booking:", error);
+    throw error;
+  }
+}
+
+export async function sendRescheduleRequestEmail(payload: {
+  bookingId: string;
+  email: string;
+  rescheduleLink: string;
+  agentName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  userTimezone: string;
+}): Promise<any> {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/appointment/send-reschedule-email",
+      payload
+    );
+
+    if (response.data.error) {
+      throw new Error(
+        response.data.result || "Failed to send reschedule email"
+      );
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Error sending reschedule email:", error);
+    throw error;
+  }
+}
+
+export async function getMainProducts(agentId: string) {
+  try {
+    const response = await fetch(
+      `https://rag.gobbl.ai/product/getProducts?agentId=${agentId}`
+    );
+    if (!response.ok) throw new Error("Failed to fetch products");
+    const data = await response.json();
+    return data.result || [];
+  } catch (err) {
+    console.error("Error fetching products:", err);
+    return [];
+  }
+}
+
+export async function addMainProduct(type: string, form: any, agentId: string) {
+  let formData = new FormData();
+  let typeKey = "";
+
+  if (type === "physical") {
+    typeKey = "physical";
+    formData.append("type", typeKey);
+    formData.append("agentId", agentId);
+    formData.append("file", form.thumbnail);
+    formData.append("title", form.title);
+    formData.append("description", form.description);
+    formData.append("category", form.category);
+    formData.append("price", form.price);
+    formData.append("priceType", form.priceType);
+    formData.append("quantity", form.quantity);
+    formData.append(
+      "quantityUnlimited",
+      form.quantityType === "unlimited" ? "true" : "false"
+    );
+    formData.append("quantityType", form.quantityType);
+    formData.append("ctaButton", form.cta);
+
+    form.images.forEach((img: File | null, idx: number) => {
+      if (img) formData.append(`image${idx + 1}`, img);
+    });
+  } else if (type === "digital") {
+    typeKey = "digital";
+    formData.append("type", typeKey);
+    formData.append("agentId", agentId);
+    formData.append("file", form.thumbnail);
+    formData.append("title", form.title);
+    formData.append("description", form.description);
+    formData.append("category", form.category);
+    formData.append("price", form.price);
+    formData.append("priceType", form.priceType);
+    formData.append("quantity", form.quantity);
+    formData.append(
+      "quantityUnlimited",
+      form.quantityType === "unlimited" ? "true" : "false"
+    );
+    formData.append("quantityType", form.quantityType);
+    formData.append("ctaButton", form.cta);
+    form.images.forEach((img: File | null, idx: number) => {
+      if (img) formData.append(`image${idx + 1}`, img);
+    });
+    if (form.fileFormat) {
+      formData.append("fileFormat", form.fileFormat);
+    }
+    if (form.file) formData.append("digitalFile", form.file);
+    if (form.fileUrl) formData.append("fileUrl", form.fileUrl);
+    if (form.uploadType) formData.append("uploadType", form.uploadType);
+  } else if (type === "service") {
+    typeKey = "service";
+    formData.append("agentId", agentId);
+    formData.append("type", typeKey);
+    formData.append("file", form.thumbnail);
+    formData.append("title", form.title);
+    formData.append("description", form.description);
+    formData.append("category", form.category);
+    formData.append("price", form.price);
+    formData.append("priceType", form.priceType);
+    formData.append("quantity", form.quantity);
+    formData.append(
+      "quantityUnlimited",
+      form.quantityType === "unlimited" ? "true" : "false"
+    );
+    formData.append("quantityType", form.quantityType);
+    formData.append("ctaButton", form.cta);
+
+    formData.append("locationType", form.locationType);
+    formData.append("address", form.address);
+    form.images.forEach((img: File | null, idx: number) => {
+      if (img) formData.append(`image${idx + 1}`, img);
+    });
+  } else if (type === "event") {
+    typeKey = "event";
+    formData.append("agentId", agentId);
+    formData.append("type", typeKey);
+    formData.append("file", form.thumbnail);
+    formData.append("title", form.title);
+    formData.append("description", form.description);
+    formData.append("category", form.category);
+    formData.append("eventType", form.eventType);
+    formData.append("price", form.price);
+    formData.append("ctaButton", form.cta);
+    if (form.slots && form.slots[0]) {
+      formData.append("slotDate", form.slots[0].date);
+      formData.append("slotStart", form.slots[0].start);
+      formData.append("slotEnd", form.slots[0].end);
+      formData.append("seatType", form.slots[0].seatType);
+      formData.append("seats", form.slots[0].seats);
+    }
+    formData.append("timeZone", form.timeZone);
+    if (form.slots) {
+      formData.append("slots", JSON.stringify(form.slots));
+    }
+    form.images.forEach((img: File | null, idx: number) => {
+      if (img) formData.append(`image${idx + 1}`, img);
+    });
+  }
+
+  const response = await fetch("https://rag.gobbl.ai/product/addProduct", {
+    method: "POST",
+    body: formData,
+  });
+  return await response.json();
+}
+
+export async function updateMainProduct(
+  type: string,
+  form: any,
+  agentId: string,
+  productId: string
+) {
+  let formData = new FormData();
+  let typeKey = "";
+  formData.append("productId", productId);
+  if (type === "physical") {
+    typeKey = "physical";
+    formData.append("type", typeKey);
+    formData.append("agentId", agentId);
+    formData.append("file", form.thumbnail);
+    formData.append("title", form.title);
+    formData.append("description", form.description);
+    formData.append("category", form.category);
+    formData.append("price", form.price);
+    formData.append("priceType", form.priceType);
+    formData.append("quantity", form.quantity);
+    formData.append(
+      "quantityUnlimited",
+      form.quantityType === "unlimited" ? "true" : "false"
+    );
+    formData.append("quantityType", form.quantityType);
+    formData.append("ctaButton", form.cta);
+
+    form.images.forEach((img: File | null, idx: number) => {
+      if (img) formData.append(`image${idx + 1}`, img);
+    });
+  } else if (type === "digital") {
+    typeKey = "digital";
+    formData.append("type", typeKey);
+    formData.append("agentId", agentId);
+    formData.append("file", form.thumbnail);
+    formData.append("title", form.title);
+    formData.append("description", form.description);
+    formData.append("category", form.category);
+    formData.append("price", form.price);
+    formData.append("priceType", form.priceType);
+    formData.append("quantity", form.quantity);
+    formData.append(
+      "quantityUnlimited",
+      form.quantityType === "unlimited" ? "true" : "false"
+    );
+    formData.append("quantityType", form.quantityType);
+    formData.append("ctaButton", form.cta);
+    form.images.forEach((img: File | null, idx: number) => {
+      if (img) formData.append(`image${idx + 1}`, img);
+    });
+    if (form.fileFormat) {
+      formData.append("fileFormat", form.fileFormat);
+    }
+    if (form.file) formData.append("digitalFile", form.file);
+    if (form.fileUrl) formData.append("fileUrl", form.fileUrl);
+    if (form.uploadType) formData.append("uploadType", form.uploadType);
+  } else if (type === "service") {
+    typeKey = "service";
+    formData.append("agentId", agentId);
+    formData.append("type", typeKey);
+    formData.append("file", form.thumbnail);
+    formData.append("title", form.title);
+    formData.append("description", form.description);
+    formData.append("category", form.category);
+    formData.append("price", form.price);
+    formData.append("priceType", form.priceType);
+    formData.append("quantity", form.quantity);
+    formData.append(
+      "quantityUnlimited",
+      form.quantityType === "unlimited" ? "true" : "false"
+    );
+    formData.append("quantityType", form.quantityType);
+    formData.append("ctaButton", form.cta);
+
+    formData.append("locationType", form.locationType);
+    formData.append("address", form.address);
+    form.images.forEach((img: File | null, idx: number) => {
+      if (img) formData.append(`image${idx + 1}`, img);
+    });
+  } else if (type === "event") {
+    typeKey = "event";
+    formData.append("agentId", agentId);
+    formData.append("type", typeKey);
+    formData.append("file", form.thumbnail);
+    formData.append("title", form.title);
+    formData.append("description", form.description);
+    formData.append("category", form.category);
+    formData.append("price", form.price);
+    formData.append("ctaButton", form.cta);
+    formData.append("eventType", form.eventType);
+
+    formData.append("timeZone", form.timeZone);
+    if (form.slots && form.slots[0]) {
+      formData.append("slotDate", form.slots[0].date);
+      formData.append("slotStart", form.slots[0].start);
+      formData.append("slotEnd", form.slots[0].end);
+      formData.append("seatType", form.slots[0].seatType);
+      formData.append("seats", form.slots[0].seats);
+    }
+    form.images.forEach((img: File | null, idx: number) => {
+      if (img) formData.append(`image${idx + 1}`, img);
+    });
+  }
+  console.log(formData);
+  const response = await fetch("https://rag.gobbl.ai/product/updateProduct", {
+    method: "POST",
+    body: formData,
+  });
+  return await response.json();
+}
+
+// Delete main product by productId and agentId
+export async function deleteMainProduct(productId: string, agentId: string) {
+  try {
+    const response = await axios.delete(
+      "https://rag.gobbl.ai/product/deleteProduct",
+      {
+        data: { productId, agentId },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Error deleting product:", err);
+    throw err;
+  }
+}
+
+export const pauseProduct = async (productId: string, isPaused: boolean) => {
+  try {
+    const response = await axios.post(
+      "https://rag.gobbl.ai/product/pauseProduct",
+      {
+        productId,
+        isPaused,
+      }
+    );
+
+    if (response.data.error) {
+      throw new Error("Failed to update product status");
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error updating product status:", error);
+    throw error;
+    return false;
+  }
+};
+
+export async function getMainProductsForUser(agentId: string) {
+  try {
+    const response = await fetch(
+      `https://rag.gobbl.ai/user/getAgentProducts?agentId=${agentId}`
+    );
+    if (!response.ok) throw new Error("Failed to fetch products");
+    const data = await response.json();
+    return data.result || [];
+  } catch (err) {
+    console.error("Error fetching products:", err);
+    return [];
   }
 }

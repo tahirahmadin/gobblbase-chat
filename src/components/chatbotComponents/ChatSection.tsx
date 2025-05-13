@@ -3,10 +3,19 @@ import { ChatMessage, Theme } from "../../types";
 import StreamingText from "./otherComponents/StreamingText";
 import LoadingBubbles from "./otherComponents/LoadingBubbles";
 import BrowseSection from "./BrowseSection";
+import BookingManagementComponent from "./BookingManagementComponent";
 
 interface ChatSectionProps {
   theme: Theme;
-  messages: (ChatMessage & { type?: "booking" })[];
+  messages: (ChatMessage & {
+    type?:
+      | "booking"
+      | "booking-intro"
+      | "booking-loading"
+      | "booking-calendar"
+      | "booking-management-intro"
+      | "booking-management";
+  })[];
   isLoading: boolean;
   activeScreen: "about" | "chat" | "browse";
   messagesEndRef: React.RefObject<HTMLDivElement>;
@@ -17,6 +26,7 @@ interface ChatSectionProps {
     sessionPrice?: string;
     isFreeSession?: boolean;
   };
+  isBookingConfigured?: boolean;
 }
 
 export default function ChatSection({
@@ -26,10 +36,10 @@ export default function ChatSection({
   activeScreen,
   messagesEndRef,
   currentConfig,
+  isBookingConfigured = true,
 }: ChatSectionProps) {
   const [showBookingCard, setShowBookingCard] = useState(false);
 
-  // Function to check if message contains booking-related keywords
   const containsBookingKeywords = (message: string): boolean => {
     const bookingKeywords = [
       "book",
@@ -50,7 +60,6 @@ export default function ChatSection({
     return bookingKeywords.some((keyword) => lowerMessage.includes(keyword));
   };
 
-  // Check for booking keywords in the last message
   useEffect(() => {
     if (messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
@@ -58,11 +67,74 @@ export default function ChatSection({
         lastMessage.sender === "user" &&
         containsBookingKeywords(lastMessage.content)
       ) {
-        console.log("Booking keywords detected, showing booking card");
-        setShowBookingCard(true);
+        if (isBookingConfigured) {
+          setShowBookingCard(true);
+        } else {
+          setShowBookingCard(false);
+        }
       }
     }
-  }, [messages]);
+  }, [messages, isBookingConfigured]);
+
+  const renderMessage = (msg: ChatMessage & { type?: string }) => {
+    if (msg.sender === "agent") {
+      // Different message types for agent
+      if (
+        msg.type === "booking-intro" ||
+        msg.type === "booking-management-intro"
+      ) {
+        return (
+          <StreamingText
+            text={msg.content}
+            speed={15}
+            messageId={`${msg.id}-intro`}
+            textColor={!theme.isDark ? "black" : "white"}
+          />
+        );
+      } else if (msg.type === "booking-loading") {
+        return <LoadingBubbles textColor={theme.highlightColor} />;
+      } else if (msg.type === "booking-calendar") {
+        return (
+          <div className="w-full">
+            <BrowseSection
+              theme={theme}
+              currentConfig={currentConfig}
+              showOnlyBooking={true}
+              isBookingConfigured={isBookingConfigured}
+            />
+          </div>
+        );
+      } else if (msg.type === "booking-management") {
+        return (
+          <div className="w-full">
+            <BookingManagementComponent
+              theme={theme}
+              agentId={currentConfig?.agentId || ""}
+              sessionName={currentConfig?.sessionName || "Consultation"}
+              botName={currentConfig?.name || "Assistant"}
+            />
+          </div>
+        );
+      } else {
+        // Regular text message
+        return (
+          <StreamingText
+            text={msg.content}
+            speed={15}
+            messageId={msg.id}
+            textColor={!theme.isDark ? "black" : "white"}
+          />
+        );
+      }
+    } else {
+      // User message - simplified for consistency
+      return (
+        <div style={{ color: !theme.isDark ? "black" : "white" }}>
+          {msg.content}
+        </div>
+      );
+    }
+  };
 
   return (
     <div
@@ -74,14 +146,6 @@ export default function ChatSection({
     >
       {activeScreen === "chat" && (
         <>
-          {/* Date Header */}
-          {/* <div
-            className="text-xs text-center my-4"
-            style={{ color: theme.highlightColor }}
-          >
-            JAN 01, 2025 AT 09:00
-          </div> */}
-
           {messages.map((msg, index) => (
             <div
               key={msg.id}
@@ -89,52 +153,50 @@ export default function ChatSection({
                 msg.sender === "agent" ? "justify-start" : "justify-end"
               }`}
             >
-              <div
-                className={`max-w-[80%] rounded-xl p-3 font-medium`}
-                style={{
-                  backgroundColor:
-                    msg.sender === "agent"
-                      ? theme.isDark
-                        ? "black"
-                        : "white"
-                      : theme.mainDarkColor,
-                  color: !theme.isDark ? "black" : "white",
-                }}
-              >
-                <div className="prose prose-sm max-w-none text-inherit">
-                  {msg.sender === "agent" ? (
-                    msg.type === "booking" ? (
-                      <BrowseSection
-                        theme={theme}
-                        currentConfig={currentConfig}
-                        showOnlyBooking={true}
-                      />
-                    ) : (
-                      <StreamingText
-                        text={msg.content}
-                        speed={15}
-                        messageId={msg.id}
-                        textColor={!theme.isDark ? "black" : "white"}
-                      />
-                    )
-                  ) : (
-                    <div
-                      style={{
-                        color: !theme.isDark ? "black" : "white",
-                        paddingLeft: 10,
-                        paddingRight: 10,
-                      }}
-                    >
-                      {msg.content}
-                    </div>
-                  )}
+              {msg.sender === "agent" &&
+              (msg.type === "booking-calendar" ||
+                msg.type === "booking-management") ? (
+                // Special booking component with simple styling to prevent issues
+                <div
+                  className="rounded-xl overflow-hidden"
+                  style={{
+                    backgroundColor: theme.isDark ? "black" : "white",
+                    width: "95%",
+                    maxWidth: "95%",
+                    margin: "0 auto 0 0", // Left align
+                  }}
+                >
+                  {renderMessage(msg)}
                 </div>
-              </div>
+              ) : (
+                // Regular message layout
+                <div
+                  className={`max-w-[80%] rounded-xl p-3 font-medium`}
+                  style={{
+                    backgroundColor:
+                      msg.sender === "agent"
+                        ? theme.isDark
+                          ? "black"
+                          : "white"
+                        : theme.mainDarkColor,
+                    color:
+                      msg.sender === "agent"
+                        ? !theme.isDark
+                          ? "black"
+                          : "white"
+                        : "black", // Ensure user messages have consistent text color
+                  }}
+                >
+                  <div className="prose prose-sm max-w-none text-inherit">
+                    {renderMessage(msg)}
+                  </div>
+                </div>
+              )}
             </div>
           ))}
 
-          {isLoading && (
-            <div className="mb-4 flex justify-start px-2">
+          {/* {isLoading && (
+            <div className="mb-4 flex justify-start">
               <div
                 className="rounded-2xl p-3"
                 style={{
@@ -144,18 +206,7 @@ export default function ChatSection({
                 <LoadingBubbles textColor={theme.highlightColor} />
               </div>
             </div>
-          )}
-
-          {/* Show Booking Card when triggered */}
-          {showBookingCard && currentConfig && (
-            <div className="mb-4 px-2">
-              <BrowseSection
-                theme={theme}
-                currentConfig={currentConfig}
-                showOnlyBooking={true}
-              />
-            </div>
-          )}
+          )} */}
         </>
       )}
 

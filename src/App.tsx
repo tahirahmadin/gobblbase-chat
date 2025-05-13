@@ -14,18 +14,16 @@ import { Toaster } from "react-hot-toast";
 import { useBotConfig } from "./store/useBotConfig";
 
 import AdminLayout from "./components/adminComponents/AdminLayout";
-import Profile from "./pages/admin/TabsComponent/Profile";
-import Brain from "./pages/admin/TabsComponent/Brain";
-import Voice from "./pages/admin/TabsComponent/Voice";
-import Theme from "./pages/admin/TabsComponent/Theme";
-import WelcomeText from "./pages/admin/TabsComponent/WelcomeText";
-import Prompts from "./pages/admin/TabsComponent/Prompts";
-import Business from "./pages/admin/TabsComponent/Business";
-import Offerings from "./pages/admin/TabsComponent/Offerings";
+import Profile from "./pages/admin/TabsComponent/Dashboard/Profile";
+import AiModel from "./pages/admin/TabsComponent/Dashboard/AiModel";
+import Brain from "./pages/admin/TabsComponent/Dashboard/Brain";
+import Voice from "./pages/admin/TabsComponent/Dashboard/Voice";
+import Theme from "./pages/admin/TabsComponent/Dashboard/Theme";
+import WelcomeText from "./pages/admin/TabsComponent/Dashboard/WelcomeText";
+import Prompts from "./pages/admin/TabsComponent/Dashboard/Prompts";
 import Policies from "./pages/admin/TabsComponent/Policies";
 import ChatLogs from "./pages/admin/TabsComponent/ChatLogs";
 import CustomerLeads from "./pages/admin/TabsComponent/CustomerLeads";
-import Booking from "./pages/admin/BookingComponent/Booking";
 import BookingDashboardWrapper from "./pages/admin/BookingComponent/BookingDashboardWrapper";
 import Login from "./pages/admin/Login";
 import { useAdminStore } from "./store/useAdminStore";
@@ -33,7 +31,10 @@ import CreateNewBot from "./pages/admin/CreateNewBot";
 import Plans from "./pages/admin/Plans";
 import Billing from "./pages/admin/Billing";
 import Usage from "./pages/admin/Usage";
-import AiModel from "./pages/admin/TabsComponent/AiModel";
+import RescheduleBookingWrapper from "./components/chatbotComponents/RescheduleBookingWrapper";
+import Commerce from "./pages/admin/TabsComponent/Commerce/Commerce";
+import Operations from "./pages/admin/TabsComponent/Operations";
+import Home from "./pages/landing/Home";
 
 // Add type definition for window
 declare global {
@@ -48,12 +49,6 @@ function Dashboard() {
   const { isAdminLoggedIn, totalAgents, adminId, adminEmail, agents } =
     useAdminStore();
 
-  console.log(totalAgents);
-  console.log(isAdminLoggedIn);
-  console.log(adminId);
-  console.log(adminEmail);
-  console.log(agents);
-
   // Handle redirect to signup when user has no agents
   useEffect(() => {
     if (!isAdminLoggedIn) {
@@ -62,39 +57,6 @@ function Dashboard() {
       }
     }
   }, [isAdminLoggedIn, navigate, location.pathname]);
-
-  // Check for redirect from public chat
-  // useEffect(() => {
-  //   // Check if we have a redirect parameter in localStorage
-  //   const redirectAgentId = localStorage.getItem("redirectToAgentBooking");
-  //   if (redirectAgentId) {
-  //     console.log("Redirecting to booking tab for agent:", redirectAgentId);
-
-  //     // Set the active bot ID
-  //     setActiveBotId(redirectAgentId);
-
-  //     // Set the active tab to booking
-  //     setActiveTab("booking");
-
-  //     // Clear the localStorage item
-  //     localStorage.removeItem("redirectToAgentBooking");
-  //   }
-  // }, [setActiveBotId]);
-
-  // Make setActiveTab function available to children through window
-  // useEffect(() => {
-  //   // Add the function to window so it can be called from within iframes
-  //   window.setActiveAdminTab = (tab) => {
-  //     if (tab === "booking") {
-  //       setActiveTab("booking");
-  //     }
-  //   };
-
-  //   // Clean up
-  //   return () => {
-  //     delete window.setActiveAdminTab;
-  //   };
-  // }, []);
 
   // If logged in and agent selected, show admin layout with content
   return (
@@ -107,40 +69,27 @@ function Dashboard() {
         <Route path="dashboard/theme" element={<Theme />} />
         <Route path="dashboard/welcome" element={<WelcomeText />} />
         <Route path="dashboard/prompts" element={<Prompts />} />
-        <Route path="business" element={<Business />} />
-        <Route path="business/payments" element={<Business />} />
-        <Route path="business/integrations" element={<Business />} />
-        <Route path="business/embed" element={<Business />} />
-        <Route path="business/orders" element={<Business />} />
-        <Route path="business/email" element={<Business />} />
-        <Route path="offerings" element={<Offerings />} />
-        <Route path="offerings/add" element={<Offerings />} />
-        <Route path="offerings/manage" element={<Offerings />} />
+        <Route path="operations" element={<Operations />} />
+        <Route path="operations/payments" element={<Operations />} />
+        <Route path="operations/integrations" element={<Operations />} />
+        <Route path="operations/embed" element={<Operations />} />
+        <Route path="operations/orders" element={<Operations />} />
+        <Route path="operations/email" element={<Operations />} />
+        <Route path="commerce" element={<Commerce />} />
+        <Route path="commerce/add" element={<Commerce />} />
+        <Route path="commerce/manage" element={<Commerce />} />
 
         {/* Modified Calendar Routes */}
+        <Route path="commerce/calendar" element={<BookingDashboardWrapper />} />
         <Route
-          path="offerings/calendar"
+          path="commerce/calendar/edit"
+          element={<BookingDashboardWrapper isEditMode={true} />}
+        />
+        <Route
+          path="commerce/calendar/new"
           element={<BookingDashboardWrapper />}
         />
-        <Route
-          path="offerings/calendar/edit"
-          element={
-            <Booking
-              isEditMode={true}
-              onSetupComplete={() => navigate("/admin/offerings/calendar")}
-            />
-          }
-        />
-        <Route
-          path="offerings/calendar/new"
-          element={
-            <Booking
-              isEditMode={false}
-              onSetupComplete={() => navigate("/admin/offerings/calendar")}
-            />
-          }
-        />
-        <Route path="offerings/policies" element={<Policies />} />
+        <Route path="commerce/policies" element={<Policies />} />
         <Route path="crm/chat-logs" element={<ChatLogs />} />
         <Route path="crm/leads" element={<CustomerLeads />} />
         <Route path="account/billing" element={<Billing />} />
@@ -177,11 +126,15 @@ function App() {
         <Route path="/admin/dashboard/create-bot" element={<CreateNewBot />} />
         <Route path="/book/:agentId" element={<CustomerBookingPage />} />
         <Route
-          path="/:botUsername"
-          element={<PublicChat previewConfig={null} />}
+          path="/reschedule/:bookingId"
+          element={<RescheduleBookingWrapper />}
+        />
+        <Route
+          path=":botUsername"
+          element={<PublicChat chatHeight={null} previewConfig={null} />}
         />
         <Route path="/admin/*" element={<Dashboard />} />
-        <Route path="/" element={<Navigate to="/admin" replace />} />
+        <Route path="/" element={<Home />} />
       </Routes>
     </Router>
   );

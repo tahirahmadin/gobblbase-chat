@@ -175,3 +175,16 @@ export interface PersonalityOption {
   traits: string[];
   isCustom?: boolean;
 }
+
+export type ProductType = "physical" | "digital" | "service" | "event";
+export interface Product {
+  _id: string;
+  productId: string;
+  title: string;
+  description?: string;
+  price: number;
+  type: "digital" | "service" | "event" | "physical";
+  images: string[];
+  category: string;
+  priceType: "paid" | "free";
+}

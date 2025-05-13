@@ -1,21 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { ChevronRight, ChevronDown, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useCartStore } from "../../store/useCartStore";
 import TryFreeBanner from "./TryFreeBanner";
-import { Theme } from "../../types";
-import BookingFlowComponent from "./BookingFlowComponent";
-import { getAppointmentSettings } from "../../lib/serverActions";
-
-// Currency symbols mapping
-const CURRENCY_SYMBOLS: Record<string, string> = {
-  USD: "$",
-  EUR: "€",
-  GBP: "£",
-  INR: "₹",
-  CAD: "C$",
-  AUD: "A$",
-  JPY: "¥",
-};
+import { Product, Theme } from "../../types";
+import BookingSection from "./BookingSection";
+import ProductDetailPage from "./ProductDetailPage";
+import { useBotConfig } from "../../store/useBotConfig";
+import { Checkout } from "./checkoutComponent/Checkout";
 
 interface BrowseSectionProps {
   theme: Theme;
@@ -27,218 +18,155 @@ interface BrowseSectionProps {
     isFreeSession?: boolean;
   };
   showOnlyBooking?: boolean;
+  isBookingConfigured?: boolean;
+  containerStyle?: React.CSSProperties;
+  setActiveScreen: (screen: "chat" | "book" | "browse") => void;
 }
 
 export default function BrowseSection({
   theme,
   currentConfig,
   showOnlyBooking = false,
+  isBookingConfigured: propIsBookingConfigured,
+  containerStyle,
+  setActiveScreen,
 }: BrowseSectionProps) {
-  const { products } = useCartStore();
-  const [showBooking, setShowBooking] = useState(showOnlyBooking);
+  const {
+    products,
+    getProductsInventory,
+    selectedProduct,
+    setSelectedProduct,
+    cartView,
+    setCartView,
+  } = useCartStore();
+  const { activeBotId } = useBotConfig();
 
-  // State for dynamic pricing from backend
-  const [dynamicPrice, setDynamicPrice] = useState({
-    isFree: currentConfig?.isFreeSession || false,
-    amount: 0,
-    currency: "USD",
-    displayPrice: currentConfig?.isFreeSession
-      ? "Free"
-      : currentConfig?.sessionPrice || "Free",
-  });
+  const [isBookingConfigured, setIsBookingConfigured] = useState(
+    propIsBookingConfigured !== undefined ? propIsBookingConfigured : false
+  );
 
-  const [loadingPrice, setLoadingPrice] = useState(false);
-
-  // Format price for display
-  const formatPrice = (price: {
-    isFree: boolean;
-    amount: number;
-    currency: string;
-  }): string => {
-    if (price.isFree) return "Free";
-    const symbol = CURRENCY_SYMBOLS[price.currency] || "$";
-    return `${symbol}${price.amount}`;
-  };
-
-  // Extract values from config with defaults
-  const businessId = currentConfig?.agentId || "";
-  const botName = currentConfig?.name || "AI Assistant";
   const sessionName = currentConfig?.sessionName || "Session Description";
 
-  // Load price from backend API
   useEffect(() => {
-    const fetchPriceSettings = async () => {
-      if (!businessId) return;
+    if (activeBotId) {
+      getProductsInventory(activeBotId);
+    }
+  }, [activeBotId, getProductsInventory]);
 
-      setLoadingPrice(true);
-      try {
-        const data = await getAppointmentSettings(businessId);
-        console.log("Loaded settings for pricing:", data);
+  useEffect(() => {
+    if (propIsBookingConfigured !== undefined) {
+      setIsBookingConfigured(propIsBookingConfigured);
+    }
+  }, [propIsBookingConfigured]);
 
-        if (data && data.price) {
-          const formattedPrice = formatPrice(data.price);
-          setDynamicPrice({
-            isFree: data.price.isFree,
-            amount: data.price.amount,
-            currency: data.price.currency,
-            displayPrice: formattedPrice,
-          });
-          console.log("Set dynamic price from API:", formattedPrice);
-        } else {
-          // Use defaults from currentConfig if no price data found
-          setDynamicPrice({
-            isFree: currentConfig?.isFreeSession || false,
-            amount: currentConfig?.sessionPrice
-              ? parseFloat(
-                  currentConfig.sessionPrice.replace(/[^0-9.]/g, "")
-                ) || 0
-              : 0,
-            currency: "USD",
-            displayPrice: currentConfig?.isFreeSession
-              ? "Free"
-              : currentConfig?.sessionPrice || "Free",
-          });
-        }
-      } catch (error) {
-        console.error("Failed to load price settings:", error);
-      } finally {
-        setLoadingPrice(false);
-      }
-    };
+  const handleProductClick = (inputProduct: Product) => {
+    setSelectedProduct(inputProduct);
+  };
 
-    fetchPriceSettings();
-  }, [businessId, currentConfig]);
+  const handleBackToGrid = () => {
+    setSelectedProduct(null);
+  };
 
-  // If showOnlyBooking is true, only show the booking section
-  if (showOnlyBooking) {
-    return (
-      <div
-        className="rounded-xl overflow-hidden"
-        style={{
-          backgroundColor: theme.isDark ? "#000000" : "#ffffff",
-          color: !theme.isDark ? "#000000" : "#ffffff",
-        }}
-      >
-        <BookingFlowComponent
-          businessId={businessId}
-          serviceName={sessionName}
-          servicePrice={dynamicPrice.displayPrice}
-          theme={theme}
-          onClose={() => setShowBooking(false)}
-        />
-      </div>
-    );
-  }
+  const handleAddToCart = (quantity: number) => {
+    if (selectedProduct !== null) {
+      setCartView(true);
+    }
+  };
+
+  // Special styles for when in chat or showOnlyBooking mode
+  const inChatMode = showOnlyBooking && isBookingConfigured;
 
   return (
     <div
       className="flex flex-col h-full"
       style={{
         backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
+        ...containerStyle,
+        position: "relative",
       }}
     >
-      {/* Book Meeting Section */}
-      <div className="pt-4 px-4">
-        <h2 className="text-sm font-medium mb-2">Book Meeting</h2>
-
-        {/* Session Description Button */}
-        <button
-          className="w-full rounded-xl p-4 flex items-center justify-between"
-          style={{
-            backgroundColor: theme.isDark ? "#000000" : "#ffffff",
-            color: !theme.isDark ? "#000000" : "#ffffff",
-          }}
-          onClick={() => setShowBooking(!showBooking)}
-        >
-          <div>
-            <div className="text-sm font-medium">{sessionName}</div>
-            <div className="text-md font-medium text-left">
-              {loadingPrice ? "Loading..." : dynamicPrice.displayPrice}
+      {/* Main content with scrolling */}
+      <div
+        className={`flex-grow overflow-y-auto h-full ${
+          inChatMode ? "p-0 m-0" : "px-3"
+        }`}
+        style={{
+          paddingBottom: showOnlyBooking ? "0" : "100px",
+        }}
+      >
+        {cartView ? (
+          <Checkout
+            theme={theme}
+            onBack={() => setCartView(false)}
+            setActiveScreen={setActiveScreen}
+          />
+        ) : selectedProduct !== null ? (
+          <ProductDetailPage
+            theme={theme}
+            onBack={handleBackToGrid}
+            onAddToCart={handleAddToCart}
+          />
+        ) : (
+          <>
+            {/* Always show BookingSection if configured */}
+            {isBookingConfigured && (
+              <BookingSection
+                theme={theme}
+                businessId={currentConfig?.agentId || activeBotId || ""}
+                sessionName={sessionName}
+                isBookingConfigured={isBookingConfigured}
+                showOnlyBooking={showOnlyBooking}
+              />
+            )}
+            <h2
+              className="text-md font-medium mb-2 py-2"
+              style={{ color: theme.isDark ? "#fff" : "#000" }}
+            >
+              Browse
+            </h2>
+            {/* Product grid always visible */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 p-4">
+              {products.map((product) => (
+                <div
+                  key={product._id}
+                  className="rounded-lg shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => handleProductClick(product)}
+                  style={{
+                    backgroundColor: theme.isDark ? "#000" : "#fff",
+                    color: theme.isDark ? "#fff" : "#000",
+                  }}
+                >
+                  <img
+                    src={
+                      product.images?.[0] || "https://i.imgur.com/EJLFNOwg.jpg"
+                    }
+                    alt={product.title}
+                    className="w-full h-36 object-cover"
+                  />
+                  <div className="p-4">
+                    <h3 className="text-sm font-medium mb-1">
+                      {product.title}
+                    </h3>
+                    <div className="flex justify-between items-center">
+                      <span
+                        className="text-lg font-medium "
+                        style={{
+                          color: theme.highlightColor,
+                        }}
+                      >
+                        ${product.price}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
-          {showBooking ? (
-            <ChevronDown
-              className="w-5 h-5"
-              style={{ color: theme.highlightColor }}
-            />
-          ) : (
-            <ChevronRight
-              className="w-5 h-5"
-              style={{ color: theme.highlightColor }}
-            />
-          )}
-        </button>
-
-        {/* Booking Component (appears as dropdown) */}
-        {showBooking && (
-          <div
-            className="mt-2 rounded-xl overflow-hidden"
-            style={{
-              backgroundColor: theme.isDark ? "#000000" : "#ffffff",
-              color: !theme.isDark ? "#000000" : "#ffffff",
-              maxHeight: "450px",
-              overflowY: "auto",
-            }}
-          >
-            <BookingFlowComponent
-              businessId={businessId}
-              serviceName={sessionName}
-              servicePrice={dynamicPrice.displayPrice}
-              theme={theme}
-              onClose={() => setShowBooking(false)}
-            />
-          </div>
+          </>
         )}
       </div>
 
-      {/* Browse Products Section - Only show when booking is closed and not in booking-only mode */}
-      {!showBooking && !showOnlyBooking && (
-        <div className="px-4 mt-6">
-          <h2 className="text-sm font-medium mb-2">Browse</h2>
-          <div className="grid grid-cols-2 gap-4">
-            {products.map((product, index) => (
-              <div
-                key={index}
-                className="rounded-xl overflow-hidden"
-                style={{
-                  backgroundColor: theme.isDark ? "#000000" : "#ffffff",
-                  color: !theme.isDark ? "#000000" : "#ffffff",
-                }}
-              >
-                {/* Product Image */}
-                <div className="aspect-square">
-                  <img
-                    src={
-                      product.image ||
-                      "https://image.made-in-china.com/2f0j00vYDGElfRmuko/Customize-9cm-Small-Tea-Spoon-Natural-Bamboo-Spoon.jpg"
-                    }
-                    alt={product.title}
-                    className="w-full h-full object-cover p-2 rounded-xl"
-                  />
-                </div>
-                {/* Product Info */}
-                <div className="px-3 flex items-center justify-between">
-                  <div>
-                    <div className="text-sm line-clamp-2">{product.title}</div>
-                    <div className="text-sm font-semibold py-2">
-                      ${product.price}
-                    </div>
-                  </div>
-                  <button
-                    className="w-6 h-6 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: theme.highlightColor }}
-                  >
-                    <Plus className="w-4 h-4 text-black" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Always show TryFreeBanner */}
-      <TryFreeBanner />
+      {/* Try Free Banner */}
+      {/* {!inChatMode && <TryFreeBanner />} */}
     </div>
   );
 }

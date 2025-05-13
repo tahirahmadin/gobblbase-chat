@@ -1,15 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { getProducts } from "../lib/serverActions";
-
-interface Product {
-  _id: string;
-  title: string;
-  image: string;
-  price: string;
-  currency: string;
-  description: string;
-}
+import { getMainProductsForUser } from "../lib/serverActions";
+import { Product } from "../types";
 
 interface CartItem extends Product {
   quantity: number;
@@ -26,6 +18,11 @@ interface CartStore {
   getTotalPrice: () => number;
   getProductsInventory: (inputAgentId: string) => Promise<void>;
   isProductsLoading: boolean;
+  selectedProduct: Product | null;
+  setSelectedProduct: (product: Product | null) => void;
+  removeSelectedProduct: () => void;
+  cartView: boolean;
+  setCartView: (show: boolean) => void;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -33,16 +30,25 @@ export const useCartStore = create<CartStore>()(
     (set, get) => ({
       items: [],
       products: [],
+      selectedProduct: null,
       isProductsLoading: false,
+      cartView: false,
+      setCartView: (show: boolean) => set({ cartView: show }),
+      setSelectedProduct: (product: Product | null) => {
+        set({ selectedProduct: product });
+      },
+      removeSelectedProduct: () => {
+        set({ selectedProduct: null });
+      },
       addItem: (product) => {
         set((state) => {
           const existingItem = state.items.find(
-            (item) => item.id === product.id
+            (item) => item._id === product._id
           );
           if (existingItem) {
             return {
               items: state.items.map((item) =>
-                item.id === product.id
+                item._id === product._id
                   ? { ...item, quantity: item.quantity + 1 }
                   : item
               ),
@@ -55,7 +61,7 @@ export const useCartStore = create<CartStore>()(
       },
       removeItem: (productId) => {
         set((state) => ({
-          items: state.items.filter((item) => item.id !== productId),
+          items: state.items.filter((item) => item._id !== productId),
         }));
       },
       updateQuantity: (productId, quantity) => {
@@ -65,7 +71,7 @@ export const useCartStore = create<CartStore>()(
         }
         set((state) => ({
           items: state.items.map((item) =>
-            item.id === productId ? { ...item, quantity } : item
+            item._id === productId ? { ...item, quantity } : item
           ),
         }));
       },
@@ -77,12 +83,14 @@ export const useCartStore = create<CartStore>()(
       },
       getTotalPrice: () => {
         return get().items.reduce(
-          (total, item) => total + parseFloat(item.price) * item.quantity,
+          (total, item) =>
+            total + (item.price ? item.price : 0) * item.quantity,
           0
         );
       },
       getProductsInventory: async (inputAgentId: string) => {
-        let response = await getProducts(inputAgentId);
+        let response = await getMainProductsForUser(inputAgentId);
+        console.log(response);
         set({ products: response });
       },
     }),

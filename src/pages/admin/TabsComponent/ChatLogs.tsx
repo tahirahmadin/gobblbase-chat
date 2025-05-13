@@ -3,7 +3,7 @@ import { getChatLogs } from "../../../lib/serverActions";
 import { useBotConfig } from "../../../store/useBotConfig";
 import { ChatLog } from "../../../types";
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 4;
 
 const ChatLogs = () => {
   const { activeBotId } = useBotConfig();
@@ -57,7 +57,7 @@ const ChatLogs = () => {
               No chats found
             </div>
           ) : (
-            <>
+            <div className="flex flex-col justify-between h-full overflow-y-auto">
               <div className="space-y-2">
                 {paginatedSessions.map((session) => (
                   <div
@@ -73,7 +73,7 @@ const ChatLogs = () => {
                     <div className="text-xs text-gray-600">
                       {session.userLogs[
                         session.userLogs.length - 1
-                      ]?.content.slice(0, 60) || "No messages"}
+                      ]?.content.slice(0, 50) || "No messages"}
                     </div>
                     <div className="text-xs text-right text-green-400">
                       {new Date(session.createdDate).toLocaleDateString()}
@@ -111,7 +111,7 @@ const ChatLogs = () => {
                   {">"}
                 </button>
               </div>
-            </>
+            </div>
           )}
         </div>
         {/* Right: Chat Conversation */}

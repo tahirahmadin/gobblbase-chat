@@ -20,7 +20,9 @@ import {
   Check,
   X,
   Globe,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Mail,
+  Copy,
 } from "lucide-react";
 import { useBotConfig } from "../../../store/useBotConfig";
 import {
@@ -28,10 +30,11 @@ import {
   getBookings,
   cancelBooking,
   updateUnavailableDates,
+  sendRescheduleRequestEmail,
 } from "../../../lib/serverActions";
 import { AvailabilityDay } from "./Booking";
-import { useNavigate, useLocation } from 'react-router-dom';
-import AvailabilitySchedule from "./AvailabilitySchedule"; // Import the component
+import { useNavigate, useLocation } from "react-router-dom";
+import AvailabilitySchedule from "./AvailabilitySchedule";
 
 interface Meeting {
   _id: string;
@@ -44,6 +47,15 @@ interface Meeting {
   location: string;
   meetingLink?: string;
   userTimezone?: string;
+  isRescheduled?: boolean;
+  rescheduledFrom?: {
+    bookingId?: string;
+    date?: string;
+    startTime?: string;
+    endTime?: string;
+  };
+  rescheduledTo?: string;
+  name?: string;
 }
 
 interface BookingDashboardProps {
@@ -80,10 +92,9 @@ const CURRENCIES = [
   { code: "INR", symbol: "₹", name: "Indian Rupee" },
   { code: "CAD", symbol: "C$", name: "Canadian Dollar" },
   { code: "AUD", symbol: "A$", name: "Australian Dollar" },
-  { code: "JPY", symbol: "¥", name: "Japanese Yen" }
+  { code: "JPY", symbol: "¥", name: "Japanese Yen" },
 ];
 
-// Format time for display
 const formatTimeLabel = (minutes: number) => {
   if (minutes < 60) {
     return `${minutes} Minutes`;
@@ -96,10 +107,9 @@ const formatTimeLabel = (minutes: number) => {
     return hours === 1 ? "1 Hour" : `${hours} Hours`;
   }
 
-  return `${hours}.${remainingMinutes === 30 ? '5' : remainingMinutes} Hours`;
+  return `${hours}.${remainingMinutes === 30 ? "5" : remainingMinutes} Hours`;
 };
 
-// Format timezone for display
 const formatTimezone = (tz: string): string => {
   try {
     const date = new Date();
@@ -118,7 +128,6 @@ const formatTimezone = (tz: string): string => {
   }
 };
 
-// Format time
 const formatTime12 = (t24: string) => {
   const [h, m] = t24.split(":").map((x) => parseInt(x, 10));
   const suffix = h >= 12 ? "pm" : "am";
@@ -133,21 +142,23 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const agentIdFromUrl = queryParams.get('agentId');
+  const agentIdFromUrl = queryParams.get("agentId");
   const { activeBotData, activeBotId } = useBotConfig();
-  const activeAgentId = propAgentId || agentIdFromUrl || activeBotId || activeBotData?.agentId;
-  const [activeTab, setActiveTab] = useState<
-    "upcoming" | "past" | "schedule"
-  >("upcoming");
+  const activeAgentId =
+    propAgentId || agentIdFromUrl || activeBotId || activeBotData?.agentId;
+  const [activeTab, setActiveTab] = useState<"upcoming" | "past" | "schedule">(
+    "upcoming"
+  );
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [bookingSettings, setBookingSettings] = useState<BookingSettings | null>(null);
+  const [bookingSettings, setBookingSettings] =
+    useState<BookingSettings | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
 
-  // Filter states
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
     location: null,
@@ -157,12 +168,10 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
   const [filtersApplied, setFiltersApplied] = useState(false);
   const filterMenuRef = useRef<HTMLDivElement>(null);
 
-  // Get business timezone
   const [businessTimezone, setBusinessTimezone] = useState<string>(
     Intl.DateTimeFormat().resolvedOptions().timeZone
   );
 
-  // Fetch booking settings from API
   useEffect(() => {
     const fetchBookingSettings = async () => {
       if (!activeAgentId) return;
@@ -171,7 +180,6 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
         const settings = await getAppointmentSettings(activeAgentId);
         setBookingSettings(settings);
 
-        // Set business timezone from settings
         if (settings && settings.timezone) {
           setBusinessTimezone(settings.timezone);
         }
@@ -183,7 +191,6 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
     fetchBookingSettings();
   }, [activeAgentId]);
 
-  // Fetch meetings from API
   useEffect(() => {
     const fetchMeetings = async () => {
       if (!activeAgentId) return;
@@ -205,7 +212,6 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
     fetchMeetings();
   }, [activeAgentId, refreshTrigger]);
 
-  // Close filter menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -222,7 +228,6 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
     };
   }, []);
 
-  // Handle booking cancellation
   const handleCancelBooking = async (bookingId: string) => {
     if (!confirm("Are you sure you want to cancel this booking?")) return;
 
@@ -230,7 +235,6 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
 
     try {
       await cancelBooking(bookingId);
-      // Refresh the bookings list
       setRefreshTrigger((prev) => prev + 1);
     } catch (error) {
       console.error("Error cancelling booking:", error);
@@ -239,18 +243,45 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
       setCancellingId(null);
     }
   };
-  
-  // Refresh meetings function
+
+  const handleSendRescheduleEmail = async (meeting: Meeting) => {
+    if (!confirm("Send reschedule request email to this user?")) return;
+
+    setSendingEmailId(meeting._id);
+
+    try {
+      const rescheduleLink = `${window.location.origin}/reschedule/${
+        meeting._id
+      }?userId=${encodeURIComponent(meeting.userId)}`;
+
+      await sendRescheduleRequestEmail({
+        bookingId: meeting._id,
+        email: meeting.userId,
+        rescheduleLink,
+        agentName: meeting.name || activeBotData?.name || "Your Assistant",
+        date: meeting.date,
+        startTime: meeting.startTime,
+        endTime: meeting.endTime,
+        userTimezone: meeting.userTimezone || businessTimezone,
+      });
+
+      alert("Reschedule email sent successfully!");
+    } catch (error) {
+      console.error("Error sending reschedule email:", error);
+      alert("Failed to send reschedule email. Please try again.");
+    } finally {
+      setSendingEmailId(null);
+    }
+  };
+
   const refreshMeetings = () => {
-    setRefreshTrigger(prev => prev + 1);
+    setRefreshTrigger((prev) => prev + 1);
   };
 
-  // Handle edit settings button click
   const handleEditSettingsClick = () => {
-    window.location.href = "/admin/offerings/calendar/edit";
+    navigate("/admin/commerce/calendar/edit");
   };
 
-  // Format date for display
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat("en-US", {
@@ -260,7 +291,6 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
     }).format(date);
   };
 
-  // Format time for display
   const formatTime = (t: string) => {
     const [h, m] = t.split(":").map(Number);
     const ap = h < 12 ? "AM" : "PM";
@@ -268,67 +298,78 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
     return `${hr}:${m.toString().padStart(2, "0")} ${ap}`;
   };
 
-  // Filter and sort meetings based on active tab and filters
-  const filteredMeetings = meetings.filter((meeting) => {
-    // First filter by tab
-    if (activeTab === "upcoming") {
-      if (meeting.statusLabel !== "upcoming") return false;
-    } else if (activeTab === "past") {
-      if (meeting.statusLabel === "upcoming") return false;
-    }
-    
-    // Apply location filter if selected
-    if (filters.location && meeting.location !== filters.location) {
-      return false;
-    }
-
-    // Apply status filter if selected
-    if (filters.status && meeting.status !== filters.status) {
-      return false;
-    }
-
-    // Apply date range filter
-    if (filters.dateRange !== "all") {
-      const meetingDate = new Date(meeting.date);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      if (filters.dateRange === "today") {
-        const todayEnd = new Date(today);
-        todayEnd.setHours(23, 59, 59, 999);
-        if (meetingDate < today || meetingDate > todayEnd) return false;
-      } else if (filters.dateRange === "week") {
-        const weekStart = new Date(today);
-        weekStart.setDate(today.getDate() - today.getDay());
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekStart.getDate() + 6);
-        weekEnd.setHours(23, 59, 59, 999);
-        if (meetingDate < weekStart || meetingDate > weekEnd) return false;
-      } else if (filters.dateRange === "month") {
-        const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-        const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-        monthEnd.setHours(23, 59, 59, 999);
-        if (meetingDate < monthStart || meetingDate > monthEnd) return false;
+  const filteredMeetings = meetings
+    .filter((meeting) => {
+      if (meeting.status === "cancelled" && meeting.isRescheduled) {
+        return false;
       }
-    }
 
-    return true;
-  }).sort((a, b) => {
-    // Sort by date and time
-    if (activeTab === "upcoming") {
-      // For upcoming meetings, sort by earliest first
+      const meetingDate = new Date(meeting.date);
+      const now = new Date();
+      const currentDate = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate()
+      );
+      const meetingDateOnly = new Date(
+        meetingDate.getFullYear(),
+        meetingDate.getMonth(),
+        meetingDate.getDate()
+      );
+
+      if (activeTab === "upcoming") {
+        if (meetingDateOnly < currentDate) return false;
+      } else if (activeTab === "past") {
+        if (meetingDateOnly >= currentDate) return false;
+      }
+
+      if (filters.location && meeting.location !== filters.location) {
+        return false;
+      }
+
+      if (filters.status && meeting.status !== filters.status) {
+        return false;
+      }
+
+      if (filters.dateRange !== "all") {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (filters.dateRange === "today") {
+          const todayEnd = new Date(today);
+          todayEnd.setHours(23, 59, 59, 999);
+          if (meetingDate < today || meetingDate > todayEnd) return false;
+        } else if (filters.dateRange === "week") {
+          const weekStart = new Date(today);
+          weekStart.setDate(today.getDate() - today.getDay());
+          const weekEnd = new Date(weekStart);
+          weekEnd.setDate(weekStart.getDate() + 6);
+          weekEnd.setHours(23, 59, 59, 999);
+          if (meetingDate < weekStart || meetingDate > weekEnd) return false;
+        } else if (filters.dateRange === "month") {
+          const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+          const monthEnd = new Date(
+            today.getFullYear(),
+            today.getMonth() + 1,
+            0
+          );
+          monthEnd.setHours(23, 59, 59, 999);
+          if (meetingDate < monthStart || meetingDate > monthEnd) return false;
+        }
+      }
+
+      return true;
+    })
+    .sort((a, b) => {
       const dateA = new Date(`${a.date}T${a.startTime}`);
       const dateB = new Date(`${b.date}T${b.startTime}`);
-      return dateA.getTime() - dateB.getTime();
-    } else {
-      // For past meetings, sort by most recent first
-      const dateA = new Date(`${a.date}T${a.startTime}`);
-      const dateB = new Date(`${b.date}T${b.startTime}`);
-      return dateB.getTime() - dateA.getTime();
-    }
-  });
+      if (activeTab === "upcoming") {
+        return dateA.getTime() - dateB.getTime();
+      } else {
+        return dateB.getTime() - dateA.getTime();
+      }
+    });
 
-  // Calendar settings sidebar component
   const CalendarSettingsSidebar = () => {
     if (!bookingSettings) return null;
 
@@ -336,14 +377,14 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
       <div className="bg-blue-50 rounded-lg p-4 w-64">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-medium">Calendar Settings</h3>
-          <button 
+          <button
             onClick={handleEditSettingsClick}
             className="bg-green-500 text-white p-1 rounded"
           >
             <Edit className="h-4 w-4" />
           </button>
         </div>
-        
+
         <div className="space-y-4">
           <div>
             <div className="text-sm font-medium mb-1">Booking type</div>
@@ -356,55 +397,70 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                 )}
               </div>
               <span className="text-sm">
-                {bookingSettings.bookingType === "group" ? "Multiple Slots" : "Individual"}
+                {bookingSettings.bookingType === "group"
+                  ? "Multiple Slots"
+                  : "Individual"}
               </span>
             </div>
           </div>
-          
+
           <div>
             <div className="text-sm font-medium mb-1">Time zone</div>
             <div className="bg-gray-100 rounded-md p-2 text-sm">
               {formatTimezone(bookingSettings.timezone)}
             </div>
           </div>
-          
+
           <div>
             <div className="text-sm font-medium mb-1">Slots per session</div>
             <div className="bg-gray-100 rounded-md p-2 text-sm">
-              {bookingSettings.bookingType === "group" ? bookingSettings.bookingsPerSlot : 1}
+              {bookingSettings.bookingType === "group"
+                ? bookingSettings.bookingsPerSlot
+                : 1}
             </div>
           </div>
-          
+
           <div>
             <div className="text-sm font-medium mb-1">Available</div>
             <div className="bg-gray-100 rounded-md p-2 text-sm">
-              {bookingSettings.availability
-                .filter(day => day.available)
-                .length} Days
+              {
+                bookingSettings.availability.filter((day) => day.available)
+                  .length
+              }{" "}
+              Days
             </div>
           </div>
-          
+
           <div>
             <div className="text-sm font-medium mb-1">Duration</div>
             <div className="bg-gray-100 rounded-md p-2 text-sm">
               {formatTimeLabel(bookingSettings.meetingDuration)}
             </div>
           </div>
-          
+
           <div>
             <div className="text-sm font-medium mb-1">Buffer</div>
             <div className="bg-gray-100 rounded-md p-2 text-sm">
-              {bookingSettings.bufferTime > 0 ? formatTimeLabel(bookingSettings.bufferTime) : "No Buffer"}
+              {bookingSettings.bufferTime > 0
+                ? formatTimeLabel(bookingSettings.bufferTime)
+                : "No Buffer"}
             </div>
           </div>
-          
-          {/* Breaks */}
+
           <div>
-            <div className="text-sm font-medium mb-1">Break{bookingSettings.breaks && bookingSettings.breaks.length > 1 ? 's' : ''}</div>
+            <div className="text-sm font-medium mb-1">
+              Break
+              {bookingSettings.breaks && bookingSettings.breaks.length > 1
+                ? "s"
+                : ""}
+            </div>
             {bookingSettings.breaks && bookingSettings.breaks.length > 0 ? (
               <div className="space-y-1">
                 {bookingSettings.breaks.map((breakItem, index) => (
-                  <div key={index} className="bg-gray-100 rounded-md p-2 text-sm">
+                  <div
+                    key={index}
+                    className="bg-gray-100 rounded-md p-2 text-sm"
+                  >
                     {breakItem.startTime} - {breakItem.endTime}
                   </div>
                 ))}
@@ -415,21 +471,23 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
               </div>
             )}
           </div>
-          
-          {/* Price */}
+
           {bookingSettings.price && (
             <div>
               <div className="text-sm font-medium mb-1">Price</div>
               <div className="bg-gray-100 rounded-md p-2 text-sm">
-                {bookingSettings.price.isFree 
-                  ? "Free" 
-                  : `${CURRENCIES.find(c => c.code === bookingSettings.price.currency)?.symbol || '$'}${bookingSettings.price.amount}`
-                }
+                {bookingSettings.price.isFree
+                  ? "Free"
+                  : `${
+                      CURRENCIES.find(
+                        (c) => c.code === bookingSettings.price.currency
+                      )?.symbol || "$"
+                    }${bookingSettings.price.amount}`}
               </div>
             </div>
           )}
-          
-          <button 
+
+          <button
             onClick={handleEditSettingsClick}
             className="w-full mt-4 bg-green-500 text-white py-2 rounded-md text-sm"
           >
@@ -443,13 +501,13 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
   return (
     <div className="flex p-6 gap-6">
       <div className="flex-1">
-        {/* Header section */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold mb-1">Bookings Dashboard</h1>
-          <p className="text-gray-600 text-sm">Manage your calendar for appointments & 1:1 meetings</p>
+          <p className="text-gray-600 text-sm">
+            Manage your calendar for appointments & 1:1 meetings
+          </p>
         </div>
-        
-        {/* Tabs */}
+
         <div className="mb-6 flex space-x-2">
           <button
             onClick={() => setActiveTab("upcoming")}
@@ -482,38 +540,47 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
             My Schedule
           </button>
         </div>
-        
-        {/* Filters and Refresh Button - Add this section */}
+
         {activeTab !== "schedule" && (
           <div className="mb-4 flex justify-between items-center">
             <div className="flex space-x-2">
-              {/* Filter button */}
               <div className="relative">
                 <button
                   onClick={() => setShowFilterMenu(!showFilterMenu)}
                   className={`flex items-center px-3 py-2 text-sm rounded-md border ${
-                    filtersApplied ? "bg-blue-100 border-blue-300" : "bg-white border-gray-300"
+                    filtersApplied
+                      ? "bg-blue-100 border-blue-300"
+                      : "bg-white border-gray-300"
                   }`}
                 >
                   <Filter className="h-4 w-4 mr-2" />
                   {filtersApplied ? "Filters Applied" : "Filter"}
                   <ChevronDown className="h-4 w-4 ml-2" />
                 </button>
-                
-                {/* Filter dropdown menu */}
+
                 {showFilterMenu && (
-                  <div 
+                  <div
                     ref={filterMenuRef}
                     className="absolute left-0 top-full mt-1 w-72 bg-white border border-gray-200 rounded-md shadow-lg z-10 p-4"
                   >
                     <h4 className="font-medium mb-3">Filters</h4>
-                    
-                    {/* Date range filter */}
+
                     <div className="mb-3">
-                      <label className="block text-sm font-medium mb-1">Date Range</label>
+                      <label className="block text-sm font-medium mb-1">
+                        Date Range
+                      </label>
                       <select
                         value={filters.dateRange}
-                        onChange={(e) => setFilters({...filters, dateRange: e.target.value as "all" | "today" | "week" | "month"})}
+                        onChange={(e) =>
+                          setFilters({
+                            ...filters,
+                            dateRange: e.target.value as
+                              | "all"
+                              | "today"
+                              | "week"
+                              | "month",
+                          })
+                        }
                         className="w-full p-2 border border-gray-300 rounded-md text-sm"
                       >
                         <option value="all">All Dates</option>
@@ -522,13 +589,19 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                         <option value="month">This Month</option>
                       </select>
                     </div>
-                    
-                    {/* Location filter */}
+
                     <div className="mb-3">
-                      <label className="block text-sm font-medium mb-1">Location</label>
+                      <label className="block text-sm font-medium mb-1">
+                        Location
+                      </label>
                       <select
                         value={filters.location || ""}
-                        onChange={(e) => setFilters({...filters, location: e.target.value || null})}
+                        onChange={(e) =>
+                          setFilters({
+                            ...filters,
+                            location: e.target.value || null,
+                          })
+                        }
                         className="w-full p-2 border border-gray-300 rounded-md text-sm"
                       >
                         <option value="">All Locations</option>
@@ -538,13 +611,19 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                         <option value="in_person">In-person</option>
                       </select>
                     </div>
-                    
-                    {/* Status filter */}
+
                     <div className="mb-4">
-                      <label className="block text-sm font-medium mb-1">Status</label>
+                      <label className="block text-sm font-medium mb-1">
+                        Status
+                      </label>
                       <select
                         value={filters.status || ""}
-                        onChange={(e) => setFilters({...filters, status: e.target.value || null})}
+                        onChange={(e) =>
+                          setFilters({
+                            ...filters,
+                            status: e.target.value || null,
+                          })
+                        }
                         className="w-full p-2 border border-gray-300 rounded-md text-sm"
                       >
                         <option value="">All Statuses</option>
@@ -553,8 +632,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                         <option value="completed">Completed</option>
                       </select>
                     </div>
-                    
-                    {/* Filter actions */}
+
                     <div className="flex justify-between">
                       <button
                         onClick={() => {
@@ -573,9 +651,9 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                         onClick={() => {
                           setShowFilterMenu(false);
                           setFiltersApplied(
-                            filters.location !== null || 
-                            filters.dateRange !== "all" || 
-                            filters.status !== null
+                            filters.location !== null ||
+                              filters.dateRange !== "all" ||
+                              filters.status !== null
                           );
                         }}
                         className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md"
@@ -586,18 +664,22 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                   </div>
                 )}
               </div>
-              
-              {/* Applied filters display */}
+
               {filtersApplied && (
                 <div className="flex flex-wrap gap-2 items-center">
                   {filters.dateRange !== "all" && (
                     <div className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full flex items-center">
-                      {filters.dateRange === "today" ? "Today" : 
-                      filters.dateRange === "week" ? "This Week" : "This Month"}
+                      {filters.dateRange === "today"
+                        ? "Today"
+                        : filters.dateRange === "week"
+                        ? "This Week"
+                        : "This Month"}
                       <button
                         onClick={() => {
-                          setFilters({...filters, dateRange: "all"});
-                          setFiltersApplied(filters.location !== null || filters.status !== null);
+                          setFilters({ ...filters, dateRange: "all" });
+                          setFiltersApplied(
+                            filters.location !== null || filters.status !== null
+                          );
                         }}
                         className="ml-1"
                       >
@@ -605,16 +687,23 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                       </button>
                     </div>
                   )}
-                  
+
                   {filters.location && (
                     <div className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full flex items-center">
-                      {filters.location === "google_meet" ? "Google Meet" : 
-                      filters.location === "zoom" ? "Zoom" : 
-                      filters.location === "teams" ? "Microsoft Teams" : "In-person"}
+                      {filters.location === "google_meet"
+                        ? "Google Meet"
+                        : filters.location === "zoom"
+                        ? "Zoom"
+                        : filters.location === "teams"
+                        ? "Microsoft Teams"
+                        : "In-person"}
                       <button
                         onClick={() => {
-                          setFilters({...filters, location: null});
-                          setFiltersApplied(filters.dateRange !== "all" || filters.status !== null);
+                          setFilters({ ...filters, location: null });
+                          setFiltersApplied(
+                            filters.dateRange !== "all" ||
+                              filters.status !== null
+                          );
                         }}
                         className="ml-1"
                       >
@@ -622,14 +711,18 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                       </button>
                     </div>
                   )}
-                  
+
                   {filters.status && (
                     <div className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full flex items-center">
-                      {filters.status.charAt(0).toUpperCase() + filters.status.slice(1)}
+                      {filters.status.charAt(0).toUpperCase() +
+                        filters.status.slice(1)}
                       <button
                         onClick={() => {
-                          setFilters({...filters, status: null});
-                          setFiltersApplied(filters.dateRange !== "all" || filters.location !== null);
+                          setFilters({ ...filters, status: null });
+                          setFiltersApplied(
+                            filters.dateRange !== "all" ||
+                              filters.location !== null
+                          );
                         }}
                         className="ml-1"
                       >
@@ -640,8 +733,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                 </div>
               )}
             </div>
-            
-            {/* Refresh button */}
+
             <button
               onClick={refreshMeetings}
               className="flex items-center px-3 py-2 text-sm bg-white border border-gray-300 rounded-md"
@@ -652,8 +744,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
             </button>
           </div>
         )}
-        
-        {/* Content based on active tab */}
+
         {activeTab === "schedule" ? (
           <AvailabilitySchedule activeAgentId={activeAgentId} />
         ) : (
@@ -665,10 +756,12 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
             ) : error ? (
               <div className="text-center py-12">
                 <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-800 mb-2">Unable to load meetings</h3>
+                <h3 className="text-lg font-medium text-gray-800 mb-2">
+                  Unable to load meetings
+                </h3>
                 <p className="text-gray-600 mb-4">{error}</p>
                 <button
-                  onClick={() => setRefreshTrigger(prev => prev + 1)}
+                  onClick={() => setRefreshTrigger((prev) => prev + 1)}
                   className="px-4 py-2 bg-black text-white rounded-md text-sm"
                 >
                   Try Again
@@ -678,11 +771,13 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
               <div className="text-center py-12">
                 <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-800 mb-2">
-                  {activeTab === "upcoming" ? "No Scheduled Meetings" : "No Past Meetings"}
+                  {activeTab === "upcoming"
+                    ? "No Scheduled Meetings"
+                    : "No Past Meetings"}
                 </h3>
                 <p className="text-gray-600">
-                  {activeTab === "upcoming" 
-                    ? "When customers book time with you, appointments will appear here." 
+                  {activeTab === "upcoming"
+                    ? "When customers book time with you, appointments will appear here."
                     : "Your completed and cancelled meetings will appear here."}
                 </p>
               </div>
@@ -690,107 +785,165 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
               <div>
                 <div className="mb-4">
                   <div className="text-sm font-medium">
-                    {filteredMeetings.length} {activeTab === "upcoming" ? "Scheduled" : "Completed"} Meeting{filteredMeetings.length !== 1 ? 's' : ''}
+                    {filteredMeetings.length}{" "}
+                    {activeTab === "upcoming" ? "Scheduled" : "Completed"}{" "}
+                    Meeting{filteredMeetings.length !== 1 ? "s" : ""}
                   </div>
                 </div>
-                
+
                 <div className="max-h-[calc(100vh-220px)] overflow-y-auto">
-                  {/* Table header for meetings */}
                   <div className="bg-white rounded-lg mb-2 p-4 grid grid-cols-12 gap-4 font-medium text-sm text-gray-500">
                     <div className="col-span-3">NAME</div>
-                    <div className="col-span-3">DATE/TIME</div>
-                    <div className="col-span-3">LOCATION</div>
+                    <div className="col-span-2">DATE/TIME</div>
+                    <div className="col-span-2">LOCATION</div>
                     <div className="col-span-2">STATUS</div>
-                    <div className="col-span-1 text-right">ACTIONS</div>
+                    <div className="col-span-3 text-right">ACTIONS</div>
                   </div>
-                  
-                  {filteredMeetings.map((meeting) => (
-                    <div key={meeting._id} className="bg-white rounded-lg mb-2 p-4">
-                      <div className="grid grid-cols-12 gap-4">
-                        {/* Name column */}
-                        <div className="col-span-3">
-                          <div className="text-sm font-medium">{meeting.userId.split('@')[0]}</div>
-                          <div className="text-xs text-gray-500 truncate">{meeting.userId}</div>
-                        </div>
-                        
-                        {/* Date/Time column */}
-                        <div className="col-span-3">
-                          <div className="text-sm font-medium">{formatDate(meeting.date)}</div>
-                          <div className="text-xs text-gray-500">{formatTime(meeting.startTime)} - {formatTime(meeting.endTime)}</div>
-                        </div>
-                        
-                        {/* Location column */}
-                        <div className="col-span-3">
-                          <div className="text-sm font-medium">
-                            {meeting.location === 'google_meet' && 'Google Meet'}
-                            {meeting.location === 'zoom' && 'Zoom'}
-                            {meeting.location === 'teams' && 'Microsoft Teams'}
-                            {meeting.location === 'in_person' && 'In-person'}
-                          </div>
-                          {meeting.location !== 'in_person' && meeting.meetingLink && (
-                            <div className="mt-1 flex flex-wrap gap-2">
-                              <a
-                                href={meeting.meetingLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs bg-green-500 text-white px-3 py-1 rounded-md inline-block"
-                              >
-                                Join Now
-                              </a>
-                              
-                              <button
-                                onClick={() => {
-                                  navigator.clipboard.writeText(meeting.meetingLink);
-                                  alert("Meeting link copied to clipboard!");
-                                }}
-                                className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-md inline-block"
-                              >
-                                Copy Link
-                              </button>
+
+                  {filteredMeetings.map((meeting) => {
+                    // Check if meeting has been rescheduled
+                    // Either check isRescheduled flag or check if rescheduledFrom has data
+                    const hasRescheduledFrom =
+                      meeting.rescheduledFrom &&
+                      meeting.rescheduledFrom.bookingId !== undefined;
+
+                    const isRescheduled =
+                      meeting.isRescheduled || hasRescheduledFrom;
+                    const isRescheduledConfirmed =
+                      isRescheduled && meeting.status === "confirmed";
+
+                    return (
+                      <div
+                        key={meeting._id}
+                        className="bg-white rounded-lg mb-2 p-4"
+                      >
+                        <div className="grid grid-cols-12 gap-4 items-center">
+                          <div className="col-span-3">
+                            <div className="text-sm font-medium">
+                              {meeting.userId.split("@")[0]}
                             </div>
-                          )}
-                        </div>
-                        
-                        {/* Status column */}
-                        <div className="col-span-2">
-                          <span className={`px-2 py-0.5 rounded-full text-xs ${
-                            meeting.status === 'confirmed' 
-                              ? 'bg-green-100 text-green-800' 
-                              : meeting.status === 'cancelled'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-blue-100 text-blue-800'
-                          }`}>
-                            {meeting.status.charAt(0).toUpperCase() + meeting.status.slice(1)}
-                          </span>
-                        </div>
-                        
-                        {/* Actions column */}
-                        <div className="col-span-1 text-right">
-                          {activeTab === "upcoming" && (
-                            <button
-                              onClick={() => handleCancelBooking(meeting._id)}
-                              disabled={cancellingId === meeting._id}
-                              className="text-xs bg-red-100 text-red-800 px-3 py-1 rounded-md"
-                            >
-                              {cancellingId === meeting._id ? (
-                                <Loader2 className="h-3 w-3 animate-spin inline-block" />
-                              ) : (
-                                "Cancel"
+                            <div className="text-xs text-gray-500 truncate">
+                              {meeting.userId}
+                            </div>
+                          </div>
+
+                          <div className="col-span-2">
+                            <div className="text-sm font-medium">
+                              {formatDate(meeting.date)}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {formatTime(meeting.startTime)} -{" "}
+                              {formatTime(meeting.endTime)}
+                            </div>
+                          </div>
+
+                          <div className="col-span-2">
+                            <div className="text-sm font-medium">
+                              {meeting.location === "google_meet" &&
+                                "Google Meet"}
+                              {meeting.location === "zoom" && "Zoom"}
+                              {meeting.location === "teams" &&
+                                "Microsoft Teams"}
+                              {meeting.location === "in_person" && "In-person"}
+                            </div>
+                            {meeting.location !== "in_person" &&
+                              meeting.meetingLink && (
+                                <div className="mt-1 flex flex-wrap gap-1">
+                                  <a
+                                    href={meeting.meetingLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs bg-green-500 text-white px-2 py-0.5 rounded inline-block"
+                                  >
+                                    Join Now
+                                  </a>
+
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(
+                                        meeting.meetingLink
+                                      );
+                                      alert(
+                                        "Meeting link copied to clipboard!"
+                                      );
+                                    }}
+                                    className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded inline-block"
+                                  >
+                                    Copy Link
+                                  </button>
+                                </div>
                               )}
-                            </button>
-                          )}
+                          </div>
+
+                          <div className="col-span-2">
+                            <div className="flex flex-wrap gap-1">
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-xs w-fit ${
+                                  meeting.status === "confirmed"
+                                    ? "bg-green-100 text-green-800"
+                                    : meeting.status === "cancelled"
+                                    ? "bg-red-100 text-red-800"
+                                    : "bg-blue-100 text-blue-800"
+                                }`}
+                              >
+                                {meeting.status.charAt(0).toUpperCase() +
+                                  meeting.status.slice(1)}
+                              </span>
+                              {isRescheduledConfirmed && (
+                                <span className="px-2 py-0.5 rounded-full text-xs bg-orange-100 text-orange-800 w-fit">
+                                  Rescheduled
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="col-span-3 text-right">
+                            <div className="flex flex-wrap gap-1 justify-end">
+                              {activeTab === "upcoming" &&
+                                meeting.status === "confirmed" && (
+                                  <button
+                                    onClick={() =>
+                                      handleSendRescheduleEmail(meeting)
+                                    }
+                                    disabled={sendingEmailId === meeting._id}
+                                    className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded flex items-center justify-center gap-1"
+                                  >
+                                    {sendingEmailId === meeting._id ? (
+                                      <Loader2 className="h-3 w-3 animate-spin" />
+                                    ) : (
+                                      <Mail className="h-3 w-3" />
+                                    )}
+                                    Reschedule
+                                  </button>
+                                )}
+                              {activeTab === "upcoming" && (
+                                <button
+                                  onClick={() =>
+                                    handleCancelBooking(meeting._id)
+                                  }
+                                  disabled={cancellingId === meeting._id}
+                                  className="text-xs bg-red-100 text-red-800 px-3 py-1 rounded"
+                                >
+                                  {cancellingId === meeting._id ? (
+                                    <Loader2 className="h-3 w-3 animate-spin inline-block" />
+                                  ) : (
+                                    "Cancel"
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
           </div>
         )}
       </div>
-      
-      {/* Settings sidebar */}
+
       <CalendarSettingsSidebar />
     </div>
   );

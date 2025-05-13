@@ -71,131 +71,100 @@ export default function Embed() {
   };
 
   return (
-    <div className="space-y-8 p-4">
-      <div className="mb-8">
-        <h2 className="text-xl font-bold text-black">Embded Chat</h2>
-      </div>
-      {/* Embed Type Selection */}
-      {/* <div className="flex gap-4 mb-8">
-        <button
-          onClick={() => setEmbedType("bubble")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${
-            embedType === "bubble"
-              ? "bg-blue-50 border-blue-200"
-              : "bg-white border-gray-200"
-          }`}
-        >
-          <div className="w-4 h-4 rounded-full border-2 border-blue-500 flex items-center justify-center">
-            {embedType === "bubble" && (
-              <div className="w-2 h-2 rounded-full bg-blue-500" />
-            )}
-          </div>
-          <span className="text-sm font-medium">Embed a Chat Bubble</span>
-        </button>
-        <button
-          onClick={() => setEmbedType("iframe")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${
-            embedType === "iframe"
-              ? "bg-blue-50 border-blue-200"
-              : "bg-white border-gray-200"
-          }`}
-        >
-          <div className="w-4 h-4 rounded-full border-2 border-blue-500 flex items-center justify-center">
-            {embedType === "iframe" && (
-              <div className="w-2 h-2 rounded-full bg-blue-500" />
-            )}
-          </div>
-          <span className="text-sm font-medium">Embed the iFrame directly</span>
-        </button>
-      </div> */}
-
-      {/* Configuration Section */}
+    <div className="h-screen overflow-hidden">
       <div
-        className="rounded-lg border border-gray-200 overflow-hidden"
-        style={{ backgroundColor: "#eaefff" }}
+        className="space-y-6 p-4 h-full overflow-y-auto"
+        style={{ paddingBottom: 200 }}
       >
-        <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4">
-          <h2 className="text-lg font-semibold text-gray-800">Configuration</h2>
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-black">Embed Chat</h2>
         </div>
-        <div className="p-4">
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">
-                On the website - www.kifor.ai
-              </h3>
-              <div className="relative">
-                <pre className="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm font-mono border border-gray-200">
-                  {embedType === "bubble" ? bubbleCode : iframeCode}
-                </pre>
-                <button
-                  onClick={() =>
-                    handleCopy(embedType === "bubble" ? bubbleCode : iframeCode)
-                  }
-                  className="absolute top-3 right-3 p-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
-                  title="Copy code"
-                >
-                  {copied ? (
-                    <Check className="h-5 w-5 text-green-600" />
-                  ) : (
-                    <Copy className="h-5 w-5 text-gray-600" />
-                  )}
-                </button>
+
+        {/* Configuration Section */}
+        <div
+          className="rounded-lg border border-gray-200"
+          style={{ backgroundColor: "#eaefff" }}
+        >
+          <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4">
+            <h2 className="text-lg font-semibold text-gray-800">
+              Configuration
+            </h2>
+          </div>
+          <div className="p-4">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-gray-700 mb-2">
+                  On the website - www.kifor.ai
+                </h3>
+                <div className="relative">
+                  <pre className="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm font-mono border border-gray-200">
+                    {embedType === "bubble" ? bubbleCode : iframeCode}
+                  </pre>
+                  <button
+                    onClick={() =>
+                      handleCopy(
+                        embedType === "bubble" ? bubbleCode : iframeCode
+                      )
+                    }
+                    className="absolute top-3 right-3 p-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                    title="Copy code"
+                  >
+                    {copied ? (
+                      <Check className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <Copy className="h-5 w-5 text-gray-600" />
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Direct Access URL Card */}
-      <div
-        className="rounded-lg border border-gray-200 overflow-hidden"
-        style={{ backgroundColor: "#eaefff" }}
-      >
-        <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
-          <div className="flex items-center space-x-3">
-            <Globe className="h-6 w-6 text-gray-600" />
-            <h2 className="text-xl font-semibold text-gray-800">
-              Direct Access URL
-            </h2>
+        {/* Direct Access URL Card */}
+        <div
+          className="rounded-lg border border-gray-200 h-[220px]"
+          style={{ backgroundColor: "#eaefff" }}
+        >
+          <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
+            <div className="flex items-center space-x-3">
+              <Globe className="h-6 w-6 text-gray-600" />
+              <h2 className="text-xl font-semibold text-gray-800">
+                Direct Access URL
+              </h2>
+            </div>
+            <p className="mt-2 text-gray-600">
+              Share your chatbot with this direct link
+            </p>
           </div>
-          <p className="mt-2 text-gray-600">
-            Share your chatbot with this direct link
-          </p>
-        </div>
-        <div className="p-6">
-          <div className="space-y-4">
-            <div className="relative">
-              <div className="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm font-mono border border-gray-200">
-                {chatbotUrl}
-              </div>
-              <div className="absolute top-3 right-3 flex gap-2">
-                <button
-                  onClick={handleUrlCopy}
-                  className="p-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
-                  title="Copy URL"
-                >
-                  <Copy className="h-5 w-5 text-gray-600" />
-                </button>
-                <button
-                  onClick={handleVisitUrl}
-                  className="p-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
-                  title="Open in new tab"
-                >
-                  <ExternalLink className="h-5 w-5 text-gray-600" />
-                </button>
-                <button
-                  onClick={handleShare}
-                  className="p-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
-                  title="Share"
-                >
-                  <Share2 className="h-5 w-5 text-gray-600" />
-                </button>
-              </div>
-              {urlCopied && (
-                <div className="absolute top-3 right-3 bg-gray-800 text-white text-xs px-2 py-1 rounded-lg shadow-sm">
-                  Copied!
+          <div className="p-6">
+            <div className="space-y-4">
+              <div className="relative">
+                <div className="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm font-mono border border-gray-200">
+                  {chatbotUrl}
                 </div>
-              )}
+                <div className="absolute top-3 right-3 flex gap-2">
+                  <button
+                    onClick={handleUrlCopy}
+                    className="p-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                    title="Copy URL"
+                  >
+                    <Copy className="h-5 w-5 text-gray-600" />
+                  </button>
+                  <button
+                    onClick={handleVisitUrl}
+                    className="p-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                    title="Open in new tab"
+                  >
+                    <ExternalLink className="h-5 w-5 text-gray-600" />
+                  </button>
+                </div>
+                {urlCopied && (
+                  <div className="absolute top-3 right-3 bg-gray-800 text-white text-xs px-2 py-1 rounded-lg shadow-sm">
+                    Copied!
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
