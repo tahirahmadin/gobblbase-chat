@@ -420,11 +420,11 @@ const Booking: React.FC<BookingProps> = ({
         onSetupComplete();
       } else {
         // Use this simpler approach for testing
-        console.log("Navigation triggered to: //admin/commerce/calendar");
-        navigate("//admin/commerce/calendar");
+        console.log("Navigation triggered to: /admin/commerce/calendar");
+        navigate("/admin/commerce/calendar");
 
         // If that doesn't work, try with the full path:
-        // window.location.href = '//admin/commerce/calendar';
+        // window.location.href = '/admin/commerce/calendar';
       }
     } catch (error) {
       console.error("Failed to save booking settings:", error);

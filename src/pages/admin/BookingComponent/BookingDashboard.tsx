@@ -279,7 +279,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
   };
 
   const handleEditSettingsClick = () => {
-    navigate("//admin/commerce/calendar/edit");
+    navigate("/admin/commerce/calendar/edit");
   };
 
   const formatDate = (dateString: string) => {

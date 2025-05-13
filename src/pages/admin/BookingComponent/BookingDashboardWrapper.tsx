@@ -65,12 +65,12 @@ const BookingDashboardWrapper: React.FC<BookingDashboardWrapperProps> = ({
   const handleSetupComplete = () => {
     setIsSetupComplete(true);
     setForceSetupView(false);
-    navigate("//admin/commerce/calendar");
+    navigate("/admin/commerce/calendar");
   };
 
   // For reopening the setup through the Edit Settings button
   const handleEditSetup = () => {
-    navigate("//admin/commerce/calendar/edit");
+    navigate("/admin/commerce/calendar/edit");
   };
 
   return (
