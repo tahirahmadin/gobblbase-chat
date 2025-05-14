@@ -32,7 +32,9 @@ import {
   createInternationalPhone,
 } from "../../utils/phoneUtils";
 import { Theme } from "../../types";
-import { useUserStore } from "../../store/useUserStore"; // Import useUserStore
+import { useUserStore } from "../../store/useUserStore"; 
+import { LoginCard } from "../chatbotComponents/otherComponents/LoginCard"; 
+import { BookingPaymentComponent } from "./BookingPaymentComponent";
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -623,6 +625,11 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   };
 
   const selectSlot = (slot: Slot) => {
+    if (!isLoggedIn) {
+      setSelectedSlot(null);
+      return;
+    }
+    
     setSelectedSlot(slot);
     setStep("details");
   };
@@ -887,6 +894,30 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           return aHour * 60 + aMin - (bHour * 60 + bMin);
         });
       
+        if (!isLoggedIn) {
+          return (
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <button
+                  onClick={() => setStep("date")}
+                  className="flex items-center text-sm"
+                  style={{ color: theme.mainLightColor }}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1" /> BACK
+                </button>
+                <div className="text-sm">Timezone: {formatTimezone(userTimezone)}</div>
+              </div>
+              
+              <div className="mb-4 flex justify-between">
+                <div className="font-medium">SELECTED DATE</div>
+                <div>{fmtDateFull(selectedDate)}</div>
+              </div>
+              
+              {/* Login Card */}
+              <LoginCard theme={theme} />
+            </div>
+          );
+        }
         
         return (
           <div>
@@ -1132,99 +1163,38 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       }
       
       if (step === "payment" && selectedSlot && selectedDate) {
-        return (
-          <div>
-            <div className="flex justify-between items-center mb-4">
-              <button
-                onClick={() => setStep("details")}
-                className="flex items-center text-sm"
-                style={{ color: theme.mainLightColor }}
-              >
-                <ArrowLeft className="h-4 w-4 mr-1" /> BACK
-              </button>
-              <div className="text-sm">Timezone: {formatTimezone(userTimezone)}</div>
-            </div>
+        // Create the booking details object
+        const bookingDetails = {
+          businessId: businessId,
+          date: fmtApiDate(selectedDate),
+          startTime: convertTimeToBusinessTZ(selectedSlot.startTime, selectedDate),
+          endTime: convertTimeToBusinessTZ(selectedSlot.endTime, selectedDate),
+          location: selectedLocation,
+          name: name,
+          email: email,
+          phone: phone ? createInternationalPhone(phone, selectedCountryCode) : "",
+          notes: notes,
+          userTimezone: userTimezone,
+        };
       
-            <div className="mb-4 flex justify-between items-center">
-            <div 
-                className="font-medium uppercase"
-                style={{ color: theme.highlightColor }}
-            >
-                SELECTED DATE
-            </div>
-            <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
-                {fmtDateFull(selectedDate)}
-            </div>
-            </div>
-                        
-            <div className="mb-4 flex justify-between items-center">
-            <div 
-                className="font-medium uppercase"
-                style={{ color: theme.highlightColor }}
-            >
-                SELECTED TIME
-            </div>
-            <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
-                {fmtTime(selectedSlot.startTime)} - {fmtTime(selectedSlot.endTime)}
-            </div>
-            </div>
-                        
-            <div className="mb-4 flex justify-between items-center">
-            <div 
-                className="font-medium uppercase"
-                style={{ color: theme.highlightColor }}
-            >
-                DUE AMOUNT
-            </div>
-            <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
-                {servicePrice}
-            </div>
-            </div>
-            
-            {paymentError && (
-              <div className="mb-4 text-center">
-                <p className="text-yellow-400 text-sm font-medium">{paymentError}</p>
-              </div>
-            )}
-            
-            <div className="space-y-3 mt-8">
-              <button
-                onClick={handleStripePayment}
-                disabled={stripeProcessing || stablecoinProcessing}
-                className="w-full p-3 rounded-full font-medium"
-                style={{
-                    backgroundColor: theme.highlightColor,
-                    color: theme.mainDarkColor,
-                    opacity: (stripeProcessing || stablecoinProcessing) ? 0.7 : 1
-                  }}
-              >
-                {stripeProcessing ? (
-                  <div className="flex items-center justify-center">
-                    <Loader2 className="animate-spin h-5 w-5 mr-2" />
-                    Processing...
-                  </div>
-                ) : "PAY WITH STRIPE"}
-              </button>
-              
-              <button
-                onClick={handleStablecoinPayment}
-                disabled={stripeProcessing || stablecoinProcessing}
-                className="w-full p-3 rounded-full font-medium"
-                style={{
-                  backgroundColor: theme.highlightColor,
-                  color: theme.mainDarkColor,
-                  opacity: (stripeProcessing || stablecoinProcessing) ? 0.7 : 1
-                }}
-              >
-                {stablecoinProcessing ? (
-                  <div className="flex items-center justify-center">
-                    <Loader2 className="animate-spin h-5 w-5 mr-2" />
-                    Processing...
-                  </div>
-                ) : "PAY WITH STABLECOIN"}
-              </button>
-            </div>
-          </div>
+        // Create the price object from your dynamic price state
+        const priceDetails = {
+          amount: dynamicPrice.amount,
+          currency: dynamicPrice.currency,
+          displayPrice: dynamicPrice.displayPrice
+        };
+      
+        return (
+          <BookingPaymentComponent
+            theme={theme}
+            bookingDetails={bookingDetails}
+            price={priceDetails}
+            onBack={() => setStep("details")}
+            onSuccess={() => {
+              // When payment is successful, move to confirmation step
+              setStep("confirmation");
+            }}
+          />
         );
       }
       
