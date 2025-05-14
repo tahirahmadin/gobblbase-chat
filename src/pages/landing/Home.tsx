@@ -31,11 +31,6 @@ const Header = styled.header`
   padding: 18px 32px 18px 24px;
   background: #fff;
   border-bottom: 1px solid #e5e7eb;
-  @media (max-width: 600px) {
-    flex-direction: column;
-    gap: 10px;
-    padding: 12px 8px;
-  }
 `;
 
 const Logo = styled.div`
@@ -149,6 +144,7 @@ const SpeechBubble = styled.div<SpeechBubbleProps>`
     min-width: 70px;
     max-width: 120px;
     padding: 5px 7px;
+    display: none;
   }
 `;
 
@@ -159,10 +155,10 @@ const PracticalSection = styled.section`
   max-width: 1100px;
   margin: 0 auto;
   @media (max-width: 900px) {
-    padding: 32px 0 40px 0;
+    padding: 32px 10px 40px 10px;
   }
   @media (max-width: 600px) {
-    padding: 18px 0 24px 0;
+    padding: 18px 10px 24px 10px;
   }
 `;
 
@@ -331,7 +327,7 @@ const FeaturesSection = styled.section`
     padding: 32px 0 40px 0;
   }
   @media (max-width: 600px) {
-    padding: 18px 0 24px 0;
+    padding: 18px 10px 24px 10px;
   }
 `;
 
@@ -456,12 +452,12 @@ const FeatureImageBox = styled.div`
   }
   @media (max-width: 600px) {
     width: 95vw;
-    height: 120px;
+    height: 180px;
     border-radius: 10px;
   }
   img {
-    max-width: 90%;
-    max-height: 90%;
+    max-width: 100%;
+    max-height: 100%;
     object-fit: contain;
   }
 `;
@@ -495,10 +491,10 @@ const PlatformSection = styled.section`
   max-width: 1100px;
   margin: 0 auto;
   @media (max-width: 900px) {
-    padding: 32px 0 40px 0;
+    padding: 32px 10px 40px 10px;
   }
   @media (max-width: 600px) {
-    padding: 18px 0 24px 0;
+    padding: 18px 10px 24px 10px;
   }
 `;
 
@@ -520,6 +516,11 @@ const PlatformCardsRow = styled.div`
   width: 100%;
   max-width: 1100px;
   margin-bottom: 48px;
+  @media (max-width: 900px) {
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
 `;
 
 const PlatformCard = styled.div`
@@ -733,7 +734,7 @@ const AssembleMascotImg = styled.img`
 
 const AppOverloadSection = styled.section`
   background: #f5f6fa;
-  padding: 56px 0 48px 0;
+  padding: 56px 10px 48px 10px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -742,7 +743,7 @@ const AppOverloadSection = styled.section`
 `;
 
 const AppOverloadTitle = styled.h2`
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: 700;
   color: #23244a;
   text-align: center;
@@ -843,7 +844,7 @@ const AppOverloadCardReplace = styled.div`
 
 const IntegrationsSection = styled.section`
   background: #f5f6fa;
-  padding: 56px 0 48px 0;
+  padding: 56px 10px 48px 10px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -887,7 +888,7 @@ const IntegrationsGrid = styled.div`
     overflow-x: auto;
   }
   @media (max-width: 600px) {
-    grid-template-columns: repeat(2, 60px);
+    grid-template-columns: repeat(5, 60px);
     grid-template-rows: repeat(12, 60px);
     gap: 6px;
     padding: 2px;
@@ -1049,6 +1050,11 @@ const FooterContent = styled.div`
   padding: 0 32px 0 32px;
   position: relative;
   z-index: 2;
+  @media (max-width: 900px) {
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
 `;
 
 const FooterLeft = styled.div`
@@ -1116,6 +1122,9 @@ const FooterRight = styled.div`
   justify-content: flex-end;
   min-width: 320px;
   position: relative;
+  @media (max-width: 900px) {
+    align-items: center;
+  }
 `;
 
 const FooterCopyright = styled.div`
