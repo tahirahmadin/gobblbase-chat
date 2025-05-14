@@ -1,9 +1,25 @@
 import React, { useState } from "react";
-import styled from "styled-components";
+import styled, { createGlobalStyle } from "styled-components";
 import { useNavigate } from "react-router-dom";
+import {
+  Mail,
+  Calendar,
+  MessageCircle,
+  ShoppingCart,
+  Camera,
+  CreditCard,
+  Plug,
+} from "lucide-react";
+
+const GlobalStyle = createGlobalStyle`
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
+  body {
+    font-family: 'DM Sans', sans-serif;
+  }
+`;
 
 const Container = styled.div`
-  font-family: "Inter", sans-serif;
+  font-family: "DM Sans", sans-serif;
   background: #f5f6fa;
   min-height: 100vh;
 `;
@@ -138,8 +154,10 @@ const SpeechBubble = styled.div<SpeechBubbleProps>`
 
 const PracticalSection = styled.section`
   background: #f5f6fa;
-  padding: 48px 0 64px 0;
-  text-align: center;
+  padding: 64px 0 64px 0;
+  text-align: left;
+  max-width: 1100px;
+  margin: 0 auto;
   @media (max-width: 900px) {
     padding: 32px 0 40px 0;
   }
@@ -151,8 +169,9 @@ const PracticalSection = styled.section`
 const PracticalTitle = styled.h2`
   font-size: 2rem;
   font-weight: 700;
-  margin-bottom: 10px;
   color: #222;
+  text-align: left;
+
   @media (max-width: 600px) {
     font-size: 1.2rem;
   }
@@ -160,17 +179,21 @@ const PracticalTitle = styled.h2`
 
 const PracticalDesc = styled.p`
   color: #444;
-  font-size: 1.1rem;
+  font-size: 1rem;
+  font-weight: 500;
   margin-bottom: 36px;
+  text-align: left;
+  width: 50%;
   @media (max-width: 600px) {
     font-size: 0.95rem;
     margin-bottom: 18px;
+    width: 100%;
   }
 `;
 
 const CardsRow = styled.div`
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   gap: 32px;
   flex-wrap: wrap;
   @media (max-width: 900px) {
@@ -183,78 +206,75 @@ const CardsRow = styled.div`
   }
 `;
 
-const Card = styled.div`
+const PracticalCard = styled.div`
   background: #e6eaff;
   border-radius: 18px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   width: 320px;
-  padding: 32px 24px 28px 24px;
-  text-align: center;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   align-items: center;
+  padding: 0;
+  overflow: hidden;
   @media (max-width: 900px) {
     width: 240px;
-    padding: 20px 12px 18px 12px;
   }
   @media (max-width: 600px) {
     width: 90vw;
     min-width: 0;
-    padding: 14px 6vw 14px 6vw;
   }
 `;
 
-const CardImage = styled.div`
-  width: 70px;
-  height: 70px;
-  background: #fff;
-  border-radius: 50%;
-  margin-bottom: 18px;
+const PracticalCardContent = styled.div`
+  padding: 28px 24px 0 24px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: 2.2rem;
+
+  background: #e6eaff;
+  width: 100%;
 `;
 
-const CardTitle = styled.h3`
-  font-size: 1.25rem;
+const PracticalCardTitle = styled.h3`
+  font-size: 1.18rem;
   font-weight: 700;
-  margin-bottom: 10px;
-  @media (max-width: 600px) {
-    font-size: 1.05rem;
-  }
+  margin-bottom: 8px;
+  color: #23244a;
+  text-align: center;
 `;
 
-const CardDesc = styled.p`
-  font-size: 1rem;
+const PracticalCardDesc = styled.p`
+  font-size: 0.98rem;
   color: #333;
   margin-bottom: 18px;
-  @media (max-width: 600px) {
-    font-size: 0.9rem;
-    margin-bottom: 10px;
-  }
+  text-align: center;
 `;
 
-const CardTag = styled.div`
+const PracticalCardImage = styled.img`
+  width: 180px;
+  height: auto;
+`;
+
+const PracticalCardBar = styled.div`
+  width: 100%;
   background: #4e2b8f;
   color: #fff;
-  border-radius: 6px;
-  padding: 5px 16px;
+  text-align: center;
   font-size: 0.95rem;
   font-weight: 600;
-  margin-bottom: 8px;
-  @media (max-width: 600px) {
-    font-size: 0.85rem;
-    padding: 4px 10px;
-  }
+  padding: 8px 0 8px 0;
 `;
 
-const CardSuitable = styled.div`
+const PracticalCardBottom = styled.div`
+  width: 100%;
+  background: #fff;
+  color: #23244a;
+  text-align: center;
   font-size: 0.98rem;
-  color: #222;
-  @media (max-width: 600px) {
-    font-size: 0.85rem;
-  }
+  padding: 11px 20px 11px 20px;
+  font-weight: 500;
+  border-radius: 0 0 18px 18px;
 `;
 
 const features = [
@@ -303,97 +323,123 @@ const features = [
 ];
 
 const FeaturesSection = styled.section`
-  background: #fff;
-  padding: 56px 140px 48px 140px;
-  @media (max-width: 1200px) {
-    padding: 40px 30px 32px 30px;
-  }
+  padding: 64px 0 64px 0;
+  text-align: left;
+  max-width: 1100px;
+  margin: 0 auto;
   @media (max-width: 900px) {
-    padding: 30px 10px 24px 10px;
+    padding: 32px 0 40px 0;
+  }
+  @media (max-width: 600px) {
+    padding: 18px 0 24px 0;
   }
 `;
 
 const FeaturesTitle = styled.h2`
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 700;
-  margin-bottom: 32px;
   color: #222;
   text-align: left;
+  margin-bottom: 36px;
   @media (max-width: 600px) {
-    font-size: 1.1rem;
-    margin-bottom: 18px;
+    font-size: 1.2rem;
   }
 `;
 
-const FeaturesContent = styled.div`
+const FeaturesRow = styled.div`
   display: flex;
-  gap: 48px;
-  max-width: 1100px;
   width: 100%;
-  justify-content: flex-start;
+  min-height: 380px;
+  gap: 16px;
   @media (max-width: 900px) {
     flex-direction: column;
-    gap: 18px;
-    align-items: flex-start;
-  }
-  @media (max-width: 600px) {
-    gap: 10px;
-    max-width: 100vw;
+    min-height: unset;
   }
 `;
 
-const FeaturesTabs = styled.div`
+const FeaturesLeft = styled.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  min-width: 220px;
+  justify-content: center;
+  gap: 18px;
   @media (max-width: 900px) {
-    flex-direction: row;
-    min-width: 0;
-    gap: 8px;
-    overflow-x: auto;
-    width: 100vw;
-  }
-  @media (max-width: 600px) {
-    gap: 4px;
-    width: 100vw;
+    width: 100%;
+    align-items: center;
+    margin-bottom: 24px;
   }
 `;
 
-const FeatureTab = styled.button<{ selected: boolean }>`
-  background: ${({ selected }) => (selected ? "#e6ffe6" : "#f5f6fa")};
+const FeaturesList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+`;
+
+const FeatureListItem = styled.button<{ selected: boolean }>`
+  display: flex;
+  align-items: center;
+  background: ${({ selected }) => (selected ? "#e6ffe6" : "#fff")};
   border: 2px solid ${({ selected }) => (selected ? "#4e2b8f" : "#e0e0e0")};
-  color: #222;
-  border-radius: 10px;
-  padding: 6px 18px;
-  text-align: left;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
+  border-radius: 12px;
   box-shadow: ${({ selected }) =>
     selected ? "0 2px 8px rgba(76, 34, 143, 0.08)" : "none"};
+  padding: 0 0 0 0;
+  min-height: 56px;
+  cursor: pointer;
   transition: background 0.2s, border 0.2s;
+  width: 100%;
   @media (max-width: 900px) {
-    min-width: 120px;
-    font-size: 0.85rem;
-    padding: 6px 10px;
-  }
-  @media (max-width: 600px) {
-    min-width: 90px;
-    font-size: 0.8rem;
-    padding: 4px 7px;
+    min-height: 44px;
   }
 `;
 
-const FeatureDesc = styled.div`
-  font-size: 0.8rem;
-  color: #555;
+const FeatureIcon = styled.div`
+  width: 44px;
+  height: 44px;
+  background: #23244a;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin: 0 18px 0 12px;
+  flex-shrink: 0;
+`;
+
+const FeatureListText = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 8px 0;
+`;
+
+const FeatureListLabel = styled.div`
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #23244a;
+`;
+
+const FeatureListDesc = styled.div`
+  font-size: 0.82rem;
+  color: #222;
   font-weight: 400;
+  text-align: left;
+`;
+
+const FeaturesRight = styled.div`
+  flex: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
   @media (max-width: 900px) {
-    font-size: 0.75rem;
-  }
-  @media (max-width: 600px) {
-    font-size: 0.7rem;
+    width: 100%;
+    margin-top: 18px;
   }
 `;
 
@@ -402,10 +448,8 @@ const FeatureImageBox = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
-  background: #e6eaff;
-  width: 400px;
-  height: 340px;
+  width: 100%;
+  height: 100%;
   @media (max-width: 900px) {
     width: 90vw;
     height: 220px;
@@ -424,8 +468,9 @@ const FeatureImageBox = styled.div`
 
 const FeaturesFooter = styled.div`
   margin-top: 32px;
-  font-size: 1.2rem;
-  color: #222;
+  font-size: 1.6rem;
+  color: #2a3057;
+  text-align: center;
   font-weight: 600;
   @media (max-width: 600px) {
     font-size: 0.95rem;
@@ -433,22 +478,39 @@ const FeaturesFooter = styled.div`
   }
 `;
 
+// Add icons for each feature (use emoji or SVG placeholder for now)
+const featureIcons = [
+  <MessageCircle />, // Smart Recommendations
+  <ShoppingCart />, // Sell Products
+  <Calendar />, // Book Appointments
+  <Camera />, // Capture Leads
+  <CreditCard />, // Accept Payments
+  <Mail />, // Send Confirmations
+  <Plug />, // Integrates MCP Servers
+];
+
 const PlatformSection = styled.section`
-  background: #f5f6fa;
-  padding: 56px 0 48px 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  padding: 64px 0 64px 0;
+  text-align: left;
+  max-width: 1100px;
+  margin: 0 auto;
+  @media (max-width: 900px) {
+    padding: 32px 0 40px 0;
+  }
+  @media (max-width: 600px) {
+    padding: 18px 0 24px 0;
+  }
 `;
 
 const PlatformTitle = styled.h2`
-  font-size: 1.7rem;
+  font-size: 2rem;
   font-weight: 700;
-  margin-bottom: 32px;
   color: #222;
   text-align: left;
-  width: 100%;
-  max-width: 1100px;
+  margin-bottom: 36px;
+  @media (max-width: 600px) {
+    font-size: 1.2rem;
+  }
 `;
 
 const PlatformCardsRow = styled.div`
@@ -470,13 +532,10 @@ const PlatformCard = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  border: 5px solid #d8ddff;
 `;
 
 const PlatformIcon = styled.div`
-  width: 56px;
-  height: 56px;
-  background: #e6eaff;
-  border-radius: 12px;
   margin-bottom: 18px;
   display: flex;
   align-items: center;
@@ -485,97 +544,191 @@ const PlatformIcon = styled.div`
 `;
 
 const PlatformCardTitle = styled.h3`
-  font-size: 1.15rem;
+  font-size: 1.6rem;
   font-weight: 700;
   margin-bottom: 10px;
 `;
 
 const PlatformCardDesc = styled.p`
-  font-size: 1rem;
-  color: #333;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #212121;
 `;
 
 const AssembleSection = styled.section`
-  background: #fff;
-  padding: 56px 0 48px 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  background: #f5f6fa;
+  padding: 64px 0 64px 0;
+  text-align: center;
+  max-width: 1100px;
+  margin: 0 auto;
+  @media (max-width: 900px) {
+    padding: 32px 0 40px 0;
+  }
+  @media (max-width: 600px) {
+    padding: 18px 0 24px 0;
+  }
 `;
 
 const AssembleTitle = styled.h2`
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 700;
-  margin-bottom: 18px;
-  color: #222;
+  color: #23244a;
   text-align: center;
 `;
 
 const AssembleSubtitle = styled.p`
-  font-size: 1.08rem;
+  font-size: 1rem;
   color: #444;
   margin-bottom: 36px;
   text-align: center;
+  font-weight: 500;
 `;
 
-const AssembleLayout = styled.div`
+const AssembleGrid = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 48px;
+  gap: 32px;
   width: 100%;
-  max-width: 1100px;
+  @media (max-width: 900px) {
+    flex-direction: column;
+    gap: 18px;
+  }
 `;
 
-const AssembleColumn = styled.div`
+const AssembleCol = styled.div`
   display: flex;
   flex-direction: column;
   gap: 32px;
   flex: 1;
-`;
-
-const AssembleMascot = styled.div`
-  width: 260px;
-  height: 260px;
-  background: #f5f6fa;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 4rem;
-  font-weight: 700;
-  color: #4e2b8f;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
-  margin: 0 24px;
-  text-align: center;
-  padding: 24px;
+  @media (max-width: 900px) {
+    flex-direction: row;
+    gap: 18px;
+    justify-content: center;
+  }
+  @media (max-width: 600px) {
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
 `;
 
 const AssembleCard = styled.div`
-  background: #f5f6fa;
-  border-radius: 14px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  padding: 22px 20px 18px 20px;
-  min-width: 220px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  width: 270px;
+  min-width: 240px;
+  max-width: 270px;
+  display: flex;
+  flex-direction: column;
+  @media (max-width: 900px) {
+    min-width: 180px;
+    max-width: 220px;
+    width: 100%;
+  }
+  @media (max-width: 600px) {
+    min-width: 0;
+    max-width: 95vw;
+    width: 95vw;
+  }
+`;
+
+const AssembleCardTop = styled.div`
+  background: #dfffea;
+  padding: 22px 20px 10px 20px;
+  text-align: left;
 `;
 
 const AssembleCardTitle = styled.div`
-  font-size: 1.08rem;
+  font-size: 1.35rem;
   font-weight: 700;
-  margin-bottom: 4px;
+  color: #23244a;
+  margin-bottom: 2px;
 `;
 
 const AssembleCardSubtitle = styled.div`
-  color: #3bbf6c;
-  font-size: 0.98rem;
-  font-weight: 600;
-  margin-bottom: 7px;
+  color: #23244a;
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0;
 `;
 
-const AssembleCardDesc = styled.div`
-  color: #444;
-  font-size: 0.97rem;
+const AssembleCardBottom = styled.div`
+  background: #fff;
+  padding: 18px 20px 18px 20px;
+  text-align: left;
+  color: #23244a;
+  font-size: 1.01rem;
+  font-weight: 400;
+  border-radius: 0 0 16px 16px;
+`;
+
+const AssembleMascotBox = styled.div`
+  background: #ededed;
+  border-radius: 18px;
+  border: 6px solid #fff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 320px;
+  min-height: 320px;
+  max-width: 400px;
+  max-height: 400px;
+  margin: 0 24px;
+  overflow: hidden;
+  @media (max-width: 900px) {
+    min-width: 220px;
+    min-height: 220px;
+    max-width: 240px;
+    max-height: 240px;
+    margin: 0 0 18px 0;
+  }
+  @media (max-width: 600px) {
+    min-width: 120px;
+    min-height: 120px;
+    max-width: 140px;
+    max-height: 140px;
+    margin: 0 0 10px 0;
+  }
+`;
+
+const AssembleMascotText = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  color: #b0b0b0;
+  font-family: "DM Mono", "Menlo", "Monaco", "Consolas", monospace;
+  font-size: 1.01rem;
+  line-height: 1.3;
+  padding: 24px 18px 18px 24px;
+  white-space: pre-line;
+  pointer-events: none;
+  @media (max-width: 900px) {
+    font-size: 0.85rem;
+    padding: 12px 8px 8px 12px;
+  }
+  @media (max-width: 600px) {
+    font-size: 0.7rem;
+    padding: 6px 4px 4px 6px;
+  }
+`;
+
+const AssembleMascotImg = styled.img`
+  position: relative;
+  z-index: 2;
+  width: 80%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.1));
 `;
 
 const AppOverloadSection = styled.section`
@@ -592,18 +745,20 @@ const AppOverloadTitle = styled.h2`
   font-size: 2rem;
   font-weight: 700;
   color: #23244a;
-  margin-bottom: 10px;
+  text-align: center;
+  margin-bottom: 5px;
 `;
 
 const AppOverloadSub = styled.p`
-  font-size: 1.08rem;
-  color: #444;
+  font-size: 1rem;
+  color: #212121;
+  font-weight: 500;
   margin-bottom: 36px;
   max-width: 700px;
 `;
 
 const AppOverloadToolsTitle = styled.h3`
-  font-size: 1.15rem;
+  font-size: 1.3rem;
   font-weight: 700;
   color: #23244a;
   margin-bottom: 24px;
@@ -620,32 +775,58 @@ const AppOverloadCard = styled.div`
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  overflow: hidden;
   width: 200px;
   min-width: 180px;
-  padding: 24px 16px 18px 16px;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+  @media (max-width: 900px) {
+    width: 160px;
+    min-width: 120px;
+  }
+  @media (max-width: 600px) {
+    width: 90vw;
+    min-width: 0;
+  }
+`;
+
+const AppOverloadCardTop = styled.div`
+  background: #e6eaff;
+  width: 100%;
+  padding: 18px 0 10px 0;
   display: flex;
   flex-direction: column;
   align-items: center;
 `;
 
+const AppOverloadCardTitle = styled.div`
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #23244a;
+  text-align: center;
+  margin-bottom: 5px;
+`;
+
 const AppOverloadIcon = styled.div`
-  width: 48px;
-  height: 48px;
-  background: #e6eaff;
-  border-radius: 12px;
-  margin-bottom: 14px;
+  width: 52px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.7rem;
+  font-size: 2rem;
+  color: #23244a;
+  margin-bottom: 0;
+  background-color: white;
+  border-radius: 50%;
 `;
 
-const AppOverloadCardTitle = styled.div`
-  font-size: 1.05rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: #23244a;
+const AppOverloadCardBottom = styled.div`
+  background: #fff;
+  width: 100%;
+  text-align: center;
+  padding: 18px 0 10px 0;
 `;
 
 const AppOverloadCardSub = styled.div`
@@ -655,9 +836,9 @@ const AppOverloadCardSub = styled.div`
 `;
 
 const AppOverloadCardReplace = styled.div`
-  font-size: 0.97rem;
+  font-size: 1.08rem;
   color: #23244a;
-  font-weight: 500;
+  font-weight: 700;
 `;
 
 const IntegrationsSection = styled.section`
@@ -674,12 +855,13 @@ const IntegrationsTitle = styled.h2`
   font-size: 2rem;
   font-weight: 700;
   color: #23244a;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
 `;
 
 const IntegrationsSub = styled.p`
-  font-size: 1.08rem;
-  color: #444;
+  font-size: 1rem;
+  color: #212121;
+  font-weight: 500;
   margin-bottom: 36px;
   max-width: 700px;
 `;
@@ -689,7 +871,7 @@ const IntegrationsGrid = styled.div`
   grid-template-columns: repeat(8, 100px);
   grid-template-rows: repeat(4, 100px);
   gap: 28px;
-  justify-content: start;
+  justify-content: center;
   padding: 20px;
   @media (max-width: 1200px) {
     grid-template-columns: repeat(4, 80px);
@@ -726,7 +908,7 @@ const IntegrationBox = styled.div`
   width: 100px;
   height: 100px;
   text-align: center;
-  padding: 0;
+  padding: 15px;
   @media (max-width: 1200px) {
     width: 80px;
     height: 80px;
@@ -884,7 +1066,7 @@ const FooterHeadline = styled.h2`
 `;
 
 const FooterSub = styled.p`
-  font-size: 1rem;
+  font-size: 0.85rem;
   font-weight: 500;
   color: #e6eaff;
   margin-bottom: 8px;
@@ -962,300 +1144,429 @@ const Home = () => {
   const navigate = useNavigate();
 
   return (
-    <Container>
-      <Header>
-        <Logo>kifor</Logo>
-        <LoginButton onClick={() => navigate("/admin")}>
-          Login/Sign up
-        </LoginButton>
-      </Header>
-      <HeroSection>
-        <SpeechBubble top="38px" left="60px">
-          Welcome to the salon, how can I help you?
-        </SpeechBubble>
-        <SpeechBubble top="130px" left="220px" color="#a1a9ff">
-          Book a 1:1 meeting with our senior dietitian
-        </SpeechBubble>
-        <SpeechBubble top="260px" left="90px" color="#ceffaf">
-          Our Summer Sale is now live!
-        </SpeechBubble>
-        <SpeechBubble top="380px" left="180px">
-          Your spin class is booked for 8am tomorrow.
-        </SpeechBubble>
-        <SpeechBubble top="60px" right="80px" color="#ceffaf">
-          Should I repeat your order?
-        </SpeechBubble>
-        <SpeechBubble top="200px" right="200px">
-          How would you like to pay today?
-        </SpeechBubble>
-        <SpeechBubble top="360px" right="120px" color="#a1a9ff">
-          Drop us your contact details for more info.
-        </SpeechBubble>
-        <Headline>
-          The first AI-in-1 Employee
-          <br />
-          designed to Sell
-        </Headline>
-        <Subheadline>
-          Sell products, book appointments, reply to customers, and take
-          payments — all through conversation.
-          <br />
-          No Coding Required.
-        </Subheadline>
-        <CTAButton onClick={() => navigate("/admin")}>
-          LAUNCH YOUR FREE AGENT
-        </CTAButton>
-      </HeroSection>
-      <PracticalSection>
-        <PracticalTitle>Practical AI for your business</PracticalTitle>
-        <PracticalDesc>
-          Customized intelligent support designed to meet the specific needs of
-          different business models, helping you work smarter, not harder.
-        </PracticalDesc>
-        <CardsRow>
-          <Card>
-            <CardTitle>Solopreneurs</CardTitle>
-            <CardDesc>
-              The power of a full team powered by AI, without traditional hiring
-              costs.
-            </CardDesc>
-            <img
-              src="assets/landing-asset/business/solo.png"
-              alt="Solopreneurs"
-            />
-            <CardTag>SUITABLE FOR</CardTag>
-            <CardSuitable>
-              Creators, Freelancers, Coaches & Consultants
-            </CardSuitable>
-          </Card>
-          <Card>
-            <CardTitle>E-Commerce</CardTitle>
-            <CardDesc>
-              Your intelligent storefront guides customers, answers queries, and
-              closes sales—all automatically.
-            </CardDesc>
-            <img
-              src="assets/landing-asset/business/commerce.png"
-              alt="Solopreneurs"
-            />
-            <CardTag>SUITABLE FOR</CardTag>
-            <CardSuitable>
-              E-commerce, D2C brands & Influencer storefronts
-            </CardSuitable>
-          </Card>
-          <Card>
-            <CardTitle>Service Providers</CardTitle>
-            <CardDesc>
-              Your AI front desk handles bookings, captures leads, and nurtures
-              client relationships 24/7.
-            </CardDesc>
-            <img
-              src="assets/landing-asset/business/service.png"
-              alt="Solopreneurs"
-            />
-            <CardTag>SUITABLE FOR</CardTag>
-            <CardSuitable>
-              Hospitality, Wellness, Legal & Home Services
-            </CardSuitable>
-          </Card>
-        </CardsRow>
-      </PracticalSection>
-      <FeaturesSection>
-        <FeaturesTitle>Everything you need, in One Agent</FeaturesTitle>
-        <FeaturesContent>
-          <FeaturesTabs>
-            {features.map((feature) => (
-              <FeatureTab
-                key={feature.key}
-                selected={selectedFeature === feature.key}
-                onClick={() => setSelectedFeature(feature.key)}
-              >
-                {feature.label}
-                <FeatureDesc>{feature.desc}</FeatureDesc>
-              </FeatureTab>
+    <>
+      <GlobalStyle />
+      <Container>
+        <Header>
+          <Logo>kifor</Logo>
+          <LoginButton onClick={() => navigate("/admin")}>
+            Login/Sign up
+          </LoginButton>
+        </Header>
+        <HeroSection>
+          <SpeechBubble top="38px" left="60px">
+            Welcome to the salon, how can I help you?
+          </SpeechBubble>
+          <SpeechBubble top="130px" left="220px" color="#a1a9ff">
+            Book a 1:1 meeting with our senior dietitian
+          </SpeechBubble>
+          <SpeechBubble top="260px" left="90px" color="#ceffaf">
+            Our Summer Sale is now live!
+          </SpeechBubble>
+          <SpeechBubble top="380px" left="180px">
+            Your spin class is booked for 8am tomorrow.
+          </SpeechBubble>
+          <SpeechBubble top="60px" right="80px" color="#ceffaf">
+            Should I repeat your order?
+          </SpeechBubble>
+          <SpeechBubble top="200px" right="200px">
+            How would you like to pay today?
+          </SpeechBubble>
+          <SpeechBubble top="360px" right="120px" color="#a1a9ff">
+            Drop us your contact details for more info.
+          </SpeechBubble>
+          <Headline>
+            The first AI-in-1 Employee
+            <br />
+            designed to Sell
+          </Headline>
+          <Subheadline>
+            Sell products, book appointments, reply to customers, and take
+            payments — all through conversation.
+            <br />
+            No Coding Required.
+          </Subheadline>
+          <CTAButton onClick={() => navigate("/admin")}>
+            LAUNCH YOUR FREE AGENT
+          </CTAButton>
+        </HeroSection>
+        <PracticalSection>
+          <PracticalTitle>Practical AI for your business</PracticalTitle>
+          <PracticalDesc>
+            Customized intelligent support designed to meet the specific needs
+            of different business models, helping you work smarter, not harder.
+          </PracticalDesc>
+          <CardsRow>
+            <PracticalCard>
+              <PracticalCardContent>
+                <PracticalCardTitle>Solopreneurs</PracticalCardTitle>
+                <PracticalCardDesc>
+                  The power of a full team <br />
+                  powered by AI, without <br />
+                  traditional hiring costs.
+                </PracticalCardDesc>
+                <img
+                  src="assets/landing-asset/business/solo.png"
+                  alt="Solopreneurs"
+                  style={{ width: "100%" }}
+                />
+              </PracticalCardContent>
+              <div style={{ width: "100%" }}>
+                <PracticalCardBar>SUITABLE FOR</PracticalCardBar>
+                <PracticalCardBottom>
+                  Creators, Freelancers, <br />
+                  Coaches & Consultants
+                </PracticalCardBottom>
+              </div>
+            </PracticalCard>
+            <PracticalCard>
+              <PracticalCardContent>
+                <PracticalCardTitle>E-Commerce</PracticalCardTitle>
+                <PracticalCardDesc>
+                  Your intelligent storefront guides <br />
+                  customers, answers queries, and
+                  <br /> closes sales—all automatically.
+                </PracticalCardDesc>
+                <PracticalCardImage
+                  src="assets/landing-asset/business/commerce.png"
+                  alt="E-Commerce"
+                />
+              </PracticalCardContent>
+              <div style={{ width: "100%" }}>
+                <PracticalCardBar>SUITABLE FOR</PracticalCardBar>
+                <PracticalCardBottom>
+                  E-commerce, D2C brands <br />& Influencer storefronts
+                </PracticalCardBottom>
+              </div>
+            </PracticalCard>
+            <PracticalCard>
+              <PracticalCardContent>
+                <PracticalCardTitle>Service Providers</PracticalCardTitle>
+                <PracticalCardDesc>
+                  Your AI front desk handles
+                  <br /> bookings, captures leads, and <br />
+                  nurtures client relationships 24/7.
+                </PracticalCardDesc>
+                <PracticalCardImage
+                  src="assets/landing-asset/business/service.png"
+                  alt="Service Providers"
+                />
+              </PracticalCardContent>
+              <div style={{ width: "100%" }}>
+                <PracticalCardBar>SUITABLE FOR</PracticalCardBar>
+                <PracticalCardBottom>
+                  Hospitality, Wellness, <br />
+                  Legal & Home Services
+                </PracticalCardBottom>
+              </div>
+            </PracticalCard>
+          </CardsRow>
+        </PracticalSection>
+        <div style={{ background: "#ffffff" }}>
+          <FeaturesSection>
+            <FeaturesTitle>Everything you need, in One Agent</FeaturesTitle>
+            <FeaturesRow>
+              <FeaturesLeft>
+                <FeaturesList>
+                  {features.map((feature, idx) => (
+                    <FeatureListItem
+                      key={feature.key}
+                      selected={selectedFeature === feature.key}
+                      onClick={() => setSelectedFeature(feature.key)}
+                    >
+                      <FeatureIcon>{featureIcons[idx]}</FeatureIcon>
+                      <FeatureListText>
+                        <FeatureListLabel>{feature.label}</FeatureListLabel>
+                        <FeatureListDesc>{feature.desc}</FeatureListDesc>
+                      </FeatureListText>
+                    </FeatureListItem>
+                  ))}
+                </FeaturesList>
+              </FeaturesLeft>
+              <FeaturesRight>
+                <FeatureImageBox>
+                  <img src={selected?.image} alt={selected?.label} />
+                </FeatureImageBox>
+              </FeaturesRight>
+            </FeaturesRow>
+            <FeaturesFooter>
+              All through 1 ongoing, intelligent conversation.
+            </FeaturesFooter>
+          </FeaturesSection>
+        </div>
+        <PlatformSection>
+          <PlatformTitle>Sell on any Platform</PlatformTitle>
+          <PlatformCardsRow>
+            <PlatformCard>
+              <PlatformCardTitle>Link-in-Bio</PlatformCardTitle>
+              <PlatformIcon>
+                <img
+                  src="assets/landing-asset/platform/social.png"
+                  alt="Link-in-Bio"
+                  style={{ height: 70 }}
+                />
+              </PlatformIcon>
+
+              <PlatformCardDesc>
+                Add your assistant to your <br />
+                social links — like a smart,
+                <br /> interactive AI storefront.
+              </PlatformCardDesc>
+            </PlatformCard>
+            <PlatformCard>
+              <PlatformCardTitle>Website</PlatformCardTitle>
+              <PlatformIcon>
+                <img
+                  src="assets/landing-asset/platform/website.png"
+                  alt="Website"
+                  style={{ height: 70 }}
+                />
+              </PlatformIcon>
+
+              <PlatformCardDesc>
+                Install our AI Agent directly <br />
+                into your site for seamless
+                <br /> customer interactions.
+              </PlatformCardDesc>
+            </PlatformCard>
+            <PlatformCard>
+              <PlatformCardTitle>ChatGPT</PlatformCardTitle>
+              <PlatformIcon>
+                <img
+                  src="assets/landing-asset/platform/chatgpt.png"
+                  alt="ChatGPT"
+                  style={{ height: 70 }}
+                />
+              </PlatformIcon>
+
+              <PlatformCardDesc>
+                Transform the popular AI <br />
+                platform into your personalized <br />
+                sales channel.
+              </PlatformCardDesc>
+            </PlatformCard>
+          </PlatformCardsRow>
+          <AssembleSection>
+            <AssembleTitle>
+              Assemble Your Agent : Your AI, Your Way
+            </AssembleTitle>
+            <AssembleSubtitle>
+              Train Kifor to talk, think, and sell like you or anyone you want,
+              no coding needed.
+            </AssembleSubtitle>
+            <AssembleGrid>
+              <AssembleCol>
+                <AssembleCard>
+                  <AssembleCardTop>
+                    <AssembleCardTitle>Brain</AssembleCardTitle>
+                    <AssembleCardSubtitle>
+                      Smart Beyond Limits
+                    </AssembleCardSubtitle>
+                  </AssembleCardTop>
+                  <AssembleCardBottom>
+                    Smarten up your Agent with files, catalogs, social links and
+                    data
+                  </AssembleCardBottom>
+                </AssembleCard>
+                <AssembleCard>
+                  <AssembleCardTop>
+                    <AssembleCardTitle>Interface</AssembleCardTitle>
+                    <AssembleCardSubtitle>
+                      Extending your Brand
+                    </AssembleCardSubtitle>
+                  </AssembleCardTop>
+                  <AssembleCardBottom>
+                    Customize chat themes, colors, and interactions to create a
+                    seamless, on-brand user experience.
+                  </AssembleCardBottom>
+                </AssembleCard>
+              </AssembleCol>
+              <AssembleMascotBox>
+                <AssembleMascotText>
+                  {`welcoming. pleasing personality. uploading summer catalog. ready. accept credit and debit cards. use my brand colours. offer free shipping above $40. direct users to our sale section. offer 10-15% discount to any students. book 1:1 sessions. announce my next workshop. send confirmations via email with my branding. link users out to my instagram and twitter accounts. talk about our global sustainable mission.`}
+                </AssembleMascotText>
+                <AssembleMascotImg
+                  src="/assets/landing-asset/assemble/gramophone.png"
+                  alt="mascot"
+                />
+              </AssembleMascotBox>
+              <AssembleCol>
+                <AssembleCard>
+                  <AssembleCardTop style={{ background: "#e6f3ff" }}>
+                    <AssembleCardTitle>Voice</AssembleCardTitle>
+                    <AssembleCardSubtitle>
+                      Selling like you would
+                    </AssembleCardSubtitle>
+                  </AssembleCardTop>
+                  <AssembleCardBottom>
+                    Craft a conversational style that reflects your brand's
+                    personality, from professional to playful.
+                  </AssembleCardBottom>
+                </AssembleCard>
+                <AssembleCard>
+                  <AssembleCardTop style={{ background: "#e6f3ff" }}>
+                    <AssembleCardTitle>Payments</AssembleCardTitle>
+                    <AssembleCardSubtitle>
+                      In-Chat Checkout
+                    </AssembleCardSubtitle>
+                  </AssembleCardTop>
+                  <AssembleCardBottom>
+                    Seamless transactions through 15+ payment methods, including
+                    Stablecoins (USDC/USDT)
+                  </AssembleCardBottom>
+                </AssembleCard>
+              </AssembleCol>
+            </AssembleGrid>
+          </AssembleSection>
+        </PlatformSection>
+        <AppOverloadSection>
+          <AppOverloadTitle>Goodbye, App Overload</AppOverloadTitle>
+          <AppOverloadSub>
+            Running a business shouldn't be a juggling act. Kifor's AI Agent
+            replaces your entire tech stack, delivering comprehensive business
+            management in a single, intelligent interface.
+          </AppOverloadSub>
+          <AppOverloadToolsTitle>Replace 10+ Tools</AppOverloadToolsTitle>
+          <AppOverloadCardsRow>
+            <AppOverloadCard>
+              <AppOverloadCardTop>
+                <AppOverloadCardTitle>WEBSITE BUILDERS</AppOverloadCardTitle>
+                <AppOverloadIcon>
+                  <img
+                    src="/assets/landing-asset/goodbye/web.png"
+                    alt="Website Builders"
+                    style={{
+                      height: 40,
+                    }}
+                  />
+                </AppOverloadIcon>
+              </AppOverloadCardTop>
+              <AppOverloadCardBottom>
+                <AppOverloadCardSub>Replaces</AppOverloadCardSub>
+                <AppOverloadCardReplace>Wix & Wordpress</AppOverloadCardReplace>
+              </AppOverloadCardBottom>
+            </AppOverloadCard>
+            <AppOverloadCard>
+              <AppOverloadCardTop>
+                <AppOverloadCardTitle>SCHEDULING APPS</AppOverloadCardTitle>
+                <AppOverloadIcon>
+                  <img
+                    src="/assets/landing-asset/goodbye/calender.png"
+                    alt="Scheduling Apps"
+                    style={{ height: 40 }}
+                  />
+                </AppOverloadIcon>
+              </AppOverloadCardTop>
+              <AppOverloadCardBottom>
+                <AppOverloadCardSub>Replaces</AppOverloadCardSub>
+                <AppOverloadCardReplace>Calendly & Cal</AppOverloadCardReplace>
+              </AppOverloadCardBottom>
+            </AppOverloadCard>
+            <AppOverloadCard>
+              <AppOverloadCardTop>
+                <AppOverloadCardTitle>CHATBOTS</AppOverloadCardTitle>
+                <AppOverloadIcon>
+                  <img
+                    src="/assets/landing-asset/goodbye/chatbot.png"
+                    alt="Chatbots"
+                    style={{ height: 40 }}
+                  />
+                </AppOverloadIcon>
+              </AppOverloadCardTop>
+              <AppOverloadCardBottom>
+                <AppOverloadCardSub>Replaces</AppOverloadCardSub>
+                <AppOverloadCardReplace>Tawk.to & Tidio</AppOverloadCardReplace>
+              </AppOverloadCardBottom>
+            </AppOverloadCard>
+            <AppOverloadCard>
+              <AppOverloadCardTop>
+                <AppOverloadCardTitle>CRMs</AppOverloadCardTitle>
+                <AppOverloadIcon>
+                  <img
+                    src="/assets/landing-asset/goodbye/group.png"
+                    alt="CRMs"
+                    style={{ height: 40 }}
+                  />
+                </AppOverloadIcon>
+              </AppOverloadCardTop>
+              <AppOverloadCardBottom>
+                <AppOverloadCardSub>Replaces</AppOverloadCardSub>
+                <AppOverloadCardReplace>Hubspot</AppOverloadCardReplace>
+              </AppOverloadCardBottom>
+            </AppOverloadCard>
+            <AppOverloadCard>
+              <AppOverloadCardTop>
+                <AppOverloadCardTitle>LINK-IN-BIO TOOLS</AppOverloadCardTitle>
+                <AppOverloadIcon>
+                  <img
+                    src="/assets/landing-asset/goodbye/link.png"
+                    alt="Link-in-Bio Tools"
+                    style={{ height: 40 }}
+                  />
+                </AppOverloadIcon>
+              </AppOverloadCardTop>
+              <AppOverloadCardBottom>
+                <AppOverloadCardSub>Replaces</AppOverloadCardSub>
+                <AppOverloadCardReplace>Linktree & Hopp</AppOverloadCardReplace>
+              </AppOverloadCardBottom>
+            </AppOverloadCard>
+          </AppOverloadCardsRow>
+        </AppOverloadSection>
+        <IntegrationsSection>
+          <IntegrationsTitle>Extensive Integrations via MCP</IntegrationsTitle>
+          <IntegrationsSub>
+            Convert any API into a feature packed selling machine. Make your
+            agents powerful by integrating 200+ apps using Model Context
+            Protocol (MCP).
+          </IntegrationsSub>
+          <IntegrationsGrid>
+            {integrationsGrid.map(({ name, src }, idx) => (
+              <IntegrationBox key={idx}>
+                <img src={src} alt={name} />
+              </IntegrationBox>
             ))}
-          </FeaturesTabs>
-          <FeatureImageBox>
-            {/* Placeholder for feature image */}
-            <img src={selected?.image} alt={selected?.label} />
-          </FeatureImageBox>
-        </FeaturesContent>
-        <FeaturesFooter>
-          All through 1 ongoing, intelligent conversation.
-        </FeaturesFooter>
-      </FeaturesSection>
-      <PlatformSection>
-        <PlatformTitle>Sell on any Platform</PlatformTitle>
-        <PlatformCardsRow>
-          <PlatformCard>
-            <PlatformIcon>🌐</PlatformIcon>
-            <PlatformCardTitle>Link-in-Bio</PlatformCardTitle>
-            <PlatformCardDesc>
-              Add your assistant to your social links – it's as smart,
-              interactive & all-around as your presence in a storefront.
-            </PlatformCardDesc>
-          </PlatformCard>
-          <PlatformCard>
-            <PlatformIcon>💻</PlatformIcon>
-            <PlatformCardTitle>Website</PlatformCardTitle>
-            <PlatformCardDesc>
-              Install our AI Agent directly into your site for seamless customer
-              interactions.
-            </PlatformCardDesc>
-          </PlatformCard>
-          <PlatformCard>
-            <PlatformIcon>🧠</PlatformIcon>
-            <PlatformCardTitle>ChatGPT</PlatformCardTitle>
-            <PlatformCardDesc>
-              Transform the popular AI platform into your personalized sales
-              channel.
-            </PlatformCardDesc>
-          </PlatformCard>
-        </PlatformCardsRow>
-        <AssembleTitle>Assemble Your Agent : Your AI, Your Way</AssembleTitle>
-        <AssembleSubtitle>
-          Train Kifor to talk, think, and sell like you or anyone you want, no
-          coding needed.
-        </AssembleSubtitle>
-        <AssembleLayout>
-          <AssembleColumn>
-            <AssembleCard>
-              <AssembleCardTitle>Brain</AssembleCardTitle>
-              <AssembleCardSubtitle>Smart Beyond Limits</AssembleCardSubtitle>
-              <AssembleCardDesc>
-                Smartly serve your Agent with data, knowledge, and rules using
-                our tools.
-              </AssembleCardDesc>
-            </AssembleCard>
-            <AssembleCard>
-              <AssembleCardTitle>Interface</AssembleCardTitle>
-              <AssembleCardSubtitle>Extending your Brand</AssembleCardSubtitle>
-              <AssembleCardDesc>
-                Customize chat themes, branding, controls and channels.
-                Integrate with your favorite services.
-              </AssembleCardDesc>
-            </AssembleCard>
-          </AssembleColumn>
-          <AssembleMascot>
-            {/* Mascot/image placeholder */}
-            <span role="img" aria-label="mascot">
-              🤖
-            </span>
-          </AssembleMascot>
-          <AssembleColumn>
-            <AssembleCard>
-              <AssembleCardTitle>Voice</AssembleCardTitle>
-              <AssembleCardSubtitle>
-                Selling like you would
-              </AssembleCardSubtitle>
-              <AssembleCardDesc>
-                Upload custom voice or choose from our library. Your agent
-                speaks your way.
-              </AssembleCardDesc>
-            </AssembleCard>
-            <AssembleCard>
-              <AssembleCardTitle>Payments</AssembleCardTitle>
-              <AssembleCardSubtitle>In-Chat Checkout</AssembleCardSubtitle>
-              <AssembleCardDesc>
-                Seamless transactions in conversation. Integrates with Stripe,
-                Razorpay, UPI, USD/USDT.
-              </AssembleCardDesc>
-            </AssembleCard>
-          </AssembleColumn>
-        </AssembleLayout>
-      </PlatformSection>
-      <AppOverloadSection>
-        <AppOverloadTitle>Goodbye, App Overload</AppOverloadTitle>
-        <AppOverloadSub>
-          Running a business shouldn't be a juggling act. Kifor's AI Agent
-          replaces your entire tech stack, delivering comprehensive business
-          management in a single, intelligent interface.
-        </AppOverloadSub>
-        <AppOverloadToolsTitle>Replace 10+ Tools</AppOverloadToolsTitle>
-        <AppOverloadCardsRow>
-          <AppOverloadCard>
-            <AppOverloadIcon>🌐</AppOverloadIcon>
-            <AppOverloadCardTitle>WEBSITE BUILDERS</AppOverloadCardTitle>
-            <AppOverloadCardSub>Replaces</AppOverloadCardSub>
-            <AppOverloadCardReplace>Wix & Wordpress</AppOverloadCardReplace>
-          </AppOverloadCard>
-          <AppOverloadCard>
-            <AppOverloadIcon>🗓️</AppOverloadIcon>
-            <AppOverloadCardTitle>SCHEDULING APPS</AppOverloadCardTitle>
-            <AppOverloadCardSub>Replaces</AppOverloadCardSub>
-            <AppOverloadCardReplace>Calendly & Cal</AppOverloadCardReplace>
-          </AppOverloadCard>
-          <AppOverloadCard>
-            <AppOverloadIcon>🤖</AppOverloadIcon>
-            <AppOverloadCardTitle>CHATBOTS</AppOverloadCardTitle>
-            <AppOverloadCardSub>Replaces</AppOverloadCardSub>
-            <AppOverloadCardReplace>Tawk.to & Tidio</AppOverloadCardReplace>
-          </AppOverloadCard>
-          <AppOverloadCard>
-            <AppOverloadIcon>👥</AppOverloadIcon>
-            <AppOverloadCardTitle>CRMs</AppOverloadCardTitle>
-            <AppOverloadCardSub>Replaces</AppOverloadCardSub>
-            <AppOverloadCardReplace>Hubspot</AppOverloadCardReplace>
-          </AppOverloadCard>
-          <AppOverloadCard>
-            <AppOverloadIcon>🔗</AppOverloadIcon>
-            <AppOverloadCardTitle>LINK-IN-BIO TOOLS</AppOverloadCardTitle>
-            <AppOverloadCardSub>Replaces</AppOverloadCardSub>
-            <AppOverloadCardReplace>Linktree & Hopp</AppOverloadCardReplace>
-          </AppOverloadCard>
-        </AppOverloadCardsRow>
-      </AppOverloadSection>
-      <IntegrationsSection>
-        <IntegrationsTitle>Extensive Integrations via MCP</IntegrationsTitle>
-        <IntegrationsSub>
-          Convert any API into a feature packed selling machine. Make your
-          agents powerful by integrating 200+ apps using Model Context Protocol
-          (MCP).
-        </IntegrationsSub>
-        <IntegrationsGrid>
-          {integrationsGrid.map(({ name, src }, idx) => (
-            <IntegrationBox key={idx}>
-              <img src={src} alt={name} />
-            </IntegrationBox>
-          ))}
-        </IntegrationsGrid>
-      </IntegrationsSection>
-      <FooterSection>
-        <FooterContent>
-          <FooterLeft>
+          </IntegrationsGrid>
+        </IntegrationsSection>
+        <FooterSection>
+          <FooterContent>
+            <FooterLeft>
+              <div>
+                <FooterHeadline>
+                  Your new AI-ployee is here (& free) !
+                </FooterHeadline>
+                <FooterSub>
+                  Experience the future of sales: an AI-powered agent that
+                  adapts to your business needs, engages customers, and drives
+                  growth continuously.
+                </FooterSub>
+              </div>
+              <CTAButton onClick={() => navigate("/admin")}>
+                LAUNCH YOUR FREE AGENT
+              </CTAButton>
+
+              <FooterSocial>
+                Follow us
+                <SocialIcon title="X">X</SocialIcon>
+                <SocialIcon title="LinkedIn">in</SocialIcon>
+              </FooterSocial>
+            </FooterLeft>
+            <FooterRight>
+              <FooterCopyright>© 2025 Kifor AI</FooterCopyright>
+            </FooterRight>
             <div>
-              <FooterHeadline>
-                Your new AI-ployee is here (& free) !
-              </FooterHeadline>
-              <FooterSub>
-                Experience the future of sales: an AI-powered agent that adapts
-                to your business needs, engages customers, and drives growth
-                continuously.
-              </FooterSub>
+              <FooterMascot>
+                {/* Mascot/image placeholder */}
+                <img
+                  src="/assets/landing-asset/half-gobbl.png"
+                  alt="mascot"
+                  style={{ marginBottom: 10, width: 800 }}
+                />
+              </FooterMascot>
             </div>
-            <FooterCTA>LAUNCH YOUR FREE AGENT</FooterCTA>
-            <FooterSocial>
-              Follow us
-              <SocialIcon title="X">X</SocialIcon>
-              <SocialIcon title="LinkedIn">in</SocialIcon>
-            </FooterSocial>
-          </FooterLeft>
-          <FooterRight>
-            <FooterCopyright>© 2025 Kifor AI</FooterCopyright>
-          </FooterRight>
-          <div>
-            <FooterMascot>
-              {/* Mascot/image placeholder */}
-              <img
-                src="/assets/landing-asset/half-gobbl.png"
-                alt="mascot"
-                style={{ marginBottom: 10, width: 800 }}
-              />
-            </FooterMascot>
-          </div>
-        </FooterContent>
-      </FooterSection>
-    </Container>
+          </FooterContent>
+        </FooterSection>
+      </Container>
+    </>
   );
 };
 
