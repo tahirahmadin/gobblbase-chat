@@ -58,7 +58,7 @@ const CURRENCIES = [
   { code: "INR", symbol: "₹", name: "Indian Rupee" },
   { code: "CAD", symbol: "C$", name: "Canadian Dollar" },
   { code: "AUD", symbol: "A$", name: "Australian Dollar" },
-  { code: "JPY", symbol: "¥", name: "Japanese Yen" }
+  { code: "JPY", symbol: "¥", name: "Japanese Yen" },
 ];
 
 const DURATION_OPTIONS = [
@@ -113,10 +113,30 @@ const DEFAULT_AVAILABILITY = [
 ];
 
 const DEFAULT_MEETING_LOCATIONS = [
-  { id: "google_meet", name: "Google Meet", icon: <Video className="h-5 w-5" />, selected: true },
-  { id: "zoom", name: "Zoom", icon: <Video className="h-5 w-5" />, selected: false },
-  { id: "teams", name: "Microsoft Teams", icon: <Video className="h-5 w-5" />, selected: false },
-  { id: "in_person", name: "In-person", icon: <MapPin className="h-5 w-5" />, selected: false },
+  {
+    id: "google_meet",
+    name: "Google Meet",
+    icon: <Video className="h-5 w-5" />,
+    selected: true,
+  },
+  {
+    id: "zoom",
+    name: "Zoom",
+    icon: <Video className="h-5 w-5" />,
+    selected: false,
+  },
+  {
+    id: "teams",
+    name: "Microsoft Teams",
+    icon: <Video className="h-5 w-5" />,
+    selected: false,
+  },
+  {
+    id: "in_person",
+    name: "In-person",
+    icon: <MapPin className="h-5 w-5" />,
+    selected: true,
+  },
 ];
 
 const DEFAULT_TIMEZONES = [
@@ -190,7 +210,12 @@ const Booking: React.FC<BookingProps> = ({
   }, [isEditMode]);
 
   const [currentStep, setCurrentStep] = useState<
-    "booking-type" | "duration" | "availability" | "locations" | "pricing" | "complete"
+    | "booking-type"
+    | "duration"
+    | "availability"
+    | "locations"
+    | "pricing"
+    | "complete"
   >("booking-type");
 
   // Form state
@@ -289,7 +314,7 @@ const Booking: React.FC<BookingProps> = ({
               }
             }
           }
-          
+
           // Load pricing data if available
           if (settings.price) {
             setIsFree(settings.price.isFree);
@@ -338,10 +363,10 @@ const Booking: React.FC<BookingProps> = ({
   };
 
   const selectMeetingLocation = (locationId: string) => {
-    setMeetingLocations(prev =>
-      prev.map(loc => ({
+    setMeetingLocations((prev) =>
+      prev.map((loc) => ({
         ...loc,
-        selected: loc.id === locationId
+        selected: loc.id === locationId,
       }))
     );
   };
@@ -354,13 +379,13 @@ const Booking: React.FC<BookingProps> = ({
   const handlePriceAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Remove non-numeric characters except decimal point
     const rawValue = e.target.value.replace(/[^0-9.]/g, "");
-    
+
     // Handle decimal points properly
     if (rawValue === "" || rawValue === ".") {
       setPriceAmount(0);
       return;
     }
-    
+
     // Ensure only valid numbers are entered
     const numValue = parseFloat(rawValue);
     if (!isNaN(numValue)) {
@@ -401,8 +426,8 @@ const Booking: React.FC<BookingProps> = ({
       price: {
         isFree,
         amount: priceAmount,
-        currency: selectedCurrency
-      }
+        currency: selectedCurrency,
+      },
     };
 
     console.log("Saving booking settings for agent:", activeAgentId, payload);
@@ -512,8 +537,8 @@ const Booking: React.FC<BookingProps> = ({
             className={`w-8 h-8 rounded-full flex items-center justify-center ${
               currentStep === "locations"
                 ? "bg-gray-800 text-white"
-                : currentStep === "booking-type" || 
-                  currentStep === "duration" || 
+                : currentStep === "booking-type" ||
+                  currentStep === "duration" ||
                   currentStep === "availability"
                 ? "bg-gray-200 text-gray-700"
                 : "bg-gray-800 text-white"
@@ -665,7 +690,7 @@ const Booking: React.FC<BookingProps> = ({
       )}
     </div>
   );
-  
+
   // In your renderTimezoneStep function
   const renderTimezoneStep = () => {
     const displayLabel =
@@ -931,54 +956,60 @@ const Booking: React.FC<BookingProps> = ({
       </div>
 
       <div className="grid grid-cols-1 gap-4">
-      {meetingLocations.map(loc => (
-        <div
-          key={loc.id}
-          onClick={() => selectMeetingLocation(loc.id)}
-          className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors ${
-            loc.selected
-              ? "border-gray-800 bg-gray-50"
-              : "border-gray-200 hover:border-gray-300"
-          }`}
-        >
-          <div className="flex items-center space-x-3">
-            <div
-              className={`flex items-center justify-center p-2 rounded-lg ${
-                loc.selected ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-500"
-              }`}
-            >
-              {loc.icon}
+        {meetingLocations.map((loc) => (
+          <div
+            key={loc.id}
+            onClick={() => toggleMeetingLocation(loc.id)}
+            className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors ${
+              loc.selected
+                ? "border-gray-800 bg-gray-50"
+                : "border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <div
+                className={`flex items-center justify-center p-2 rounded-lg ${
+                  loc.selected
+                    ? "bg-gray-800 text-white"
+                    : "bg-gray-100 text-gray-500"
+                }`}
+              >
+                {loc.icon}
+              </div>
+              <span className="font-medium">{loc.name}</span>
             </div>
-            <span className="font-medium">{loc.name}</span>
+            {loc.selected && (
+              <div className="w-5 h-5 rounded-full bg-gray-800 flex items-center justify-center">
+                <Check className="h-3 w-3 text-white" />
+              </div>
+            )}
           </div>
-          {loc.selected && (
-            <div className="w-5 h-5 rounded-full bg-gray-800 flex items-center justify-center">
-              <Check className="h-3 w-3 text-white" />
-            </div>
-          )}
-        </div>
-      ))}
+        ))}
       </div>
     </div>
   );
-  
+
   // New pricing step
   const renderPricingStep = () => {
-    const currencySymbol = CURRENCIES.find(c => c.code === selectedCurrency)?.symbol || '$';
-    const displayPrice = isFree ? 'Free' : `${currencySymbol}${priceAmount.toFixed(2)}`;
-    
+    const currencySymbol =
+      CURRENCIES.find((c) => c.code === selectedCurrency)?.symbol || "$";
+    const displayPrice = isFree
+      ? "Free"
+      : `${currencySymbol}${priceAmount.toFixed(2)}`;
+
     return (
       <div className="space-y-6">
         <div className="text-sm text-gray-700 mb-6">
-          Configure the pricing for your booking sessions. You can offer free sessions or set a price for your time.
+          Configure the pricing for your booking sessions. You can offer free
+          sessions or set a price for your time.
         </div>
-        
+
         <div className="border border-gray-200 rounded-lg p-6">
           <div className="flex items-center mb-5">
             <CreditCard className="h-5 w-5 text-gray-600 mr-2" />
             <h3 className="font-medium">Session Pricing</h3>
           </div>
-          
+
           <div className="mb-6">
             <label className="flex items-center justify-between cursor-pointer">
               <span className="font-medium">Free Session</span>
@@ -1003,12 +1034,12 @@ const Booking: React.FC<BookingProps> = ({
               </div>
             </label>
             <p className="text-sm text-gray-500 mt-2">
-              {isFree 
-                ? "Your sessions will be offered for free." 
+              {isFree
+                ? "Your sessions will be offered for free."
                 : "Your sessions will require payment."}
             </p>
           </div>
-          
+
           {!isFree && (
             <div className="space-y-4">
               <div>
@@ -1028,7 +1059,7 @@ const Booking: React.FC<BookingProps> = ({
                           <ChevronDown className="ml-1 h-4 w-4" />
                         </span>
                       </button>
-                      
+
                       {showCurrencies && (
                         <div className="absolute left-0 mt-1 w-48 rounded-md bg-white shadow-lg z-10 max-h-60 overflow-y-auto border border-gray-200">
                           <div className="py-1">
@@ -1060,29 +1091,42 @@ const Booking: React.FC<BookingProps> = ({
                   />
                 </div>
                 <p className="text-sm text-gray-500 mt-2">
-                  Clients will be charged {currencySymbol}{priceAmount} for each session
+                  Clients will be charged {currencySymbol}
+                  {priceAmount} for each session
                 </p>
               </div>
             </div>
           )}
         </div>
-        
+
         <div className="rounded-lg p-4 bg-blue-50 border border-blue-100">
           <div className="flex">
             <div className="flex-shrink-0">
               <div className="h-5 w-5 text-blue-400">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
             </div>
             <div className="ml-3 flex-1">
-              <h3 className="text-sm font-medium text-blue-800">Session pricing information</h3>
+              <h3 className="text-sm font-medium text-blue-800">
+                Session pricing information
+              </h3>
               <div className="mt-2 text-sm text-blue-700">
                 <p>
-                  The price you set here will be displayed to clients when they book a session. 
-                  {isFree ? " Free sessions will be labeled as 'Free' on the booking page." 
-                  : ` Your price of ${currencySymbol}${priceAmount} will be shown when clients book.`}
+                  The price you set here will be displayed to clients when they
+                  book a session.
+                  {isFree
+                    ? " Free sessions will be labeled as 'Free' on the booking page."
+                    : ` Your price of ${currencySymbol}${priceAmount} will be shown when clients book.`}
                 </p>
               </div>
             </div>
@@ -1172,11 +1216,16 @@ const Booking: React.FC<BookingProps> = ({
                   .join(", ")}
               </span>
             </div>
-            
+
             <div className="flex justify-between pb-2 border-b border-green-100">
               <span className="text-gray-600">Session Price:</span>
               <span className="font-medium">
-                {isFree ? "Free" : `${CURRENCIES.find(c => c.code === selectedCurrency)?.symbol || "$"}${priceAmount}`}
+                {isFree
+                  ? "Free"
+                  : `${
+                      CURRENCIES.find((c) => c.code === selectedCurrency)
+                        ?.symbol || "$"
+                    }${priceAmount}`}
               </span>
             </div>
           </div>

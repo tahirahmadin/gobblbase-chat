@@ -82,7 +82,7 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<
-    "google_meet" | "in_person"
+    "google_meet" | "zoom" | "teams" | "in_person"
   >("google_meet");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -937,6 +937,33 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
               >
                 <Video className="h-5 w-5 mr-2" /> Google Meet
               </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedLocation("zoom")}
+                className={`flex items-center justify-center p-3 border rounded-lg ${
+                  selectedLocation === "zoom"
+                    ? "border-gray-800 bg-gray-50"
+                    : "border-gray-200"
+                }`}
+              >
+                {/* swap in a Zoom icon if you have one */}
+                <Video className="h-5 w-5 mr-2" /> Zoom
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedLocation("teams")}
+                className={`flex items-center justify-center p-3 border rounded-lg ${
+                  selectedLocation === "teams"
+                    ? "border-gray-800 bg-gray-50"
+                    : "border-gray-200"
+                }`}
+              >
+                {/* swap in a Teams icon */}
+                <Video className="h-5 w-5 mr-2" /> Microsoft Teams
+              </button>
+
               <button
                 type="button"
                 onClick={() => setSelectedLocation("in_person")}
@@ -946,7 +973,7 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
                     : "border-gray-200"
                 }`}
               >
-                <MapPin className="h-5 w-5 mr-2" /> In‑person
+                <MapPin className="h-5 w-5 mr-2" /> In-person
               </button>
             </div>
           </div>
@@ -1015,16 +1042,28 @@ const CustomerBooking: React.FC<CustomerBookingProps> = ({
                   </p>
                 </div>
               </div>
-              <div className="flex">
-                {selectedLocation === "google_meet" ? (
+              <div className="flex items-center">
+                {selectedLocation === "google_meet" && (
                   <Video className="h-5 w-5 text-gray-400 mr-2" />
-                ) : (
+                )}
+                {selectedLocation === "zoom" && (
+                  <Video className="h-5 w-5 text-gray-400 mr-2" />
+                )}
+                {selectedLocation === "teams" && (
+                  <Video className="h-5 w-5 text-gray-400 mr-2" />
+                )}
+                {selectedLocation === "in_person" && (
                   <MapPin className="h-5 w-5 text-gray-400 mr-2" />
                 )}
-                <p className="text-gray-800">
-                  {selectedLocation === "google_meet"
-                    ? "Google Meet (link will be sent by email)"
-                    : "In-person"}
+                <p className="ml-2">
+                  {
+                    {
+                      google_meet: "Google Meet (link will be sent by email)",
+                      zoom: "Zoom (link will be sent by email)",
+                      teams: "Microsoft Teams (link will be sent by email)",
+                      in_person: "In-person",
+                    }[selectedLocation]
+                  }
                 </p>
               </div>
               {name && (
