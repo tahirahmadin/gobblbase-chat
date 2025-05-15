@@ -206,7 +206,7 @@ const Booking: React.FC<BookingProps> = ({
 
   // Form state
   const [bookingType, setBookingType] = useState<string>("individual");
-  const [bookingsPerSlot, setBookingsPerSlot] = useState(2);
+  const [bookingsPerSlot, setBookingsPerSlot] = useState(1);
   const [meetingDuration, setMeetingDuration] = useState(30);
   const [bufferTime, setBufferTime] = useState(10);
   const [breaks, setBreaks] = useState<Break[]>([]);
@@ -250,7 +250,7 @@ const Booking: React.FC<BookingProps> = ({
 
           // Update form state with fetched settings
           setBookingType(settings.bookingType || "individual");
-          setBookingsPerSlot(settings.bookingsPerSlot || 2);
+          setBookingsPerSlot(settings.bookingsPerSlot || 1);
           setMeetingDuration(settings.meetingDuration || 30);
           setBufferTime(settings.bufferTime || 10);
 
