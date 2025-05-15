@@ -44,7 +44,7 @@ export default function BrowseSection({
   const [isBookingConfigured, setIsBookingConfigured] = useState(
     propIsBookingConfigured !== undefined ? propIsBookingConfigured : false
   );
-  
+
   const [isBookingDropdownOpen, setIsBookingDropdownOpen] = useState(false);
 
   const sessionName = currentConfig?.sessionName || "Session Description";
@@ -75,7 +75,7 @@ export default function BrowseSection({
       setCartView(true);
     }
   };
-  
+
   const handleBookingDropdownToggle = (isOpen: boolean) => {
     setIsBookingDropdownOpen(isOpen);
   };
@@ -176,10 +176,10 @@ export default function BrowseSection({
                         ${product.price}
                       </span>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </>
-            )}
+              ))}
+            </div>
           </>
         )}
       </div>
