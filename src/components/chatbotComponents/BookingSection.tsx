@@ -20,6 +20,7 @@ interface BookingSectionProps {
   sessionName: string;
   isBookingConfigured: boolean;
   showOnlyBooking?: boolean;
+  onDropdownToggle?: (isOpen: boolean) => void; 
 }
 
 export default function BookingSection({
@@ -28,6 +29,7 @@ export default function BookingSection({
   sessionName,
   isBookingConfigured,
   showOnlyBooking = false,
+  onDropdownToggle, 
 }: BookingSectionProps) {
   const [showBooking, setShowBooking] = useState(showOnlyBooking);
   const [dynamicPrice, setDynamicPrice] = useState({
@@ -67,6 +69,12 @@ export default function BookingSection({
     fetchPriceSettings();
   }, [businessId]);
 
+  useEffect(() => {
+    if (onDropdownToggle) {
+      onDropdownToggle(showBooking);
+    }
+  }, [showBooking, onDropdownToggle]);
+
   const formatPrice = (price: {
     isFree: boolean;
     amount: number;
@@ -75,6 +83,14 @@ export default function BookingSection({
     if (price.isFree) return "Free";
     const symbol = CURRENCY_SYMBOLS[price.currency] || "$";
     return `${symbol}${price.amount}`;
+  };
+
+  const toggleBookingDropdown = () => {
+    const newState = !showBooking;
+    setShowBooking(newState);
+    if (onDropdownToggle) {
+      onDropdownToggle(newState);
+    }
   };
 
   if (showOnlyBooking && !isBookingConfigured) {
@@ -107,7 +123,10 @@ export default function BookingSection({
           serviceName={sessionName}
           servicePrice={dynamicPrice.displayPrice}
           theme={theme}
-          onClose={() => setShowBooking(false)}
+          onClose={() => {
+            setShowBooking(false);
+            if (onDropdownToggle) onDropdownToggle(false);
+          }}
         />
       </div>
     );
@@ -129,7 +148,7 @@ export default function BookingSection({
           backgroundColor: theme.isDark ? "#000000" : "#ffffff",
           color: !theme.isDark ? "#000000" : "#ffffff",
         }}
-        onClick={() => setShowBooking(!showBooking)}
+        onClick={toggleBookingDropdown}
       >
         <div>
           <div className="text-sm font-medium">{sessionName}</div>
@@ -166,7 +185,10 @@ export default function BookingSection({
             serviceName={sessionName}
             servicePrice={dynamicPrice.displayPrice}
             theme={theme}
-            onClose={() => setShowBooking(false)}
+            onClose={() => {
+              setShowBooking(false);
+              if (onDropdownToggle) onDropdownToggle(false);
+            }}
           />
         </div>
       )}
