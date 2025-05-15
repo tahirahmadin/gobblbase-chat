@@ -141,7 +141,7 @@ export const useAdminStore = create<AdminState>()(
             throw new Error("Admin ID is not set");
           }
           const agents = await fetchClientAgents(adminId);
-          set({ agents, isLoading: false });
+          set({ agents, totalAgents: agents.length, isLoading: false });
         } catch (error) {
           set({ error: (error as Error).message, isLoading: false });
           toast.error("Failed to fetch agents");
@@ -152,8 +152,12 @@ export const useAdminStore = create<AdminState>()(
         try {
           set({ isLoading: true, error: null });
           await deleteAgent(agentId);
-          const agents = await fetchClientAgents(agentId);
-          set({ agents, isLoading: false });
+          const adminId = get().adminId;
+          if (!adminId) {
+            throw new Error("Admin ID is not set");
+          }
+          const agents = await fetchClientAgents(adminId);
+          set({ agents, totalAgents: agents.length, isLoading: false });
           toast.success("Agent deleted successfully");
         } catch (error) {
           set({ error: (error as Error).message, isLoading: false });
