@@ -28,17 +28,19 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
   const ensureField = (field: string, fallback: any) =>
     form[field] !== undefined ? form[field] : fallback;
 
-  const customerDetails: string[] = ensureField("customerDetails", []);
   const customFields: string[] = ensureField("customFields", []);
 
-  const toggleCustomerDetail = (field: string) => {
+  // Use checkOutCustomerDetails as the source of checked fields
+  const checkOutCustomerDetails: string[] = form.checkOutCustomerDetails || [];
+
+  const toggleCheckOutCustomerDetail = (field: string) => {
     setForm((prev: any) => {
-      const exists = (prev.customerDetails || []).includes(field);
+      const exists = (prev.checkOutCustomerDetails || []).includes(field);
       return {
         ...prev,
-        customerDetails: exists
-          ? prev.customerDetails.filter((f: string) => f !== field)
-          : [...(prev.customerDetails || []), field],
+        checkOutCustomerDetails: exists
+          ? prev.checkOutCustomerDetails.filter((f: string) => f !== field)
+          : [...(prev.checkOutCustomerDetails || []), field],
       };
     });
   };
@@ -67,6 +69,11 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
   const [localTemplate, setLocalTemplate] = useState<any | null>(null);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  // Merge default fields and custom fields for selection, removing duplicates
+  const mergedCustomerFields = Array.from(
+    new Set([...defaultCustomerFields, ...(customFields || [])])
+  );
 
   useEffect(() => {
     if (activeBotId && emailTemplates.length === 0) {
@@ -122,27 +129,16 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
         <div className="flex-1">
           <div className="font-semibold mb-2">Choose Customer Details</div>
           <div className="flex flex-col gap-2">
-            {defaultCustomerFields.map((field) => (
+            {mergedCustomerFields.map((field) => (
               <label key={field} className="flex items-center gap-2">
                 <input
                   type="checkbox"
-                  checked={customerDetails.includes(field)}
-                  onChange={() => toggleCustomerDetail(field)}
+                  checked={checkOutCustomerDetails.includes(field)}
+                  onChange={() => toggleCheckOutCustomerDetail(field)}
                   className="accent-green-500 w-5 h-5"
                 />
                 {field}
               </label>
-            ))}
-          </div>
-
-          <div className="mt-2 text-xs text-gray-600">
-            {(customFields || []).map((f: string, i: number) => (
-              <span
-                key={i}
-                className="inline-block bg-gray-100 px-2 py-1 rounded mr-1"
-              >
-                {f}
-              </span>
             ))}
           </div>
         </div>

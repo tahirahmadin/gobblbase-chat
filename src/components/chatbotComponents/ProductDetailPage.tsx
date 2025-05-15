@@ -57,7 +57,11 @@ export default function ProductDetailPage({
   let extraFields = null;
   if (selectedProduct?.type === "physical") {
     extraFields = (
-      <div className={`flex flex-row justify-between gap-2 ${inChatMode ? 'py-2' : 'py-3'}`}>
+      <div
+        className={`flex flex-row justify-between gap-2 ${
+          inChatMode ? "py-2" : "py-3"
+        }`}
+      >
         <div>
           <div className="text-xs font-semibold mb-1 text-left">
             SELECT SIZE
@@ -111,7 +115,11 @@ export default function ProductDetailPage({
     );
   } else if (selectedProduct?.type === "digital") {
     extraFields = (
-      <div className={`flex flex-col gap-${inChatMode ? '2' : '3'} mb-${inChatMode ? '2' : '3'}`}>
+      <div
+        className={`flex flex-col gap-${inChatMode ? "2" : "3"} mb-${
+          inChatMode ? "2" : "3"
+        }`}
+      >
         <div>
           <div className="text-xs font-semibold mb-1 text-left">
             AVAILABLE FORMATS
@@ -129,7 +137,11 @@ export default function ProductDetailPage({
     );
   } else if (selectedProduct?.type === "service") {
     extraFields = (
-      <div className={`flex flex-row justify-between gap-2 mb-${inChatMode ? '1' : '2'}`}>
+      <div
+        className={`flex flex-row justify-between gap-2 mb-${
+          inChatMode ? "1" : "2"
+        }`}
+      >
         <div>
           <div className="text-xs font-semibold mb-1 text-left">LOCATION</div>
           <button
@@ -182,7 +194,11 @@ export default function ProductDetailPage({
     );
   } else if (selectedProduct?.type === "event") {
     extraFields = (
-      <div className={`flex flex-col gap-${inChatMode ? '2' : '3'} mb-${inChatMode ? '2' : '3'}`}>
+      <div
+        className={`flex flex-col gap-${inChatMode ? "2" : "3"} mb-${
+          inChatMode ? "2" : "3"
+        }`}
+      >
         <div className="flex flex-row gap-4">
           <div>
             <div className="text-xs font-semibold mb-1 text-left">DATE</div>
@@ -258,7 +274,9 @@ export default function ProductDetailPage({
   return (
     <div className="flex flex-col items-center justify-center w-full">
       <div
-        className={`rounded-xl w-full ${contentMaxWidth} relative ${inChatMode ? 'mt-1' : 'mt-2'}`}
+        className={`rounded-xl w-full ${contentMaxWidth} relative ${
+          inChatMode ? "mt-1" : "mt-2"
+        }`}
         style={{
           color: theme.isDark ? "#fff" : "#000",
         }}
@@ -271,7 +289,13 @@ export default function ProductDetailPage({
             onClick={onBack}
           >
             <ChevronLeft className={inChatMode ? "w-4 h-4" : "w-5 h-5"} />
-            <span className={inChatMode ? "text-sm font-semibold" : "text-md font-semibold"}>Back</span>
+            <span
+              className={
+                inChatMode ? "text-sm font-semibold" : "text-md font-semibold"
+              }
+            >
+              Back
+            </span>
           </button>
           {/* Category */}
           <div className="text-xs font-semibold px-4 pb-2 opacity-70 text-center">
@@ -293,7 +317,11 @@ export default function ProductDetailPage({
                   : 1,
             }}
           >
-            <ChevronLeft className={inChatMode ? "w-6 h-6 text-[#7a4fff]" : "w-7 h-7 text-[#7a4fff]"} />
+            <ChevronLeft
+              className={
+                inChatMode ? "w-6 h-6 text-[#7a4fff]" : "w-7 h-7 text-[#7a4fff]"
+              }
+            />
           </button>
           <img
             src={
@@ -317,14 +345,20 @@ export default function ProductDetailPage({
                   : 1,
             }}
           >
-            <ChevronRight className={inChatMode ? "w-6 h-6 text-[#7a4fff]" : "w-7 h-7 text-[#7a4fff]"} />
+            <ChevronRight
+              className={
+                inChatMode ? "w-6 h-6 text-[#7a4fff]" : "w-7 h-7 text-[#7a4fff]"
+              }
+            />
           </button>
           {selectedProduct?.images && selectedProduct.images.length > 1 && (
             <div className="absolute bottom-2 flex gap-1">
               {selectedProduct.images.map((_, index) => (
                 <div
                   key={index}
-                  className={`${inChatMode ? 'w-1 h-1' : 'w-1.5 h-1.5'} rounded-full ${
+                  className={`${
+                    inChatMode ? "w-1 h-1" : "w-1.5 h-1.5"
+                  } rounded-full ${
                     index === currentImageIndex ? "bg-[#7a4fff]" : "bg-white/50"
                   }`}
                 />
@@ -333,22 +367,38 @@ export default function ProductDetailPage({
           )}
         </div>
         {/* Product Info */}
-        <div className={`${sectionPadding} ${inChatMode ? 'pt-3 pb-2' : 'pt-4 pb-2'} text-center`}>
-          <div className={`${titleSize} font-semibold mb-1`}>
+        <div
+          className={`${sectionPadding} ${
+            inChatMode ? "pt-3 pb-2" : "pt-4 pb-2"
+          } text-center`}
+        >
+          <div className={`${titleSize} font-bold mb-1`}>
             {selectedProduct?.title || "Product Name"}
           </div>
           <div
-            className="w-12 mx-auto border-b-4 mb-2 opacity-90"
+            className="w-24 mx-auto border-b-4 mb-2 opacity-90"
             style={{ borderColor: theme.isDark ? "#fff" : "#000" }}
           />
-          <div className="text-xs mb-2 text-left opacity-90">
+          <div className="text-sm mb-2 text-left opacity-90">
             {selectedProduct?.description || "Product Bio "}
           </div>
           {extraFields}
-          <div className={`flex flex-row justify-between items-center ${inChatMode ? 'py-1' : 'py-2'}`}>
-            <div className={`flex flex-col justify-between items-start ${inChatMode ? 'mt-2 mb-1' : 'mt-4 mb-2'}`}>
+          <div
+            className={`flex flex-row justify-between items-center ${
+              inChatMode ? "py-1" : "py-2"
+            }`}
+          >
+            <div
+              className={`flex flex-col justify-between items-start ${
+                inChatMode ? "mt-2 mb-1" : "mt-4 mb-2"
+              }`}
+            >
               <div className="text-xs opacity-70 text-left">TOTAL COST</div>
-              <div className={inChatMode ? "text-sm font-bold" : "text-md font-bold"}>
+              <div
+                className={
+                  inChatMode ? "text-sm font-bold" : "text-md font-bold"
+                }
+              >
                 {selectedProduct?.priceType === "paid"
                   ? `$${selectedProduct?.price ?? 0}`
                   : "FREE"}

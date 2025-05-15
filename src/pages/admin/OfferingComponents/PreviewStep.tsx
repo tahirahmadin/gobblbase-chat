@@ -225,7 +225,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
             </div>
             {/* Description */}
             <div
-              className="px-4 text-xs text-gray-300 text-center mb-2"
+              className="px-4 text-xs text-gray-300 text-center mb-2 line-clamp-4"
               style={{ minHeight: 48 }}
             >
               {descriptionEnabled && description
@@ -403,7 +403,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
               </div>
               {/* Buy Now Button */}
               <div className="w-full flex justify-center mt-4 mb-4">
-                <button className="bg-yellow-400 hover:bg-yellow-300 text-black rounded-full px-8 py-2 font-bold text-lg shadow-lg">
+                <button className="bg-yellow-400 hover:bg-yellow-300 text-black rounded-full px-4 py-2 font-semibold text-md shadow-lg">
                   {cta || "Buy Now"}
                 </button>
               </div>
