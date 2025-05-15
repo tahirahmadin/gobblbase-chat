@@ -4,6 +4,7 @@ type CheckoutStepProps = {
   form: any;
   setForm: React.Dispatch<any>;
   onNext: () => void;
+  onBack: () => void;
 };
 
 const defaultCustomerFields = [
@@ -18,6 +19,7 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
   form,
   setForm,
   onNext,
+  onBack,
 }) => {
   // For all types, use customerDetails, customFields, customFieldInput, emailSubject, emailBody
   // If not present, initialize as needed
@@ -46,7 +48,16 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
   };
 
   return (
-    <div className=" rounded-2xl p-4 mt-2 mx-auto">
+    <div className="rounded-2xl p-4 mt-2 mx-auto">
+      <div className="flex flex-col justify-start items-start mb-6">
+        <button
+          onClick={onBack}
+          className="text-gray-600 hover:text-gray-800 flex items-center gap-2"
+        >
+          ← Back to Form
+        </button>
+        <h2 className="text-2xl font-semibold text-gray-900">Checkout</h2>
+      </div>
       <div className="flex flex-col md:flex-row gap-8">
         <div className="flex-1">
           <div className="font-semibold mb-2">Choose Customer Details</div>
@@ -63,34 +74,7 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
               </label>
             ))}
           </div>
-          {/* <div className="mt-4 font-semibold">CUSTOM</div>
-          <div className="flex gap-2 mt-1">
-            <input
-              value={customFieldInput}
-              onChange={(e) =>
-                setForm((f: any) => ({
-                  ...f,
-                  customFieldInput: e.target.value,
-                }))
-              }
-              className="border border-gray-300 rounded p-1 w-32 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-              placeholder="Type..."
-            />
-            <button
-              className="bg-gray-200 px-2 rounded hover:bg-gray-300"
-              onClick={() => {
-                if (customFieldInput) {
-                  setForm((f: any) => ({
-                    ...f,
-                    customFields: [...(f.customFields || []), customFieldInput],
-                    customFieldInput: "",
-                  }));
-                }
-              }}
-            >
-              ADD
-            </button>
-          </div> */}
+
           <div className="mt-2 text-xs text-gray-600">
             {(customFields || []).map((f: string, i: number) => (
               <span

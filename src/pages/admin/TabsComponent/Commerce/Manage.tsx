@@ -213,7 +213,9 @@ const Manage = () => {
                     />
                     {p.title}
                   </td>
-                  <td className="py-2 px-4">${p.price}</td>
+                  <td className="py-2 px-4">
+                    {p.priceType === "paid" ? `$${p.price}` : `Free`}
+                  </td>
                   <td className="py-2 px-4">
                     {p.quantityUnlimited === "true" ||
                     p.quantityUnlimited === true

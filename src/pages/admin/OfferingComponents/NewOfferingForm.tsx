@@ -95,7 +95,12 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
         );
       case 1:
         return (
-          <CheckoutStep form={form} setForm={setForm} onNext={handleNext} />
+          <CheckoutStep
+            form={form}
+            setForm={setForm}
+            onNext={handleNext}
+            onBack={handleBack}
+          />
         );
       case 2:
         return (
