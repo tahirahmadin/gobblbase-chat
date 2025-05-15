@@ -17,16 +17,16 @@ type UnifiedFormType = {
   images?: (File | null)[];
   imagesUrl?: string[];
   quantityType?: string;
-  quantity?: string;
+  quantity: number;
   // Digital
   fileFormat?: string;
   uploadType?: string;
   file?: File | null;
   fileUrl?: string;
   // Physical
-  customQuantity?: string;
+  customQuantity?: number;
   variedSizes?: string[];
-  variedQuantities?: Record<string, string>;
+  variedQuantities?: Record<string, number>;
   // Service
   locationType?: string;
   address?: string;
@@ -85,7 +85,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
   };
 
   return (
-    <div className="bg-[#e7eafe] rounded-2xl p-6 mx-auto w-full">
+    <div className="bg-[#e7eafe] rounded-2xl p-4 mx-auto w-full">
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Left Side */}
         <div className="flex-1 flex flex-col gap-2 min-w-0">
@@ -350,7 +350,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                     type="radio"
                     name="uploadType"
                     value="file"
-                    checked={form.uploadType === "file"}
+                    checked={form.uploadType === "upload"}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, uploadType: e.target.value }))
                     }
@@ -368,12 +368,12 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                           file: e.target.files?.[0] || null,
                         }))
                       }
-                      disabled={form.uploadType !== "file"}
+                      disabled={form.uploadType !== "upload"}
                     />
                     <label
                       htmlFor="digital-upload-file"
                       className={`border border-gray-300 rounded px-2 py-1 bg-gray-50 cursor-pointer ${
-                        form.uploadType !== "file"
+                        form.uploadType !== "upload"
                           ? "opacity-50 cursor-not-allowed"
                           : ""
                       }`}
@@ -383,7 +383,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                     <button
                       type="button"
                       className="ml-2 px-3 py-1 bg-green-400 text-white rounded shadow disabled:opacity-50"
-                      disabled={form.uploadType !== "file" || !form.file}
+                      disabled={form.uploadType !== "upload" || !form.file}
                     >
                       UPLOAD
                     </button>
@@ -671,9 +671,12 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                     <input
                       type="number"
                       className="ml-2 border rounded px-2 py-1 w-32"
-                      value={form.quantity || ""}
+                      value={form.quantity || 0}
                       onChange={(e) =>
-                        setForm((f) => ({ ...f, quantity: e.target.value }))
+                        setForm((f) => ({
+                          ...f,
+                          quantity: parseInt(e.target.value),
+                        }))
                       }
                       disabled={form.quantityType !== "oneSize"}
                       placeholder="99999.99"
@@ -716,7 +719,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                                   delete newVariedQuantities[size];
                                 } else {
                                   newVariedSizes = [...selected, size];
-                                  newVariedQuantities[size] = "";
+                                  newVariedQuantities[size] = 0;
                                 }
                                 return {
                                   ...f,
@@ -740,7 +743,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                                 ...f,
                                 variedQuantities: {
                                   ...(f.variedQuantities || {}),
-                                  [size]: value,
+                                  [size]: parseInt(value),
                                 },
                               }));
                             }}
@@ -844,7 +847,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
             <label className="font-semibold block mb-2">CTA Button*</label>
             <select
               className="border border-gray-300 rounded p-2 w-full"
-              value={form.cta || ""}
+              value={form.cta || "Buy Now"}
               onChange={(e) => setForm((f) => ({ ...f, cta: e.target.value }))}
             >
               <option>Buy Now</option>

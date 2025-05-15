@@ -1,83 +1,61 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import {
+  getEmailTemplates,
+  updateEmailTemplates,
+} from "../../../lib/serverActions";
+import { useBotConfig } from "../../../store/useBotConfig";
 
-const mockTemplates = [
-  {
-    id: 1,
-    category: "Physical Product",
-    name: "Confirmation Email",
-    enabled: true,
-    subject: "<My Username> - Thank you for your Order #<order number>",
-    body: "Type your message...",
-  },
-  {
-    id: 2,
-    category: "Digital Product/Service",
-    name: "Confirmation Email",
-    enabled: true,
-    subject: "<My Username> - Thank you for your Order #<order number>",
-    body: "Type your message...",
-  },
-  {
-    id: 3,
-    category: "Product/Service",
-    name: "Cancellation Email",
-    enabled: true,
-    subject: "<My Username> - Your Order #<order number> has been cancelled",
-    body: "Type your message...",
-  },
-  {
-    id: 4,
-    category: "Event",
-    name: "Booking Confirmation",
-    enabled: true,
-    subject: "<My Username> - Your booking is confirmed",
-    body: "Type your message...",
-  },
-  {
-    id: 5,
-    category: "Event",
-    name: "Booking Reminder",
-    enabled: true,
-    subject: "<My Username> - Booking Reminder",
-    body: "Type your message...",
-  },
-  {
-    id: 6,
-    category: "Event",
-    name: "Booking Cancellation",
-    enabled: true,
-    subject: "<My Username> - Booking Cancelled",
-    body: "Type your message...",
-  },
-  {
-    id: 7,
-    category: "Calendar",
-    name: "Booking Confirmation",
-    enabled: false,
-    subject: "<My Username> - Calendar Booking Confirmed",
-    body: "Type your message...",
-  },
-  {
-    id: 8,
-    category: "Calendar",
-    name: "Booking Reminder",
-    enabled: false,
-    subject: "<My Username> - Calendar Booking Reminder",
-    body: "Type your message...",
-  },
-  {
-    id: 9,
-    category: "Calendar",
-    name: "Booking Cancellation",
-    enabled: false,
-    subject: "<My Username> - Calendar Booking Cancelled",
-    body: "Type your message...",
-  },
-];
+const AGENT_ID = "dc33ee6b-7db8-4115-95c3-7a8355046f77"; // TODO: Replace with dynamic agentId if needed
 
 const EmailTemplates = () => {
   const [selectedId, setSelectedId] = useState<number>(1);
-  const [templates, setTemplates] = useState(mockTemplates);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
+  const [saving, setSaving] = useState<boolean>(false);
+  const [success, setSuccess] = useState<boolean>(false);
+
+  const { activeBotId } = useBotConfig();
+
+  useEffect(() => {
+    async function fetchTemplates() {
+      setLoading(true);
+      setError("");
+      try {
+        if (!activeBotId) {
+          return null;
+        }
+        const res = await getEmailTemplates(activeBotId);
+        // Transform API response to match UI structure if needed
+        if (res && res.result) {
+          // Flatten the result object into an array for UI
+          const arr = Object.entries(res.result)
+            .filter(
+              ([key]) => key !== "_id" && key !== "agentId" && key !== "__v"
+            )
+            .map(([key, value]: any, idx) => ({
+              id: idx + 1,
+              category: key
+                .replace(/([A-Z])/g, " $1")
+                .replace(/^./, (str: string) => str.toUpperCase()),
+              name: value.subText || key,
+              enabled: value.isActive,
+              subject: value.subject,
+              body: value.body,
+              rawKey: key,
+            }));
+          setTemplates(arr);
+        } else {
+          setTemplates([]);
+        }
+      } catch (err: any) {
+        setError("Failed to load email templates");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchTemplates();
+  }, [activeBotId]);
 
   const selectedTemplate = templates.find((t) => t.id === selectedId);
 
@@ -98,26 +76,44 @@ const EmailTemplates = () => {
   };
 
   const handleRestore = () => {
-    // Restore logic (mock)
-    setTemplates((prev) =>
-      prev.map((t) =>
-        t.id === selectedId
-          ? {
-              ...t,
-              subject: mockTemplates.find((m) => m.id === t.id)?.subject || "",
-              body: mockTemplates.find((m) => m.id === t.id)?.body || "",
-            }
-          : t
-      )
-    );
+    // Optionally, refetch from backend or restore from initial fetch
+    // For now, just reload the page
+    window.location.reload();
   };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError("");
+    setSuccess(false);
+    try {
+      if (!selectedTemplate) throw new Error("No template selected");
+      const updatedData = {
+        subText: selectedTemplate.name,
+        isActive: selectedTemplate.enabled,
+        subject: selectedTemplate.subject,
+        body: selectedTemplate.body,
+      };
+      await updateEmailTemplates(
+        AGENT_ID,
+        updatedData,
+        selectedTemplate.rawKey
+      );
+      setSuccess(true);
+    } catch (err: any) {
+      setError("Failed to save email template");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <div className="p-6">Loading templates...</div>;
+  if (error) return <div className="p-6 text-red-500">{error}</div>;
 
   return (
     <div className="flex flex-col md:flex-row gap-8 p-6">
       {/* Sidebar */}
       <div className="w-full md:w-1/3 max-w-xs">
         <h2 className="text-xl font-bold text-black">Email Templates</h2>
-
         <p className="text-gray-600 mb-6 text-sm">
           Tailor messages to match every customer action
         </p>
@@ -227,10 +223,18 @@ const EmailTemplates = () => {
               >
                 Restore Template
               </button>
-              <button className="ml-auto bg-green-300 hover:bg-green-400 text-green-900 font-semibold px-8 py-2 rounded shadow">
-                SAVE
+              <button
+                className="ml-auto bg-green-300 hover:bg-green-400 text-green-900 font-semibold px-8 py-2 rounded shadow"
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "SAVE"}
               </button>
             </div>
+            {error && <div className="mt-2 text-red-500">{error}</div>}
+            {success && (
+              <div className="mt-2 text-green-600">Saved successfully!</div>
+            )}
           </div>
         )}
       </div>

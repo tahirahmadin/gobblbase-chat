@@ -1617,7 +1617,6 @@ export async function getMainProducts(agentId: string) {
 export async function addMainProduct(type: string, form: any, agentId: string) {
   let formData = new FormData();
   let typeKey = "";
-
   if (type === "physical") {
     typeKey = "physical";
     formData.append("type", typeKey);
@@ -1635,10 +1634,18 @@ export async function addMainProduct(type: string, form: any, agentId: string) {
     );
     formData.append("quantityType", form.quantityType);
     formData.append("ctaButton", form.cta);
-
+    formData.append("variedQuantities", JSON.stringify(form.variedQuantities));
+    console.log("form.variedQuantities");
+    console.log(form.variedQuantities);
     form.images.forEach((img: File | null, idx: number) => {
       if (img) formData.append(`image${idx + 1}`, img);
     });
+    if (form.customerDetails) {
+      formData.append(
+        "checkOutCustomerDetails",
+        JSON.stringify(form.customerDetails)
+      );
+    }
   } else if (type === "digital") {
     typeKey = "digital";
     formData.append("type", typeKey);
@@ -1665,6 +1672,12 @@ export async function addMainProduct(type: string, form: any, agentId: string) {
     if (form.file) formData.append("digitalFile", form.file);
     if (form.fileUrl) formData.append("fileUrl", form.fileUrl);
     if (form.uploadType) formData.append("uploadType", form.uploadType);
+    if (form.customerDetails) {
+      formData.append(
+        "checkOutCustomerDetails",
+        JSON.stringify(form.customerDetails)
+      );
+    }
   } else if (type === "service") {
     typeKey = "service";
     formData.append("agentId", agentId);
@@ -1688,6 +1701,12 @@ export async function addMainProduct(type: string, form: any, agentId: string) {
     form.images.forEach((img: File | null, idx: number) => {
       if (img) formData.append(`image${idx + 1}`, img);
     });
+    if (form.customerDetails) {
+      formData.append(
+        "checkOutCustomerDetails",
+        JSON.stringify(form.customerDetails)
+      );
+    }
   } else if (type === "event") {
     typeKey = "event";
     formData.append("agentId", agentId);
@@ -1713,6 +1732,12 @@ export async function addMainProduct(type: string, form: any, agentId: string) {
     form.images.forEach((img: File | null, idx: number) => {
       if (img) formData.append(`image${idx + 1}`, img);
     });
+    if (form.customerDetails) {
+      formData.append(
+        "checkOutCustomerDetails",
+        JSON.stringify(form.customerDetails)
+      );
+    }
   }
 
   const response = await fetch("https://rag.gobbl.ai/product/addProduct", {
@@ -1742,6 +1767,7 @@ export async function updateMainProduct(
     formData.append("price", form.price);
     formData.append("priceType", form.priceType);
     formData.append("quantity", form.quantity);
+    formData.append("variedQuantities", JSON.stringify(form.variedQuantities));
     formData.append(
       "quantityUnlimited",
       form.quantityType === "unlimited" ? "true" : "false"
@@ -1756,6 +1782,7 @@ export async function updateMainProduct(
     typeKey = "digital";
     formData.append("type", typeKey);
     formData.append("agentId", agentId);
+
     formData.append("file", form.thumbnail);
     formData.append("title", form.title);
     formData.append("description", form.description);
@@ -1882,5 +1909,52 @@ export async function getMainProductsForUser(agentId: string) {
   } catch (err) {
     console.error("Error fetching products:", err);
     return [];
+  }
+}
+
+// EMAIL TEMPLATES
+
+/**
+ * Fetch email templates for a given agentId
+ * @param agentId string
+ * @returns Promise<any>
+ */
+export async function getEmailTemplates(agentId: string): Promise<any> {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/email/getEmailTemplates`,
+      { params: { agentId } }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching email templates:", error);
+    throw error;
+  }
+}
+
+/**
+ * Update email templates for a given agentId
+ * @param agentId string
+ * @param updatedData Array<any>
+ * @returns Promise<any>
+ */
+export async function updateEmailTemplates(
+  agentId: string,
+  updatedData: any,
+  emailTemplateId: string
+): Promise<any> {
+  try {
+    const response = await axios.post(
+      `https://rag.gobbl.ai/email/updateEmailTemplates`,
+      {
+        agentId,
+        updatedData,
+        emailTemplateId,
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating email templates:", error);
+    throw error;
   }
 }

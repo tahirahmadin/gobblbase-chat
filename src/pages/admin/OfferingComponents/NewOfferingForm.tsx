@@ -42,10 +42,10 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
       images: [],
       imagesUrl: [],
       quantityType: "unlimited",
-      quantity: "",
+      quantity: 0,
       // Digital Product specific
       fileFormat: "",
-      uploadType: "file",
+      uploadType: "upload",
       file: null,
       fileUrl: "",
       // Physical Product specific
@@ -128,11 +128,11 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
       </div>
       <div className="flex-1 min-h-0 flex flex-row gap-1">
         {/* Vertical Stepper Sidebar */}
-        <div className="w-64 flex-shrink-0 flex flex-col items-start pt-8 px-4">
+        <div className="w-42 flex-shrink-0 flex flex-col items-start pt-8 px-2">
           {steps.map((s, i) => (
             <div key={s} className="flex items-center mb-8">
               <div
-                className={`w-9 h-9 flex items-center justify-center rounded-full border-2 text-lg font-bold transition-all duration-200
+                className={`w-8 h-8 flex items-center justify-center rounded-full border-2 text-md font-bold transition-all duration-200
                 ${
                   i === step
                     ? "bg-[#4f46e5] border-[#4f46e5] text-white"
@@ -145,7 +145,7 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
                 {i + 1}
               </div>
               <span
-                className={`ml-4 text-base font-semibold ${
+                className={`ml-2 text-base font-semibold ${
                   i === step
                     ? "text-[#4f46e5]"
                     : i < step

@@ -122,6 +122,7 @@ export const MODEL_PRESETS: ModelOption[] = [
       "Engineered for maximum intelligence and depth, GPT-4o excels at complex reasoning, long-context comprehension, and advanced problem-solving—making it the top choice for demanding AI applications.",
     traits: ["Complex reasoning", "Long-context", "Advanced problem-solving"],
     details: "Credits Cost: 1",
+    creditsCost: 1,
   },
   {
     id: "llama-4-maverick",
@@ -132,7 +133,8 @@ export const MODEL_PRESETS: ModelOption[] = [
     description:
       "Llama 4 Maverick is a high-performance open-source model, ideal for cost-effective, scalable AI solutions with strong reasoning and language capabilities.",
     traits: ["Open-source", "Cost-effective", "Strong reasoning"],
-    details: "Credits Cost: 1",
+    details: "Credits Cost: 2",
+    creditsCost: 2,
   },
   {
     id: "gpt-3-5-turbo",
@@ -143,71 +145,78 @@ export const MODEL_PRESETS: ModelOption[] = [
     description:
       "A fast, efficient model for everyday tasks, offering a balance of speed and accuracy for general-purpose applications.",
     traits: ["Fast", "Efficient", "General-purpose"],
-    details: "Credits Cost: 0.5",
+    details: "Credits Cost: 1",
+    creditsCost: 1,
   },
-  {
-    id: "llama-3-pro",
-    name: "Llama 3 Pro",
-    image:
-      "https://seeklogo.com/images/O/openai-logo-8B9BFEDC26-seeklogo.com.png",
-    contextWindow: "32k",
-    description:
-      "Meta's Llama 3 Pro delivers robust performance for conversational and creative tasks, with improved context retention.",
-    traits: ["Conversational", "Creative", "Context retention"],
-    details: "Credits Cost: 0.7",
-  },
-  {
-    id: "gemini-ultra",
-    name: "Gemini Ultra",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg",
-    contextWindow: "128k",
-    description:
-      "Google's flagship model for research and enterprise, excelling at multilingual and multimodal understanding.",
-    traits: ["Multilingual", "Multimodal", "Enterprise-grade"],
-    details: "Credits Cost: 1.2",
-  },
-  {
-    id: "claude-3-opus",
-    name: "Claude 3 Opus",
-    image: "https://avatars.githubusercontent.com/u/139914888?s=200&v=4",
-    contextWindow: "200k",
-    description:
-      "Anthropic's Claude 3 Opus is designed for safe, high-stakes reasoning and long-form content generation.",
-    traits: ["Safe", "Long-form", "High-stakes reasoning"],
-    details: "Credits Cost: 1.5",
-  },
-  {
-    id: "mistral-large",
-    name: "Mistral Large",
-    image: "https://avatars.githubusercontent.com/u/139914888?s=200&v=4",
-    contextWindow: "32k",
-    description:
-      "Mistral Large is a versatile open-source model, great for summarization, Q&A, and creative writing.",
-    traits: ["Summarization", "Q&A", "Creative writing"],
-    details: "Credits Cost: 0.8",
-  },
-  {
-    id: "mixtral-8x22b",
-    name: "Mixtral 8x22B",
-    image: "https://avatars.githubusercontent.com/u/139914888?s=200&v=4",
-    contextWindow: "64k",
-    description:
-      "Mixtral 8x22B is optimized for large-scale deployments, offering strong performance in both speed and accuracy.",
-    traits: ["Large-scale", "Speed", "Accuracy"],
-    details: "Credits Cost: 1.1",
-  },
-  {
-    id: "grok-1",
-    name: "Grok-1",
-    image:
-      "https://seeklogo.com/images/O/openai-logo-8B9BFEDC26-seeklogo.com.png",
-    contextWindow: "128k",
-    description:
-      "Grok-1 by xAI is designed for real-time, up-to-date knowledge and witty conversational ability.",
-    traits: ["Real-time knowledge", "Witty", "Conversational"],
-    details: "Credits Cost: 1.3",
-  },
+  // {
+  //   id: "llama-3-pro",
+  //   name: "Llama 3 Pro",
+  //   image:
+  //     "https://seeklogo.com/images/O/openai-logo-8B9BFEDC26-seeklogo.com.png",
+  //   contextWindow: "32k",
+  //   description:
+  //     "Meta's Llama 3 Pro delivers robust performance for conversational and creative tasks, with improved context retention.",
+  //   traits: ["Conversational", "Creative", "Context retention"],
+  //   details: "Credits Cost: 3",
+  //   creditsCost: 3,
+  // },
+  // {
+  //   id: "gemini-ultra",
+  //   name: "Gemini Ultra",
+  //   image:
+  //     "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg",
+  //   contextWindow: "128k",
+  //   description:
+  //     "Google's flagship model for research and enterprise, excelling at multilingual and multimodal understanding.",
+  //   traits: ["Multilingual", "Multimodal", "Enterprise-grade"],
+  //   details: "Credits Cost: 4",
+  //   creditsCost: 4,
+  // },
+  // {
+  //   id: "claude-3-opus",
+  //   name: "Claude 3 Opus",
+  //   image: "https://avatars.githubusercontent.com/u/139914888?s=200&v=4",
+  //   contextWindow: "200k",
+  //   description:
+  //     "Anthropic's Claude 3 Opus is designed for safe, high-stakes reasoning and long-form content generation.",
+  //   traits: ["Safe", "Long-form", "High-stakes reasoning"],
+  //   details: "Credits Cost: 5",
+  //   creditsCost: 5,
+  // },
+  // {
+  //   id: "mistral-large",
+  //   name: "Mistral Large",
+  //   image: "https://avatars.githubusercontent.com/u/139914888?s=200&v=4",
+  //   contextWindow: "32k",
+  //   description:
+  //     "Mistral Large is a versatile open-source model, great for summarization, Q&A, and creative writing.",
+  //   traits: ["Summarization", "Q&A", "Creative writing"],
+  //   details: "Credits Cost: 6",
+  //   creditsCost: 6,
+  // },
+  // {
+  //   id: "mixtral-8x22b",
+  //   name: "Mixtral 8x22B",
+  //   image: "https://avatars.githubusercontent.com/u/139914888?s=200&v=4",
+  //   contextWindow: "64k",
+  //   description:
+  //     "Mixtral 8x22B is optimized for large-scale deployments, offering strong performance in both speed and accuracy.",
+  //   traits: ["Large-scale", "Speed", "Accuracy"],
+  //   details: "Credits Cost: 7",
+  //   creditsCost: 7,
+  // },
+  // {
+  //   id: "grok-1",
+  //   name: "Grok-1",
+  //   image:
+  //     "https://seeklogo.com/images/O/openai-logo-8B9BFEDC26-seeklogo.com.png",
+  //   contextWindow: "128k",
+  //   description:
+  //     "Grok-1 by xAI is designed for real-time, up-to-date knowledge and witty conversational ability.",
+  //   traits: ["Real-time knowledge", "Witty", "Conversational"],
+  //   details: "Credits Cost: 8",
+  //   creditsCost: 8,
+  // },
 ];
 
 export const SYSTEM_PROMPT_TEMPLATES: SystemPromptTemplate[] = [

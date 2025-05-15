@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { FaBox, FaFileAlt, FaCalendarAlt, FaUsers } from "react-icons/fa";
 import NewOfferingForm from "../../OfferingComponents/NewOfferingForm";
 import { ProductType } from "../../../../types";
-import { useInventoryStore } from "../../../../store/useInventoryStore";
 
 const cardData = [
   {
@@ -53,7 +52,7 @@ const AddNew = () => {
 
   return (
     <div className="min-h-screen h-full w-full overflow-x-hidden">
-      <div className="max-w-[1200px] mx-auto px-4">
+      <div className="mx-auto">
         {selectedType ? (
           <div>
             <NewOfferingForm
