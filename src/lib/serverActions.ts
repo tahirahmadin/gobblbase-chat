@@ -1614,225 +1614,6 @@ export async function getMainProducts(agentId: string) {
   }
 }
 
-export async function addMainProduct(type: string, form: any, agentId: string) {
-  let formData = new FormData();
-  let typeKey = "";
-
-  if (type === "physical") {
-    typeKey = "physical";
-    formData.append("type", typeKey);
-    formData.append("agentId", agentId);
-    formData.append("file", form.thumbnail);
-    formData.append("title", form.title);
-    formData.append("description", form.description);
-    formData.append("category", form.category);
-    formData.append("price", form.price);
-    formData.append("priceType", form.priceType);
-    formData.append("quantity", form.quantity);
-    formData.append(
-      "quantityUnlimited",
-      form.quantityType === "unlimited" ? "true" : "false"
-    );
-    formData.append("quantityType", form.quantityType);
-    formData.append("ctaButton", form.cta);
-
-    form.images.forEach((img: File | null, idx: number) => {
-      if (img) formData.append(`image${idx + 1}`, img);
-    });
-  } else if (type === "digital") {
-    typeKey = "digital";
-    formData.append("type", typeKey);
-    formData.append("agentId", agentId);
-    formData.append("file", form.thumbnail);
-    formData.append("title", form.title);
-    formData.append("description", form.description);
-    formData.append("category", form.category);
-    formData.append("price", form.price);
-    formData.append("priceType", form.priceType);
-    formData.append("quantity", form.quantity);
-    formData.append(
-      "quantityUnlimited",
-      form.quantityType === "unlimited" ? "true" : "false"
-    );
-    formData.append("quantityType", form.quantityType);
-    formData.append("ctaButton", form.cta);
-    form.images.forEach((img: File | null, idx: number) => {
-      if (img) formData.append(`image${idx + 1}`, img);
-    });
-    if (form.fileFormat) {
-      formData.append("fileFormat", form.fileFormat);
-    }
-    if (form.file) formData.append("digitalFile", form.file);
-    if (form.fileUrl) formData.append("fileUrl", form.fileUrl);
-    if (form.uploadType) formData.append("uploadType", form.uploadType);
-  } else if (type === "service") {
-    typeKey = "service";
-    formData.append("agentId", agentId);
-    formData.append("type", typeKey);
-    formData.append("file", form.thumbnail);
-    formData.append("title", form.title);
-    formData.append("description", form.description);
-    formData.append("category", form.category);
-    formData.append("price", form.price);
-    formData.append("priceType", form.priceType);
-    formData.append("quantity", form.quantity);
-    formData.append(
-      "quantityUnlimited",
-      form.quantityType === "unlimited" ? "true" : "false"
-    );
-    formData.append("quantityType", form.quantityType);
-    formData.append("ctaButton", form.cta);
-
-    formData.append("locationType", form.locationType);
-    formData.append("address", form.address);
-    form.images.forEach((img: File | null, idx: number) => {
-      if (img) formData.append(`image${idx + 1}`, img);
-    });
-  } else if (type === "event") {
-    typeKey = "event";
-    formData.append("agentId", agentId);
-    formData.append("type", typeKey);
-    formData.append("file", form.thumbnail);
-    formData.append("title", form.title);
-    formData.append("description", form.description);
-    formData.append("category", form.category);
-    formData.append("eventType", form.eventType);
-    formData.append("price", form.price);
-    formData.append("ctaButton", form.cta);
-    if (form.slots && form.slots[0]) {
-      formData.append("slotDate", form.slots[0].date);
-      formData.append("slotStart", form.slots[0].start);
-      formData.append("slotEnd", form.slots[0].end);
-      formData.append("seatType", form.slots[0].seatType);
-      formData.append("seats", form.slots[0].seats);
-    }
-    formData.append("timeZone", form.timeZone);
-    if (form.slots) {
-      formData.append("slots", JSON.stringify(form.slots));
-    }
-    form.images.forEach((img: File | null, idx: number) => {
-      if (img) formData.append(`image${idx + 1}`, img);
-    });
-  }
-
-  const response = await fetch("https://rag.gobbl.ai/product/addProduct", {
-    method: "POST",
-    body: formData,
-  });
-  return await response.json();
-}
-
-export async function updateMainProduct(
-  type: string,
-  form: any,
-  agentId: string,
-  productId: string
-) {
-  let formData = new FormData();
-  let typeKey = "";
-  formData.append("productId", productId);
-  if (type === "physical") {
-    typeKey = "physical";
-    formData.append("type", typeKey);
-    formData.append("agentId", agentId);
-    formData.append("file", form.thumbnail);
-    formData.append("title", form.title);
-    formData.append("description", form.description);
-    formData.append("category", form.category);
-    formData.append("price", form.price);
-    formData.append("priceType", form.priceType);
-    formData.append("quantity", form.quantity);
-    formData.append(
-      "quantityUnlimited",
-      form.quantityType === "unlimited" ? "true" : "false"
-    );
-    formData.append("quantityType", form.quantityType);
-    formData.append("ctaButton", form.cta);
-
-    form.images.forEach((img: File | null, idx: number) => {
-      if (img) formData.append(`image${idx + 1}`, img);
-    });
-  } else if (type === "digital") {
-    typeKey = "digital";
-    formData.append("type", typeKey);
-    formData.append("agentId", agentId);
-    formData.append("file", form.thumbnail);
-    formData.append("title", form.title);
-    formData.append("description", form.description);
-    formData.append("category", form.category);
-    formData.append("price", form.price);
-    formData.append("priceType", form.priceType);
-    formData.append("quantity", form.quantity);
-    formData.append(
-      "quantityUnlimited",
-      form.quantityType === "unlimited" ? "true" : "false"
-    );
-    formData.append("quantityType", form.quantityType);
-    formData.append("ctaButton", form.cta);
-    form.images.forEach((img: File | null, idx: number) => {
-      if (img) formData.append(`image${idx + 1}`, img);
-    });
-    if (form.fileFormat) {
-      formData.append("fileFormat", form.fileFormat);
-    }
-    if (form.file) formData.append("digitalFile", form.file);
-    if (form.fileUrl) formData.append("fileUrl", form.fileUrl);
-    if (form.uploadType) formData.append("uploadType", form.uploadType);
-  } else if (type === "service") {
-    typeKey = "service";
-    formData.append("agentId", agentId);
-    formData.append("type", typeKey);
-    formData.append("file", form.thumbnail);
-    formData.append("title", form.title);
-    formData.append("description", form.description);
-    formData.append("category", form.category);
-    formData.append("price", form.price);
-    formData.append("priceType", form.priceType);
-    formData.append("quantity", form.quantity);
-    formData.append(
-      "quantityUnlimited",
-      form.quantityType === "unlimited" ? "true" : "false"
-    );
-    formData.append("quantityType", form.quantityType);
-    formData.append("ctaButton", form.cta);
-
-    formData.append("locationType", form.locationType);
-    formData.append("address", form.address);
-    form.images.forEach((img: File | null, idx: number) => {
-      if (img) formData.append(`image${idx + 1}`, img);
-    });
-  } else if (type === "event") {
-    typeKey = "event";
-    formData.append("agentId", agentId);
-    formData.append("type", typeKey);
-    formData.append("file", form.thumbnail);
-    formData.append("title", form.title);
-    formData.append("description", form.description);
-    formData.append("category", form.category);
-    formData.append("price", form.price);
-    formData.append("ctaButton", form.cta);
-    formData.append("eventType", form.eventType);
-
-    formData.append("timeZone", form.timeZone);
-    if (form.slots && form.slots[0]) {
-      formData.append("slotDate", form.slots[0].date);
-      formData.append("slotStart", form.slots[0].start);
-      formData.append("slotEnd", form.slots[0].end);
-      formData.append("seatType", form.slots[0].seatType);
-      formData.append("seats", form.slots[0].seats);
-    }
-    form.images.forEach((img: File | null, idx: number) => {
-      if (img) formData.append(`image${idx + 1}`, img);
-    });
-  }
-  console.log(formData);
-  const response = await fetch("https://rag.gobbl.ai/product/updateProduct", {
-    method: "POST",
-    body: formData,
-  });
-  return await response.json();
-}
-
 // Delete main product by productId and agentId
 export async function deleteMainProduct(productId: string, agentId: string) {
   try {
@@ -1883,4 +1664,236 @@ export async function getMainProductsForUser(agentId: string) {
     console.error("Error fetching products:", err);
     return [];
   }
+}
+
+// EMAIL TEMPLATES
+
+/**
+ * Fetch email templates for a given agentId
+ * @param agentId string
+ * @returns Promise<any>
+ */
+export async function getEmailTemplates(agentId: string): Promise<any> {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/email/getEmailTemplates`,
+      { params: { agentId } }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching email templates:", error);
+    throw error;
+  }
+}
+
+/**
+ * Update email templates for a given agentId
+ * @param agentId string
+ * @param updatedData Array<any>
+ * @returns Promise<any>
+ */
+export async function updateEmailTemplates(
+  agentId: string,
+  updatedData: any,
+  emailTemplateId: string
+): Promise<any> {
+  try {
+    const response = await axios.post(
+      `https://rag.gobbl.ai/email/updateEmailTemplates`,
+      {
+        agentId,
+        updatedData,
+        emailTemplateId,
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating email templates:", error);
+    throw error;
+  }
+}
+
+// --- REFACTORED PRODUCT ENDPOINTS ---
+
+export async function savePhysicalProduct(
+  form: any,
+  agentId: string,
+  productId?: string
+) {
+  let formData = new FormData();
+  formData.append("type", "physical");
+  formData.append("agentId", agentId);
+  if (productId) {
+    formData.append("productId", productId);
+  }
+  formData.append("file", form.thumbnail);
+  formData.append("title", form.title);
+  formData.append("description", form.description);
+  formData.append("category", form.category);
+  formData.append("price", form.price);
+  formData.append("priceType", form.priceType);
+  formData.append("quantity", form.quantity);
+  formData.append(
+    "quantityUnlimited",
+    form.quantityType === "unlimited" ? "true" : "false"
+  );
+  formData.append("quantityType", form.quantityType);
+  formData.append("ctaButton", form.cta);
+  if (form.variedQuantities) {
+    formData.append("variedQuantities", JSON.stringify(form.variedQuantities));
+  }
+  form.images.forEach((img: File | null, idx: number) => {
+    if (img) formData.append(`image${idx + 1}`, img);
+  });
+  if (form.customerDetails) {
+    formData.append(
+      "checkOutCustomerDetails",
+      JSON.stringify(form.customerDetails)
+    );
+  }
+  const response = await fetch(
+    "https://rag.gobbl.ai/product/addPhysicalProduct",
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+  return await response.json();
+}
+
+export async function saveDigitalProduct(
+  form: any,
+  agentId: string,
+  productId?: string
+) {
+  let formData = new FormData();
+  formData.append("type", "digital");
+  formData.append("agentId", agentId);
+  if (productId) {
+    formData.append("productId", productId);
+  }
+  formData.append("file", form.thumbnail);
+  formData.append("title", form.title);
+  formData.append("description", form.description);
+  formData.append("category", form.category);
+  formData.append("price", form.price);
+  formData.append("priceType", form.priceType);
+  formData.append("quantity", form.quantity);
+  formData.append(
+    "quantityUnlimited",
+    form.quantityType === "unlimited" ? "true" : "false"
+  );
+  formData.append("quantityType", form.quantityType);
+  formData.append("ctaButton", form.cta);
+  form.images.forEach((img: File | null, idx: number) => {
+    if (img) formData.append(`image${idx + 1}`, img);
+  });
+  if (form.fileFormat) {
+    formData.append("fileFormat", form.fileFormat);
+  }
+  if (form.file) formData.append("digitalFile", form.file);
+  if (form.fileUrl) formData.append("fileUrl", form.fileUrl);
+  if (form.uploadType) formData.append("uploadType", form.uploadType);
+  if (form.customerDetails) {
+    formData.append(
+      "checkOutCustomerDetails",
+      JSON.stringify(form.customerDetails)
+    );
+  }
+  const response = await fetch(
+    "https://rag.gobbl.ai/product/addDigitalProduct",
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+  return await response.json();
+}
+
+export async function saveServiceProduct(
+  form: any,
+  agentId: string,
+  productId?: string
+) {
+  let formData = new FormData();
+  formData.append("type", "service");
+  formData.append("agentId", agentId);
+  if (productId) {
+    formData.append("productId", productId);
+  }
+  formData.append("file", form.thumbnail);
+  formData.append("title", form.title);
+  formData.append("description", form.description);
+  formData.append("category", form.category);
+  formData.append("price", form.price);
+  formData.append("priceType", form.priceType);
+  formData.append("quantity", form.quantity);
+  formData.append(
+    "quantityUnlimited",
+    form.quantityType === "unlimited" ? "true" : "false"
+  );
+  formData.append("quantityType", form.quantityType);
+  formData.append("ctaButton", form.cta);
+  formData.append("locationType", form.locationType);
+  formData.append("address", form.address);
+  form.images.forEach((img: File | null, idx: number) => {
+    if (img) formData.append(`image${idx + 1}`, img);
+  });
+  if (form.customerDetails) {
+    formData.append(
+      "checkOutCustomerDetails",
+      JSON.stringify(form.customerDetails)
+    );
+  }
+  const response = await fetch("https://rag.gobbl.ai/product/addService", {
+    method: "POST",
+    body: formData,
+  });
+  return await response.json();
+}
+
+export async function saveEventProduct(
+  form: any,
+  agentId: string,
+  productId?: string
+) {
+  let formData = new FormData();
+  formData.append("type", "event");
+  formData.append("agentId", agentId);
+  if (productId) {
+    formData.append("productId", productId);
+  }
+  formData.append("file", form.thumbnail);
+  formData.append("title", form.title);
+  formData.append("description", form.description);
+  formData.append("category", form.category);
+  formData.append("eventType", form.eventType);
+  formData.append("price", form.price);
+  formData.append("priceType", form.priceType);
+  formData.append("ctaButton", form.cta);
+  if (form.slots && form.slots[0]) {
+    formData.append("slotDate", form.slots[0].date);
+    formData.append("slotStart", form.slots[0].start);
+    formData.append("slotEnd", form.slots[0].end);
+    formData.append("seatType", form.slots[0].seatType);
+    formData.append("seats", form.slots[0].seats);
+  }
+  formData.append("timeZone", form.timeZone);
+  if (form.slots) {
+    formData.append("slots", JSON.stringify(form.slots));
+  }
+  form.images.forEach((img: File | null, idx: number) => {
+    if (img) formData.append(`image${idx + 1}`, img);
+  });
+  if (form.customerDetails) {
+    formData.append(
+      "checkOutCustomerDetails",
+      JSON.stringify(form.customerDetails)
+    );
+  }
+  const response = await fetch("https://rag.gobbl.ai/product/addEvent", {
+    method: "POST",
+    body: formData,
+  });
+  return await response.json();
 }

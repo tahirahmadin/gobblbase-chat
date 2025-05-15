@@ -1,89 +1,36 @@
-import React, { useState } from "react";
-
-const mockTemplates = [
-  {
-    id: 1,
-    category: "Physical Product",
-    name: "Confirmation Email",
-    enabled: true,
-    subject: "<My Username> - Thank you for your Order #<order number>",
-    body: "Type your message...",
-  },
-  {
-    id: 2,
-    category: "Digital Product/Service",
-    name: "Confirmation Email",
-    enabled: true,
-    subject: "<My Username> - Thank you for your Order #<order number>",
-    body: "Type your message...",
-  },
-  {
-    id: 3,
-    category: "Product/Service",
-    name: "Cancellation Email",
-    enabled: true,
-    subject: "<My Username> - Your Order #<order number> has been cancelled",
-    body: "Type your message...",
-  },
-  {
-    id: 4,
-    category: "Event",
-    name: "Booking Confirmation",
-    enabled: true,
-    subject: "<My Username> - Your booking is confirmed",
-    body: "Type your message...",
-  },
-  {
-    id: 5,
-    category: "Event",
-    name: "Booking Reminder",
-    enabled: true,
-    subject: "<My Username> - Booking Reminder",
-    body: "Type your message...",
-  },
-  {
-    id: 6,
-    category: "Event",
-    name: "Booking Cancellation",
-    enabled: true,
-    subject: "<My Username> - Booking Cancelled",
-    body: "Type your message...",
-  },
-  {
-    id: 7,
-    category: "Calendar",
-    name: "Booking Confirmation",
-    enabled: false,
-    subject: "<My Username> - Calendar Booking Confirmed",
-    body: "Type your message...",
-  },
-  {
-    id: 8,
-    category: "Calendar",
-    name: "Booking Reminder",
-    enabled: false,
-    subject: "<My Username> - Calendar Booking Reminder",
-    body: "Type your message...",
-  },
-  {
-    id: 9,
-    category: "Calendar",
-    name: "Booking Cancellation",
-    enabled: false,
-    subject: "<My Username> - Calendar Booking Cancelled",
-    body: "Type your message...",
-  },
-];
+import React, { useEffect, useState } from "react";
+import { useBotConfig } from "../../../store/useBotConfig";
+import { useAdminStore } from "../../../store/useAdminStore";
 
 const EmailTemplates = () => {
   const [selectedId, setSelectedId] = useState<number>(1);
-  const [templates, setTemplates] = useState(mockTemplates);
+  const { activeBotId } = useBotConfig();
 
-  const selectedTemplate = templates.find((t) => t.id === selectedId);
+  const {
+    emailTemplates,
+    emailTemplatesLoading,
+    emailTemplatesError,
+    fetchEmailTemplates,
+    updateEmailTemplate,
+    setEmailTemplates,
+  } = useAdminStore();
+
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (activeBotId && emailTemplates.length === 0) {
+      fetchEmailTemplates(activeBotId);
+    }
+  }, [activeBotId, fetchEmailTemplates]);
+
+  const selectedTemplate = emailTemplates.find((t) => t.id === selectedId);
 
   const handleToggle = (id: number) => {
-    setTemplates((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, enabled: !t.enabled } : t))
+    setEmailTemplates(
+      emailTemplates.map((t) =>
+        t.id === id ? { ...t, enabled: !t.enabled } : t
+      )
     );
   };
 
@@ -92,37 +39,59 @@ const EmailTemplates = () => {
   };
 
   const handleInputChange = (field: "subject" | "body", value: string) => {
-    setTemplates((prev) =>
-      prev.map((t) => (t.id === selectedId ? { ...t, [field]: value } : t))
+    setEmailTemplates(
+      emailTemplates.map((t) =>
+        t.id === selectedId ? { ...t, [field]: value } : t
+      )
     );
   };
 
   const handleRestore = () => {
-    // Restore logic (mock)
-    setTemplates((prev) =>
-      prev.map((t) =>
-        t.id === selectedId
-          ? {
-              ...t,
-              subject: mockTemplates.find((m) => m.id === t.id)?.subject || "",
-              body: mockTemplates.find((m) => m.id === t.id)?.body || "",
-            }
-          : t
-      )
-    );
+    if (activeBotId) {
+      fetchEmailTemplates(activeBotId);
+    }
   };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSuccess(false);
+    try {
+      if (!selectedTemplate || !activeBotId)
+        throw new Error("No template selected");
+      const updatedData = {
+        subText: selectedTemplate.name,
+        isActive: selectedTemplate.enabled,
+        subject: selectedTemplate.subject,
+        body: selectedTemplate.body,
+      };
+      await updateEmailTemplate(
+        activeBotId,
+        updatedData,
+        selectedTemplate.rawKey
+      );
+      setSuccess(true);
+    } catch (err: any) {
+      // error handled by store
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (emailTemplatesLoading)
+    return <div className="p-6">Loading templates...</div>;
+  if (emailTemplatesError)
+    return <div className="p-6 text-red-500">{emailTemplatesError}</div>;
 
   return (
     <div className="flex flex-col md:flex-row gap-8 p-6">
       {/* Sidebar */}
       <div className="w-full md:w-1/3 max-w-xs">
         <h2 className="text-xl font-bold text-black">Email Templates</h2>
-
         <p className="text-gray-600 mb-6 text-sm">
           Tailor messages to match every customer action
         </p>
         <div className="space-y-2">
-          {templates.map((template) => (
+          {emailTemplates.map((template) => (
             <div
               key={template.id}
               className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition border ${
@@ -221,14 +190,24 @@ const EmailTemplates = () => {
               />
             </div>
             <div className="flex items-center gap-4">
-              <button
+              {/* <button
                 className="border border-gray-400 rounded px-4 py-1 text-sm hover:bg-gray-100"
                 onClick={handleRestore}
               >
                 Restore Template
-              </button>
-              <button className="ml-auto bg-green-300 hover:bg-green-400 text-green-900 font-semibold px-8 py-2 rounded shadow">
-                SAVE
+              </button> */}
+              {emailTemplatesError && (
+                <div className="mt-2 text-red-500">{emailTemplatesError}</div>
+              )}
+              {success && (
+                <div className="mt-2 text-green-600">Saved successfully!</div>
+              )}
+              <button
+                className="ml-auto bg-green-300 hover:bg-green-400 text-green-900 font-semibold px-8 py-2 rounded shadow"
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "SAVE"}
               </button>
             </div>
           </div>

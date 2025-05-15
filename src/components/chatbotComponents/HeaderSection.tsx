@@ -22,7 +22,7 @@ import {
   cancelUserBooking,
 } from "../../lib/serverActions";
 import RescheduleFlowComponent from "./RescheduleFlowComponent";
-import { useCartStore } from "../../store/useCartStore";
+import { PERSONALITY_OPTIONS } from "../../utils/constants";
 
 declare global {
   interface Window {
@@ -118,7 +118,30 @@ function HeaderSection({
   const [selectedBookingForReschedule, setSelectedBookingForReschedule] =
     useState<Booking | null>(null);
 
-  const { getTotalItems, setCartView } = useCartStore();
+  const [agentPicture, setAgentPicture] = useState<string | null>(null);
+
+  useEffect(() => {
+    console.log("Checking data here");
+    console.log(currentConfig);
+    if (currentConfig?.logo) {
+      setAgentPicture(currentConfig?.logo);
+    } else if (currentConfig?.personalityType?.name) {
+      let voiceName = currentConfig?.personalityType?.name;
+
+      const logoObj = PERSONALITY_OPTIONS.find(
+        (model) => model.title === voiceName
+      );
+
+      console.log(logoObj);
+      if (logoObj) {
+        setAgentPicture(logoObj?.image);
+      } else {
+        setAgentPicture(
+          "https://t4.ftcdn.net/jpg/08/04/36/29/360_F_804362990_0n7bGLz9clMBi5ajG52k8OAUQTneMbj4.jpg"
+        );
+      }
+    }
+  }, [currentConfig?.logo, currentConfig?.personalityType?.name]);
 
   useEffect(() => {
     // Load Google Identity Services script
@@ -770,7 +793,7 @@ function HeaderSection({
           <div className="w-10 h-10 rounded-full overflow-hidden">
             <img
               src={
-                currentConfig?.logo ||
+                agentPicture ||
                 "https://t4.ftcdn.net/jpg/08/04/36/29/360_F_804362990_0n7bGLz9clMBi5ajG52k8OAUQTneMbj4.jpg"
               }
               alt="Agent"

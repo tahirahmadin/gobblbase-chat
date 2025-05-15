@@ -11,8 +11,8 @@ interface PlanData {
   currency: string;
   recurrence: string;
   credits: number;
-  description: string;   
-  features: string[];    
+  description: string;
+  features: string[];
   isCurrentPlan: boolean;
 }
 
@@ -21,23 +21,25 @@ const Plans = () => {
   const [billing, setBilling] = useState("monthly");
   const [plans, setPlans] = useState<PlanData[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [upgradingPlanId, setUpgradingPlanId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!adminId) return;
-    
+
     const fetchPlans = async () => {
       try {
         setLoading(true);
         const response = await getPlans(adminId);
         setPlans(response as PlanData[]);
-        
-        const currentPlan = (response as PlanData[]).find(plan => plan.isCurrentPlan);
+
+        const currentPlan = (response as PlanData[]).find(
+          (plan) => plan.isCurrentPlan
+        );
         if (currentPlan) {
           setBilling(currentPlan.recurrence.toLowerCase());
         }
-        
+
         setLoading(false);
       } catch (error) {
         console.error("Error fetching plans:", error);
@@ -63,64 +65,69 @@ const Plans = () => {
   };
 
   const getCurrentPlanInfo = () => {
-    const currentPlan = plans.find(plan => plan.isCurrentPlan);
+    const currentPlan = plans.find((plan) => plan.isCurrentPlan);
     if (!currentPlan) return { tier: 0, isYearly: false };
-    
+
     const tier = getPlanTierLevel(currentPlan.name);
     const isYearly = currentPlan.recurrence.toLowerCase() === "yearly";
-    
+
     return { tier, isYearly };
   };
 
-  const getPlanAction = (plan: PlanData): 'upgrade' | 'downgrade' | 'current' => {
-    if (plan.isCurrentPlan) return 'current';
-    
-    const { tier: currentTier, isYearly: currentIsYearly } = getCurrentPlanInfo();
+  const getPlanAction = (
+    plan: PlanData
+  ): "upgrade" | "downgrade" | "current" => {
+    if (plan.isCurrentPlan) return "current";
+
+    const { tier: currentTier, isYearly: currentIsYearly } =
+      getCurrentPlanInfo();
     const planTier = getPlanTierLevel(plan.name);
     const planIsYearly = plan.recurrence.toLowerCase() === "yearly";
-    
-    if (planTier > currentTier) return 'upgrade';
-    
-    if (planTier < currentTier) return 'downgrade';
-    
+
+    if (planTier > currentTier) return "upgrade";
+
+    if (planTier < currentTier) return "downgrade";
+
     if (planTier === currentTier) {
-      if (planIsYearly && !currentIsYearly) return 'upgrade';
-      if (!planIsYearly && currentIsYearly) return 'downgrade';
+      if (planIsYearly && !currentIsYearly) return "upgrade";
+      if (!planIsYearly && currentIsYearly) return "downgrade";
     }
-    
-    return 'downgrade';
+
+    return "downgrade";
   };
 
   const getYearlySavings = (plan: PlanData): number => {
     if (plan.recurrence.toLowerCase() !== "yearly") return 0;
-    
+
     const monthlyPlanName = plan.name.replace("(YEARLY)", "");
-    const monthlyPlan = plans.find(p => p.name === monthlyPlanName);
-    
+    const monthlyPlan = plans.find((p) => p.name === monthlyPlanName);
+
     if (monthlyPlan) {
       const monthlyAnnualCost = monthlyPlan.price * 12;
-      const savingsPercentage = Math.round((1 - (plan.totalPrice / monthlyAnnualCost)) * 100);
+      const savingsPercentage = Math.round(
+        (1 - plan.totalPrice / monthlyAnnualCost) * 100
+      );
       return savingsPercentage > 0 ? savingsPercentage : 0;
     }
-    
+
     return 0;
   };
 
-  const filteredPlans = plans.filter(plan => 
-    plan.recurrence.toLowerCase() === billing.toLowerCase()
+  const filteredPlans = plans.filter(
+    (plan) => plan.recurrence.toLowerCase() === billing.toLowerCase()
   );
 
   const handleUpgrade = async (planId: string) => {
     if (!adminId) return;
-    
+
     try {
       setUpgradingPlanId(planId);
-      
+
       await subscribeToPlan(adminId, planId);
-      
+
       const response = await getPlans(adminId);
       setPlans(response as PlanData[]);
-      
+
       toast.success("Successfully changed your plan!");
     } catch (error) {
       console.error("Error changing plan:", error);
@@ -135,32 +142,33 @@ const Plans = () => {
   };
 
   return (
-    <div className="p-8 overflow-auto h-full w-full">
-      <h2 className="text-2xl font-bold mb-6">Plans & Pricing</h2>
-      
-      <div className="flex items-center mb-8">
-        <button
-          className={`px-4 py-2 rounded-l-full border border-blue-600 font-semibold focus:outline-none ${
-            billing === "monthly"
-              ? "bg-blue-600 text-white"
-              : "bg-white text-blue-600"
-          }`}
-          onClick={() => setBilling("monthly")}
-          disabled={upgradingPlanId !== null}
-        >
-          Monthly
-        </button>
-        <button
-          className={`px-4 py-2 rounded-r-full border border-blue-600 font-semibold focus:outline-none ${
-            billing === "yearly"
-              ? "bg-blue-600 text-white"
-              : "bg-white text-blue-600"
-          }`}
-          onClick={() => setBilling("yearly")}
-          disabled={upgradingPlanId !== null}
-        >
-          Yearly
-        </button>
+    <div className="p-6 overflow-auto h-full w-full">
+      <div className="flex flex-row justify-between items-center gap-4 mb-8">
+        <h2 className="text-2xl font-bold">Plans & Pricing</h2>
+        <div className="flex items-center">
+          <button
+            className={`px-4 py-2 rounded-l-full border border-blue-600 font-semibold focus:outline-none transition-colors duration-200 ${
+              billing === "monthly"
+                ? "bg-blue-600 text-white"
+                : "bg-white text-blue-600"
+            }`}
+            onClick={() => setBilling("monthly")}
+            disabled={upgradingPlanId !== null}
+          >
+            Monthly
+          </button>
+          <button
+            className={`px-4 py-2 rounded-r-full border border-blue-600 font-semibold focus:outline-none transition-colors duration-200 ${
+              billing === "yearly"
+                ? "bg-blue-600 text-white"
+                : "bg-white text-blue-600"
+            }`}
+            onClick={() => setBilling("yearly")}
+            disabled={upgradingPlanId !== null}
+          >
+            Yearly
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -170,83 +178,79 @@ const Plans = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pb-8">
           {filteredPlans.map((plan) => {
-            const isPlanCurrent = plan.isCurrentPlan;
-            const isYearly = plan.recurrence.toLowerCase() === "yearly";
+            const isCurrent = plan.isCurrentPlan;
             const displayName = getPlanDisplayName(plan.name);
-            const planAction = getPlanAction(plan);
-            const yearlySavings = getYearlySavings(plan);
-            
-            let bgColor = "bg-blue-100";
-            let borderColor = "border-blue-200";
-            
-            if (isPlanCurrent) {
-              bgColor = "bg-green-100";
-              borderColor = "border-green-300";
-            }
-            
+
+            // Extract "Everything in ..." pill and features
+            const pillFeature = plan.features.find((f) =>
+              f.startsWith("Everything in")
+            );
+            const features = plan.features.filter(
+              (f) => !f.startsWith("Everything in")
+            );
+
             return (
               <div
                 key={plan.id}
-                className={`rounded-xl p-6 pt-10 relative flex flex-col items-center border-2 transition-all ${bgColor} ${borderColor} ${isPlanCurrent ? "shadow-lg" : ""}`}
+                className="flex flex-col items-center rounded-[32px] border-2 bg-blue-50 border-blue-200 px-6 pb-8 min-h-[600px] relative"
               >
-                {isPlanCurrent && (
-                  <span className="absolute top-2 right-4 bg-black text-white text-xs px-3 py-1 rounded-full shadow">
-                    Current plan
+                {/* Header */}
+                <div className="w-full flex flex-col items-center rounded-[32px] bg-[#cfd7fa] mt-2 py-2 mb-2">
+                  <span className="text-lg font-bold tracking-wide uppercase">
+                    {displayName}
                   </span>
-                )}
-                {displayName === "STARTER" && !isPlanCurrent && (
-                  <span className="absolute top-2 left-4 bg-green-500 text-white text-xs px-3 py-1 rounded-full shadow">
-                    Starter plan
-                  </span>
-                )}
-                
-                <h3 className="text-xl font-bold mb-2">{displayName}</h3>
-                
-                <div className="text-3xl font-extrabold mb-1">
+                </div>
+
+                {/* Price */}
+                <div className="text-4xl font-extrabold">
                   {plan.price === 0 ? "$0" : `$${plan.price}`}
                 </div>
-                
-                <div className="text-gray-500 mb-4 text-sm">
-                  {plan.description}
-                </div>
-                
-                {yearlySavings > 0 && (
-                  <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-full mb-3">
-                    Save {yearlySavings}%
+                <div className="text-gray-600 mb-4 text-base">per month</div>
+
+                {/* Upgrade Button */}
+                <button
+                  disabled={isCurrent}
+                  onClick={() => handleUpgrade(plan.id)}
+                  className={`w-full px-6 py-2 font-bold rounded-lg uppercase mb-4 shadow border
+                    ${
+                      isCurrent
+                        ? "bg-gray-300 text-gray-600 cursor-default"
+                        : "bg-green-300 hover:bg-green-400 text-black border-green-700"
+                    }
+                  `}
+                >
+                  {isCurrent ? "CURRENT PLAN" : "UPGRADE"}
+                </button>
+
+                {/* Divider */}
+                <div className="w-full bg-black my-2 h-[3px]"></div>
+
+                {/* Pill - separated and with extra margin */}
+                {pillFeature && (
+                  <div className="bg-white w-full flex justify-center mb-4">
+                    <span className="flex items-center gap-1 bg-white rounded-full px-6 py-2 text-base font-medium text-black shadow-lg border border-gray-200">
+                      Everything in
+                      <span className="font-bold ml-1">
+                        {pillFeature.match(/in\s+(\w+)/)?.[1]}
+                      </span>
+                      <span className="text-lg font-bold text-blue-600 ml-1">
+                        +
+                      </span>
+                    </span>
                   </div>
                 )}
-                
-                <div className="w-full mb-6 flex-grow">
-                  {plan.features.map((feature, index) => (
-                    <div key={index} className="flex items-start mb-2">
-                      <div className="text-green-500 mr-2 mt-1 flex-shrink-0">✓</div>
-                      <div className="text-sm">{feature}</div>
+
+                {/* Features */}
+                <div className="w-full flex flex-col gap-2 mt-2">
+                  {features.map((feature, idx) => (
+                    <div key={idx} className="flex items-start gap-2">
+                      <span className="mt-0.5 text-md text-black">✔️</span>
+                      <span className="text-base text-black text-sm leading-tight">
+                        {feature}
+                      </span>
                     </div>
                   ))}
                 </div>
-
-                {isPlanCurrent ? (
-                  <button 
-                    disabled
-                    className="w-full px-6 py-2 bg-gray-300 text-gray-600 font-bold rounded uppercase cursor-default"
-                  >
-                    CURRENT PLAN
-                  </button>
-                ) : (
-                  <button 
-                    onClick={() => handleUpgrade(plan.id)}
-                    disabled={isUpgrading(plan.id) || upgradingPlanId !== null}
-                    className={`w-full px-6 py-2 text-center font-bold rounded uppercase ${
-                      isUpgrading(plan.id) 
-                        ? "bg-gray-400 text-white"
-                        : "bg-green-400 hover:bg-green-500 text-white"
-                    }`}
-                  >
-                    {isUpgrading(plan.id) 
-                      ? "Processing..." 
-                      : planAction === 'upgrade' ? "UPGRADE" : "DOWNGRADE"}
-                  </button>
-                )}
               </div>
             );
           })}

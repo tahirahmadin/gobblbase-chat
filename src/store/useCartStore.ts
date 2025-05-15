@@ -18,8 +18,10 @@ interface CartStore {
   getTotalPrice: () => number;
   getProductsInventory: (inputAgentId: string) => Promise<void>;
   isProductsLoading: boolean;
-  selectedProduct: Product | null;
-  setSelectedProduct: (product: Product | null) => void;
+  selectedProduct: (Product & { quantity?: number }) | null;
+  setSelectedProduct: (
+    product: (Product & { quantity?: number }) | null
+  ) => void;
   removeSelectedProduct: () => void;
   cartView: boolean;
   setCartView: (show: boolean) => void;
@@ -34,7 +36,9 @@ export const useCartStore = create<CartStore>()(
       isProductsLoading: false,
       cartView: false,
       setCartView: (show: boolean) => set({ cartView: show }),
-      setSelectedProduct: (product: Product | null) => {
+      setSelectedProduct: (
+        product: (Product & { quantity?: number }) | null
+      ) => {
         set({ selectedProduct: product });
       },
       removeSelectedProduct: () => {

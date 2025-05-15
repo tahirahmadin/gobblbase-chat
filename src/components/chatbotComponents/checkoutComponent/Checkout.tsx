@@ -41,6 +41,7 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderDetails, setOrderDetails] = useState<{
     product: any;
+    items: { title: string; quantity: number; price: number }[];
     total: number;
     orderId?: string;
     paymentMethod?: string;
@@ -92,7 +93,16 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
     paymentMethod?: string;
     paymentDate?: string;
   }) => {
-    setOrderDetails(details);
+    setOrderDetails({
+      ...details,
+      items: [
+        {
+          title: details.product.title,
+          quantity: details.product.quantity || 1,
+          price: details.product.price,
+        },
+      ],
+    });
   };
 
   if (isSuccess && orderDetails) {
@@ -107,7 +117,7 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
 
   return (
     <div
-      className="flex flex-col h-full overflow-y-auto"
+      className="flex flex-col "
       style={{ backgroundColor: theme.isDark ? "#1c1c1c" : "#ffffff" }}
     >
       {/* Header */}
@@ -160,32 +170,34 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
           </div>
         </div>
       ) : (
-        <>
+        <div className="flex flex-col h-full">
           {/* Order Summary */}
-          <div className="p-4">
+          <div className="p-4 h-full">
             <div className="flex justify-between items-center mb-4">
               <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
-                {selectedProduct.title}
+                {selectedProduct.quantity || 1}x {selectedProduct.title}
               </div>
               <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
-                ${selectedProduct.price}
+                ${selectedProduct.price * (selectedProduct.quantity || 1)}
               </div>
             </div>
             <div className="flex justify-between items-center mb-4 font-bold">
               <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
                 Total Amount
               </div>
-              <div style={{ color: "#FFD700" }}>${selectedProduct.price}</div>
+              <div style={{ color: "#FFD700" }}>
+                ${selectedProduct.price * (selectedProduct.quantity || 1)}
+              </div>
             </div>
           </div>
 
           {/* Form Steps */}
           {step === 1 ? (
-            <div className="p-4">
+            <div className="p-4 h-full">
               <h3 className="mb-4" style={{ color: theme.mainLightColor }}>
                 Shipping Address
               </h3>
-              <form className="space-y-2">
+              <form className="space-y-2 h-full">
                 <div className="flex items-center gap-2 mb-2">
                   <label
                     className="min-w-[90px] text-sm font-medium"
@@ -387,7 +399,7 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
               product={selectedProduct}
             />
           )}
-        </>
+        </div>
       )}
     </div>
   );

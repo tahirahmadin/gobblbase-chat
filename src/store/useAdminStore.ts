@@ -4,6 +4,8 @@ import {
   fetchClientAgents,
   deleteAgent,
   signUpClient,
+  getEmailTemplates,
+  updateEmailTemplates,
 } from "../lib/serverActions";
 import { toast } from "react-hot-toast";
 import { AdminAgent } from "../types";
@@ -17,6 +19,9 @@ interface AdminState {
   isLoading: boolean;
   error: string | null;
   totalAgents: number;
+  emailTemplates: any[];
+  emailTemplatesLoading?: boolean;
+  emailTemplatesError?: string | null;
   setError: (error: string | null) => void;
   // Admin operations
   fetchAllAgents: () => Promise<void>;
@@ -24,6 +29,14 @@ interface AdminState {
   adminLogout: () => void;
   handleGoogleLoginError: () => void;
   handleGoogleLoginSuccess: (credentialResponse: any) => Promise<void>;
+  // Email template operations
+  fetchEmailTemplates: (agentId: string) => Promise<void>;
+  updateEmailTemplate: (
+    agentId: string,
+    updatedData: any,
+    emailTemplateId: string
+  ) => Promise<void>;
+  setEmailTemplates: (templates: any[]) => void;
 }
 
 // Add a type for the expected result
@@ -45,6 +58,9 @@ export const useAdminStore = create<AdminState>()(
       isLoading: false,
       error: null,
       totalAgents: 0,
+      emailTemplates: [],
+      emailTemplatesLoading: false,
+      emailTemplatesError: null,
 
       // Basic setters
       setError: (error) => set({ error }),
@@ -154,11 +170,70 @@ export const useAdminStore = create<AdminState>()(
           isLoading: false,
           error: null,
           totalAgents: 0,
+          emailTemplates: [],
+          emailTemplatesLoading: false,
+          emailTemplatesError: null,
         });
 
         // Clear the persisted storage
         localStorage.removeItem("admin-storage");
       },
+
+      // Email template actions
+      fetchEmailTemplates: async (agentId: string) => {
+        set({ emailTemplatesLoading: true, emailTemplatesError: null });
+        try {
+          const res = await getEmailTemplates(agentId);
+          if (res && res.result) {
+            // Flatten the result object into an array for UI
+            const arr = Object.entries(res.result)
+              .filter(
+                ([key]) => key !== "_id" && key !== "agentId" && key !== "__v"
+              )
+              .map(([key, value]: any, idx) => ({
+                id: idx + 1,
+                category: key
+                  .replace(/([A-Z])/g, " $1")
+                  .replace(/^./, (str: string) => str.toUpperCase()),
+                name: value.subText || key,
+                enabled: value.isActive,
+                subject: value.subject,
+                body: value.body,
+                rawKey: key,
+              }));
+            set({ emailTemplates: arr, emailTemplatesLoading: false });
+          } else {
+            set({ emailTemplates: [], emailTemplatesLoading: false });
+          }
+        } catch (err: any) {
+          set({
+            emailTemplatesError: "Failed to load email templates",
+            emailTemplatesLoading: false,
+          });
+        }
+      },
+      updateEmailTemplate: async (
+        agentId: string,
+        updatedData: any,
+        emailTemplateId: string
+      ) => {
+        set({ emailTemplatesLoading: true, emailTemplatesError: null });
+        try {
+          await updateEmailTemplates(agentId, updatedData, emailTemplateId);
+          // Optionally, you can refetch templates after update
+          await get().fetchEmailTemplates(agentId);
+          toast.success("Email template updated successfully");
+        } catch (err: any) {
+          set({
+            emailTemplatesError: "Failed to update email template",
+            emailTemplatesLoading: false,
+          });
+          toast.error("Failed to update email template");
+        } finally {
+          set({ emailTemplatesLoading: false });
+        }
+      },
+      setEmailTemplates: (templates) => set({ emailTemplates: templates }),
     }),
     {
       name: "admin-storage",

@@ -131,7 +131,7 @@ const AiModel = () => {
               </div>
               <div className="flex items-center justify-between">
                 <span className="inline-block bg-black text-white text-xs px-2 py-1 rounded">
-                  Credits Cost: 1
+                  Credits Cost: {selectedModel.creditsCost}
                 </span>
                 <button
                   className="bg-green-500 hover:bg-green-600 text-white font-semibold px-3 py-1.5 rounded-lg transition disabled:opacity-60 text-sm"

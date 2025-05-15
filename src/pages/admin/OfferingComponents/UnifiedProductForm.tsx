@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { ProductType } from "../../../types";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -17,16 +17,16 @@ type UnifiedFormType = {
   images?: (File | null)[];
   imagesUrl?: string[];
   quantityType?: string;
-  quantity?: string;
+  quantity: number;
   // Digital
   fileFormat?: string;
   uploadType?: string;
   file?: File | null;
   fileUrl?: string;
   // Physical
-  customQuantity?: string;
+  customQuantity?: number;
   variedSizes?: string[];
-  variedQuantities?: Record<string, string>;
+  variedQuantities?: Record<string, number>;
   // Service
   locationType?: string;
   address?: string;
@@ -41,6 +41,7 @@ type UnifiedFormType = {
     seatType: "unlimited" | "limited";
     seats: number;
   }>;
+  quantityUnlimited?: boolean;
 };
 
 type UnifiedProductFormProps = {
@@ -69,6 +70,8 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
   setForm,
   onNext,
 }) => {
+  const [thumbnailInputKey, setThumbnailInputKey] = useState(0);
+
   const getTitle = () => {
     switch (type) {
       case "digital":
@@ -85,7 +88,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
   };
 
   return (
-    <div className="bg-[#e7eafe] rounded-2xl p-6 mx-auto w-full">
+    <div className="bg-[#e7eafe] rounded-2xl p-4 mx-auto w-full">
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Left Side */}
         <div className="flex-1 flex flex-col gap-2 min-w-0">
@@ -116,7 +119,6 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           </div>
 
           {/* Digital Product Specific */}
-          {/* File format based input */}
           {type === "digital" && (
             <>
               <label className="font-semibold">File Format*</label>
@@ -126,7 +128,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                     key={fmt}
                     type="button"
                     className={`px-2 py-1 rounded border text-xs font-semibold transition-colors duration-150 ${
-                      form.fileFormat === fmt
+                      form.fileFormat?.[0] === fmt.toLocaleLowerCase()
                         ? "bg-indigo-500 text-white border-indigo-600"
                         : "bg-white text-gray-700 border-gray-300 hover:bg-indigo-100"
                     }`}
@@ -215,125 +217,92 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           </div>
 
           {/* Images Section */}
-          <div className="flex flex-wrap gap-4 mt-2">
-            {/* Thumbnail */}
-            <div>
-              <label className="font-semibold">Thumbnail</label>
-              <div className="w-24 h-24 bg-white border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer relative mt-1">
-                {form.thumbnailUrl ? (
-                  <>
-                    <img
-                      src={form.thumbnailUrl}
-                      alt="thumb"
-                      className="w-full h-full object-cover rounded"
-                    />
+          <div>
+            <label className="font-semibold">Thumbnail & Images</label>
+            <div className="flex flex-wrap gap-2 mt-1">
+              {/* If thumbnailUrl (new upload) exists, show it as main preview */}
+              {form.thumbnailUrl ? (
+                <div className="w-24 h-24 bg-white border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer relative">
+                  <img
+                    src={form.thumbnailUrl}
+                    alt="thumb"
+                    className="w-full h-full object-cover rounded"
+                  />
+                  <button
+                    className="absolute bottom-1 left-1 bg-white border border-gray-300 rounded p-1 text-xs"
+                    onClick={() => {
+                      setForm((f) => ({
+                        ...f,
+                        thumbnail: null,
+                        thumbnailUrl: "",
+                      }));
+                      setThumbnailInputKey((k) => k + 1);
+                    }}
+                    type="button"
+                  >
+                    <span role="img" aria-label="delete">
+                      ❌
+                    </span>
+                  </button>
+                </div>
+              ) : (form.images || [])[0] ? (
+                // If images array exists and first image is present, show all images
+                (form.images || []).map((img, idx) => (
+                  <div
+                    key={idx}
+                    className="w-24 h-24 bg-white border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer relative"
+                  >
+                    {img ? (
+                      <img
+                        src={
+                          typeof img === "string"
+                            ? img
+                            : URL.createObjectURL(img)
+                        }
+                        alt={`img${idx}`}
+                        className="w-full h-full object-cover rounded"
+                      />
+                    ) : (
+                      <span className="text-gray-400 text-sm">400x400</span>
+                    )}
                     <button
                       className="absolute bottom-1 left-1 bg-white border border-gray-300 rounded p-1 text-xs"
-                      onClick={() =>
-                        setForm((f) => ({
-                          ...f,
-                          thumbnail: null,
-                          thumbnailUrl: "",
-                        }))
-                      }
+                      onClick={() => {
+                        const newImages = [...(form.images || [])];
+                        newImages[idx] = null;
+                        setForm((f) => ({ ...f, images: newImages }));
+                        if (idx === 0) setThumbnailInputKey((k) => k + 1);
+                      }}
                       type="button"
                     >
                       <span role="img" aria-label="delete">
                         ❌
                       </span>
                     </button>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-gray-400 text-sm">400x400</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0] || null;
-                        if (file) {
-                          setForm((f) => ({
-                            ...f,
-                            thumbnail: file,
-                            thumbnailUrl: URL.createObjectURL(file),
-                          }));
-                        }
-                      }}
-                    />
-                  </>
-                )}
-              </div>
-            </div>
-            {/* Additional Images */}
-            <div>
-              <label className="font-semibold">
-                Additional Images (optional)
-              </label>
-              <div className="flex flex-wrap gap-2 mt-1">
-                {[0, 1, 2].map((i) => (
-                  <div
-                    key={i}
-                    className="w-24 h-24 bg-white border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer relative"
-                  >
-                    {form.imagesUrl?.[i] ? (
-                      <>
-                        <img
-                          src={form.imagesUrl[i]}
-                          alt={`img${i}`}
-                          className="w-full h-full object-cover rounded"
-                        />
-                        <button
-                          className="absolute bottom-1 left-1 bg-white border border-gray-300 rounded p-1 text-xs"
-                          onClick={() =>
-                            setForm((f) => {
-                              const newImages = [...(f.images || [])];
-                              const newImagesUrl = [...(f.imagesUrl || [])];
-                              newImages[i] = null;
-                              newImagesUrl[i] = "";
-                              return {
-                                ...f,
-                                images: newImages,
-                                imagesUrl: newImagesUrl,
-                              };
-                            })
-                          }
-                          type="button"
-                        >
-                          <span role="img" aria-label="delete">
-                            ❌
-                          </span>
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-gray-400 text-sm">400x400</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0] || null;
-                            setForm((f) => {
-                              const newImages = [...(f.images || [])];
-                              const newImagesUrl = [...(f.imagesUrl || [])];
-                              newImages[i] = file;
-                              newImagesUrl[i] = file
-                                ? URL.createObjectURL(file)
-                                : "";
-                              return {
-                                ...f,
-                                images: newImages,
-                                imagesUrl: newImagesUrl,
-                              };
-                            });
-                          }}
-                        />
-                      </>
-                    )}
                   </div>
-                ))}
-              </div>
+                ))
+              ) : (
+                // Otherwise, show file input for new upload
+                <label className="w-24 h-24 bg-white border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer relative">
+                  <span className="text-gray-400 text-sm">400x400</span>
+                  <input
+                    key={thumbnailInputKey}
+                    type="file"
+                    accept="image/*"
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      if (file) {
+                        setForm((f) => ({
+                          ...f,
+                          thumbnail: file,
+                          thumbnailUrl: URL.createObjectURL(file),
+                        }));
+                      }
+                    }}
+                  />
+                </label>
+              )}
             </div>
           </div>
         </div>
@@ -350,7 +319,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                     type="radio"
                     name="uploadType"
                     value="file"
-                    checked={form.uploadType === "file"}
+                    checked={form.uploadType === "upload"}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, uploadType: e.target.value }))
                     }
@@ -368,12 +337,12 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                           file: e.target.files?.[0] || null,
                         }))
                       }
-                      disabled={form.uploadType !== "file"}
+                      disabled={form.uploadType !== "upload"}
                     />
                     <label
                       htmlFor="digital-upload-file"
                       className={`border border-gray-300 rounded px-2 py-1 bg-gray-50 cursor-pointer ${
-                        form.uploadType !== "file"
+                        form.uploadType !== "upload"
                           ? "opacity-50 cursor-not-allowed"
                           : ""
                       }`}
@@ -383,7 +352,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                     <button
                       type="button"
                       className="ml-2 px-3 py-1 bg-green-400 text-white rounded shadow disabled:opacity-50"
-                      disabled={form.uploadType !== "file" || !form.file}
+                      disabled={form.uploadType !== "upload" || !form.file}
                     >
                       UPLOAD
                     </button>
@@ -640,7 +609,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           {/* Physical Product Specific Quantity Section */}
           {type !== "event" &&
             (type === "physical" ? (
-              <div className="bg-[#dbeafe] border border-indigo-300 rounded-xl p-4 mb-4">
+              <div className="bg-white border border-indigo-300 rounded-xl p-4 mb-4">
                 <label className="block font-semibold mb-2">Quantity</label>
                 <div className="flex flex-col gap-3">
                   <label className="flex items-center gap-2">
@@ -650,7 +619,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       value="unlimited"
                       checked={form.quantityType === "unlimited"}
                       onChange={(e) =>
-                        setForm((f) => ({ ...f, quantityType: e.target.value }))
+                        setForm((f) => ({
+                          ...f,
+                          quantityType: e.target.value,
+                          quantityUnlimited: true,
+                        }))
                       }
                       className="accent-green-500 w-5 h-5"
                     />
@@ -663,7 +636,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       value="oneSize"
                       checked={form.quantityType === "oneSize"}
                       onChange={(e) =>
-                        setForm((f) => ({ ...f, quantityType: e.target.value }))
+                        setForm((f) => ({
+                          ...f,
+                          quantityType: e.target.value,
+                          quantityUnlimited: false,
+                        }))
                       }
                       className="accent-gray-500 w-5 h-5"
                     />
@@ -671,9 +648,12 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                     <input
                       type="number"
                       className="ml-2 border rounded px-2 py-1 w-32"
-                      value={form.quantity || ""}
+                      value={form.quantity || 0}
                       onChange={(e) =>
-                        setForm((f) => ({ ...f, quantity: e.target.value }))
+                        setForm((f) => ({
+                          ...f,
+                          quantity: parseInt(e.target.value) || 0,
+                        }))
                       }
                       disabled={form.quantityType !== "oneSize"}
                       placeholder="99999.99"
@@ -686,7 +666,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       value="variedSizes"
                       checked={form.quantityType === "variedSizes"}
                       onChange={(e) =>
-                        setForm((f) => ({ ...f, quantityType: e.target.value }))
+                        setForm((f) => ({
+                          ...f,
+                          quantityType: e.target.value,
+                          quantityUnlimited: false,
+                        }))
                       }
                       className="accent-gray-500 w-5 h-5 mt-1"
                     />
@@ -716,7 +700,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                                   delete newVariedQuantities[size];
                                 } else {
                                   newVariedSizes = [...selected, size];
-                                  newVariedQuantities[size] = "";
+                                  newVariedQuantities[size] = 0;
                                 }
                                 return {
                                   ...f,
@@ -740,7 +724,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                                 ...f,
                                 variedQuantities: {
                                   ...(f.variedQuantities || {}),
-                                  [size]: value,
+                                  [size]: parseInt(value) || 0,
                                 },
                               }));
                             }}
@@ -757,7 +741,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
               </div>
             ) : (
               // Default/Common Quantity Section for other types
-              <div className="mb-2 p-4 rounded-lg border border-indigo-200 bg-white">
+              <div className="mb-2 p-4 rounded-lg border bg-white">
                 <label className="font-semibold block mb-2">Quantity</label>
                 <div className="flex flex-col gap-2">
                   <label className="flex items-center gap-2">
@@ -767,7 +751,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       value="unlimited"
                       checked={form.quantityType === "unlimited"}
                       onChange={(e) =>
-                        setForm((f) => ({ ...f, quantityType: e.target.value }))
+                        setForm((f) => ({
+                          ...f,
+                          quantityType: e.target.value,
+                          quantityUnlimited: true,
+                        }))
                       }
                       className="accent-green-500 w-5 h-5"
                     />
@@ -780,15 +768,23 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       value="oneSize"
                       checked={form.quantityType === "oneSize"}
                       onChange={(e) =>
-                        setForm((f) => ({ ...f, quantityType: e.target.value }))
+                        setForm((f) => ({
+                          ...f,
+                          quantityType: e.target.value,
+                          quantityUnlimited: false,
+                        }))
                       }
                       className="accent-green-500 w-5 h-5"
                     />
                     <span className="text-gray-700">One size/Qty:</span>
                     <input
-                      value={form.quantity || ""}
+                      type="number"
+                      value={form.quantity || 0}
                       onChange={(e) =>
-                        setForm((f) => ({ ...f, quantity: e.target.value }))
+                        setForm((f) => ({
+                          ...f,
+                          quantity: parseInt(e.target.value) || 0,
+                        }))
                       }
                       className="border border-gray-300 rounded p-1 w-24 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                       placeholder="999999.99"
@@ -801,7 +797,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
 
           <div className="mb-2 p-4 rounded-lg border border-indigo-200 bg-white">
             <label className="font-semibold block mb-2">Set Price *</label>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col items-start gap-4">
               <label className="flex items-center gap-2">
                 <input
                   type="radio"
@@ -842,22 +838,12 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
 
           <div className="mb-2 p-4 rounded-lg border border-indigo-200 bg-white">
             <label className="font-semibold block mb-2">CTA Button*</label>
-            <select
+            <input
               className="border border-gray-300 rounded p-2 w-full"
-              value={form.cta || ""}
+              value={form.cta || "Buy Now"}
               onChange={(e) => setForm((f) => ({ ...f, cta: e.target.value }))}
-            >
-              <option>Buy Now</option>
-              {/* <option>Add to Cart</option> */}
-              {/* <option>Download Now</option>
-              <option>Get Quote</option>
-              <option>Book Service</option>
-              <option>Book Demo</option>
-              <option>Attend Workshop</option>
-              <option>Reserve Your Spot</option>
-              <option>Claim Free Trial</option>
-              <option>Learn More</option> */}
-            </select>
+              placeholder="Buy Now"
+            />
           </div>
 
           <div className="flex justify-end mt-2">

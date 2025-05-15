@@ -82,6 +82,7 @@ export interface ModelOption {
   description: string;
   traits: string[];
   details: string;
+  creditsCost: number;
 }
 
 export interface SystemPromptTemplate {

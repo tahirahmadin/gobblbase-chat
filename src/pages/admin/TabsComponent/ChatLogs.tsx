@@ -121,13 +121,13 @@ const ChatLogs = () => {
               selectedChat.userLogs.map((msg, idx) =>
                 msg.role === "agent" ? (
                   <div key={idx} className="flex">
-                    <div className="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg max-w-xs">
+                    <div className="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg max-w-xs text-sm">
                       {msg.content}
                     </div>
                   </div>
                 ) : (
                   <div key={idx} className="flex justify-end">
-                    <div className="bg-black text-white px-4 py-2 rounded-lg max-w-xs">
+                    <div className="bg-black text-white px-4 py-2 rounded-lg max-w-xs text-sm">
                       {msg.content}
                     </div>
                   </div>
