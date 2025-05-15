@@ -1,67 +1,36 @@
-import React, { useState, useEffect } from "react";
-import {
-  getEmailTemplates,
-  updateEmailTemplates,
-} from "../../../lib/serverActions";
+import React, { useEffect, useState } from "react";
 import { useBotConfig } from "../../../store/useBotConfig";
-
-const AGENT_ID = "dc33ee6b-7db8-4115-95c3-7a8355046f77"; // TODO: Replace with dynamic agentId if needed
+import { useAdminStore } from "../../../store/useAdminStore";
 
 const EmailTemplates = () => {
   const [selectedId, setSelectedId] = useState<number>(1);
-  const [templates, setTemplates] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
-  const [saving, setSaving] = useState<boolean>(false);
-  const [success, setSuccess] = useState<boolean>(false);
-
   const { activeBotId } = useBotConfig();
 
-  useEffect(() => {
-    async function fetchTemplates() {
-      setLoading(true);
-      setError("");
-      try {
-        if (!activeBotId) {
-          return null;
-        }
-        const res = await getEmailTemplates(activeBotId);
-        // Transform API response to match UI structure if needed
-        if (res && res.result) {
-          // Flatten the result object into an array for UI
-          const arr = Object.entries(res.result)
-            .filter(
-              ([key]) => key !== "_id" && key !== "agentId" && key !== "__v"
-            )
-            .map(([key, value]: any, idx) => ({
-              id: idx + 1,
-              category: key
-                .replace(/([A-Z])/g, " $1")
-                .replace(/^./, (str: string) => str.toUpperCase()),
-              name: value.subText || key,
-              enabled: value.isActive,
-              subject: value.subject,
-              body: value.body,
-              rawKey: key,
-            }));
-          setTemplates(arr);
-        } else {
-          setTemplates([]);
-        }
-      } catch (err: any) {
-        setError("Failed to load email templates");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchTemplates();
-  }, [activeBotId]);
+  const {
+    emailTemplates,
+    emailTemplatesLoading,
+    emailTemplatesError,
+    fetchEmailTemplates,
+    updateEmailTemplate,
+    setEmailTemplates,
+  } = useAdminStore();
 
-  const selectedTemplate = templates.find((t) => t.id === selectedId);
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (activeBotId && emailTemplates.length === 0) {
+      fetchEmailTemplates(activeBotId);
+    }
+  }, [activeBotId, fetchEmailTemplates]);
+
+  const selectedTemplate = emailTemplates.find((t) => t.id === selectedId);
 
   const handleToggle = (id: number) => {
-    setTemplates((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, enabled: !t.enabled } : t))
+    setEmailTemplates(
+      emailTemplates.map((t) =>
+        t.id === id ? { ...t, enabled: !t.enabled } : t
+      )
     );
   };
 
@@ -70,44 +39,48 @@ const EmailTemplates = () => {
   };
 
   const handleInputChange = (field: "subject" | "body", value: string) => {
-    setTemplates((prev) =>
-      prev.map((t) => (t.id === selectedId ? { ...t, [field]: value } : t))
+    setEmailTemplates(
+      emailTemplates.map((t) =>
+        t.id === selectedId ? { ...t, [field]: value } : t
+      )
     );
   };
 
   const handleRestore = () => {
-    // Optionally, refetch from backend or restore from initial fetch
-    // For now, just reload the page
-    window.location.reload();
+    if (activeBotId) {
+      fetchEmailTemplates(activeBotId);
+    }
   };
 
   const handleSave = async () => {
     setSaving(true);
-    setError("");
     setSuccess(false);
     try {
-      if (!selectedTemplate) throw new Error("No template selected");
+      if (!selectedTemplate || !activeBotId)
+        throw new Error("No template selected");
       const updatedData = {
         subText: selectedTemplate.name,
         isActive: selectedTemplate.enabled,
         subject: selectedTemplate.subject,
         body: selectedTemplate.body,
       };
-      await updateEmailTemplates(
-        AGENT_ID,
+      await updateEmailTemplate(
+        activeBotId,
         updatedData,
         selectedTemplate.rawKey
       );
       setSuccess(true);
     } catch (err: any) {
-      setError("Failed to save email template");
+      // error handled by store
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className="p-6">Loading templates...</div>;
-  if (error) return <div className="p-6 text-red-500">{error}</div>;
+  if (emailTemplatesLoading)
+    return <div className="p-6">Loading templates...</div>;
+  if (emailTemplatesError)
+    return <div className="p-6 text-red-500">{emailTemplatesError}</div>;
 
   return (
     <div className="flex flex-col md:flex-row gap-8 p-6">
@@ -118,7 +91,7 @@ const EmailTemplates = () => {
           Tailor messages to match every customer action
         </p>
         <div className="space-y-2">
-          {templates.map((template) => (
+          {emailTemplates.map((template) => (
             <div
               key={template.id}
               className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition border ${
@@ -217,12 +190,18 @@ const EmailTemplates = () => {
               />
             </div>
             <div className="flex items-center gap-4">
-              <button
+              {/* <button
                 className="border border-gray-400 rounded px-4 py-1 text-sm hover:bg-gray-100"
                 onClick={handleRestore}
               >
                 Restore Template
-              </button>
+              </button> */}
+              {emailTemplatesError && (
+                <div className="mt-2 text-red-500">{emailTemplatesError}</div>
+              )}
+              {success && (
+                <div className="mt-2 text-green-600">Saved successfully!</div>
+              )}
               <button
                 className="ml-auto bg-green-300 hover:bg-green-400 text-green-900 font-semibold px-8 py-2 rounded shadow"
                 onClick={handleSave}
@@ -231,10 +210,6 @@ const EmailTemplates = () => {
                 {saving ? "Saving..." : "SAVE"}
               </button>
             </div>
-            {error && <div className="mt-2 text-red-500">{error}</div>}
-            {success && (
-              <div className="mt-2 text-green-600">Saved successfully!</div>
-            )}
           </div>
         )}
       </div>
