@@ -461,7 +461,10 @@ const Booking: React.FC<BookingProps> = ({
                 ? "bg-green-100 border-2 border-green-500"
                 : "bg-white border border-gray-200"
             }`}
-            onClick={() => setBookingType("individual")}
+            onClick={() => {
+              setBookingType("individual");
+              setBookingsPerSlot(1); 
+            }}
           >
             <div className="flex items-center mb-4">
               <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
@@ -481,7 +484,12 @@ const Booking: React.FC<BookingProps> = ({
                 ? "bg-green-100 border-2 border-green-500"
                 : "bg-white border border-gray-200"
             }`}
-            onClick={() => setBookingType("group")}
+            onClick={() => {
+              setBookingType("group");
+              if (bookingsPerSlot < 2) {
+                setBookingsPerSlot(2); 
+              }
+            }}
           >
             <div className="flex items-center mb-4">
               <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
@@ -503,7 +511,7 @@ const Booking: React.FC<BookingProps> = ({
                     className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setBookingsPerSlot(Math.max(1, bookingsPerSlot - 1));
+                      setBookingsPerSlot(Math.max(2, bookingsPerSlot - 1));
                     }}
                   >
                     -

@@ -558,29 +558,15 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       return x;
     });
 
-  const selectDate = async (d: Date) => {
-    setSelectedDate(d);
-    setStep("time");
-    setLoadingSlots(true);
-
-    const apiDate = fmtApiDate(d);
-    console.log("Selecting date:", apiDate);
-
-    try {
-      const dateEntry = unavailableDates[apiDate];
-      console.log("Date entry from unavailableDates:", dateEntry);
-
-      if (dateEntry && dateEntry.allDay === false) {
-        console.log(
-          "Using modified hours:",
-          dateEntry.startTime,
-          "-",
-          dateEntry.endTime
-        );
-        const generatedSlots = generateTimeSlots(d);
-        console.log("Generated slots from modified hours:", generatedSlots);
-        setSlots(generatedSlots);
-      } else {
+    const selectDate = async (d: Date) => {
+      setSelectedDate(d);
+      setStep("time");
+      setLoadingSlots(true);
+    
+      const apiDate = fmtApiDate(d);
+      console.log("Selecting date:", apiDate);
+    
+      try {
         console.log("Fetching slots from API");
         try {
           const raw = await getAvailableSlots(
@@ -589,7 +575,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
             userTimezone
           );
           console.log("API returned slots:", raw);
-
+    
           if (raw && raw.length > 0) {
             const userSlots = raw.map((slot) => ({
               ...slot,
@@ -599,30 +585,22 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
             }));
             setSlots(userSlots);
           } else {
-            const generatedSlots = generateTimeSlots(d);
-            console.log(
-              "API returned empty, using generated slots:",
-              generatedSlots
-            );
-            setSlots(generatedSlots);
+            // No client-side slot generation - simply set empty slots
+            console.log("API returned empty slots array");
+            setSlots([]);
           }
         } catch (e) {
-          console.error(
-            "Error fetching slots from API, using generated slots:",
-            e
-          );
-          const generatedSlots = generateTimeSlots(d);
-          console.log("Generated slots due to API error:", generatedSlots);
-          setSlots(generatedSlots);
+          console.error("Error fetching slots from API:", e);
+          // Display error state instead of generating slots
+          setSlots([]);
         }
+      } catch (e) {
+        console.error("Error in selectDate:", e);
+        setSlots([]);
+      } finally {
+        setLoadingSlots(false);
       }
-    } catch (e) {
-      console.error("Error in selectDate:", e);
-      setSlots([]);
-    } finally {
-      setLoadingSlots(false);
-    }
-  };
+    };
 
   const selectSlot = (slot: Slot) => {
     if (!isLoggedIn) {
