@@ -63,7 +63,18 @@ export default function InputSection({
         className="text-center text-xs"
         style={{ color: theme.highlightColor }}
       >
-        Powered by KiFor
+        <a 
+          href="https://www.kifor.ai/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          style={{ 
+            color: theme.highlightColor,
+            textDecoration: "none"
+          }}
+          className="hover:underline"
+        >
+          Powered by KiFor
+        </a>
       </div>
     </div>
   );
