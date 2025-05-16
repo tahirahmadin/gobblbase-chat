@@ -154,7 +154,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         setTotalDocumentsSize(totalSize);
         
         const filteredDocs = allDocs.filter(
-          (doc) => doc.title !== "Kifor.ai Platform Guide" && doc.title !== "Brand Insights"
+          (doc) => doc.title !== "Brand Insights"
         );
     
         const docs = filteredDocs.map((doc) => ({
@@ -228,73 +228,49 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     setLinks(links.filter((link) => link !== linkToRemove));
   };
 
-const handleRemoveFile = async (fileName: string, documentId?: string) => {
-  if (!documentId || !activeBotId) {
-    setUploadedFiles(uploadedFiles.filter((file) => file.name !== fileName));
-    setSelectedFiles(selectedFiles.filter((file) => file.name !== fileName));
-    return;
-  }
-
-  try {
-    setProcessingFile(fileName);
-
-    const docsResponse = await listAgentDocuments(activeBotId);
-    if (!docsResponse.error && typeof docsResponse.result !== "string") {
-      const allDocuments = docsResponse.result.documents as Document[];
-      
-      const doc = allDocuments.find(d => d.documentId === documentId);
-      if (doc && doc.title === "Kifor.ai Platform Guide") {
-        toast.error("This document cannot be removed as it contains essential platform information.");
-        setProcessingFile(null);
-        return;
-      }
-      
-      const hasKiforGuide = allDocuments.some(d => d.title === "Kifor.ai Platform Guide");
-      
-      if (!hasKiforGuide && allDocuments.length <= 1) {
-        toast.error(
-          "Cannot remove the only document. An agent must have at least one document."
-        );
-        setProcessingFile(null);
-        return;
-      }
+  const handleRemoveFile = async (fileName: string, documentId?: string) => {
+    if (!documentId || !activeBotId) {
+      setUploadedFiles(uploadedFiles.filter((file) => file.name !== fileName));
+      setSelectedFiles(selectedFiles.filter((file) => file.name !== fileName));
+      return;
     }
-
-    const removeResponse = await removeDocumentFromAgent(activeBotId, documentId);
-
-    if (!removeResponse.error) {
-      const removedFile = uploadedFiles.find(file => file.documentId === documentId);
-      const removedSize = removedFile?.sizeInBytes || 0;
-      
-      const updatedFiles = uploadedFiles.filter(
-        (file) => file.documentId !== documentId
-      );
-      setUploadedFiles(updatedFiles);
-      
-      setTotalDocumentsSize(prevSize => prevSize - removedSize);
-
-      toast.success("Document removed successfully");
-    } else {
-      const errorMsg =
-        typeof removeResponse.result === "string"
-          ? removeResponse.result
-          : "Failed to remove document";
-
-      if (errorMsg.includes("Cannot remove the only document")) {
-        toast.error(
-          "Cannot remove the only document. An agent must have at least one document."
+  
+    try {
+      setProcessingFile(fileName);
+  
+      const removeResponse = await removeDocumentFromAgent(activeBotId, documentId);
+  
+      if (!removeResponse.error) {
+        const removedFile = uploadedFiles.find(file => file.documentId === documentId);
+        const removedSize = removedFile?.sizeInBytes || 0;
+        
+        const updatedFiles = uploadedFiles.filter(
+          (file) => file.documentId !== documentId
         );
+        setUploadedFiles(updatedFiles);
+        
+        setTotalDocumentsSize(prevSize => prevSize - removedSize);
+  
+        if (updatedFiles.length === 0) {
+          toast.info("All documents removed. Please add at least one document for the agent to be queryable.");
+        } else {
+          toast.success("Document removed successfully");
+        }
       } else {
+        const errorMsg =
+          typeof removeResponse.result === "string"
+            ? removeResponse.result
+            : "Failed to remove document";
+  
         toast.error(errorMsg);
       }
+    } catch (error) {
+      console.error("Error removing document:", error);
+      toast.error("Failed to remove document");
+    } finally {
+      setProcessingFile(null);
     }
-  } catch (error) {
-    console.error("Error removing document:", error);
-    toast.error("Failed to remove document");
-  } finally {
-    setProcessingFile(null);
-  }
-};
+  };
 
   // Extract text from different file types
   const extractTextFromFile = async (file: File): Promise<string | null> => {
@@ -514,13 +490,7 @@ const handleRemoveFile = async (fileName: string, documentId?: string) => {
                 `Frequent Questions: ${insightsData.frequentQuestions}`
               );
 
-            if (insights.length > 0) {
-              combinedContent = `BRAND INSIGHTS:\n${insights.join(
-                "\n\n"
-              )}\n\n${combinedContent}`;
-            }
-
-            // Create a new agent with the combined content
+            // First, create a new agent (without document)
             const response = await createNewAgentWithDocumentId(
               adminId,
               agentName.trim(),
