@@ -111,13 +111,12 @@ export default function ChatSection({
         return <LoadingBubbles textColor={theme.highlightColor} />;
       } else if (msg.type === "contact-form") {  
         return (
-          <div className="w-full">
-            <ContactFormComponent
-              theme={theme}
-              agentId={currentConfig?.agentId}
-              botName={currentConfig?.name}
-            />
-          </div>
+          <StreamingText
+            text={msg.content}
+            speed={15}
+            messageId={msg.id}
+            textColor={!theme.isDark ? "black" : "white"}
+          />
         );
       } else if (msg.type === "booking-calendar") {
         return (

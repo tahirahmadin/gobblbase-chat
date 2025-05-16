@@ -11,6 +11,13 @@ import InputSection from "../../components/chatbotComponents/InputSection";
 import AboutSection from "../../components/chatbotComponents/AboutSection";
 import BrowseSection from "../../components/chatbotComponents/BrowseSection";
 import { useChatLogs } from "../../hooks/useChatLogs";
+import { 
+  LeadCollectionStage, 
+  LeadData, 
+  startLeadCollection, 
+  handleLeadCollectionResponse, 
+  isInLeadCollectionMode 
+} from "../../utils/leadCollectionUtils";
 
 type ExtendedChatMessage = ChatMessage & {
   type?:
@@ -151,6 +158,16 @@ export default function PublicChat({
   });
   const [loadingPricing, setLoadingPricing] = useState(false);
   const [isBookingConfigured, setIsBookingConfigured] = useState(false);
+  const [leadCollectionStage, setLeadCollectionStage] = useState<LeadCollectionStage>(
+    LeadCollectionStage.NOT_COLLECTING
+  );
+  const [leadData, setLeadData] = useState<LeadData>({
+    name: "",
+    email: "",
+    phone: "",
+    message: ""
+  });
+
 
   const theme = currentConfig?.themeColors ?? {
     id: "light-yellow",
@@ -672,6 +689,24 @@ export default function PublicChat({
     setShowCues(false);
     scrollToBottom();
 
+    if (isInLeadCollectionMode(leadCollectionStage)) {
+      const isHandled = await handleLeadCollectionResponse(
+        msgToSend,
+        leadCollectionStage,
+        setLeadCollectionStage,
+        leadData,
+        setLeadData,
+        setMessages,
+        currentConfig?.agentId,
+        scrollToBottom
+      );
+      
+      if (isHandled) {
+        return;
+      }
+    }
+  
+
     if (containsBookingManagementKeywords(msgToSend)) {
       const introMessage = getRandomUniqueMessage(
         bookingManagementIntroMessages,
@@ -844,51 +879,8 @@ export default function PublicChat({
 
     if (containsContactKeywords(msgToSend)) {
       if (currentConfig?.customerLeadFlag) {
-        const introMessage = getRandomUniqueMessage(
-          contactIntroMessages,
-          usedContactIntroIndices
-        );
-
-        const contactIntroMsg = {
-          id: (Date.now() + 1).toString(),
-          content: introMessage,
-          timestamp: new Date(),
-          sender: "agent",
-          type: "contact-intro",
-        };
-
-        setMessages((m) => [...m, contactIntroMsg]);
-        scrollToBottom();
-
-        setTimeout(() => {
-          const loadingMsg = {
-            id: (Date.now() + 2).toString(),
-            content: "",
-            timestamp: new Date(),
-            sender: "agent",
-            type: "contact-loading",
-          };
-          setMessages((m) => [...m, loadingMsg]);
-          scrollToBottom();
-
-          setTimeout(() => {
-            setMessages((m) =>
-              m.filter((msg) => msg.type !== "contact-loading")
-            );
-
-            const contactFormMsg = {
-              id: (Date.now() + 3).toString(),
-              content: "",
-              timestamp: new Date(),
-              sender: "agent",
-              type: "contact-form",
-            };
-            setMessages((m) => [...m, contactFormMsg]);
-            scrollToBottom();
-          }, 1000);
-        }, 1500);
-
-        return;
+        startLeadCollection(setMessages, setLeadCollectionStage, scrollToBottom);
+      return;
       } else {
         // If contact form is not enabled, continue with normal chat flow
         // Let the normal AI response handle this case
