@@ -138,6 +138,36 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [stripeProcessing, setStripeProcessing] = useState(false);
   const [stablecoinProcessing, setStablecoinProcessing] = useState(false);
+  const [nameError, setNameError] = useState("");
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  const validateForm = () => {
+    const isNameValid = name.trim().length >= 2;
+    if (!isNameValid) {
+      setNameError(name.trim() === "" ? "Name is required" : "Name must be at least 2 characters");
+    } else {
+      setNameError("");
+    }
+    
+    const validation = validatePhone(phone, selectedCountryCode);
+    const isPhoneValid = validation.isValid;
+    const isEmailValid = EMAIL_REGEX.test(email);
+    
+    return isNameValid && isEmailValid && isPhoneValid;
+  };
+  
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setName(value);
+    
+    if (value.trim().length >= 2) {
+      setNameError("");
+    }
+    
+    setTimeout(() => {
+      setIsFormValid(validateForm());
+    }, 0);
+  };
   
   // Store dynamic price info
   const [dynamicPrice, setDynamicPrice] = useState({
@@ -182,6 +212,9 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     const value = e.target.value;
     setEmail(value);
     validateEmail(value);
+    setTimeout(() => {
+      setIsFormValid(validateForm());
+    }, 0);
   };
   
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -192,16 +225,21 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
         setSelectedCountryCode(detectedCode);
       }
     }
-
+  
     if (rawValue.length < phone.length) {
       setPhone(rawValue);
-      return;
+    } else {
+      const formattedValue = formatPhoneNumber(rawValue, selectedCountryCode);
+      setPhone(formattedValue);
     }
-    const formattedValue = formatPhoneNumber(rawValue, selectedCountryCode);
-    setPhone(formattedValue);
-
-    const validation = validatePhone(formattedValue, selectedCountryCode);
+  
+    const validation = validatePhone(formattedPhone, selectedCountryCode);
     setPhoneError(validation.errorMessage);
+    
+    // Update form validity
+    setTimeout(() => {
+      setIsFormValid(validateForm());
+    }, 0);
   };
 
   const selectCountryCode = (code: string) => {
@@ -700,12 +738,9 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedDate || !selectedSlot) return;
-    const isEmailValid = validateEmail(email);
-    const validation = validatePhone(phone, selectedCountryCode);
-    const isPhoneValid = validation.isValid;
-  
-    if (!isEmailValid || !isPhoneValid) {
-      setPhoneError(validation.errorMessage);
+    
+    const isValid = validateForm();
+    if (!isValid) {
       return;
     }
   
@@ -723,12 +758,11 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
         const formattedPhone = phone
           ? createInternationalPhone(phone, selectedCountryCode)
           : "";
-  
-        // Send both the form email (contact email) and the login email (userId)
+    
         await bookAppointment({
           agentId: businessId,
-          userId: isLoggedIn && userEmail ? userEmail : email, // Use logged-in email for userId if available
-          email: email, // Always use form email for contact information
+          userId: isLoggedIn && userEmail ? userEmail : email,
+          email: email,
           date: fmtApiDate(selectedDate),
           startTime: businessStartTime,
           endTime: businessEndTime,
@@ -993,25 +1027,38 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
             </div>
       
             <form onSubmit={handleSubmit} className="space-y-3">
-              <div>
-                <div className="relative">
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="NAME"
-                    className={`w-full p-2 rounded ${
-                        theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
-                      }`}
-                    style={{ 
-                      backgroundColor: theme.mainLightColor,
-                      color: theme.isDark ? "black" : "white"
-                    }}
-                  />
-                </div>
+            <div>
+              <div className="relative">
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={handleNameChange}
+                  onBlur={() => {
+                    if (!name.trim()) {
+                      setNameError("Name is required");
+                    } else if (name.trim().length < 2) {
+                      setNameError("Name must be at least 2 characters");
+                    }
+                    setIsFormValid(validateForm());
+                  }}
+                  placeholder="NAME"
+                  className={`w-full p-2 rounded ${
+                    theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
+                  }`}
+                  style={{ 
+                    backgroundColor: theme.mainLightColor,
+                    color: theme.isDark ? "black" : "white",
+                    borderColor: nameError ? "red" : "transparent"
+                  }}
+                />
               </div>
-      
+              {nameError && (
+                <div className="mt-1 text-red-500 text-xs">
+                  {nameError}
+                </div>
+              )}
+            </div>
               <div>
                 <div className="relative">
                   <input
@@ -1118,12 +1165,12 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       
               <button
                 type="submit"
-                disabled={submitting || !name || !email || emailError || phoneError}
+                disabled={submitting}
                 className="w-full p-3 rounded font-medium mt-4"
                 style={{
                   backgroundColor: theme.highlightColor,
                   color: theme.isDark ? "black" : "white",
-                  opacity: submitting || !name || !email || emailError || phoneError ? 0.7 : 1
+                  opacity: submitting ? 0.7 : 1
                 }}
               >
                 {submitting ? (
