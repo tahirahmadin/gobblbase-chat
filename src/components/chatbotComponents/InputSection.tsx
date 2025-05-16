@@ -1,5 +1,5 @@
 import React from "react";
-import { Mic } from "lucide-react";
+import { Send } from "lucide-react";
 import { Theme } from "../../types";
 
 interface InputSectionProps {
@@ -49,7 +49,7 @@ export default function InputSection({
             color: theme.isDark ? "white" : "black",
           }}
         >
-          <Mic
+          <Send
             className="h-5 w-5"
             style={{
               color: !theme.isDark ? "white" : "black",
@@ -63,7 +63,18 @@ export default function InputSection({
         className="text-center text-xs"
         style={{ color: theme.highlightColor }}
       >
-        Powered by KiFor
+        <a 
+          href="https://www.kifor.ai/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          style={{ 
+            color: theme.highlightColor,
+            textDecoration: "none"
+          }}
+          className="hover:underline"
+        >
+          Powered by KiFor
+        </a>
       </div>
     </div>
   );
