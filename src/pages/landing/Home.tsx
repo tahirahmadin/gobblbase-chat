@@ -274,6 +274,9 @@ const PracticalCardTitle = styled.h3`
   @media (max-width: 900px) {
     font-size: 1rem;
   }
+  @media (max-width: 600px) {
+    font-size: 1.4rem;
+  }
 `;
 
 const PracticalCardDesc = styled.p`
