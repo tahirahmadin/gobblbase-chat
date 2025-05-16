@@ -1,5 +1,5 @@
 import React from "react";
-import { Mic } from "lucide-react";
+import { Send } from "lucide-react";
 import { Theme } from "../../types";
 
 interface InputSectionProps {
@@ -49,7 +49,7 @@ export default function InputSection({
             color: theme.isDark ? "white" : "black",
           }}
         >
-          <Mic
+          <Send
             className="h-5 w-5"
             style={{
               color: !theme.isDark ? "white" : "black",
