@@ -188,6 +188,7 @@ const CustomTheme = () => {
           <PublicChat
             previewConfig={previewConfig || activeBotData}
             chatHeight={null}
+            isPreview={true}
           />
         </div>
       </div>

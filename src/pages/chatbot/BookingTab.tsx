@@ -5,8 +5,8 @@ import { useBotConfig } from "../../store/useBotConfig";
 import BookingIntegration from "./../../components/adminComponents/bookingComponents/BookingIntegration";
 
 const BookingTab: React.FC = () => {
-  const { activeBotId, activeBotData } = useBotConfig();
-  const agentId = activeBotId || activeBotData?.agentId;
+  const { usersideBotId, usersideBotData } = useBotConfig();
+  const agentId = usersideBotId || usersideBotData?.agentId;
 
   const [isLoading, setIsLoading] = useState(true);
   const [showBookingIntegration, setShowBookingIntegration] = useState(false);
@@ -136,7 +136,9 @@ const BookingTab: React.FC = () => {
                 <li>Booking type (individual or team)</li>
                 <li>Meeting duration and buffer times</li>
                 <li>Available days and times</li>
-                <li>Meeting location options (Google Meet, In-person, Zoom, Teams)</li>
+                <li>
+                  Meeting location options (Google Meet, In-person, Zoom, Teams)
+                </li>
               </ul>
               <button
                 onClick={openBookingSetup}

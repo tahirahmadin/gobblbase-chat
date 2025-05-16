@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import { Menu, X } from "lucide-react";
+import { useAdminStore } from "../../store/useAdminStore";
+import { useUserStore } from "../../store/useUserStore";
+import { useBotConfig } from "../../store/useBotConfig";
 
 interface AdminLayoutProps {
   children: React.ReactNode;

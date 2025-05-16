@@ -39,7 +39,7 @@ export default function BrowseSection({
     cartView,
     setCartView,
   } = useCartStore();
-  const { activeBotId } = useBotConfig();
+  const { usersideBotId } = useBotConfig();
 
   const [isBookingConfigured, setIsBookingConfigured] = useState(
     propIsBookingConfigured !== undefined ? propIsBookingConfigured : false
@@ -50,10 +50,10 @@ export default function BrowseSection({
   const sessionName = currentConfig?.sessionName || "Session Description";
 
   useEffect(() => {
-    if (activeBotId) {
-      getProductsInventory(activeBotId);
+    if (usersideBotId) {
+      getProductsInventory(usersideBotId);
     }
-  }, [activeBotId, getProductsInventory]);
+  }, [usersideBotId, getProductsInventory]);
 
   useEffect(() => {
     if (propIsBookingConfigured !== undefined) {
@@ -97,6 +97,9 @@ export default function BrowseSection({
         className={`flex-grow overflow-y-auto h-full ${
           inChatMode ? "p-0 m-0" : "px-3"
         }`}
+        style={{
+          paddingBottom: showOnlyBooking ? "0" : "100px",
+        }}
       >
         {cartView ? (
           <Checkout
@@ -123,63 +126,69 @@ export default function BrowseSection({
                 onDropdownToggle={handleBookingDropdownToggle}
               />
             )}
-            <h2
-              className="text-md font-medium mb-2 py-2"
-              style={{ color: theme.isDark ? "#fff" : "#000" }}
-            >
-              Browse
-            </h2>
-            {/* Product grid always visible */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 p-4">
-              {products.map((product) => (
-                <div
-                  key={product._id}
-                  className="relative rounded-lg shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => handleProductClick(product)}
-                  style={{
-                    backgroundColor: theme.isDark ? "#000" : "#fff",
-                    color: theme.isDark ? "#fff" : "#000",
-                  }}
+            {/* Only show Browse content when booking dropdown is closed */}
+            {!isBookingDropdownOpen && (
+              <>
+                <h2
+                  className="text-md font-medium mb-2 py-2"
+                  style={{ color: theme.isDark ? "#fff" : "#000" }}
                 >
-                  {/* Product Type Bubble */}
-                  <div
-                    className="absolute left-1 top-1 z-10 px-3 py-1 rounded-full text-xs font-semibold shadow"
-                    style={{
-                      backgroundColor: theme.isDark ? "#222" : "#f3f3f3",
-                      color: theme.isDark ? theme.highlightColor : "#333",
-                      border: `0.5px solid ${theme.highlightColor}`,
-                      minWidth: "60px",
-                      textAlign: "center",
-                    }}
-                  >
-                    {product.category}
-                  </div>
-                  <img
-                    src={
-                      product.images?.[0] ||
-                      "https://karanzi.websites.co.in/obaju-turquoise/img/product-placeholder.png"
-                    }
-                    alt={product.title}
-                    className="w-full h-36 object-cover"
-                  />
-                  <div className="p-4">
-                    <h3 className="text-sm font-medium mb-1">
-                      {product.title}
-                    </h3>
-                    <div className="flex justify-between items-center">
-                      <span
-                        className="text-lg font-medium "
+                  Browse
+                </h2>
+
+                {/* Product grid always visible */}
+                <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 p-4">
+                  {products.map((product) => (
+                    <div
+                      key={product._id}
+                      className="relative rounded-lg shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => handleProductClick(product)}
+                      style={{
+                        backgroundColor: theme.isDark ? "#000" : "#fff",
+                        color: theme.isDark ? "#fff" : "#000",
+                      }}
+                    >
+                      {/* Product Type Bubble */}
+                      <div
+                        className="absolute left-1 top-1 z-10 px-3 py-1 rounded-full text-xs font-semibold shadow"
                         style={{
-                          color: theme.highlightColor,
+                          backgroundColor: theme.isDark ? "#222" : "#f3f3f3",
+                          color: theme.isDark ? theme.highlightColor : "#333",
+                          border: `0.5px solid ${theme.highlightColor}`,
+                          minWidth: "60px",
+                          textAlign: "center",
                         }}
                       >
-                        ${product.price}
-                      </span>
+                        {product.category}
+                      </div>
+                      <img
+                        src={
+                          product.images?.[0] ||
+                          "https://karanzi.websites.co.in/obaju-turquoise/img/product-placeholder.png"
+                        }
+                        alt={product.title}
+                        className="w-full h-36 object-cover"
+                      />
+                      <div className="p-4">
+                        <h3 className="text-sm font-medium mb-1">
+                          {product.title}
+                        </h3>
+                        <div className="flex justify-between items-center">
+                          <span
+                            className="text-lg font-medium "
+                            style={{
+                              color: theme.highlightColor,
+                            }}
+                          >
+                            ${product.price}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            )}
           </>
         )}
       </div>

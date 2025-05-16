@@ -130,9 +130,9 @@ const formatTimezone = (tz: string): string => {
 
 const formatTime12 = (t24: string) => {
   const [h, m] = t24.split(":").map((x) => parseInt(x, 10));
-  const suffix = h >= 12 ? "pm" : "am";
+  const suffix = h >= 12 ? "PM" : "AM";
   const hr12 = h % 12 === 0 ? 12 : h % 12;
-  return `${hr12}:${m.toString().padStart(2, "0")}${suffix}`;
+  return `${hr12}:${m.toString().padStart(2, "0")} ${suffix}`;
 };
 
 const BookingDashboard: React.FC<BookingDashboardProps> = ({
@@ -293,9 +293,9 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
 
   const formatTime = (t: string) => {
     const [h, m] = t.split(":").map(Number);
-    const ap = h < 12 ? "AM" : "PM";
-    const hr = h % 12 === 0 ? 12 : h % 12;
-    return `${hr}:${m.toString().padStart(2, "0")} ${ap}`;
+    const period = h >= 12 ? "PM" : "AM";
+    const hour = h % 12 === 0 ? 12 : h % 12;
+    return `${hour}:${m.toString().padStart(2, "0")} ${period}`;
   };
 
   const filteredMeetings = meetings
@@ -360,6 +360,17 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
 
       return true;
     })
+    .map(meeting => {
+      // Create a shallow copy of the meeting object
+      const updatedMeeting = {...meeting};
+      
+      // For past meetings tab, change status to "completed" if it was "confirmed"
+      if (activeTab === "past" && meeting.status === "confirmed") {
+        updatedMeeting.status = "completed";
+      }
+      
+      return updatedMeeting;
+    })
     .sort((a, b) => {
       const dateA = new Date(`${a.date}T${a.startTime}`);
       const dateB = new Date(`${b.date}T${b.startTime}`);
@@ -374,7 +385,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
     if (!bookingSettings) return null;
 
     return (
-      <div className="bg-blue-50 rounded-lg p-4 w-64">
+      <div className="bg-blue-50 rounded-lg p-4 w-64 h-fit">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-medium">Calendar Settings</h3>
           <button
@@ -461,13 +472,13 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                     key={index}
                     className="bg-gray-100 rounded-md p-2 text-sm"
                   >
-                    {breakItem.startTime} - {breakItem.endTime}
+                    {formatTime12(breakItem.startTime)} - {formatTime12(breakItem.endTime)}
                   </div>
                 ))}
               </div>
             ) : (
               <div className="bg-gray-100 rounded-md p-2 text-sm">
-                13:00 - 14:00
+                1:00 PM - 2:00 PM
               </div>
             )}
           </div>
@@ -489,7 +500,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
 
           <button
             onClick={handleEditSettingsClick}
-            className="w-full mt-4 bg-green-500 text-white py-2 rounded-md text-sm"
+            className="w-full mt-4 bg-green-500 hover:bg-green-600 transition-colors text-white py-2 rounded-md text-sm"
           >
             EDIT
           </button>
@@ -499,7 +510,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
   };
 
   return (
-    <div className="flex p-6 gap-6">
+    <div className="flex flex-col md:flex-row p-4 md:p-6 gap-6">
       <div className="flex-1">
         <div className="mb-6">
           <h1 className="text-2xl font-bold mb-1">Bookings Dashboard</h1>
@@ -508,33 +519,33 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
           </p>
         </div>
 
-        <div className="mb-6 flex space-x-2">
+        <div className="mb-6 flex flex-wrap gap-2">
           <button
             onClick={() => setActiveTab("upcoming")}
-            className={`px-4 py-2 rounded-md text-sm font-medium ${
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               activeTab === "upcoming"
-                ? "bg-black text-white"
-                : "bg-white border border-gray-300 text-gray-700"
+                ? "bg-black text-white shadow-sm"
+                : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
             }`}
           >
             Upcoming Meetings
           </button>
           <button
             onClick={() => setActiveTab("past")}
-            className={`px-4 py-2 rounded-md text-sm font-medium ${
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               activeTab === "past"
-                ? "bg-black text-white"
-                : "bg-white border border-gray-300 text-gray-700"
+                ? "bg-black text-white shadow-sm"
+                : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
             }`}
           >
             Past Meetings
           </button>
           <button
             onClick={() => setActiveTab("schedule")}
-            className={`px-4 py-2 rounded-md text-sm font-medium ${
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               activeTab === "schedule"
-                ? "bg-black text-white"
-                : "bg-white border border-gray-300 text-gray-700"
+                ? "bg-black text-white shadow-sm"
+                : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
             }`}
           >
             My Schedule
@@ -542,15 +553,15 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
         </div>
 
         {activeTab !== "schedule" && (
-          <div className="mb-4 flex justify-between items-center">
-            <div className="flex space-x-2">
+          <div className="mb-4 flex flex-wrap justify-between items-center gap-2">
+            <div className="flex flex-wrap gap-2">
               <div className="relative">
                 <button
                   onClick={() => setShowFilterMenu(!showFilterMenu)}
-                  className={`flex items-center px-3 py-2 text-sm rounded-md border ${
+                  className={`flex items-center px-3 py-2 text-sm rounded-md border transition-colors ${
                     filtersApplied
                       ? "bg-blue-100 border-blue-300"
-                      : "bg-white border-gray-300"
+                      : "bg-white border-gray-300 hover:bg-gray-50"
                   }`}
                 >
                   <Filter className="h-4 w-4 mr-2" />
@@ -627,9 +638,12 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                         className="w-full p-2 border border-gray-300 rounded-md text-sm"
                       >
                         <option value="">All Statuses</option>
-                        <option value="confirmed">Confirmed</option>
+                        {activeTab === "upcoming" ? (
+                          <option value="confirmed">Confirmed</option>
+                        ) : (
+                          <option value="completed">Completed</option>
+                        )}
                         <option value="cancelled">Cancelled</option>
-                        <option value="completed">Completed</option>
                       </select>
                     </div>
 
@@ -643,7 +657,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                           });
                           setFiltersApplied(false);
                         }}
-                        className="text-sm text-gray-600"
+                        className="text-sm text-gray-600 hover:text-gray-800"
                       >
                         Clear All
                       </button>
@@ -656,7 +670,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                               filters.status !== null
                           );
                         }}
-                        className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md"
+                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 transition-colors text-white text-sm rounded-md"
                       >
                         Apply
                       </button>
@@ -736,7 +750,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
 
             <button
               onClick={refreshMeetings}
-              className="flex items-center px-3 py-2 text-sm bg-white border border-gray-300 rounded-md"
+              className="flex items-center px-3 py-2 text-sm bg-white border border-gray-300 hover:bg-gray-50 transition-colors rounded-md"
               title="Refresh meetings"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
@@ -767,7 +781,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                   Try Again
                 </button>
               </div>
-            ) : filteredMeetings.length === 0 ? (
+            ) : filteredMeetings.length === 0 && !filtersApplied ? (
               <div className="text-center py-12">
                 <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-800 mb-2">
@@ -781,6 +795,29 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                     : "Your completed and cancelled meetings will appear here."}
                 </p>
               </div>
+            ) : filteredMeetings.length === 0 && filtersApplied ? (
+              <div className="text-center py-12">
+                <Filter className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-800 mb-2">
+                  No Meetings Match Filters
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Try adjusting your filter settings to see more results.
+                </p>
+                <button
+                  onClick={() => {
+                    setFilters({
+                      location: null,
+                      dateRange: "all",
+                      status: null,
+                    });
+                    setFiltersApplied(false);
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm"
+                >
+                  Clear Filters
+                </button>
+              </div>
             ) : (
               <div>
                 <div className="mb-4">
@@ -792,17 +829,25 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                 </div>
 
                 <div className="max-h-[calc(100vh-220px)] overflow-y-auto">
-                  <div className="bg-white rounded-lg mb-2 p-4 grid grid-cols-12 gap-4 font-medium text-sm text-gray-500">
-                    <div className="col-span-3">NAME</div>
-                    <div className="col-span-2">DATE/TIME</div>
-                    <div className="col-span-2">LOCATION</div>
-                    <div className="col-span-2">STATUS</div>
-                    <div className="col-span-3 text-right">ACTIONS</div>
-                  </div>
+                  {activeTab === "upcoming" ? (
+                    <div className="bg-white rounded-lg mb-2 p-3 md:p-4 grid grid-cols-12 gap-2 md:gap-4 font-medium text-sm text-gray-500">
+                      <div className="col-span-3">NAME</div>
+                      <div className="col-span-2">DATE/TIME</div>
+                      <div className="col-span-2">LOCATION</div>
+                      <div className="col-span-2">STATUS</div>
+                      <div className="col-span-3 text-right">ACTIONS</div>
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-lg mb-2 p-3 md:p-4 grid grid-cols-12 gap-2 md:gap-4 font-medium text-sm text-gray-500">
+                      <div className="col-span-3">NAME</div>
+                      <div className="col-span-3">DATE/TIME</div>
+                      <div className="col-span-3">LOCATION</div>
+                      <div className="col-span-3">STATUS</div>
+                    </div>
+                  )}
 
                   {filteredMeetings.map((meeting) => {
                     // Check if meeting has been rescheduled
-                    // Either check isRescheduled flag or check if rescheduledFrom has data
                     const hasRescheduledFrom =
                       meeting.rescheduledFrom &&
                       meeting.rescheduledFrom.bookingId !== undefined;
@@ -815,98 +860,98 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                     return (
                       <div
                         key={meeting._id}
-                        className="bg-white rounded-lg mb-2 p-4"
+                        className="bg-white rounded-lg mb-2 p-3 md:p-4 hover:shadow-md transition-shadow"
                       >
-                        <div className="grid grid-cols-12 gap-4 items-center">
-                          <div className="col-span-3">
-                            <div className="text-sm font-medium">
-                              {meeting.userId.split("@")[0]}
+                        {activeTab === "upcoming" ? (
+                          <div className="grid grid-cols-12 gap-2 md:gap-4 items-center">
+                            <div className="col-span-3">
+                              <div className="text-sm font-medium">
+                                {meeting.userId.split("@")[0]}
+                              </div>
+                              <div className="text-xs text-gray-500 truncate">
+                                {meeting.userId}
+                              </div>
                             </div>
-                            <div className="text-xs text-gray-500 truncate">
-                              {meeting.userId}
-                            </div>
-                          </div>
 
-                          <div className="col-span-2">
-                            <div className="text-sm font-medium">
-                              {formatDate(meeting.date)}
+                            <div className="col-span-2">
+                              <div className="text-sm font-medium">
+                                {formatDate(meeting.date)}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {formatTime(meeting.startTime)} -{" "}
+                                {formatTime(meeting.endTime)}
+                              </div>
                             </div>
-                            <div className="text-xs text-gray-500">
-                              {formatTime(meeting.startTime)} -{" "}
-                              {formatTime(meeting.endTime)}
+
+                            <div className="col-span-2">
+                              <div className="text-sm font-medium">
+                                {meeting.location === "google_meet" &&
+                                  "Google Meet"}
+                                {meeting.location === "zoom" && "Zoom"}
+                                {meeting.location === "teams" &&
+                                  "Microsoft Teams"}
+                                {meeting.location === "in_person" && "In-person"}
+                              </div>
+                              {meeting.location !== "in_person" &&
+                                meeting.meetingLink && (
+                                  <div className="mt-1 flex flex-wrap gap-1">
+                                    <a
+                                      href={meeting.meetingLink}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-xs bg-green-500 hover:bg-green-600 transition-colors text-white px-2 py-0.5 rounded inline-block"
+                                    >
+                                      Join Now
+                                    </a>
+
+                                    <button
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(
+                                          meeting.meetingLink
+                                        );
+                                        alert(
+                                          "Meeting link copied to clipboard!"
+                                        );
+                                      }}
+                                      className="text-xs bg-blue-100 hover:bg-blue-200 transition-colors text-blue-800 px-2 py-0.5 rounded inline-block"
+                                    >
+                                      Copy Link
+                                    </button>
+                                  </div>
+                                )}
                             </div>
-                          </div>
 
-                          <div className="col-span-2">
-                            <div className="text-sm font-medium">
-                              {meeting.location === "google_meet" &&
-                                "Google Meet"}
-                              {meeting.location === "zoom" && "Zoom"}
-                              {meeting.location === "teams" &&
-                                "Microsoft Teams"}
-                              {meeting.location === "in_person" && "In-person"}
-                            </div>
-                            {meeting.location !== "in_person" &&
-                              meeting.meetingLink && (
-                                <div className="mt-1 flex flex-wrap gap-1">
-                                  <a
-                                    href={meeting.meetingLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-xs bg-green-500 text-white px-2 py-0.5 rounded inline-block"
-                                  >
-                                    Join Now
-                                  </a>
-
-                                  <button
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(
-                                        meeting.meetingLink
-                                      );
-                                      alert(
-                                        "Meeting link copied to clipboard!"
-                                      );
-                                    }}
-                                    className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded inline-block"
-                                  >
-                                    Copy Link
-                                  </button>
-                                </div>
-                              )}
-                          </div>
-
-                          <div className="col-span-2">
-                            <div className="flex flex-wrap gap-1">
-                              <span
-                                className={`px-2 py-0.5 rounded-full text-xs w-fit ${
-                                  meeting.status === "confirmed"
-                                    ? "bg-green-100 text-green-800"
-                                    : meeting.status === "cancelled"
-                                    ? "bg-red-100 text-red-800"
-                                    : "bg-blue-100 text-blue-800"
-                                }`}
-                              >
-                                {meeting.status.charAt(0).toUpperCase() +
-                                  meeting.status.slice(1)}
-                              </span>
-                              {isRescheduledConfirmed && (
-                                <span className="px-2 py-0.5 rounded-full text-xs bg-orange-100 text-orange-800 w-fit">
-                                  Rescheduled
+                            <div className="col-span-2">
+                              <div className="flex flex-wrap gap-1">
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-xs w-fit ${
+                                    meeting.status === "confirmed"
+                                      ? "bg-green-100 text-green-800"
+                                      : meeting.status === "cancelled"
+                                      ? "bg-red-100 text-red-800"
+                                      : "bg-blue-100 text-blue-800"
+                                  }`}
+                                >
+                                  {meeting.status.charAt(0).toUpperCase() + 
+                                    meeting.status.slice(1)}
                                 </span>
-                              )}
+                                {isRescheduledConfirmed && (
+                                  <span className="px-2 py-0.5 rounded-full text-xs bg-orange-100 text-orange-800 w-fit">
+                                    Rescheduled
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                          </div>
 
-                          <div className="col-span-3 text-right">
-                            <div className="flex flex-wrap gap-1 justify-end">
-                              {activeTab === "upcoming" &&
-                                meeting.status === "confirmed" && (
+                            <div className="col-span-3 text-right">
+                              <div className="flex flex-wrap gap-1 justify-end">
+                                {meeting.status === "confirmed" && (
                                   <button
                                     onClick={() =>
                                       handleSendRescheduleEmail(meeting)
                                     }
                                     disabled={sendingEmailId === meeting._id}
-                                    className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded flex items-center justify-center gap-1"
+                                    className="text-xs bg-blue-100 hover:bg-blue-200 transition-colors text-blue-800 px-3 py-1 rounded flex items-center justify-center gap-1"
                                   >
                                     {sendingEmailId === meeting._id ? (
                                       <Loader2 className="h-3 w-3 animate-spin" />
@@ -916,13 +961,12 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                                     Reschedule
                                   </button>
                                 )}
-                              {activeTab === "upcoming" && (
                                 <button
                                   onClick={() =>
                                     handleCancelBooking(meeting._id)
                                   }
                                   disabled={cancellingId === meeting._id}
-                                  className="text-xs bg-red-100 text-red-800 px-3 py-1 rounded"
+                                  className="text-xs bg-red-100 hover:bg-red-200 transition-colors text-red-800 px-3 py-1 rounded"
                                 >
                                   {cancellingId === meeting._id ? (
                                     <Loader2 className="h-3 w-3 animate-spin inline-block" />
@@ -930,10 +974,66 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                                     "Cancel"
                                   )}
                                 </button>
-                              )}
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        ) : (
+                          <div className="grid grid-cols-12 gap-2 md:gap-4 items-center">
+                            <div className="col-span-3">
+                              <div className="text-sm font-medium">
+                                {meeting.userId.split("@")[0]}
+                              </div>
+                              <div className="text-xs text-gray-500 truncate">
+                                {meeting.userId}
+                              </div>
+                            </div>
+
+                            <div className="col-span-3">
+                              <div className="text-sm font-medium">
+                                {formatDate(meeting.date)}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {formatTime(meeting.startTime)} -{" "}
+                                {formatTime(meeting.endTime)}
+                              </div>
+                            </div>
+
+                            <div className="col-span-3">
+                              <div className="text-sm font-medium">
+                                {meeting.location === "google_meet" &&
+                                  "Google Meet"}
+                                {meeting.location === "zoom" && "Zoom"}
+                                {meeting.location === "teams" &&
+                                  "Microsoft Teams"}
+                                {meeting.location === "in_person" && "In-person"}
+                              </div>
+                            </div>
+
+                            <div className="col-span-3">
+                              <div className="flex flex-wrap gap-1">
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-xs w-fit ${
+                                    meeting.status === "completed" || 
+                                    (activeTab === "past" && meeting.status === "confirmed")
+                                      ? "bg-gray-100 text-gray-800"
+                                      : meeting.status === "cancelled"
+                                      ? "bg-red-100 text-red-800"
+                                      : "bg-blue-100 text-blue-800"
+                                  }`}
+                                >
+                                  {(activeTab === "past" && meeting.status === "confirmed") 
+                                    ? "Completed" 
+                                    : meeting.status.charAt(0).toUpperCase() + meeting.status.slice(1)}
+                                </span>
+                                {isRescheduledConfirmed && (
+                                  <span className="px-2 py-0.5 rounded-full text-xs bg-orange-100 text-orange-800 w-fit">
+                                    Rescheduled
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   })}

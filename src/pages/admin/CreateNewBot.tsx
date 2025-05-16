@@ -342,17 +342,8 @@ const CreateNewBot: React.FC = () => {
                     agentId: "1234",
                     username: "preview-username",
                     name: agentName || "Agent Name",
-                    bio: "This is a preview agent.",
-                    socials: {
-                      instagram: "",
-                      tiktok: "",
-                      twitter: "",
-                      facebook: "",
-                      youtube: "",
-                      linkedin: "",
-                      snapchat: "",
-                      link: "",
-                    },
+                    bio: "This is a preview agent bio section.",
+
                     prompts: [],
                     promotionalBanner: null,
                     isPromoBannerEnabled: false,
@@ -382,6 +373,7 @@ const CreateNewBot: React.FC = () => {
                       usdc: { enabled: false, walletAddress: "", chains: [] },
                     },
                   }}
+                  isPreview={true}
                 />
               </div>
             </div>

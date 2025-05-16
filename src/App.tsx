@@ -47,8 +47,7 @@ declare global {
 function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAdminLoggedIn, totalAgents, adminId, adminEmail, agents } =
-    useAdminStore();
+  const { isAdminLoggedIn } = useAdminStore();
 
   // Handle redirect to signup when user has no agents
   useEffect(() => {
@@ -133,7 +132,13 @@ function App() {
         />
         <Route
           path=":botUsername"
-          element={<PublicChat chatHeight={null} previewConfig={null} />}
+          element={
+            <PublicChat
+              chatHeight={null}
+              previewConfig={null}
+              isPreview={false}
+            />
+          }
         />
         <Route path="/admin/*" element={<Dashboard />} />
         <Route path="/" element={<Home />} />

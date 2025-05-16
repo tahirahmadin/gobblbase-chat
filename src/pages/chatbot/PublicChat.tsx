@@ -11,6 +11,13 @@ import InputSection from "../../components/chatbotComponents/InputSection";
 import AboutSection from "../../components/chatbotComponents/AboutSection";
 import BrowseSection from "../../components/chatbotComponents/BrowseSection";
 import { useChatLogs } from "../../hooks/useChatLogs";
+import {
+  LeadCollectionStage,
+  LeadData,
+  startLeadCollection,
+  handleLeadCollectionResponse,
+  isInLeadCollectionMode,
+} from "../../utils/leadCollectionUtils";
 
 type ExtendedChatMessage = ChatMessage & {
   type?:
@@ -112,19 +119,21 @@ const getRandomUniqueMessage = (
 export default function PublicChat({
   chatHeight,
   previewConfig,
+  isPreview,
 }: {
   chatHeight: string | null;
   previewConfig: BotConfig | null;
+  isPreview: boolean;
 }) {
   const { botUsername } = useParams();
   const {
-    activeBotData: config,
+    usersideBotData,
     isLoading: isConfigLoading,
-    fetchBotData,
+    fetchUsersideBotData,
   } = useBotConfig();
   const { addMessages } = useChatLogs();
 
-  const currentConfig = previewConfig ? previewConfig : config;
+  const currentConfig = isPreview ? previewConfig : usersideBotData;
 
   const currentIsLoading = previewConfig ? false : isConfigLoading;
 
@@ -151,6 +160,14 @@ export default function PublicChat({
   });
   const [loadingPricing, setLoadingPricing] = useState(false);
   const [isBookingConfigured, setIsBookingConfigured] = useState(false);
+  const [leadCollectionStage, setLeadCollectionStage] =
+    useState<LeadCollectionStage>(LeadCollectionStage.NOT_COLLECTING);
+  const [leadData, setLeadData] = useState<LeadData>({
+    name: "",
+    email: "",
+    phone: "",
+    message: "",
+  });
 
   const theme = currentConfig?.themeColors ?? {
     id: "light-yellow",
@@ -248,9 +265,9 @@ export default function PublicChat({
   useEffect(() => {
     if (!previewConfig && botUsername) {
       console.log("Fetching bot data", botUsername);
-      fetchBotData(botUsername, true);
+      fetchUsersideBotData(botUsername);
     }
-  }, [botUsername, fetchBotData, previewConfig]);
+  }, [botUsername, previewConfig]);
 
   const containsBookingManagementKeywords = (text: string): boolean => {
     const personalPhrases = [
@@ -672,6 +689,23 @@ export default function PublicChat({
     setShowCues(false);
     scrollToBottom();
 
+    if (isInLeadCollectionMode(leadCollectionStage)) {
+      const isHandled = await handleLeadCollectionResponse(
+        msgToSend,
+        leadCollectionStage,
+        setLeadCollectionStage,
+        leadData,
+        setLeadData,
+        setMessages,
+        currentConfig?.agentId,
+        scrollToBottom
+      );
+
+      if (isHandled) {
+        return;
+      }
+    }
+
     if (containsBookingManagementKeywords(msgToSend)) {
       const introMessage = getRandomUniqueMessage(
         bookingManagementIntroMessages,
@@ -844,50 +878,11 @@ export default function PublicChat({
 
     if (containsContactKeywords(msgToSend)) {
       if (currentConfig?.customerLeadFlag) {
-        const introMessage = getRandomUniqueMessage(
-          contactIntroMessages,
-          usedContactIntroIndices
+        startLeadCollection(
+          setMessages,
+          setLeadCollectionStage,
+          scrollToBottom
         );
-
-        const contactIntroMsg = {
-          id: (Date.now() + 1).toString(),
-          content: introMessage,
-          timestamp: new Date(),
-          sender: "agent",
-          type: "contact-intro",
-        };
-
-        setMessages((m) => [...m, contactIntroMsg]);
-        scrollToBottom();
-
-        setTimeout(() => {
-          const loadingMsg = {
-            id: (Date.now() + 2).toString(),
-            content: "",
-            timestamp: new Date(),
-            sender: "agent",
-            type: "contact-loading",
-          };
-          setMessages((m) => [...m, loadingMsg]);
-          scrollToBottom();
-
-          setTimeout(() => {
-            setMessages((m) =>
-              m.filter((msg) => msg.type !== "contact-loading")
-            );
-
-            const contactFormMsg = {
-              id: (Date.now() + 3).toString(),
-              content: "",
-              timestamp: new Date(),
-              sender: "agent",
-              type: "contact-form",
-            };
-            setMessages((m) => [...m, contactFormMsg]);
-            scrollToBottom();
-          }, 1000);
-        }, 1500);
-
         return;
       } else {
         // If contact form is not enabled, continue with normal chat flow

@@ -23,13 +23,15 @@ export default function ChatProductDisplay({
   setActiveScreen,
 }: ChatProductDisplayProps) {
   // Get products from cart store
-  const { products, getProductsInventory, setCartView, setSelectedProduct } = useCartStore();
-  
+  const { products, getProductsInventory, setCartView, setSelectedProduct } =
+    useCartStore();
+
   // Local state - completely independent from the global state
-  const [localSelectedProduct, setLocalSelectedProduct] = useState<Product | null>(null);
+  const [localSelectedProduct, setLocalSelectedProduct] =
+    useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [view, setView] = useState<'grid' | 'detail' | 'checkout'>('grid');
+  const [view, setView] = useState<"grid" | "detail" | "checkout">("grid");
   const [viewMore, setViewMore] = useState(false);
 
   // Fetch products when the component mounts
@@ -44,14 +46,14 @@ export default function ChatProductDisplay({
     setLocalSelectedProduct(product);
     setCurrentImageIndex(0);
     setQuantity(1);
-    setView('detail');
+    setView("detail");
   };
 
   const handleBack = () => {
-    if (view === 'checkout') {
-      setView('detail');
+    if (view === "checkout") {
+      setView("detail");
     } else {
-      setView('grid');
+      setView("grid");
       setLocalSelectedProduct(null);
     }
   };
@@ -61,18 +63,18 @@ export default function ChatProductDisplay({
     if (localSelectedProduct) {
       try {
         // Try to use the store's functions if available
-        if (typeof setSelectedProduct === 'function') {
+        if (typeof setSelectedProduct === "function") {
           // Set the product in the global state with the correct quantity
           setSelectedProduct({
             ...localSelectedProduct,
-            quantity
+            quantity,
           });
-          
+
           // Switch to checkout directly in the cart view
-          if (typeof setCartView === 'function') {
+          if (typeof setCartView === "function") {
             setCartView(true);
           }
-          
+
           // If setActiveScreen is available, switch directly to browse screen
           if (typeof setActiveScreen === "function") {
             setActiveScreen("browse");
@@ -97,7 +99,10 @@ export default function ChatProductDisplay({
 
   // Image navigation handlers
   const handlePreviousImage = () => {
-    if (localSelectedProduct?.images && localSelectedProduct.images.length > 0) {
+    if (
+      localSelectedProduct?.images &&
+      localSelectedProduct.images.length > 0
+    ) {
       setCurrentImageIndex((prev) =>
         prev === 0 ? localSelectedProduct.images.length - 1 : prev - 1
       );
@@ -105,7 +110,10 @@ export default function ChatProductDisplay({
   };
 
   const handleNextImage = () => {
-    if (localSelectedProduct?.images && localSelectedProduct.images.length > 0) {
+    if (
+      localSelectedProduct?.images &&
+      localSelectedProduct.images.length > 0
+    ) {
       setCurrentImageIndex((prev) =>
         prev === localSelectedProduct.images.length - 1 ? 0 : prev + 1
       );
@@ -119,7 +127,7 @@ export default function ChatProductDisplay({
   // Rendering functions for each view
   const renderProductDetails = () => {
     if (!localSelectedProduct) return null;
-    
+
     // Sizes for the chat mode
     const imageSize = "w-36 h-36";
     const titleSize = "text-md";
@@ -130,7 +138,7 @@ export default function ChatProductDisplay({
 
     // Extra fields based on product type
     let extraFields = null;
-    
+
     if (localSelectedProduct.type === "physical") {
       extraFields = (
         <div className="flex flex-row justify-between gap-2 py-2">
@@ -216,11 +224,13 @@ export default function ChatProductDisplay({
               className="absolute left-2 top-1/2 -translate-y-1/2 bg-transparent border-none"
               onClick={handlePreviousImage}
               disabled={
-                !localSelectedProduct?.images || localSelectedProduct.images.length <= 1
+                !localSelectedProduct?.images ||
+                localSelectedProduct.images.length <= 1
               }
               style={{
                 opacity:
-                  !localSelectedProduct?.images || localSelectedProduct.images.length <= 1
+                  !localSelectedProduct?.images ||
+                  localSelectedProduct.images.length <= 1
                     ? 0.3
                     : 1,
               }}
@@ -240,42 +250,49 @@ export default function ChatProductDisplay({
               className="absolute right-2 top-1/2 -translate-y-1/2 bg-transparent border-none"
               onClick={handleNextImage}
               disabled={
-                !localSelectedProduct?.images || localSelectedProduct.images.length <= 1
+                !localSelectedProduct?.images ||
+                localSelectedProduct.images.length <= 1
               }
               style={{
                 opacity:
-                  !localSelectedProduct?.images || localSelectedProduct.images.length <= 1
+                  !localSelectedProduct?.images ||
+                  localSelectedProduct.images.length <= 1
                     ? 0.3
                     : 1,
               }}
             >
               <ChevronRight className="w-6 h-6 text-[#7a4fff]" />
             </button>
-            {localSelectedProduct?.images && localSelectedProduct.images.length > 1 && (
-              <div className="absolute bottom-2 flex gap-1">
-                {localSelectedProduct.images.map((_, index) => (
-                  <div
-                    key={index}
-                    className={`w-1 h-1 rounded-full ${
-                      index === currentImageIndex ? "bg-[#7a4fff]" : "bg-white/50"
-                    }`}
-                  />
-                ))}
-              </div>
-            )}
+            {localSelectedProduct?.images &&
+              localSelectedProduct.images.length > 1 && (
+                <div className="absolute bottom-2 flex gap-1">
+                  {localSelectedProduct.images.map((_, index) => (
+                    <div
+                      key={index}
+                      className={`w-1 h-1 rounded-full ${
+                        index === currentImageIndex
+                          ? "bg-[#7a4fff]"
+                          : "bg-white/50"
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
           </div>
           {/* Product Info */}
           <div className={`${sectionPadding} pt-3 pb-2 text-center`}>
             <div className={`${titleSize} font-semibold mb-1`}>
               {localSelectedProduct?.title || "Product Name"}
             </div>
-            <div className={`${borderWidth} mx-auto border-b-4 border-[#fff] mb-2 opacity-90`} />
+            <div
+              className={`${borderWidth} mx-auto border-b-4 border-[#fff] mb-2 opacity-90`}
+            />
             <div className={`${descriptionSize} mb-2 text-left opacity-90`}>
               {localSelectedProduct?.description || "Product description"}
             </div>
-            
+
             {extraFields}
-            
+
             <div className="flex flex-row justify-between items-center py-1">
               <div className="flex flex-col justify-between items-start mt-2 mb-1">
                 <div className="text-xs opacity-70 text-left">TOTAL COST</div>
@@ -305,7 +322,7 @@ export default function ChatProductDisplay({
   // Render product grid
   const renderProductGrid = () => {
     const displayProducts = viewMore ? products : products?.slice(0, 4);
-    
+
     return (
       <div className="p-3">
         <div className="grid grid-cols-2 gap-3">
@@ -325,7 +342,7 @@ export default function ChatProductDisplay({
                   className="w-full h-32 object-cover"
                 />
                 {product.category && (
-                  <div 
+                  <div
                     className="absolute top-2 right-2 bg-black/60 text-white text-xs py-0.5 px-2 rounded-full"
                     style={{ color: theme.highlightColor }}
                   >
@@ -334,7 +351,10 @@ export default function ChatProductDisplay({
                 )}
               </div>
               <div className="p-2 text-center">
-                <h3 className="text-sm font-medium mb-1 truncate" style={{ color: theme.isDark ? "white" : "black" }}>
+                <h3
+                  className="text-sm font-medium mb-1 truncate"
+                  style={{ color: theme.isDark ? "white" : "black" }}
+                >
                   {product.title}
                 </h3>
                 <div className="flex justify-between items-center">
@@ -344,7 +364,7 @@ export default function ChatProductDisplay({
                   >
                     ${product.price}
                   </span>
-                  <div 
+                  <div
                     className="flex items-center text-xs"
                     style={{ color: theme.highlightColor }}
                   >
@@ -355,10 +375,10 @@ export default function ChatProductDisplay({
             </div>
           ))}
         </div>
-        
+
         {products.length > 4 && (
           <div className="text-center mt-3 mb-1">
-            <button 
+            <button
               className="text-xs py-1.5 px-4 rounded-full"
               style={{
                 backgroundColor: theme.mainDarkColor,
@@ -378,16 +398,18 @@ export default function ChatProductDisplay({
   const hasProducts = products && products.length > 0;
   if (!hasProducts) {
     return (
-      <div 
-        className="w-full p-4 rounded-lg" 
-        style={{ 
+      <div
+        className="w-full p-4 rounded-lg"
+        style={{
           backgroundColor: theme.isDark ? "black" : "white",
-          color: theme.isDark ? "white" : "black"
+          color: theme.isDark ? "white" : "black",
         }}
       >
         <div className="text-center py-4 px-2">
           <p className="text-md font-medium mb-2">No products available</p>
-          <p className="text-sm opacity-80">Our product catalog is currently empty. Please check back later.</p>
+          <p className="text-sm opacity-80">
+            Our product catalog is currently empty. Please check back later.
+          </p>
         </div>
       </div>
     );
@@ -395,14 +417,14 @@ export default function ChatProductDisplay({
 
   // Main render based on current view
   return (
-    <div 
-      className="w-full rounded-lg overflow-hidden" 
-      style={{ 
+    <div
+      className="w-full rounded-lg overflow-hidden"
+      style={{
         backgroundColor: theme.isDark ? "black" : "white",
-        color: theme.isDark ? "white" : "black"
+        color: theme.isDark ? "white" : "black",
       }}
     >
-      {view === 'detail' ? renderProductDetails() : renderProductGrid()}
+      {view === "detail" ? renderProductDetails() : renderProductGrid()}
     </div>
   );
 }

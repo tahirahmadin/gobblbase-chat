@@ -12,7 +12,8 @@ interface Agent {
 }
 
 const Header = () => {
-  const { activeBotData, activeBotId, setActiveBotId } = useBotConfig();
+  const { activeBotData, activeBotId, activeClientId, setActiveBotId } =
+    useBotConfig();
   const { agents, adminId, fetchAllAgents } = useAdminStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -20,18 +21,6 @@ const Header = () => {
 
   //Handeling agentDetails refresh when change trigger
   const hook1 = useServerHook({ initHook: true });
-
-  useEffect(() => {
-    if (agents.length > 0) {
-      setActiveBotId(agents[0].agentId);
-    }
-  }, [agents, setActiveBotId]);
-
-  useEffect(() => {
-    if (adminId) {
-      fetchAllAgents();
-    }
-  }, [adminId, fetchAllAgents]);
 
   useEffect(() => {
     if (!isDropdownOpen) return;

@@ -22,6 +22,7 @@ const Container = styled.div`
   font-family: "DM Sans", sans-serif;
   background: #f5f6fa;
   min-height: 100vh;
+  overflow-x: hidden;
 `;
 
 const Header = styled.header`
@@ -55,6 +56,10 @@ const HeroSection = styled.section`
   text-align: center;
   position: relative;
   min-height: 540px;
+  @media (max-width: 1200px) {
+    padding: 70px 0 70px 0;
+    min-height: 480px;
+  }
   @media (max-width: 900px) {
     padding: 60px 0 60px 0;
     min-height: 400px;
@@ -69,6 +74,12 @@ const Headline = styled.h1`
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 12px;
+  @media (max-width: 1200px) {
+    font-size: 2.2rem;
+  }
+  @media (max-width: 900px) {
+    font-size: 1.8rem;
+  }
   @media (max-width: 600px) {
     font-size: 1.3rem;
   }
@@ -80,6 +91,10 @@ const Subheadline = styled.p`
   margin-bottom: 24px;
   width: 40%;
   margin: 0 auto;
+  @media (max-width: 1200px) {
+    width: 50%;
+    font-size: 0.98rem;
+  }
   @media (max-width: 900px) {
     width: 70%;
     font-size: 0.95rem;
@@ -133,11 +148,18 @@ const SpeechBubble = styled.div<SpeechBubbleProps>`
   min-width: 120px;
   max-width: 220px;
   z-index: 2;
+  @media (max-width: 1200px) {
+    font-size: 0.95rem;
+    min-width: 110px;
+    max-width: 200px;
+    padding: 8px 15px;
+  }
   @media (max-width: 900px) {
     font-size: 0.92rem;
     min-width: 90px;
     max-width: 170px;
     padding: 7px 10px;
+    display: none;
   }
   @media (max-width: 600px) {
     font-size: 0.8rem;
@@ -155,10 +177,12 @@ const PracticalSection = styled.section`
   max-width: 1100px;
   margin: 0 auto;
   @media (max-width: 900px) {
-    padding: 32px 10px 40px 10px;
+    padding: 32px 32px 32px 32px;
+    max-width: 800px;
   }
   @media (max-width: 600px) {
     padding: 18px 10px 24px 10px;
+    max-width: 500px;
   }
 `;
 
@@ -169,7 +193,7 @@ const PracticalTitle = styled.h2`
   text-align: left;
 
   @media (max-width: 600px) {
-    font-size: 1.2rem;
+    font-size: 1.5rem;
   }
 `;
 
@@ -180,8 +204,11 @@ const PracticalDesc = styled.p`
   margin-bottom: 36px;
   text-align: left;
   width: 50%;
+  @media (max-width: 900px) {
+    max-width: 800px;
+    width: 80%;
+  }
   @media (max-width: 600px) {
-    font-size: 0.95rem;
     margin-bottom: 18px;
     width: 100%;
   }
@@ -190,10 +217,13 @@ const PracticalDesc = styled.p`
 const CardsRow = styled.div`
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 32px;
   flex-wrap: wrap;
   @media (max-width: 900px) {
-    gap: 18px;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 4px;
   }
   @media (max-width: 600px) {
     flex-direction: column;
@@ -214,7 +244,7 @@ const PracticalCard = styled.div`
   padding: 0;
   overflow: hidden;
   @media (max-width: 900px) {
-    width: 240px;
+    width: 230px;
   }
   @media (max-width: 600px) {
     width: 90vw;
@@ -230,6 +260,9 @@ const PracticalCardContent = styled.div`
 
   background: #e6eaff;
   width: 100%;
+  @media (max-width: 900px) {
+    padding: 10px 12px 10px 12px;
+  }
 `;
 
 const PracticalCardTitle = styled.h3`
@@ -238,6 +271,12 @@ const PracticalCardTitle = styled.h3`
   margin-bottom: 8px;
   color: #23244a;
   text-align: center;
+  @media (max-width: 900px) {
+    font-size: 1rem;
+  }
+  @media (max-width: 600px) {
+    font-size: 1.4rem;
+  }
 `;
 
 const PracticalCardDesc = styled.p`
@@ -245,11 +284,20 @@ const PracticalCardDesc = styled.p`
   color: #333;
   margin-bottom: 18px;
   text-align: center;
+  @media (max-width: 900px) {
+    font-size: 0.85rem;
+  }
 `;
 
 const PracticalCardImage = styled.img`
   width: 180px;
   height: auto;
+  @media (max-width: 900px) {
+    width: 120px;
+  }
+  @media (max-width: 900px) {
+    width: 90px;
+  }
 `;
 
 const PracticalCardBar = styled.div`
@@ -324,10 +372,12 @@ const FeaturesSection = styled.section`
   max-width: 1100px;
   margin: 0 auto;
   @media (max-width: 900px) {
-    padding: 32px 0 40px 0;
+    padding: 32px 32px 32px 32px;
+    max-width: 800px;
   }
   @media (max-width: 600px) {
-    padding: 18px 10px 24px 10px;
+    padding: 18px 18px 18px 18px;
+    max-width: 90vw;
   }
 `;
 
@@ -338,7 +388,7 @@ const FeaturesTitle = styled.h2`
   text-align: left;
   margin-bottom: 36px;
   @media (max-width: 600px) {
-    font-size: 1.2rem;
+    font-size: 1.5rem;
   }
 `;
 
@@ -491,10 +541,12 @@ const PlatformSection = styled.section`
   max-width: 1100px;
   margin: 0 auto;
   @media (max-width: 900px) {
-    padding: 32px 10px 40px 10px;
+    padding: 32px 32px 32px 32px;
+    max-width: 800px;
   }
   @media (max-width: 600px) {
-    padding: 18px 10px 24px 10px;
+    padding: 18px 18px 18px 18px;
+    max-width: 90vw;
   }
 `;
 
@@ -505,7 +557,7 @@ const PlatformTitle = styled.h2`
   text-align: left;
   margin-bottom: 36px;
   @media (max-width: 600px) {
-    font-size: 1.2rem;
+    font-size: 1.5rem;
   }
 `;
 
@@ -517,9 +569,14 @@ const PlatformCardsRow = styled.div`
   max-width: 1100px;
   margin-bottom: 48px;
   @media (max-width: 900px) {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  @media (max-width: 600px) {
     flex-direction: column;
-    align-items: center;
-    gap: 18px;
+    align-items: flex-start;
+    gap: 14px;
   }
 `;
 
@@ -534,6 +591,13 @@ const PlatformCard = styled.div`
   flex-direction: column;
   align-items: center;
   border: 5px solid #d8ddff;
+  @media (max-width: 900px) {
+    padding: 18px 12px 18px 12px;
+  }
+  @media (max-width: 600px) {
+    padding: 8px 8px 8px 8px;
+    width: 100%;
+  }
 `;
 
 const PlatformIcon = styled.div`
@@ -554,19 +618,27 @@ const PlatformCardDesc = styled.p`
   font-size: 0.9rem;
   font-weight: 500;
   color: #212121;
+  @media (max-width: 900px) {
+    font-size: 0.8rem;
+  }
+  @media (max-width: 600px) {
+    font-size: 0.7rem;
+  }
 `;
 
 const AssembleSection = styled.section`
   background: #f5f6fa;
   padding: 64px 0 64px 0;
-  text-align: center;
+  text-align: left;
   max-width: 1100px;
   margin: 0 auto;
   @media (max-width: 900px) {
-    padding: 32px 0 40px 0;
+    padding: 32px 32px 32px 32px;
+    max-width: 800px;
   }
   @media (max-width: 600px) {
-    padding: 18px 0 24px 0;
+    padding: 18px 18px 18px 18px;
+    max-width: 90vw;
   }
 `;
 
@@ -575,6 +647,9 @@ const AssembleTitle = styled.h2`
   font-weight: 700;
   color: #23244a;
   text-align: center;
+  @media (max-width: 600px) {
+    font-size: 1.5rem;
+  }
 `;
 
 const AssembleSubtitle = styled.p`
@@ -734,20 +809,35 @@ const AssembleMascotImg = styled.img`
 
 const AppOverloadSection = styled.section`
   background: #f5f6fa;
-  padding: 56px 10px 48px 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  max-width: 1200px;
+  padding: 64px 24px;
+  text-align: center;
+  max-width: 1100px;
   margin: 0 auto;
+  @media (max-width: 1200px) {
+    padding: 48px 20px;
+  }
+  @media (max-width: 900px) {
+    padding: 32px 32px 32px 32px;
+    max-width: 800px;
+  }
+  @media (max-width: 600px) {
+    padding: 18px 18px 18px 18px;
+    max-width: 90vw;
+  }
 `;
 
 const AppOverloadTitle = styled.h2`
   font-size: 1.8rem;
   font-weight: 700;
   color: #23244a;
-  text-align: center;
+  text-align: left;
   margin-bottom: 5px;
+  @media (max-width: 900px) {
+    font-size: 1.5rem;
+  }
+  @media (max-width: 600px) {
+    font-size: 1.2rem;
+  }
 `;
 
 const AppOverloadSub = styled.p`
@@ -756,6 +846,15 @@ const AppOverloadSub = styled.p`
   font-weight: 500;
   margin-bottom: 36px;
   max-width: 700px;
+  text-align: left;
+  @media (max-width: 900px) {
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 600px) {
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+  }
 `;
 
 const AppOverloadToolsTitle = styled.h3`
@@ -763,6 +862,15 @@ const AppOverloadToolsTitle = styled.h3`
   font-weight: 700;
   color: #23244a;
   margin-bottom: 24px;
+  text-align: left;
+  @media (max-width: 900px) {
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 600px) {
+    font-size: 1rem;
+    margin-bottom: 16px;
+  }
 `;
 
 const AppOverloadCardsRow = styled.div`
@@ -770,6 +878,16 @@ const AppOverloadCardsRow = styled.div`
   gap: 24px;
   width: 100%;
   flex-wrap: wrap;
+  justify-content: flex-start;
+  @media (max-width: 1200px) {
+    gap: 20px;
+  }
+  @media (max-width: 900px) {
+    gap: 16px;
+  }
+  @media (max-width: 600px) {
+    gap: 12px;
+  }
 `;
 
 const AppOverloadCard = styled.div`
@@ -777,18 +895,21 @@ const AppOverloadCard = styled.div`
   border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
   overflow: hidden;
-  width: 200px;
+  width: calc(20% - 20px);
   min-width: 180px;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 0;
+  @media (max-width: 1200px) {
+    width: calc(25% - 15px);
+  }
   @media (max-width: 900px) {
-    width: 160px;
-    min-width: 120px;
+    width: calc(33.33% - 11px);
+    min-width: 160px;
   }
   @media (max-width: 600px) {
-    width: 90vw;
+    width: calc(50% - 6px);
     min-width: 0;
   }
 `;
@@ -844,12 +965,20 @@ const AppOverloadCardReplace = styled.div`
 
 const IntegrationsSection = styled.section`
   background: #f5f6fa;
-  padding: 56px 10px 48px 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  max-width: 1200px;
+  padding: 64px 24px;
+  text-align: center;
+  max-width: 1100px;
   margin: 0 auto;
+  @media (max-width: 1200px) {
+    padding: 48px 20px;
+  }
+  @media (max-width: 900px) {
+    padding: 32px 32px 32px 32px;
+    max-width: 800px;
+  }
+  @media (max-width: 600px) {
+    padding: 24px 12px;
+  }
 `;
 
 const IntegrationsTitle = styled.h2`
@@ -857,6 +986,13 @@ const IntegrationsTitle = styled.h2`
   font-weight: 700;
   color: #23244a;
   margin-bottom: 5px;
+  text-align: left;
+  @media (max-width: 900px) {
+    font-size: 1.6rem;
+  }
+  @media (max-width: 600px) {
+    font-size: 1.3rem;
+  }
 `;
 
 const IntegrationsSub = styled.p`
@@ -865,34 +1001,35 @@ const IntegrationsSub = styled.p`
   font-weight: 500;
   margin-bottom: 36px;
   max-width: 700px;
+  text-align: left;
+  @media (max-width: 900px) {
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 600px) {
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+  }
 `;
 
 const IntegrationsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(8, 100px);
-  grid-template-rows: repeat(4, 100px);
+  grid-template-columns: repeat(8, 1fr);
+  grid-auto-rows: minmax(100px, auto);
   gap: 28px;
-  justify-content: center;
-  padding: 20px;
+  justify-content: flex-start;
+  width: 100%;
   @media (max-width: 1200px) {
-    grid-template-columns: repeat(4, 80px);
-    grid-template-rows: repeat(6, 80px);
-    gap: 16px;
-    padding: 10px;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 20px;
   }
   @media (max-width: 900px) {
-    grid-template-columns: repeat(3, 80px);
-    grid-template-rows: repeat(8, 80px);
-    gap: 10px;
-    padding: 4px;
-    overflow-x: auto;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
   }
   @media (max-width: 600px) {
-    grid-template-columns: repeat(5, 60px);
-    grid-template-rows: repeat(12, 60px);
-    gap: 6px;
-    padding: 2px;
-    overflow-x: auto;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
   }
 `;
 
@@ -906,23 +1043,27 @@ const IntegrationBox = styled.div`
   font-size: 2.1rem;
   font-weight: 600;
   color: #23244a;
-  width: 100px;
-  height: 100px;
+  width: 100%;
+  aspect-ratio: 1;
   text-align: center;
   padding: 15px;
   @media (max-width: 1200px) {
-    width: 80px;
-    height: 80px;
+    font-size: 1.8rem;
+    border-radius: 16px;
   }
   @media (max-width: 900px) {
-    width: 80px;
-    height: 80px;
+    font-size: 1.5rem;
+    border-radius: 14px;
+    padding: 12px;
+    width: 120px;
+    height: 120px;
   }
   @media (max-width: 600px) {
-    width: 60px;
-    height: 60px;
-    border-radius: 10px;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
+    border-radius: 12px;
+    padding: 10px;
+    width: 100px;
+    height: 100px;
   }
   img {
     max-width: 80%;
@@ -1163,25 +1304,25 @@ const Home = () => {
           </LoginButton>
         </Header>
         <HeroSection>
-          <SpeechBubble top="38px" left="60px">
+          <SpeechBubble top="5%" left="5%">
             Welcome to the salon, how can I help you?
           </SpeechBubble>
-          <SpeechBubble top="130px" left="220px" color="#a1a9ff">
+          <SpeechBubble top="25%" left="15%" color="#a1a9ff">
             Book a 1:1 meeting with our senior dietitian
           </SpeechBubble>
-          <SpeechBubble top="260px" left="90px" color="#ceffaf">
+          <SpeechBubble top="45%" left="8%" color="#ceffaf">
             Our Summer Sale is now live!
           </SpeechBubble>
-          <SpeechBubble top="380px" left="180px">
+          <SpeechBubble top="70%" left="15%">
             Your spin class is booked for 8am tomorrow.
           </SpeechBubble>
-          <SpeechBubble top="60px" right="80px" color="#ceffaf">
+          <SpeechBubble top="10%" right="5%" color="#ceffaf">
             Should I repeat your order?
           </SpeechBubble>
-          <SpeechBubble top="200px" right="200px">
+          <SpeechBubble top="35%" right="15%">
             How would you like to pay today?
           </SpeechBubble>
-          <SpeechBubble top="360px" right="120px" color="#a1a9ff">
+          <SpeechBubble top="65%" right="10%" color="#a1a9ff">
             Drop us your contact details for more info.
           </SpeechBubble>
           <Headline>
