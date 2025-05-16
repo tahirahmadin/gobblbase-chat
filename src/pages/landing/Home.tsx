@@ -193,7 +193,7 @@ const PracticalTitle = styled.h2`
   text-align: left;
 
   @media (max-width: 600px) {
-    font-size: 1.2rem;
+    font-size: 1.5rem;
   }
 `;
 
@@ -209,7 +209,6 @@ const PracticalDesc = styled.p`
     width: 80%;
   }
   @media (max-width: 600px) {
-    font-size: 0.95rem;
     margin-bottom: 18px;
     width: 100%;
   }
@@ -386,7 +385,7 @@ const FeaturesTitle = styled.h2`
   text-align: left;
   margin-bottom: 36px;
   @media (max-width: 600px) {
-    font-size: 1.2rem;
+    font-size: 1.5rem;
   }
 `;
 
@@ -555,7 +554,7 @@ const PlatformTitle = styled.h2`
   text-align: left;
   margin-bottom: 36px;
   @media (max-width: 600px) {
-    font-size: 1.2rem;
+    font-size: 1.5rem;
   }
 `;
 
@@ -645,6 +644,9 @@ const AssembleTitle = styled.h2`
   font-weight: 700;
   color: #23244a;
   text-align: center;
+  @media (max-width: 600px) {
+    font-size: 1.5rem;
+  }
 `;
 
 const AssembleSubtitle = styled.p`
