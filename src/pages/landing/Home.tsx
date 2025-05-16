@@ -1307,7 +1307,7 @@ const Home = () => {
           <SpeechBubble top="5%" left="5%">
             Welcome to the salon, how can I help you?
           </SpeechBubble>
-          <SpeechBubble top="20%" left="15%" color="#a1a9ff">
+          <SpeechBubble top="25%" left="15%" color="#a1a9ff">
             Book a 1:1 meeting with our senior dietitian
           </SpeechBubble>
           <SpeechBubble top="45%" left="8%" color="#ceffaf">
