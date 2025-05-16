@@ -892,30 +892,8 @@ export default function PublicChat({
 
     setIsLoading(true);
     try {
-      const kiforVariations = [
-        "kifor",
-        "ki for",
-        "key for",
-        "ki 4",
-        "key 4",
-        "key-for",
-        "ki-for",
-        "k for",
-        "k4",
-        "kiframe",
-        "ki frame",
-        "ki-frame",
-        "key frame",
-        "k frame",
-      ];
-      const lowercaseMsg = msgToSend.toLowerCase();
-      const containsKifor = kiforVariations.some((variation) =>
-        lowercaseMsg.includes(variation)
-      );
-
       const recentMessages = messages.slice(-1);
-      const useContext =
-        !containsKifor && shouldUseContext(msgToSend, recentMessages);
+      const useContext = shouldUseContext(msgToSend, recentMessages);
       let enhancedQuery;
       if (useContext && recentMessages.length > 0) {
         const conversationContext = recentMessages
@@ -948,7 +926,6 @@ export default function PublicChat({
       - Ask thoughtful follow-up questions when appropriate
       - Use natural, warm language
       - Greeting should be replied with greeting only.
-      - Dont include Kifor Information anywhere untill it is asked by the user in query.
 
       Formatting:
       - **Bold** for key points
