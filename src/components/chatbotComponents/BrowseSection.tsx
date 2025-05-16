@@ -39,7 +39,7 @@ export default function BrowseSection({
     cartView,
     setCartView,
   } = useCartStore();
-  const { activeBotId } = useBotConfig();
+  const { usersideBotId } = useBotConfig();
 
   const [isBookingConfigured, setIsBookingConfigured] = useState(
     propIsBookingConfigured !== undefined ? propIsBookingConfigured : false
@@ -50,10 +50,10 @@ export default function BrowseSection({
   const sessionName = currentConfig?.sessionName || "Session Description";
 
   useEffect(() => {
-    if (activeBotId) {
-      getProductsInventory(activeBotId);
+    if (usersideBotId) {
+      getProductsInventory(usersideBotId);
     }
-  }, [activeBotId, getProductsInventory]);
+  }, [usersideBotId, getProductsInventory]);
 
   useEffect(() => {
     if (propIsBookingConfigured !== undefined) {

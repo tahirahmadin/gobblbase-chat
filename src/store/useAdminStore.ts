@@ -37,6 +37,7 @@ interface AdminState {
     emailTemplateId: string
   ) => Promise<void>;
   setEmailTemplates: (templates: any[]) => void;
+  isAgentsLoaded: boolean;
 }
 
 // Add a type for the expected result
@@ -54,6 +55,7 @@ export const useAdminStore = create<AdminState>()(
       adminId: null,
       adminEmail: null,
       isAdminLoggedIn: false,
+      isAgentsLoaded: false,
       agents: [],
       isLoading: false,
       error: null,
@@ -135,13 +137,13 @@ export const useAdminStore = create<AdminState>()(
       // Admin operations
       fetchAllAgents: async () => {
         try {
-          set({ isLoading: true, error: null });
+          set({ isAgentsLoaded: false });
           const adminId = get().adminId;
           if (!adminId) {
             throw new Error("Admin ID is not set");
           }
           const agents = await fetchClientAgents(adminId);
-          set({ agents, totalAgents: agents.length, isLoading: false });
+          set({ agents, totalAgents: agents.length, isAgentsLoaded: true });
         } catch (error) {
           set({ error: (error as Error).message, isLoading: false });
           toast.error("Failed to fetch agents");

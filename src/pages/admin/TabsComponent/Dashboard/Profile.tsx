@@ -673,7 +673,11 @@ const Profile = () => {
             alignItems: "center",
           }}
         >
-          <PublicChat previewConfig={activeBotData} chatHeight={null} />
+          <PublicChat
+            previewConfig={activeBotData}
+            chatHeight={null}
+            isPreview={true}
+          />
         </div>
       </div>
     </div>

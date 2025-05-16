@@ -373,6 +373,7 @@ const CreateNewBot: React.FC = () => {
                       usdc: { enabled: false, walletAddress: "", chains: [] },
                     },
                   }}
+                  isPreview={true}
                 />
               </div>
             </div>

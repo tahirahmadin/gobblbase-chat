@@ -10,8 +10,12 @@ import { Theme, BotConfig } from "../types";
 
 interface BotConfigState {
   activeBotId: string | null;
-  activeClientId: string | null;
   activeBotData: BotConfig | null;
+
+  usersideBotId: string | null;
+  usersideBotData: BotConfig | null;
+
+  activeClientId: string | null;
 
   isLoading: boolean;
   error: string | null;
@@ -22,10 +26,13 @@ interface BotConfigState {
   setActiveBotId: (id: string | null) => void;
   setActiveClientId: (id: string | null) => void;
   setActiveBotData: (data: BotConfig | null) => void;
+  setUsersideBotId: (id: string | null) => void;
+  setUsersideBotData: (data: BotConfig | null) => void;
   fetchBotData: (
     agentIdOrUsername: string,
     isFetchByUsername: boolean
   ) => Promise<void>;
+  fetchUsersideBotData: (inputUsername: string) => Promise<void>;
   updateBotUsernameViaStore: (
     inputBotId: string,
     inputUsername: string
@@ -41,10 +48,14 @@ export const useBotConfig = create<BotConfigState>()(
   persist(
     (set, get) => ({
       activeBotId: null,
-      activeClientId: null,
       activeBotData: null,
+
+      usersideBotId: null,
+      usersideBotData: null,
+
       refetchBotData: 0,
 
+      activeClientId: null,
       isLoading: false,
       error: null,
 
@@ -59,12 +70,9 @@ export const useBotConfig = create<BotConfigState>()(
           try {
             set({ isLoading: true, error: null });
             console.log("Fetching data for bot ID:", id);
-
             // Fetch the bot data
             let response = await getAgentDetails(id, false);
-
             // Extract only the required fields from the response
-
             set({ activeBotData: response, isLoading: false });
           } catch (error) {
             console.error("Error fetching bot data:", error);
@@ -72,6 +80,11 @@ export const useBotConfig = create<BotConfigState>()(
           }
         }
       },
+
+      setUsersideBotId: async (id) => {
+        set({ usersideBotId: id });
+      },
+
       setActiveClientId: async (id) => {
         set({ activeClientId: id });
       },
@@ -87,21 +100,39 @@ export const useBotConfig = create<BotConfigState>()(
       },
       setActiveBotData: (data) => set({ activeBotData: data }),
 
+      setUsersideBotData: (data) => set({ usersideBotData: data }),
+
       fetchBotData: async (
         agentIdOrUsername: string,
         isFetchByUsername: boolean
       ) => {
         try {
+          console.log("Fetching bot data for:", agentIdOrUsername);
           set({ isLoading: true, error: null });
           let response = await getAgentDetails(
             agentIdOrUsername,
             isFetchByUsername
           );
-
           set({
             activeBotId: response.agentId,
             activeClientId: response.clientId,
             activeBotData: response,
+            isLoading: false,
+          });
+        } catch (error) {
+          set({ error: (error as Error).message, isLoading: false });
+          toast.error("Failed to fetch bot configuration");
+        }
+      },
+
+      fetchUsersideBotData: async (inputUsername: string) => {
+        try {
+          console.log("Fetching userside bot data for:", inputUsername);
+          set({ isLoading: true, error: null });
+          let response = await getAgentDetails(inputUsername, true);
+          set({
+            usersideBotData: response,
+            usersideBotId: response.agentId,
             isLoading: false,
           });
         } catch (error) {

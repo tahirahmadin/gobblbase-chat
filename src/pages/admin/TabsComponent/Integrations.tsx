@@ -28,21 +28,21 @@ const Integrations: React.FC = () => {
   const [showConfigForm, setShowConfigForm] = useState(false);
 
   // Check initial ZOHO status
-  useEffect(() => {
-    const checkZohoStatus = async () => {
-      if (!activeBotId) return;
-      try {
-        const agentDetails = await getAgentDetails(activeBotId, false);
-        setIsAuthenticated(
-          agentDetails?.services?.includes("ZOHO_INVENTORY") || false
-        );
-      } catch (error) {
-        console.error("Error checking ZOHO status:", error);
-      }
-    };
+  // useEffect(() => {
+  //   const checkZohoStatus = async () => {
+  //     if (!activeBotId) return;
+  //     try {
+  //       const agentDetails = await getAgentDetails(activeBotId, false);
+  //       setIsAuthenticated(
+  //         agentDetails?.services?.includes("ZOHO_INVENTORY") || false
+  //       );
+  //     } catch (error) {
+  //       console.error("Error checking ZOHO status:", error);
+  //     }
+  //   };
 
-    checkZohoStatus();
-  }, [activeBotId]);
+  //   checkZohoStatus();
+  // }, [activeBotId]);
 
   const handleDisconnect = async (integrationId: string) => {
     // TODO: Implement disconnection logic
@@ -91,39 +91,39 @@ const Integrations: React.FC = () => {
     }
   };
 
-  const startPolling = () => {
-    setIsPolling(true);
-    let attempts = 0;
-    const maxAttempts = 10; // 30 seconds total (3 seconds * 10 attempts)
+  // const startPolling = () => {
+  //   setIsPolling(true);
+  //   let attempts = 0;
+  //   const maxAttempts = 10; // 30 seconds total (3 seconds * 10 attempts)
 
-    const poll = async () => {
-      if (attempts >= maxAttempts) {
-        setIsPolling(false);
-        if (pollingTimeout) clearTimeout(pollingTimeout);
-        toast.error("Authentication timed out. Please try again.");
-        return;
-      }
+  //   const poll = async () => {
+  //     if (attempts >= maxAttempts) {
+  //       setIsPolling(false);
+  //       if (pollingTimeout) clearTimeout(pollingTimeout);
+  //       toast.error("Authentication timed out. Please try again.");
+  //       return;
+  //     }
 
-      try {
-        const agentDetails = await getAgentDetails(activeBotId || "", false);
-        if (agentDetails?.services?.includes("ZOHO_INVENTORY")) {
-          setIsAuthenticated(true);
-          setIsPolling(false);
-          if (pollingTimeout) clearTimeout(pollingTimeout);
-          toast.success("ZOHO Books integration completed successfully!");
-          return;
-        }
-      } catch (error) {
-        console.error("Error polling agent details:", error);
-      }
+  //     try {
+  //       const agentDetails = await getAgentDetails(activeBotId || "", false);
+  //       if (agentDetails?.services?.includes("ZOHO_INVENTORY")) {
+  //         setIsAuthenticated(true);
+  //         setIsPolling(false);
+  //         if (pollingTimeout) clearTimeout(pollingTimeout);
+  //         toast.success("ZOHO Books integration completed successfully!");
+  //         return;
+  //       }
+  //     } catch (error) {
+  //       console.error("Error polling agent details:", error);
+  //     }
 
-      attempts++;
-      const timeout = setTimeout(poll, 3000); // Poll every 3 seconds
-      setPollingTimeout(timeout);
-    };
+  //     attempts++;
+  //     const timeout = setTimeout(poll, 3000); // Poll every 3 seconds
+  //     setPollingTimeout(timeout);
+  //   };
 
-    poll();
-  };
+  //   poll();
+  // };
 
   const handleAuth = () => {
     if (!activeBotId) {

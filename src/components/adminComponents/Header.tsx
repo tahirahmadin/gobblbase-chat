@@ -22,28 +22,6 @@ const Header = () => {
   //Handeling agentDetails refresh when change trigger
   const hook1 = useServerHook({ initHook: true });
 
-  // useEffect(() => {
-  //   if (adminId && activeBotId && activeClientId) {
-  //     console.log("adminId", adminId);
-  //     console.log("activeClientId", activeClientId);
-  //     if (adminId !== activeClientId) {
-  //       navigate("/");
-  //     }
-  //   }
-  // }, [adminId, activeBotId, activeClientId]);
-
-  useEffect(() => {
-    if (agents.length > 0 && activeBotId === null) {
-      setActiveBotId(agents[0].agentId);
-    }
-  }, [agents, setActiveBotId]);
-
-  useEffect(() => {
-    if (adminId) {
-      fetchAllAgents();
-    }
-  }, [adminId, fetchAllAgents]);
-
   useEffect(() => {
     if (!isDropdownOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
@@ -62,13 +40,6 @@ const Header = () => {
     setActiveBotId(agentId);
     setIsDropdownOpen(false);
     navigate("/admin/dashboard/profile");
-  };
-
-  const getLogo = () => {
-    if (activeBotData?.logo) {
-      return activeBotData.logo;
-    }
-    return "/logo.png";
   };
 
   return (
