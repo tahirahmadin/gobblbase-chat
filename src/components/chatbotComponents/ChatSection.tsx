@@ -100,7 +100,8 @@ export default function ChatSection({
             text={msg.content}
             speed={15}
             messageId={`${msg.id}-intro`}
-            textColor={!theme.isDark ? "black" : "white"}
+            textColor={!theme.isDark ? "black" : "white"}\
+            loadingTime={1000}
           />
         );
       } else if (
@@ -116,6 +117,7 @@ export default function ChatSection({
             speed={15}
             messageId={msg.id}
             textColor={!theme.isDark ? "black" : "white"}
+            loadingTime={1000}
           />
         );
       } else if (msg.type === "booking-calendar") {
@@ -160,6 +162,7 @@ export default function ChatSection({
             speed={15}
             messageId={msg.id}
             textColor={!theme.isDark ? "black" : "white"}
+            loadingTime={1000}
           />
         );
       }
