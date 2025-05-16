@@ -53,12 +53,19 @@ const Header = () => {
     navigate("/admin/dashboard/profile");
   };
 
+  const getLogo = () => {
+    if (activeBotData?.logo) {
+      return activeBotData.logo;
+    }
+    return "/logo.png";
+  };
+
   return (
     <header
       className="bg-white border-b border-gray-200 shadow-lg z-10"
       style={{ backgroundColor: "#eaefff" }}
     >
-      <div className="flex justify-between items-center px-6 py-4 pl-16">
+      <div className="flex justify-between items-center px-6 py-4 xs:pl-16">
         <div className="flex items-center space-x-4">
           <div className="relative" ref={dropdownRef}>
             <button

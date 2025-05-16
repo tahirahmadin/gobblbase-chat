@@ -121,8 +121,6 @@ function HeaderSection({
   const [agentPicture, setAgentPicture] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("Checking data here");
-    console.log(currentConfig);
     if (currentConfig?.logo) {
       setAgentPicture(currentConfig?.logo);
     } else if (currentConfig?.personalityType?.name) {

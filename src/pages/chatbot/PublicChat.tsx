@@ -247,6 +247,7 @@ export default function PublicChat({
 
   useEffect(() => {
     if (!previewConfig && botUsername) {
+      console.log("Fetching bot data", botUsername);
       fetchBotData(botUsername, true);
     }
   }, [botUsername, fetchBotData, previewConfig]);

@@ -114,21 +114,17 @@ const Sidebar = () => {
   const isTabExpanded = (tabName: string) => expandedTabs.includes(tabName);
 
   // Sidebar logic: if no agent selected, show only Agent Setup > All Agents
-  if (!activeBotId) {
+  if (location.pathname === "/admin/all-agents") {
     return (
-      <div className="w-64 bg-black min-h-screen text-white p-4 flex flex-col overflow-y-auto">
+      <div className="w-64 bg-black min-h-screen text-white p-4 flex flex-col">
         <div className="mb-8">
           <h1 className="text-xl font-bold">kifor.ai</h1>
         </div>
-        <nav className="flex-1 space-y-2">
+        <nav className="flex-1 space-y-2 overflow-y-auto">
           <div className="space-y-1">
             <button
               onClick={() => toggleTab("Agent Setup")}
-              className={`w-full flex items-center justify-between px-4 py-2 rounded-lg transition-colors ${
-                isTabExpanded("Agent Setup")
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-300 hover:bg-gray-800"
-              }`}
+              className={`w-full flex items-center justify-between px-4 py-2 rounded-lg transition-colors`}
             >
               <div className="flex items-center space-x-3">
                 <LayoutDashboard className="w-5 h-5" />
@@ -181,11 +177,11 @@ const Sidebar = () => {
 
   // If agent is selected, show full sidebar
   return (
-    <div className="w-64 bg-black min-h-screen text-white p-4 flex flex-col overflow-y-auto">
+    <div className="w-64 bg-black h-screen text-white p-4 flex flex-col  overflow-y-auto">
       <div className="mb-8">
         <h1 className="text-xl font-bold">kifor.ai</h1>
       </div>
-      <nav className="flex-1 space-y-2">
+      <nav className="flex-1 space-y-2 ">
         {navItems.map((item) => (
           <div key={item.name} className="space-y-1">
             <button
