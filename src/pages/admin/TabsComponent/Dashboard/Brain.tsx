@@ -252,7 +252,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         setTotalDocumentsSize(prevSize => prevSize - removedSize);
   
         if (updatedFiles.length === 0) {
-          toast.info("All documents removed. Please add at least one document for the agent to be queryable.");
+          toast.success("All documents removed. Please add at least one document for the agent to be queryable.");
         } else {
           toast.success("Document removed successfully");
         }
