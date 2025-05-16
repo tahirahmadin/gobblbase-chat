@@ -79,7 +79,6 @@ const Profile = () => {
   // Initialize username from activeBotData
   useEffect(() => {
     if (activeBotData) {
-      console.log(activeBotData);
       setAgentUsername(activeBotData.username);
       setAgentName(activeBotData.name);
       setAgentBio(activeBotData.bio);

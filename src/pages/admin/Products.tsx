@@ -52,7 +52,7 @@ interface TransactionItem {
 }
 
 const Products: React.FC = () => {
-  const { activeBotId, fetchBotData, activeBotData } = useBotConfig();
+  const { activeBotId, activeBotData } = useBotConfig();
   const [activeSubTab, setActiveSubTab] = useState<string>("products");
   const [products, setProducts] = useState<Product[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);

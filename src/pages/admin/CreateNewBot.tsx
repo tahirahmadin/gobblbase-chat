@@ -14,12 +14,10 @@ const themes = AVAILABLE_THEMES;
 
 const personalityOptions: PersonalityOption[] = PERSONALITY_OPTIONS;
 
-const stepLabels = ["Agent Name", "Choose Voice", "Choose Theme"];
-
 const CreateNewBot: React.FC = () => {
   const navigate = useNavigate();
   const { adminId } = useAdminStore();
-  const { clearBotConfig } = useBotConfig();
+  const { clearBotConfig, setActiveBotId } = useBotConfig();
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -408,7 +406,10 @@ const CreateNewBot: React.FC = () => {
       if (!response.error) {
         toast.success("Agent created successfully!");
         // Clear any existing bot config before redirecting
-        clearBotConfig();
+
+        // clearBotConfig();
+
+        setActiveBotId(response.result.agentId);
         // Redirect to dashboard
         navigate("/admin/dashboard/profile");
       } else {
