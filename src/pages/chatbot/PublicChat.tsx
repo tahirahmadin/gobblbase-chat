@@ -133,7 +133,7 @@ export default function PublicChat({
   const [messages, setMessages] = useState<ExtendedChatMessage[]>([
     {
       id: "1",
-      content: previewConfig?.welcomeMessage || "Hi! How may I help you?",
+      content: currentConfig?.welcomeMessage || "Hi! How may I help you?",
       timestamp: new Date(),
       sender: "agent",
     },
