@@ -12,7 +12,8 @@ interface Agent {
 }
 
 const Header = () => {
-  const { activeBotData, activeBotId, setActiveBotId } = useBotConfig();
+  const { activeBotData, activeBotId, activeClientId, setActiveBotId } =
+    useBotConfig();
   const { agents, adminId, fetchAllAgents } = useAdminStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -21,8 +22,18 @@ const Header = () => {
   //Handeling agentDetails refresh when change trigger
   const hook1 = useServerHook({ initHook: true });
 
+  // useEffect(() => {
+  //   if (adminId && activeBotId && activeClientId) {
+  //     console.log("adminId", adminId);
+  //     console.log("activeClientId", activeClientId);
+  //     if (adminId !== activeClientId) {
+  //       navigate("/");
+  //     }
+  //   }
+  // }, [adminId, activeBotId, activeClientId]);
+
   useEffect(() => {
-    if (agents.length > 0) {
+    if (agents.length > 0 && activeBotId === null) {
       setActiveBotId(agents[0].agentId);
     }
   }, [agents, setActiveBotId]);

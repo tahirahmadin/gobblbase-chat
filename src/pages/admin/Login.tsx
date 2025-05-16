@@ -48,7 +48,7 @@ const Login: React.FC = () => {
     if (isAdminLoggedIn && agents.length > 0) {
       navigate("/admin/dashboard/profile");
     }
-  }, [isAdminLoggedIn, agents, navigate]);
+  }, [isAdminLoggedIn, agents]);
 
   // Load Google OAuth2 script and initialize
   useEffect(() => {

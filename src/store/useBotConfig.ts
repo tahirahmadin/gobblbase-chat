@@ -10,6 +10,7 @@ import { Theme, BotConfig } from "../types";
 
 interface BotConfigState {
   activeBotId: string | null;
+  activeClientId: string | null;
   activeBotData: BotConfig | null;
 
   isLoading: boolean;
@@ -19,6 +20,7 @@ interface BotConfigState {
   setRefetchBotData: () => void;
 
   setActiveBotId: (id: string | null) => void;
+  setActiveClientId: (id: string | null) => void;
   setActiveBotData: (data: BotConfig | null) => void;
   fetchBotData: (
     agentIdOrUsername: string,
@@ -39,6 +41,7 @@ export const useBotConfig = create<BotConfigState>()(
   persist(
     (set, get) => ({
       activeBotId: null,
+      activeClientId: null,
       activeBotData: null,
       refetchBotData: 0,
 
@@ -69,6 +72,9 @@ export const useBotConfig = create<BotConfigState>()(
           }
         }
       },
+      setActiveClientId: async (id) => {
+        set({ activeClientId: id });
+      },
       clearBotConfig: () => {
         set({
           activeBotId: null,
@@ -93,10 +99,9 @@ export const useBotConfig = create<BotConfigState>()(
           );
 
           set({
-            activeBotData: response,
-          });
-          set({
             activeBotId: response.agentId,
+            activeClientId: response.clientId,
+            activeBotData: response,
             isLoading: false,
           });
         } catch (error) {

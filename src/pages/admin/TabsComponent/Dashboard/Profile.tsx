@@ -12,6 +12,7 @@ import { useBotConfig } from "../../../../store/useBotConfig";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { calculateSmartnessLevel } from "../../../../utils/helperFn";
+import { PERSONALITY_OPTIONS } from "../../../../utils/constants";
 
 interface SocialMediaLinks {
   instagram: string;
@@ -74,7 +75,29 @@ const Profile = () => {
   const [isSavingSocials, setIsSavingSocials] = useState(false);
   const [isSavingPromoBanner, setIsSavingPromoBanner] = useState(false);
 
+  const [agentPicture, setAgentPicture] = useState<string | null>(null);
+
   const baseUrl = "http://www.kifor.ai/";
+
+  useEffect(() => {
+    if (activeBotData?.logo) {
+      setAgentPicture(activeBotData?.logo);
+    } else if (activeBotData?.personalityType?.name) {
+      let voiceName = activeBotData?.personalityType?.name;
+
+      const logoObj = PERSONALITY_OPTIONS.find(
+        (model) => model.title === voiceName
+      );
+
+      if (logoObj) {
+        setAgentPicture(logoObj?.image);
+      } else {
+        setAgentPicture(
+          "https://t4.ftcdn.net/jpg/08/04/36/29/360_F_804362990_0n7bGLz9clMBi5ajG52k8OAUQTneMbj4.jpg"
+        );
+      }
+    }
+  }, [activeBotData?.logo, activeBotData?.personalityType?.name]);
 
   // Initialize username from activeBotData
   useEffect(() => {
@@ -284,10 +307,7 @@ const Profile = () => {
                     />
                   ) : (
                     <img
-                      src={
-                        activeBotData?.logo ||
-                        "https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/4a65a868-4b95-457b-8ec7-549f35709ada.jpg"
-                      }
+                      src={agentPicture}
                       alt="Default Agent"
                       className="w-full h-full object-cover"
                     />
