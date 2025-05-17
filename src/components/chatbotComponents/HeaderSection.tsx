@@ -809,7 +809,7 @@ function HeaderSection({
           {isLoggedIn ? (
             <>
               <div className="flex items-center relative gap-1">
-                <button
+                {/* <button
                   className="p-2 rounded-full hover:bg-opacity-10 hover:bg-white"
                   style={{
                     backgroundColor: theme.highlightColor,
@@ -819,7 +819,7 @@ function HeaderSection({
                   onClick={() => setShowHistoryModal(true)}
                 >
                   <History className="h-5 w-5" />
-                </button>
+                </button> */}
                 <button
                   className="p-2 rounded-full hover:bg-opacity-10 hover:bg-white"
                   style={{
