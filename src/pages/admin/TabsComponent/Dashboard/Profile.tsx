@@ -674,7 +674,15 @@ const Profile = () => {
           }}
         >
           <PublicChat
-            previewConfig={activeBotData}
+            previewConfig={{
+              ...activeBotData,
+              isPromoBannerEnabled: isPromoBannerEnabled,
+              promotionalBanner: promotionalBanner,
+              bio: agentBio,
+              name: agentName,
+              username: agentUsername,
+              socials: socialMedia,
+            }}
             chatHeight={null}
             isPreview={true}
           />
