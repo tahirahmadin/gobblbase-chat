@@ -47,16 +47,40 @@ declare global {
 function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAdminLoggedIn } = useAdminStore();
+  const { isAdminLoggedIn, initializeSession } = useAdminStore();
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [hasInitialized, setHasInitialized] = useState(false);
+
+  // Initialize session on mount
+  useEffect(() => {
+    const init = async () => {
+      await initializeSession();
+      setIsInitializing(false);
+      setHasInitialized(true);
+    };
+    init();
+  }, [initializeSession]);
 
   // Handle redirect to signup when user has no agents
   useEffect(() => {
-    if (!isAdminLoggedIn) {
+    if (!isInitializing && !isAdminLoggedIn) {
       if (!location.pathname.includes("/admin/signup")) {
         navigate("/admin/signup");
       }
     }
-  }, [isAdminLoggedIn, navigate, location.pathname]);
+  }, [isAdminLoggedIn, navigate, location.pathname, isInitializing]);
+
+  // Redirect to profile only on initial load
+  useEffect(() => {
+    if (hasInitialized && isAdminLoggedIn && location.pathname === "/admin") {
+      navigate("/admin/dashboard/profile");
+    }
+  }, [hasInitialized, isAdminLoggedIn, location.pathname, navigate]);
+
+  // Show loading state while initializing
+  if (isInitializing) {
+    return <div>Loading...</div>;
+  }
 
   // If logged in and agent selected, show admin layout with content
   return (

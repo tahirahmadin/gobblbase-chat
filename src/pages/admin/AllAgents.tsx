@@ -33,7 +33,7 @@ const AllAgents: React.FC = () => {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-8 h-full overflow-y-auto">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">Total Agents: {totalAgents}</h2>
 
