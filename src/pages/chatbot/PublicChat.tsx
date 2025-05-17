@@ -132,6 +132,16 @@ export default function PublicChat({
     fetchBotData,
   } = useBotConfig();
   const { addMessages } = useChatLogs();
+  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setViewportHeight(window.innerHeight);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const currentConfig = isPreview ? previewConfig : activeBotData;
 
@@ -1024,108 +1034,126 @@ export default function PublicChat({
   }
 
   return (
-    <div className="w-full bg-gray-100 flex items-start justify-center">
+    <div className="w-full flex items-start justify-center">
       {currentConfig?.themeColors && (
         <div
-          className="w-full max-w-md bg-white shadow-2xl overflow-hidden flex flex-col relative"
+          className="w-full max-w-md shadow-2xl overflow-hidden flex flex-col relative"
           style={{
-            height: previewConfig ? (chatHeight ? chatHeight : 620) : "100vh",
-            backgroundColor: "white",
+            height: previewConfig
+              ? chatHeight
+                ? chatHeight
+                : 620
+              : `${viewportHeight}px`,
           }}
         >
-          <HeaderSection
-            theme={currentConfig.themeColors}
-            currentConfig={currentConfig}
-            activeScreen={activeScreen}
-            setActiveScreen={setActiveScreen}
-          />
-
-          {activeScreen === "about" && (
-            <AboutSection
+          <div className="flex flex-col h-full">
+            <HeaderSection
               theme={currentConfig.themeColors}
               currentConfig={currentConfig}
-              socials={currentConfig?.socials}
+              activeScreen={activeScreen}
+              setActiveScreen={setActiveScreen}
             />
-          )}
 
-          {activeScreen === "chat" && (
-            <>
-              <ChatSection
-                theme={theme}
-                messages={messages}
-                isLoading={isLoading}
-                activeScreen={activeScreen}
-                messagesEndRef={messagesEndRef}
-                currentConfig={{
-                  agentId: currentConfig?.agentId,
-                  name: currentConfig?.name,
-                  sessionName: pricingInfo.sessionName,
-                  sessionPrice: pricingInfo.sessionPrice,
-                  isFreeSession: pricingInfo.isFreeSession,
-                }}
-                isBookingConfigured={isBookingConfigured}
-                setActiveScreen={setActiveScreen}
-              />
+            {activeScreen === "about" && (
+              <div className="flex-1 overflow-y-auto">
+                <AboutSection
+                  theme={currentConfig.themeColors}
+                  currentConfig={currentConfig}
+                  socials={currentConfig?.socials}
+                />
+              </div>
+            )}
 
-              {showCues && currentConfig?.prompts && (
+            {activeScreen === "chat" && (
+              <>
                 <div
-                  className="p-2 grid grid-cols-1 gap-1"
+                  className="flex-1 overflow-y-auto"
                   style={{
                     backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
                   }}
                 >
-                  {[currentConfig.prompts].map((row, i) => (
-                    <div key={i} className="grid grid-cols-2 gap-2">
-                      {row.map((cue) => (
-                        <button
-                          key={cue}
-                          onClick={() => handleCueClick(cue)}
-                          disabled={isLoading}
-                          className="px-2 py-1 rounded-xl text-xs font-medium"
-                          style={{
-                            backgroundColor: theme.isDark
-                              ? "#1c1c1c"
-                              : "#e9e9e9",
-                            color: theme.isDark ? "white" : "black",
-                            border: `1px solid ${
-                              theme.isDark ? "white" : "black"
-                            }`,
-                            borderRadius: "20px",
-                          }}
-                        >
-                          {cue}
-                        </button>
-                      ))}
-                    </div>
-                  ))}
+                  <ChatSection
+                    theme={theme}
+                    messages={messages}
+                    isLoading={isLoading}
+                    activeScreen={activeScreen}
+                    messagesEndRef={messagesEndRef}
+                    currentConfig={{
+                      agentId: currentConfig?.agentId,
+                      name: currentConfig?.name,
+                      sessionName: pricingInfo.sessionName,
+                      sessionPrice: pricingInfo.sessionPrice,
+                      isFreeSession: pricingInfo.isFreeSession,
+                    }}
+                    isBookingConfigured={isBookingConfigured}
+                    setActiveScreen={setActiveScreen}
+                  />
                 </div>
-              )}
 
-              <InputSection
-                theme={theme}
-                message={message}
-                isLoading={isLoading}
-                setMessage={setMessage}
-                handleSendMessage={handleSendMessage}
-                handleKeyPress={handleKeyPress}
-              />
-            </>
-          )}
+                {showCues && currentConfig?.prompts && (
+                  <div
+                    className="p-2 grid grid-cols-1 gap-1"
+                    style={{
+                      backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
+                    }}
+                  >
+                    {[currentConfig.prompts].map((row, i) => (
+                      <div key={i} className="grid grid-cols-2 gap-2">
+                        {row.map((cue) => (
+                          <button
+                            key={cue}
+                            onClick={() => handleCueClick(cue)}
+                            disabled={isLoading}
+                            className="px-2 py-1 rounded-xl text-xs font-medium"
+                            style={{
+                              backgroundColor: theme.isDark
+                                ? "#1c1c1c"
+                                : "#e9e9e9",
+                              color: theme.isDark ? "white" : "black",
+                              border: `1px solid ${
+                                theme.isDark ? "white" : "black"
+                              }`,
+                              borderRadius: "20px",
+                            }}
+                          >
+                            {cue}
+                          </button>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-          {activeScreen === "browse" && (
-            <BrowseSection
-              theme={theme}
-              currentConfig={{
-                agentId: currentConfig?.agentId,
-                name: currentConfig?.name,
-                sessionName: pricingInfo.sessionName,
-                sessionPrice: pricingInfo.sessionPrice,
-                isFreeSession: pricingInfo.isFreeSession,
-              }}
-              isBookingConfigured={isBookingConfigured}
-              setActiveScreen={setActiveScreen}
-            />
-          )}
+                <div className="sticky bottom-0">
+                  <InputSection
+                    theme={theme}
+                    message={message}
+                    isLoading={isLoading}
+                    setMessage={setMessage}
+                    handleSendMessage={handleSendMessage}
+                    handleKeyPress={handleKeyPress}
+                  />
+                </div>
+              </>
+            )}
+
+            {activeScreen === "browse" && (
+              <div className="flex-1 overflow-y-auto">
+                <BrowseSection
+                  theme={theme}
+                  currentConfig={{
+                    agentId: currentConfig?.agentId,
+                    name: currentConfig?.name,
+                    sessionName: pricingInfo.sessionName,
+                    sessionPrice: pricingInfo.sessionPrice,
+                    isFreeSession: pricingInfo.isFreeSession,
+                  }}
+                  isBookingConfigured={isBookingConfigured}
+                  setActiveScreen={setActiveScreen}
+                />
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
