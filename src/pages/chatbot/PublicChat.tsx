@@ -1024,15 +1024,13 @@ export default function PublicChat({
   }
 
   return (
-    <div className="w-full h-full bg-gray-100 flex items-start justify-center fixed inset-0">
+    <div className="w-full bg-gray-100 flex items-start justify-center">
       {currentConfig?.themeColors && (
         <div
-          className="w-full h-full max-w-md bg-white shadow-2xl overflow-hidden flex flex-col relative"
+          className="w-full max-w-md bg-white shadow-2xl overflow-hidden flex flex-col relative"
           style={{
-            height: previewConfig ? (chatHeight ? chatHeight : "100%") : "100%",
+            height: previewConfig ? (chatHeight ? chatHeight : 620) : "100vh",
             backgroundColor: "white",
-            maxHeight: "100vh",
-            minHeight: "100vh",
           }}
         >
           <HeaderSection
