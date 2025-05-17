@@ -5,7 +5,6 @@ import {
   uploadProfilePicture,
   updateAgentUsername,
   updateAgentNameAndBio,
-  updateSocialHandles,
   updatePromotionalBanner,
 } from "../../../../lib/serverActions";
 import { useBotConfig } from "../../../../store/useBotConfig";
@@ -13,6 +12,7 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { calculateSmartnessLevel } from "../../../../utils/helperFn";
 import { PERSONALITY_OPTIONS } from "../../../../utils/constants";
+import SocialMediaSection from "./SocialMediaSection"; 
 
 interface SocialMediaLinks {
   instagram: string;
@@ -22,28 +22,7 @@ interface SocialMediaLinks {
   youtube: string;
   linkedin: string;
   snapchat: string;
-  link: string;
 }
-
-const socialMediaIcons = {
-  instagram: "https://cdn-icons-png.flaticon.com/512/174/174855.png",
-  twitter: "https://cdn-icons-png.flaticon.com/512/733/733579.png",
-  tiktok: "https://cdn-icons-png.flaticon.com/512/3046/3046121.png",
-  facebook: "https://cdn-icons-png.flaticon.com/512/124/124010.png",
-  youtube: "https://cdn-icons-png.flaticon.com/512/1384/1384060.png",
-  linkedin: "https://cdn-icons-png.flaticon.com/512/174/174857.png",
-  snapchat: "https://cdn-icons-png.flaticon.com/512/2111/2111890.png",
-};
-
-const socialMediaBaseUrls = {
-  instagram: "https://www.instagram.com/",
-  twitter: "https://twitter.com/",
-  tiktok: "https://www.tiktok.com/@",
-  facebook: "https://www.facebook.com/",
-  youtube: "https://www.youtube.com/@",
-  linkedin: "https://www.linkedin.com/in/",
-  snapchat: "https://www.snapchat.com/add/",
-};
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -64,7 +43,6 @@ const Profile = () => {
     youtube: "",
     linkedin: "",
     snapchat: "",
-    link: "",
   });
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -76,7 +54,6 @@ const Profile = () => {
   } = useBotConfig();
   const [isSavingName, setIsSavingName] = useState(false);
   const [isSavingBio, setIsSavingBio] = useState(false);
-  const [isSavingSocials, setIsSavingSocials] = useState(false);
   const [isSavingPromoBanner, setIsSavingPromoBanner] = useState(false);
 
   const [agentPicture, setAgentPicture] = useState<string | null>(null);
@@ -103,14 +80,16 @@ const Profile = () => {
     }
   }, [activeBotData?.logo, activeBotData?.personalityType?.name]);
 
-  // Initialize username from activeBotData
   useEffect(() => {
     if (activeBotData) {
       setAgentUsername(activeBotData.username);
       setAgentName(activeBotData.name);
       setAgentBio(activeBotData.bio);
-      const socials = activeBotData.socials as SocialMediaLinks;
-      setSocialMedia(socials);
+      
+      if (activeBotData.socials) {
+        setSocialMedia(activeBotData.socials as SocialMediaLinks);
+      }
+      
       setPromotionalBanner(activeBotData.promotionalBanner || "");
       setIsPromoBannerEnabled(activeBotData.isPromoBannerEnabled);
 
@@ -246,26 +225,6 @@ const Profile = () => {
     }
   };
 
-  const handleSaveSocials = async () => {
-    if (!activeBotId) {
-      toast.error("No agent selected");
-      return;
-    }
-    try {
-      setIsSavingSocials(true);
-      await updateSocialHandles(
-        activeBotId,
-        socialMedia as unknown as Record<string, string>
-      );
-      setRefetchBotData();
-      toast.success("Social media links updated successfully");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update social media links");
-    } finally {
-      setIsSavingSocials(false);
-    }
-  };
-
   const handleSavePromoBanner = async () => {
     if (!activeBotId) {
       toast.error("No agent selected");
@@ -287,6 +246,10 @@ const Profile = () => {
     } finally {
       setIsSavingPromoBanner(false);
     }
+  };
+
+  const handleSocialMediaUpdate = (newSocials: SocialMediaLinks) => {
+    setSocialMedia(newSocials);
   };
 
   return (
@@ -594,72 +557,12 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Social Media Handles */}
-          <div className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Social Media Handles
-            </label>
-            {Object.entries(socialMedia).map(([platform, url]) => {
-              // Extract username from full URL if it exists
-              const baseUrl =
-                socialMediaBaseUrls[
-                  platform as keyof typeof socialMediaBaseUrls
-                ];
-              const username = url.startsWith(baseUrl)
-                ? url.slice(baseUrl.length)
-                : url;
-
-              return (
-                <div key={platform} className="flex items-center space-x-2">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
-                    <img
-                      src={
-                        socialMediaIcons[
-                          platform as keyof typeof socialMediaIcons
-                        ]
-                      }
-                      alt={platform}
-                      className="w-5 h-5 object-contain"
-                    />
-                  </div>
-                  <div className="flex-1 flex items-center border border-gray-300 rounded-md overflow-hidden">
-                    <span className="px-3 py-2 bg-gray-100 text-gray-500 text-sm whitespace-nowrap">
-                      {baseUrl}
-                    </span>
-                    <input
-                      type="text"
-                      value={username}
-                      onChange={(e) =>
-                        setSocialMedia({
-                          ...socialMedia,
-                          [platform]: e.target.value,
-                        })
-                      }
-                      placeholder={`Enter ${platform} handle`}
-                      className="flex-1 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-              );
-            })}
-            <div className="flex justify-end">
-              <button
-                onClick={handleSaveSocials}
-                disabled={isSavingSocials}
-                className={`px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold transition-colors mt-2 ${
-                  isSavingSocials ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-              >
-                {isSavingSocials ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                    <span>Saving...</span>
-                  </div>
-                ) : (
-                  "SAVE"
-                )}
-              </button>
-            </div>
+          {/* Social Media Section - Using the new component */}
+          <div className="p-6 shadow-sm">
+            <SocialMediaSection 
+              externalSocialMedia={socialMedia}
+              onExternalUpdate={handleSocialMediaUpdate}
+            />
           </div>
         </div>
       </div>
@@ -685,7 +588,7 @@ const Profile = () => {
               bio: agentBio,
               name: agentName,
               username: agentUsername,
-              socials: socialMedia,
+              socials: socialMedia, 
             }}
             chatHeight={null}
             isPreview={true}
