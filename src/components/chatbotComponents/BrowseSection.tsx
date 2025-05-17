@@ -130,14 +130,17 @@ export default function BrowseSection({
             {!isBookingDropdownOpen && (
               <>
                 <h2
-                  className="text-md font-medium mb-2 py-2"
-                  style={{ color: theme.isDark ? "#fff" : "#000" }}
+                  className="text-md py-2 mt-4"
+                  style={{
+                    color: theme.isDark ? "#fff" : "#000",
+                    fontWeight: 500,
+                  }}
                 >
                   Browse
                 </h2>
 
                 {/* Product grid always visible */}
-                <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 p-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 px-4">
                   {products.map((product) => (
                     <div
                       key={product._id}
@@ -167,15 +170,18 @@ export default function BrowseSection({
                           "https://karanzi.websites.co.in/obaju-turquoise/img/product-placeholder.png"
                         }
                         alt={product.title}
-                        className="w-full h-36 object-cover"
+                        className="w-full h-28 object-cover"
                       />
-                      <div className="p-4">
-                        <h3 className="text-sm font-medium mb-1">
+                      <div className="p-2">
+                        <h3
+                          className="text-sm mb-1"
+                          style={{ fontWeight: 500 }}
+                        >
                           {product.title}
                         </h3>
                         <div className="flex justify-between items-center">
                           <span
-                            className="text-lg font-medium "
+                            className="text-md font-semibold"
                             style={{
                               color: theme.highlightColor,
                             }}

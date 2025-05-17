@@ -872,8 +872,9 @@ function HeaderSection({
       >
         <button
           onClick={() => setActiveScreen("about")}
-          className={`text-xs font-medium px-4 py-1 flex items-center space-x-1 pb-2`}
+          className={`text-xs  px-4 py-1 flex items-center space-x-1 pb-2`}
           style={{
+            fontWeight: 500,
             color: activeScreen === "about" ? theme.highlightColor : "#bfbfbf",
             borderBlockEnd:
               activeScreen === "about"
@@ -893,8 +894,9 @@ function HeaderSection({
         </button>
         <button
           onClick={() => setActiveScreen("chat")}
-          className={`text-xs font-medium px-4 py-1 relative flex items-center space-x-1`}
+          className={`text-xs  px-4 py-1 relative flex items-center space-x-1`}
           style={{
+            fontWeight: 500,
             color: activeScreen === "chat" ? theme.highlightColor : "#bfbfbf",
             borderBlockEnd:
               activeScreen === "chat"
@@ -913,8 +915,9 @@ function HeaderSection({
         </button>
         <button
           onClick={() => setActiveScreen("browse")}
-          className={`text-xs font-medium px-4 py-1 flex items-center space-x-1`}
+          className={`text-xs px-4 py-1 flex items-center space-x-1`}
           style={{
+            fontWeight: 500,
             color: activeScreen === "browse" ? theme.highlightColor : "#bfbfbf",
             borderBlockEnd:
               activeScreen === "browse"
