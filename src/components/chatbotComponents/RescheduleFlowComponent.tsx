@@ -137,7 +137,7 @@ const RescheduleFlowComponent: React.FC<RescheduleFlowProps> = ({
     setSelectedDate(date);
     setStep("time");
     setLoadingSlots(true);
-
+  
     try {
       const dateStr = formatDateToAPI(date);
       const slots = await getAvailableSlots(
@@ -146,49 +146,30 @@ const RescheduleFlowComponent: React.FC<RescheduleFlowProps> = ({
         userTimezone
       );
       
-      setSlots(slots || []);
+      let filteredSlots = slots || [];
+      
+      const today = new Date();
+      const isToday = date.getDate() === today.getDate() && 
+                     date.getMonth() === today.getMonth() && 
+                     date.getFullYear() === today.getFullYear();
+      
+      if (isToday) {
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        
+        filteredSlots = filteredSlots.filter(slot => {
+          const [hour, minute] = slot.startTime.split(':').map(Number);
+          return hour > currentHour || (hour === currentHour && minute > currentMinute);
+        });
+      }
+      
+      setSlots(filteredSlots);
     } catch (err) {
       setError("Failed to load available slots");
       setSlots([]);
     } finally {
       setLoadingSlots(false);
-    }
-  };
-
-  const handleReschedule = async () => {
-    if (!selectedDate || !selectedSlot || !originalBooking) return;
-
-    setSubmitting(true);
-    setError(null);
-
-    try {
-      const dateStr = formatDateToAPI(selectedDate);
-
-      const result = await userRescheduleBooking({
-        bookingId,
-        userId,
-        date: dateStr,
-        startTime: selectedSlot.startTime,
-        endTime: selectedSlot.endTime,
-        location: originalBooking.location,
-        userTimezone,
-        notes: originalBooking.notes
-      });
-
-      if (result.error) {
-        setError(result.result);
-        return;
-      }
-
-      setStep("success");
-      setTimeout(() => {
-        onSuccess();
-        onClose();
-      }, 2000);
-    } catch (err) {
-      setError("Failed to reschedule booking");
-    } finally {
-      setSubmitting(false);
     }
   };
 
