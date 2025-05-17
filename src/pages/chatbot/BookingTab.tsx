@@ -5,8 +5,8 @@ import { useBotConfig } from "../../store/useBotConfig";
 import BookingIntegration from "./../../components/adminComponents/bookingComponents/BookingIntegration";
 
 const BookingTab: React.FC = () => {
-  const { usersideBotId, usersideBotData } = useBotConfig();
-  const agentId = usersideBotId || usersideBotData?.agentId;
+  const { activeBotId, activeBotData } = useBotConfig();
+  const agentId = activeBotId || activeBotData?.agentId;
 
   const [isLoading, setIsLoading] = useState(true);
   const [showBookingIntegration, setShowBookingIntegration] = useState(false);
