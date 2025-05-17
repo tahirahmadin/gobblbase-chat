@@ -122,24 +122,24 @@ function HeaderSection({
 
   useEffect(() => {
     if (currentConfig?.logo) {
-      setAgentPicture(currentConfig?.logo);
+      const logoWithTimestamp = `${currentConfig.logo}?t=${Date.now()}`;
+      setAgentPicture(logoWithTimestamp);
     } else if (currentConfig?.personalityType?.name) {
-      let voiceName = currentConfig?.personalityType?.name;
+      let voiceName = currentConfig.personalityType.name;
 
       const logoObj = PERSONALITY_OPTIONS.find(
         (model) => model.title === voiceName
       );
 
-      console.log(logoObj);
       if (logoObj) {
-        setAgentPicture(logoObj?.image);
+        setAgentPicture(logoObj.image);
       } else {
         setAgentPicture(
           "https://t4.ftcdn.net/jpg/08/04/36/29/360_F_804362990_0n7bGLz9clMBi5ajG52k8OAUQTneMbj4.jpg"
         );
       }
     }
-  }, [currentConfig?.logo, currentConfig?.personalityType?.name]);
+  }, [currentConfig]);
 
   useEffect(() => {
     // Load Google Identity Services script
@@ -790,12 +790,18 @@ function HeaderSection({
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 rounded-full overflow-hidden">
             <img
+              key={agentPicture}
               src={
                 agentPicture ||
                 "https://t4.ftcdn.net/jpg/08/04/36/29/360_F_804362990_0n7bGLz9clMBi5ajG52k8OAUQTneMbj4.jpg"
               }
               alt="Agent"
               className="w-8 h-8 object-cover"
+              onError={(e) => {
+                console.log("Image load error:", e);
+                e.currentTarget.src =
+                  "https://t4.ftcdn.net/jpg/08/04/36/29/360_F_804362990_0n7bGLz9clMBi5ajG52k8OAUQTneMbj4.jpg";
+              }}
             />
           </div>
           <div style={{ color: theme.isDark ? "white" : "black" }}>

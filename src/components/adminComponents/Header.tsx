@@ -55,7 +55,8 @@ const Header = () => {
             >
               {activeBotData?.logo ? (
                 <img
-                  src={activeBotData.logo}
+                  key={`${activeBotData.logo}?t=${Date.now()}`}
+                  src={`${activeBotData.logo}?t=${Date.now()}`}
                   alt="Agent avatar"
                   className="w-6 h-6 rounded-full object-cover"
                 />
@@ -88,7 +89,8 @@ const Header = () => {
                     >
                       {agent.logo ? (
                         <img
-                          src={agent.logo}
+                          key={`${agent.logo}?t=${Date.now()}`}
+                          src={`${agent.logo}?t=${Date.now()}`}
                           alt={`${agent.name} avatar`}
                           className="w-6 h-6 rounded-full object-cover border border-white"
                         />
