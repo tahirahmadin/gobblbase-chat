@@ -32,6 +32,7 @@ const StreamingText: React.FC<StreamingTextProps> = ({
       return;
     }
 
+    // Show loading bubbles first
     setIsLoading(true);
     setDisplayedText("");
     currentIndexRef.current = 0;
@@ -44,7 +45,7 @@ const StreamingText: React.FC<StreamingTextProps> = ({
     // Start with loading bubbles for specified time
     const loadingTimer = setTimeout(() => {
       setIsLoading(false);
-      
+
       // Then start text streaming
       intervalRef.current = setInterval(() => {
         if (currentIndexRef.current < text.length) {

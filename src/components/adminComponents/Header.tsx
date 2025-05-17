@@ -42,6 +42,13 @@ const Header = () => {
     navigate("/admin/dashboard/profile");
   };
 
+  const getLogo = () => {
+    if (activeBotData?.logo) {
+      return activeBotData.logo;
+    }
+    return "/logo.png";
+  };
+
   return (
     <header
       className="bg-white border-b border-gray-200 shadow-lg z-10"

@@ -17,12 +17,12 @@ interface ChatSectionProps {
       | "booking-calendar"
       | "booking-management-intro"
       | "booking-management"
-      | "products-intro" 
-      | "products-loading" 
+      | "products-intro"
+      | "products-loading"
       | "products-display"
-      | "contact-intro" 
-      | "contact-loading" 
-      | "contact-form";  
+      | "contact-intro"
+      | "contact-loading"
+      | "contact-form";
   })[];
   isLoading: boolean;
   activeScreen: "about" | "chat" | "browse";
@@ -93,14 +93,14 @@ export default function ChatSection({
         msg.type === "booking-intro" ||
         msg.type === "booking-management-intro" ||
         msg.type === "products-intro" ||
-        msg.type === "contact-intro" 
+        msg.type === "contact-intro"
       ) {
         return (
           <StreamingText
             text={msg.content}
             speed={15}
             messageId={`${msg.id}-intro`}
-            textColor={!theme.isDark ? "black" : "white"}\
+            textColor={!theme.isDark ? "black" : "white"}
             loadingTime={1000}
           />
         );
@@ -110,7 +110,7 @@ export default function ChatSection({
         msg.type === "contact-loading"
       ) {
         return <LoadingBubbles textColor={theme.highlightColor} />;
-      } else if (msg.type === "contact-form") {  
+      } else if (msg.type === "contact-form") {
         return (
           <StreamingText
             text={msg.content}
@@ -132,7 +132,7 @@ export default function ChatSection({
             />
           </div>
         );
-      } else if (msg.type === "products-display") { 
+      } else if (msg.type === "products-display") {
         return (
           <div className="w-full">
             <ChatProductDisplay
@@ -197,14 +197,14 @@ export default function ChatSection({
               (msg.type === "booking-calendar" ||
                 msg.type === "booking-management" ||
                 msg.type === "products-display" ||
-                msg.type === "contact-form") ? ( 
+                msg.type === "contact-form") ? (
                 <div
                   className="rounded-xl overflow-hidden"
                   style={{
                     backgroundColor: theme.isDark ? "black" : "white",
                     width: "80%",
                     maxWidth: "600px",
-                    margin: "0 auto 0 0", 
+                    margin: "0 auto 0 0",
                   }}
                 >
                   {renderMessage(msg)}

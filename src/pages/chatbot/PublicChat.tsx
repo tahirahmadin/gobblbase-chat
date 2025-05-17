@@ -127,13 +127,13 @@ export default function PublicChat({
 }) {
   const { botUsername } = useParams();
   const {
-    usersideBotData,
+    activeBotData,
     isLoading: isConfigLoading,
-    fetchUsersideBotData,
+    fetchBotData,
   } = useBotConfig();
   const { addMessages } = useChatLogs();
 
-  const currentConfig = isPreview ? previewConfig : usersideBotData;
+  const currentConfig = isPreview ? previewConfig : activeBotData;
 
   const currentIsLoading = previewConfig ? false : isConfigLoading;
 
@@ -265,7 +265,7 @@ export default function PublicChat({
   useEffect(() => {
     if (!previewConfig && botUsername) {
       console.log("Fetching bot data", botUsername);
-      fetchUsersideBotData(botUsername);
+      fetchBotData(botUsername, true);
     }
   }, [botUsername, previewConfig]);
 
