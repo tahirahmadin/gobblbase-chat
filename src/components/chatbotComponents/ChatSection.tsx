@@ -169,7 +169,7 @@ export default function ChatSection({
     } else {
       // User message - simplified for consistency
       return (
-        <div style={{ color: !theme.isDark ? "black" : "white" }}>
+        <div style={{ color: !theme.isDark ? "black" : "white", fontSize: 13 }}>
           {msg.content}
         </div>
       );
@@ -181,7 +181,7 @@ export default function ChatSection({
       className="flex-1 overflow-y-auto p-2"
       style={{
         backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
-        paddingBottom: "150px",
+        paddingBottom: "50px",
       }}
     >
       {activeScreen === "chat" && (
@@ -199,7 +199,7 @@ export default function ChatSection({
                 msg.type === "products-display" ||
                 msg.type === "contact-form") ? (
                 <div
-                  className="rounded-xl overflow-hidden"
+                  className="rounded-xl overflow-hidden  "
                   style={{
                     backgroundColor: theme.isDark ? "black" : "white",
                     width: "80%",
@@ -212,7 +212,7 @@ export default function ChatSection({
               ) : (
                 // Regular message layout
                 <div
-                  className={`max-w-[80%] rounded-xl p-3 font-medium`}
+                  className={`max-w-[80%] rounded-xl p-2 font-medium`}
                   style={{
                     backgroundColor:
                       msg.sender === "agent"

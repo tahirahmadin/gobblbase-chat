@@ -782,26 +782,24 @@ function HeaderSection({
     <div className="flex flex-col">
       {/* Top Header */}
       <div
-        className="flex justify-between items-center px-4 py-3"
+        className="flex justify-between items-center px-4 py-0.5"
         style={{
           backgroundColor: theme.mainDarkColor,
         }}
       >
         <div className="flex items-center space-x-2">
-          <div className="w-10 h-10 rounded-full overflow-hidden">
+          <div className="w-8 h-8 rounded-full overflow-hidden">
             <img
               src={
                 agentPicture ||
                 "https://t4.ftcdn.net/jpg/08/04/36/29/360_F_804362990_0n7bGLz9clMBi5ajG52k8OAUQTneMbj4.jpg"
               }
               alt="Agent"
-              className="w-10 h-10 object-cover"
+              className="w-8 h-8 object-cover"
             />
           </div>
           <div style={{ color: theme.isDark ? "white" : "black" }}>
-            <div className="text-md font-semibold mb-[-4px]">
-              {currentConfig.name}
-            </div>
+            <div className="text-md font-semibold">{currentConfig.name}</div>
           </div>
         </div>
         <div
@@ -840,7 +838,7 @@ function HeaderSection({
           ) : (
             <div>
               <button
-                className="rounded-full hover:bg-opacity-10 hover:bg-white px-4 py-1 text-sm"
+                className="rounded-full hover:bg-opacity-10 hover:bg-white px-3 py-0.5 text-xs font-semibold"
                 style={{
                   backgroundColor: theme.highlightColor,
                   color: !theme.isDark ? "white" : "black",
@@ -857,13 +855,13 @@ function HeaderSection({
       {/* Ad Strip */}
       {currentConfig.isPromoBannerEnabled && (
         <div
-          className="flex justify-center items-center px-4 py-2 text-center"
+          className="flex justify-center items-center px-2 py-1 text-center text-xs"
           style={{
             backgroundColor: theme.isDark ? "white" : "black",
             color: theme.isDark ? "black" : "white",
           }}
         >
-          <div className="text-sm">{currentConfig.promotionalBanner}</div>
+          <div className="text-xs">{currentConfig.promotionalBanner}</div>
         </div>
       )}
 

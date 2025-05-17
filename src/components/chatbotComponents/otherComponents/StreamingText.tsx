@@ -74,7 +74,7 @@ const StreamingText: React.FC<StreamingTextProps> = ({
   return (
     <div
       className="prose prose-sm max-w-none [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0 [&>blockquote]:m-0 [&>pre]:m-0 [&>*]:text-inherit prose-headings:text-inherit prose-ul:text-inherit prose-li:text-inherit prose-li:marker:text-inherit prose-strong:text-inherit"
-      style={{ color: textColor }}
+      style={{ color: textColor, fontSize: 13 }}
     >
       {isLoading ? (
         <LoadingBubbles textColor={textColor} />
