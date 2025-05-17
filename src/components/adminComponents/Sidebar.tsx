@@ -8,9 +8,6 @@ import {
   ChevronRight,
   ChevronDown,
   LayoutDashboard,
-  CreditCard,
-  BarChart2,
-  FileText,
 } from "lucide-react";
 import { useAdminStore } from "../../store/useAdminStore";
 import { useUserStore } from "../../store/useUserStore";
