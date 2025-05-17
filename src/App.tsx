@@ -37,6 +37,7 @@ import Operations from "./pages/admin/TabsComponent/Operations";
 import Home from "./pages/landing/Home";
 import AllAgents from "./pages/admin/AllAgents";
 import Pricing from "./pages/landing/Pricing";
+import { Loader } from "lucide-react";
 
 // Add type definition for window
 declare global {
@@ -80,7 +81,11 @@ function Dashboard() {
 
   // Show loading state while initializing
   if (isInitializing) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader className="animate-spin" />
+      </div>
+    );
   }
 
   // If logged in and agent selected, show admin layout with content
