@@ -744,7 +744,8 @@ export async function updateUnavailableDates(
     endTime: string;
     allDay: boolean;
     timezone?: string;
-  }>
+  }>,
+  datesToMakeAvailable?: string[] 
 ): Promise<any> {
   try {
     const response = await axios.post(
@@ -752,6 +753,7 @@ export async function updateUnavailableDates(
       {
         agentId,
         unavailableDates,
+        datesToMakeAvailable 
       }
     );
     if (response.data.error) throw new Error(response.data.error);

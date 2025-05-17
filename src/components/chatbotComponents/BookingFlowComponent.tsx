@@ -23,6 +23,7 @@ import {
   getAvailableSlots,
   bookAppointment,
   getAppointmentSettings,
+  getDayWiseAvailability,
 } from "../../lib/serverActions";
 import {
   COUNTRY_CODES,
@@ -104,17 +105,14 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const { isLoggedIn, userEmail } = useUserStore();
   
   const businessId = propId || "";
-  const [step, setStep] = useState<
-  "date" | "time" | "details" | "payment" | "confirmation"
-  >("date");
+  const [step, setStep] = useState<"date" | "time" | "details" | "payment" | "confirmation">("date");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [now, setNow] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
-  const [selectedLocation, setSelectedLocation] = useState<
-  "google_meet" | "zoom" | "teams" | "in_person" >("google_meet");
+  const [selectedLocation, setSelectedLocation] = useState<"google_meet" | "zoom" | "teams" | "in_person">("google_meet");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -127,9 +125,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const phoneInputRef = useRef<HTMLInputElement>(null);
   const [settings, setSettings] = useState<AppointmentSettings | null>(null);
   const [loadingSettings, setLoadingSettings] = useState(true);
-  const [unavailableDates, setUnavailableDates] = useState<
-    Record<string, UnavailableDate>
-  >({});
+  const [unavailableDates, setUnavailableDates] = useState<Record<string, UnavailableDate>>({});
   const [userTimezone, setUserTimezone] = useState<string>(
     Intl.DateTimeFormat().resolvedOptions().timeZone
   );
@@ -140,6 +136,13 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const [stablecoinProcessing, setStablecoinProcessing] = useState(false);
   const [nameError, setNameError] = useState("");
   const [isFormValid, setIsFormValid] = useState(false);
+  
+  // Add state for day-wise availability
+  const [dayWiseAvailability, setDayWiseAvailability] = useState<Record<string, boolean>>({});
+  const [loadingAvailability, setLoadingAvailability] = useState(false);
+  
+  // Add debug state to track availability issues
+  const [availabilityDebug, setAvailabilityDebug] = useState<string>("");
 
   const validateForm = () => {
     const isNameValid = name.trim().length >= 2;
@@ -233,7 +236,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       setPhone(formattedValue);
     }
   
-    const validation = validatePhone(formattedPhone, selectedCountryCode);
+    const validation = validatePhone(phone, selectedCountryCode);
     setPhoneError(validation.errorMessage);
     
     // Update form validity
@@ -277,6 +280,42 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     }
   }, [showCountryCodes]);
 
+  // Fetch day-wise availability with improved error handling
+  const fetchDayWiseAvailability = async () => {
+    if (!businessId) return;
+    
+    setLoadingAvailability(true);
+    try {
+      // Get availability from API
+      const availability = await getDayWiseAvailability(businessId, userTimezone);
+      
+      // Check if the API returned the expected format
+      if (typeof availability === 'object' && availability !== null) {
+        setDayWiseAvailability(availability);
+      } else {
+        console.error("Unexpected availability format:", availability);
+        setAvailabilityDebug("Error: Unexpected availability data format");
+      }
+    } catch (error) {
+      console.error("Failed to fetch day-wise availability:", error);
+      setAvailabilityDebug("Error fetching availability data");
+    } finally {
+      setLoadingAvailability(false);
+    }
+  };
+
+  useEffect(() => {
+    if (businessId) {
+      fetchDayWiseAvailability();
+    }
+  }, [businessId, userTimezone]);
+
+  useEffect(() => {
+    if (businessId) {
+      fetchDayWiseAvailability();
+    }
+  }, [currentMonth.getMonth(), currentMonth.getFullYear()]);
+
   useEffect(() => {
     const loadSettings = async () => {
       if (!businessId) return;
@@ -284,7 +323,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       setLoadingSettings(true);
       try {
         const data = await getAppointmentSettings(businessId);
-        console.log("Loaded settings:", data);
         setSettings(data);
 
         if (data.timezone) {
@@ -300,7 +338,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
             currency: data.price.currency,
             displayPrice: formattedPrice
           });
-          console.log("Set dynamic price from settings:", formattedPrice);
         }
 
         const unavailableLookup: Record<string, UnavailableDate> = {};
@@ -455,30 +492,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     return `${hr}:${m.toString().padStart(2, "0")} ${ap}`;
   };
 
-  const isDateFullyUnavailable = (date: Date): boolean => {
-    if (isBeforeToday(date)) return true;
-
-    if (!settings) return false;
-
-    const apiDate = fmtApiDate(date);
-    const unavailableDate = unavailableDates[apiDate];
-
-    if (unavailableDate && unavailableDate.allDay === true) {
-      return true;
-    }
-
-    const dayName = new Intl.DateTimeFormat("en-US", {
-      weekday: "long",
-    }).format(date);
-    const dayRule = settings.availability.find((rule) => rule.day === dayName);
-
-    if (dayRule && !dayRule.available) {
-      return true;
-    }
-
-    return false;
-  };
-
   const hasModifiedHours = (date: Date): boolean => {
     if (!settings) return false;
 
@@ -596,23 +609,64 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       return x;
     });
 
+    const isDateFullyUnavailable = (date: Date): boolean => {
+      // Before today check
+      if (isBeforeToday(date)) {
+        return true;
+      }
+  
+      // Format date string for availability check
+      const dateStr = date.toISOString().split('T')[0];
+      
+      // Check day-wise availability from backend - explicitly check for false
+      if (dayWiseAvailability[dateStr] === false) {
+        return true;
+      }
+      
+      // Only continue with other checks if day-wise isn't explicitly false
+      if (!settings) return false;
+  
+      const apiDate = fmtApiDate(date);
+      const unavailableDate = unavailableDates[apiDate];
+  
+      if (unavailableDate && unavailableDate.allDay === true) {
+        return true;
+      }
+  
+      const dayName = new Intl.DateTimeFormat("en-US", {
+        weekday: "long",
+      }).format(date);
+      const dayRule = settings.availability.find((rule) => rule.day === dayName);
+  
+      // Check if the day is marked as unavailable (like Sunday)
+      if (dayRule && !dayRule.available) {
+        return true;
+      }
+      
+      // If we get here and the date is explicitly marked as available in the dayWiseAvailability
+      if (dayWiseAvailability[dateStr] === true) {
+        return false;
+      }
+      
+      // Default behavior - let the date be available unless explicitly ruled out
+      return false;
+    };
+
     const selectDate = async (d: Date) => {
       setSelectedDate(d);
       setStep("time");
       setLoadingSlots(true);
     
       const apiDate = fmtApiDate(d);
-      console.log("Selecting date:", apiDate);
-    
+      const dateStr = d.toISOString().split('T')[0];
+      
       try {
-        console.log("Fetching slots from API");
         try {
           const raw = await getAvailableSlots(
             businessId,
             apiDate,
             userTimezone
           );
-          console.log("API returned slots:", raw);
     
           if (raw && raw.length > 0) {
             const userSlots = raw.map((slot) => ({
@@ -624,12 +678,18 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
             setSlots(userSlots);
           } else {
             // No client-side slot generation - simply set empty slots
-            console.log("API returned empty slots array");
+            if (dayWiseAvailability[dateStr] !== false) {
+              setDayWiseAvailability(prev => ({
+                ...prev,
+                [dateStr]: false
+              }));
+            }
+            
             setSlots([]);
           }
         } catch (e) {
           console.error("Error fetching slots from API:", e);
-          // Display error state instead of generating slots
+          // Error handling - set empty slots
           setSlots([]);
         }
       } catch (e) {
@@ -667,7 +727,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
         const formattedPhone = phone
           ? createInternationalPhone(phone, selectedCountryCode)
           : "";
-  
+
         // Send both the form email (contact email) and the login email (userId)
         await bookAppointment({
           agentId: businessId,
@@ -709,7 +769,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
         const formattedPhone = phone
           ? createInternationalPhone(phone, selectedCountryCode)
           : "";
-  
+
         // Send both the form email (contact email) and the login email (userId)
         await bookAppointment({
           agentId: businessId,
@@ -820,8 +880,20 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
               <h3 className="font-medium">SELECT SLOT</h3>
               <div className="text-sm">Timezone: {formatTimezone(userTimezone)}</div>
             </div>
-            
+
+            {loadingAvailability ? (
+            <div className="flex justify-center py-4">
+              <Loader2 className="animate-spin h-6 w-6" style={{ color: theme.mainLightColor }} />
+              <span className="ml-2">Loading availability...</span>
+            </div>
+          ) : (
             <div className="mb-4">
+              {/* Debug info */}
+              {availabilityDebug && (
+                <div className="text-xs mb-2 p-1 bg-gray-100 rounded">
+                  Debug: {availabilityDebug}
+                </div>
+              )}
               <div className="flex items-center justify-between mb-2">
                 <button
                   onClick={prevMonth}
@@ -856,27 +928,45 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                 {Array.from({ length: days }).map((_, i) => {
                   const dn = i + 1;
                   const date = new Date(y, m, dn);
-                  const apiDate = fmtApiDate(date);
-                  const isUnavailable = isDateFullyUnavailable(date);
+                  
+                  // Create a consistent date string for comparison with API data
+                  // This ensures we're using the same format as the API response
+                  const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                  
+                  // Explicitly check dayWiseAvailability separately for clarity
+                  const isUnavailableByAPI = dayWiseAvailability[dateString] === false;
+                  const isUnavailableByOtherRules = isBeforeToday(date) || 
+                    (unavailableDates[fmtApiDate(date)]?.allDay === true) ||
+                    (settings?.availability.find(r => r.day === new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(date))?.available === false);
+                  
+                  // Combined check
+                  const isUnavailable = isUnavailableByAPI || isUnavailableByOtherRules;
+                  const isAvailable = dayWiseAvailability[dateString] === true;
+                  
+                  // Final availability status - if API explicitly marks as available, override other rules
+                  const finalAvailability = isAvailable ? false : isUnavailable;
                   
                   return (
                     <button
                       key={dn}
-                      onClick={() => !isUnavailable && selectDate(date)}
-                      disabled={isUnavailable}
+                      onClick={() => !finalAvailability && selectDate(date)}
+                      disabled={finalAvailability}
                       className={`
                         h-8 w-8 flex items-center justify-center rounded-md text-sm
                         ${
-                          isUnavailable
+                          finalAvailability
                             ? "opacity-40 cursor-not-allowed"
                             : "hover:bg-opacity-50"
                         }
                       `}
                       style={{
-                         backgroundColor: isUnavailable ?
+                         backgroundColor: finalAvailability ?
                            "transparent" :
                            (theme.isDark ? "#222" : theme.mainLightColor),
-                        color: theme.isDark ? "#fff" : "#000"
+                        color: finalAvailability ? 
+                          (theme.isDark ? "#555" : "#aaa") : 
+                          (theme.isDark ? "#fff" : "#000"),
+                        pointerEvents: finalAvailability ? "none" : "auto"
                       }}
                     >
                       {dn}
@@ -885,6 +975,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                 })}
               </div>
             </div>
+          )}
           </div>
         );
       }
