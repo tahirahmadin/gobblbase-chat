@@ -24,6 +24,7 @@ interface ClientUsageData {
     }[];
     totalTokensUsedAllAgents: number;
     planId: string;
+    agentLimit: number;
   };
   totalAgentCount: number;
 }
@@ -49,6 +50,7 @@ const Usage = () => {
   const [totalAgents, setTotalAgents] = useState(0);
   const [usageData, setUsageData] = useState<ClientUsageData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [agentLimit, setAgentLimit] = useState(0);
   const [agentsList, setAgentsList] = useState<{ id: string; name: string }[]>(
     []
   );
@@ -88,6 +90,7 @@ const Usage = () => {
           setCreditsUsed(usageData.usage.totalTokensUsedAllAgents);
 
           setCurrentPlan(usageData.usage.planId);
+          setAgentLimit(usageData.usage.agentLimit);
 
           setTotalAgents(usageData.totalAgentCount);
 
@@ -383,6 +386,10 @@ const Usage = () => {
     }
   };
 
+  const formatAgentLimit = (limit: number) => {
+    return limit === 9999 ? "Unlimited" : limit.toString();
+  };
+
   const handleAgentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const agentName = e.target.value;
     setSelectedAgent(agentName);
@@ -478,30 +485,32 @@ const Usage = () => {
         </div>
 
         {/* Agents Used */}
-        <div className="bg-blue-100 rounded-lg p-4 flex-1 flex flex-col justify-between">
-          <div className="flex items-center mb-2">
-            <span className="text-2xl font-bold mr-2">{agentsUsed}</span>
-            <span className="text-gray-700">/ {totalAgents} Agents</span>
+          <div className="bg-blue-100 rounded-lg p-4 flex-1 flex flex-col justify-between">
+            <div className="flex items-center mb-2">
+              <span className="text-2xl font-bold mr-2">{agentsUsed}</span>
+              <span className="text-gray-700">/ {formatAgentLimit(agentLimit)} Agents</span>
+            </div>
+            <div className="w-full h-2 bg-white rounded-full">
+              <div
+                className={`h-2 rounded-full ${agentLimit === 9999 ? 'bg-green-500' : 'bg-blue-500'}`}
+                style={{
+                  width:
+                    agentLimit === 9999 
+                      ? '100%' // For unlimited plans, show a full green bar
+                      : selectedAgent === "All Agents"
+                        ? `${Math.min((totalAgents / agentLimit) * 100, 100)}%`
+                        : `${
+                            usageData &&
+                            usageData.usage.totalTokensUsedAllAgents > 0
+                              ? (selectedAgentTokens /
+                                  usageData.usage.totalTokensUsedAllAgents) *
+                                100
+                              : 0
+                          }%`,
+                }}
+              ></div>
+            </div>
           </div>
-          <div className="w-full h-2 bg-white rounded-full">
-            <div
-              className="h-2 bg-blue-500 rounded-full"
-              style={{
-                width:
-                  selectedAgent === "All Agents"
-                    ? "100%"
-                    : `${
-                        usageData &&
-                        usageData.usage.totalTokensUsedAllAgents > 0
-                          ? (selectedAgentTokens /
-                              usageData.usage.totalTokensUsedAllAgents) *
-                            100
-                          : 0
-                      }%`,
-              }}
-            ></div>
-          </div>
-        </div>
       </div>
 
       {/* Usage History */}
