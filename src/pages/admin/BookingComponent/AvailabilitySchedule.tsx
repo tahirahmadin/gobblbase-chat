@@ -131,6 +131,8 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
       if (bookings && bookings.length > 0) {
         bookings.forEach(booking => {
           // Format date to match our date format
+          if (booking.status === 'cancelled') return;
+          
           const bookingDate = new Date(booking.date);
           const apiDate = formatDateForApi(bookingDate);
           
@@ -140,7 +142,7 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
           
           bookingsByDate[apiDate].push({
             time: `${formatTime12(booking.startTime)} - ${formatTime12(booking.endTime)}`,
-            name: booking.userId.split('@')[0] || "Guest",
+            name: booking.name.split('@')[0] || "Guest",
             email: booking.userId || "guest@example.com"
           });
         });
