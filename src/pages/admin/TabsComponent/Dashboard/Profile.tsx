@@ -68,8 +68,12 @@ const Profile = () => {
   });
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const { activeBotId, activeBotData, setRefetchBotData, refetchBotData } =
-    useBotConfig();
+  const {
+    activeBotId,
+    activeBotData,
+    setRefetchBotData,
+    updateBotLogoViaStore,
+  } = useBotConfig();
   const [isSavingName, setIsSavingName] = useState(false);
   const [isSavingBio, setIsSavingBio] = useState(false);
   const [isSavingSocials, setIsSavingSocials] = useState(false);
@@ -185,8 +189,8 @@ const Profile = () => {
         reader.readAsDataURL(file);
 
         // Then upload to server
-        await uploadProfilePicture(activeBotId, file);
-        setRefetchBotData();
+        await updateBotLogoViaStore(activeBotId, file);
+
         toast.success("Profile picture updated successfully");
       } catch (error) {
         console.error("Error uploading profile picture:", error);

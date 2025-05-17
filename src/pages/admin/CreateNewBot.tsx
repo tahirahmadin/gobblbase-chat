@@ -398,11 +398,10 @@ const CreateNewBot: React.FC = () => {
       if (!response.error) {
         toast.success("Agent created successfully!");
         // Clear any existing bot config before redirecting
+        clearBotConfig();
 
-        // clearBotConfig();
-
+        // Set the new bot as active and navigate
         setActiveBotId(response.result.agentId);
-        // Redirect to dashboard
         navigate("/admin/dashboard/profile");
       } else {
         toast.error("Failed to create agent");

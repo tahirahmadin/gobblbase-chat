@@ -9,35 +9,41 @@ export const useServerHook = ({ initHook = false }: { initHook: boolean }) => {
 
   //Fetch all agents when adminId is available
   useEffect(() => {
+    console.log("adminId");
+    console.log(adminId);
+    console.log(initHook);
+    console.log(isAgentsLoaded);
     if (adminId && initHook && !isAgentsLoaded) {
       console.log("1. Fetching all agents while not loaded");
       fetchAllAgents();
     }
-  }, [adminId, fetchAllAgents, initHook, isAgentsLoaded]);
+  }, [adminId, fetchAllAgents, initHook, isAgentsLoaded, activeBotId]);
 
   useEffect(() => {
-    if (isAgentsLoaded && agents.length > 0 && activeBotId === null) {
+    if (agents.length > 0 && activeBotId === null && initHook) {
       console.log("2. Setting active bot id");
       setActiveBotId(agents[0].agentId);
     }
-  }, [agents, setActiveBotId]);
+  }, [agents, setActiveBotId, initHook]);
 
-  useEffect(() => {
-    if (isAgentsLoaded && agents.length > 0 && activeBotId !== null) {
-      const index = agents.findIndex((agent) => agent.agentId === activeBotId);
-      console.log(index);
-      console.log(agents);
-      if (index === -1) {
-        console.log("2. Setting active bot id");
-        setActiveBotId(agents[0].agentId);
-      }
-    }
-  }, [agents, setActiveBotId, isAgentsLoaded]);
+  // useEffect(() => {
+  //   if (
+  //     isAgentsLoaded &&
+  //     agents.length > 0 &&
+  //     activeBotId !== null &&
+  //     initHook
+  //   ) {
+  //     const index = agents.findIndex((agent) => agent.agentId === activeBotId);
+  //     if (index === -1) {
+  //       console.log("2. Setting active bot id");
+  //       setActiveBotId(agents[0].agentId);
+  //     }
+  //   }
+  // }, [agents, setActiveBotId, initHook, isAgentsLoaded]);
 
   useEffect(() => {
     if (activeBotId && initHook) {
-      console.log("3. Fetching bot data");
-      console.log(activeBotId);
+      console.log("3. Refetch bot data");
       fetchBotData(activeBotId, false);
     }
   }, [refetchBotData, activeBotId, initHook]);

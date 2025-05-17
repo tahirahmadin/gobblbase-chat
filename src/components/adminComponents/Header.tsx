@@ -41,13 +41,6 @@ const Header = () => {
     navigate("/admin/dashboard/profile");
   };
 
-  const getLogo = () => {
-    if (activeBotData?.logo) {
-      return activeBotData.logo;
-    }
-    return "/logo.png";
-  };
-
   return (
     <header
       className="bg-white border-b border-gray-200 shadow-lg z-10"
@@ -62,7 +55,8 @@ const Header = () => {
             >
               {activeBotData?.logo ? (
                 <img
-                  src={activeBotData.logo}
+                  key={`${activeBotData.logo}?t=${Date.now()}`}
+                  src={`${activeBotData.logo}?t=${Date.now()}`}
                   alt="Agent avatar"
                   className="w-6 h-6 rounded-full object-cover"
                 />
@@ -95,7 +89,8 @@ const Header = () => {
                     >
                       {agent.logo ? (
                         <img
-                          src={agent.logo}
+                          key={`${agent.logo}?t=${Date.now()}`}
+                          src={`${agent.logo}?t=${Date.now()}`}
                           alt={`${agent.name} avatar`}
                           className="w-6 h-6 rounded-full object-cover border border-white"
                         />
