@@ -173,6 +173,44 @@ const RescheduleFlowComponent: React.FC<RescheduleFlowProps> = ({
     }
   };
 
+  const handleReschedule = async () => {
+    if (!selectedDate || !selectedSlot || !originalBooking) return;
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const dateStr = formatDateToAPI(selectedDate);
+
+      const result = await userRescheduleBooking({
+        bookingId,
+        userId,
+        date: dateStr,
+        startTime: selectedSlot.startTime,
+        endTime: selectedSlot.endTime,
+        location: originalBooking.location,
+        userTimezone,
+        notes: originalBooking.notes
+      });
+
+      if (result.error) {
+        setError(result.result);
+        return;
+      }
+
+      setStep("success");
+      setTimeout(() => {
+        onSuccess();
+        onClose();
+      }, 2000);
+    } catch (err) {
+      setError("Failed to reschedule booking");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+
   const renderDatePicker = () => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
