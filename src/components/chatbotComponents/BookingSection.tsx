@@ -20,7 +20,7 @@ interface BookingSectionProps {
   sessionName: string;
   isBookingConfigured: boolean;
   showOnlyBooking?: boolean;
-  onDropdownToggle?: (isOpen: boolean) => void; 
+  onDropdownToggle?: (isOpen: boolean) => void;
 }
 
 export default function BookingSection({
@@ -29,7 +29,7 @@ export default function BookingSection({
   sessionName,
   isBookingConfigured,
   showOnlyBooking = false,
-  onDropdownToggle, 
+  onDropdownToggle,
 }: BookingSectionProps) {
   const [showBooking, setShowBooking] = useState(showOnlyBooking);
   const [dynamicPrice, setDynamicPrice] = useState({
@@ -135,8 +135,8 @@ export default function BookingSection({
   return (
     <div className="pt-4 px-2">
       <h2
-        className="text-md font-medium mb-2"
-        style={{ color: theme.isDark ? "#fff" : "#000" }}
+        className="text-md mb-2"
+        style={{ color: theme.isDark ? "#fff" : "#000", fontWeight: 500 }}
       >
         Book Meeting
       </h2>
@@ -151,7 +151,9 @@ export default function BookingSection({
         onClick={toggleBookingDropdown}
       >
         <div>
-          <div className="text-sm font-medium">{sessionName}</div>
+          <div className="text-sm font-medium" style={{ fontWeight: 600 }}>
+            {sessionName}
+          </div>
           <div className="text-md font-medium text-left">
             {loadingPrice ? "Loading..." : dynamicPrice.displayPrice}
           </div>
