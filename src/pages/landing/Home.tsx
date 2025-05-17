@@ -9,6 +9,7 @@ import {
   Camera,
   CreditCard,
   Plug,
+  X,
 } from "lucide-react";
 
 const GlobalStyle = createGlobalStyle`
@@ -38,6 +39,31 @@ const Logo = styled.div`
   font-weight: 700;
   font-size: 1.4rem;
   letter-spacing: -1px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+`;
+
+const NavLinks = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 24px;
+`;
+
+const NavLink = styled.button`
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: #333;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
 `;
 
 const LoginButton = styled.button`
@@ -1290,6 +1316,7 @@ const FooterMascot = styled.div`
 
 const Home = () => {
   const [selectedFeature, setSelectedFeature] = useState(features[0].key);
+
   const selected = features.find((f) => f.key === selectedFeature);
   const navigate = useNavigate();
 
@@ -1298,11 +1325,17 @@ const Home = () => {
       <GlobalStyle />
       <Container>
         <Header>
-          <Logo>kifor</Logo>
-          <LoginButton onClick={() => navigate("/admin")}>
-            Login/Sign up
-          </LoginButton>
+          <Logo>
+            <span onClick={() => navigate("/")}>kifor</span>
+            <NavLink onClick={() => navigate("/pricing")}>Pricing</NavLink>
+          </Logo>
+          <NavLinks>
+            <LoginButton onClick={() => navigate("/admin")}>
+              Login/Sign up
+            </LoginButton>
+          </NavLinks>
         </Header>
+
         <HeroSection>
           <SpeechBubble top="5%" left="5%">
             Welcome to the salon, how can I help you?
@@ -1569,6 +1602,7 @@ const Home = () => {
             </AssembleGrid>
           </AssembleSection>
         </PlatformSection>
+
         <AppOverloadSection>
           <AppOverloadTitle>Goodbye, App Overload</AppOverloadTitle>
           <AppOverloadSub>

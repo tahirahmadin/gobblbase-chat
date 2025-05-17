@@ -36,6 +36,7 @@ import Commerce from "./pages/admin/TabsComponent/Commerce/Commerce";
 import Operations from "./pages/admin/TabsComponent/Operations";
 import Home from "./pages/landing/Home";
 import AllAgents from "./pages/admin/AllAgents";
+import Pricing from "./pages/landing/Pricing";
 
 // Add type definition for window
 declare global {
@@ -49,7 +50,7 @@ function Dashboard() {
   const location = useLocation();
   const { isAdminLoggedIn, initializeSession } = useAdminStore();
   const [isInitializing, setIsInitializing] = useState(true);
-  const [hasInitialized, setHasInitialized] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(true);
 
   // Initialize session on mount
   useEffect(() => {
@@ -165,6 +166,7 @@ function App() {
           }
         />
         <Route path="/admin/*" element={<Dashboard />} />
+        <Route path="/pricing" element={<Pricing />} />
         <Route path="/" element={<Home />} />
       </Routes>
     </Router>
