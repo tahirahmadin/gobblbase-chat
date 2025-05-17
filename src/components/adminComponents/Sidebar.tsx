@@ -94,6 +94,72 @@ const navItems: NavItem[] = [
   },
 ];
 
+// LogoutModal component (popup style above button)
+const LogoutModal = ({
+  open,
+  onClose,
+  onConfirm,
+  email,
+  photo,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  email: string | null;
+  photo?: string | null;
+}) => {
+  if (!open) return null;
+  return (
+    <div className="absolute bottom-14 left-0 w-full flex justify-center z-50">
+      <div className="relative w-72 bg-blue-600 rounded-lg shadow-xl flex flex-col items-center animate-fade-in">
+        {/* Arrow */}
+        <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-6 h-6 overflow-hidden">
+          <div
+            className="w-4 h-4 bg-blue-600 rotate-45 mx-auto shadow-xl"
+            style={{ marginTop: "2px" }}
+          ></div>
+        </div>
+
+        <div className="w-full h-full flex flex-col items-center justify-center">
+          <div className="flex flex-row items-center justify-center">
+            {/* Avatar */}
+            {photo ? (
+              <img
+                src={photo}
+                alt="Profile"
+                className="w-8 h-8 rounded-full mt-4 mb-2 object-cover border-2 border-white shadow"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center mt-4 mb-2 text-xl text-gray-500 border-2 border-white shadow">
+                ?
+              </div>
+            )}
+            {/* Email */}
+            <div className="text-white text-base truncate px-2 w-full text-center text-xs">
+              {email}
+            </div>
+          </div>{" "}
+          {/* Divider */}
+          <div className="w-full border-t border-blue-400 my-2" />
+          {/* Confirm button */}
+          <button
+            className="w-11/12 bg-white text-blue-600 font-semibold px-4 py-2 rounded mb-2 hover:bg-blue-100 transition"
+            onClick={onConfirm}
+          >
+            Confirm Logout
+          </button>
+          <button
+            className="text-white text-sm mb-3 underline w-11/12"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -102,6 +168,9 @@ const Sidebar = () => {
   const { logout: userLogout } = useUserStore();
   const { clearBotConfig } = useBotConfig();
   const { activeBotId } = useBotConfig();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const { adminEmail } = useAdminStore();
+  const { activeBotData } = useBotConfig();
 
   const toggleTab = (tabName: string) => {
     setExpandedTabs((prev) =>
@@ -155,21 +224,42 @@ const Sidebar = () => {
           </div>
         </nav>
         <div className="space-y-2 pt-4 border-t border-gray-700">
-          <button className="w-full flex items-center justify-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
-            Upgrade Plan
-          </button>
-          <button
-            className="w-full flex items-center space-x-3 px-4 py-2 text-gray-300 hover:bg-gray-800 rounded-lg"
-            onClick={() => {
-              userLogout();
-              adminLogout();
-              clearBotConfig();
-              navigate("/admin");
-            }}
-          >
-            <LogOut className="w-5 h-5" />
-            <span>Logout</span>
-          </button>
+          <div className="relative inline-block">
+            <div className="absolute top-1 left-1 w-full h-full bg-black rounded"></div>
+            <div className="relative inline-block">
+              {/* Bottom layer for shadow effect */}
+              <div className="absolute top-1 left-1 w-full h-full border border-[#6aff97] "></div>
+
+              {/* Main button */}
+              <button
+                onClick={() => navigate("/admin/account/plans")}
+                className="relative bg-black text-white font-semibold px-4 py-2 border border-[#6aff97]"
+              >
+                Upgrade Plan
+              </button>
+            </div>
+          </div>
+          <div className="relative">
+            <button
+              className="w-full flex items-center space-x-3 px-4 py-2 text-gray-300 hover:bg-gray-800 rounded-lg"
+              onClick={() => setShowLogoutModal(true)}
+            >
+              <LogOut className="w-5 h-5" />
+              <span>Logout</span>
+            </button>
+            <LogoutModal
+              open={showLogoutModal}
+              onClose={() => setShowLogoutModal(false)}
+              onConfirm={() => {
+                userLogout();
+                adminLogout();
+                clearBotConfig();
+                navigate("/admin");
+              }}
+              email={adminEmail}
+              photo={activeBotData?.logo || null}
+            />
+          </div>
         </div>
       </div>
     );
@@ -233,21 +323,42 @@ const Sidebar = () => {
         ))}
       </nav>
       <div className="space-y-2 pt-4 border-t border-gray-700">
-        <button className="w-full flex items-center justify-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
-          Upgrade Plan
-        </button>
-        <button
-          className="w-full flex items-center space-x-3 px-4 py-2 text-gray-300 hover:bg-gray-800 rounded-lg"
-          onClick={() => {
-            userLogout();
-            adminLogout();
-            clearBotConfig();
-            navigate("/admin");
-          }}
-        >
-          <LogOut className="w-5 h-5" />
-          <span>Logout</span>
-        </button>
+        <div className="relative inline-block">
+          <div className="absolute top-1 left-1 w-full h-full bg-[#6aff97] rounded"></div>
+          <div className="relative inline-block">
+            {/* Bottom layer for shadow effect */}
+            <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
+
+            {/* Main button */}
+            <button
+              onClick={() => navigate("/admin/account/plans")}
+              className="relative bg-[#6aff97] text-black font-semibold px-4 py-2 border border-black"
+            >
+              Upgrade Plan
+            </button>
+          </div>
+        </div>
+        <div className="relative">
+          <button
+            className="w-full flex items-center space-x-3 px-4 py-2 text-gray-300 hover:bg-gray-800 rounded-lg"
+            onClick={() => setShowLogoutModal(true)}
+          >
+            <LogOut className="w-5 h-5" />
+            <span>Logout</span>
+          </button>
+          <LogoutModal
+            open={showLogoutModal}
+            onClose={() => setShowLogoutModal(false)}
+            onConfirm={() => {
+              userLogout();
+              adminLogout();
+              clearBotConfig();
+              navigate("/admin");
+            }}
+            email={adminEmail}
+            photo={activeBotData?.logo || null}
+          />
+        </div>
       </div>
     </div>
   );

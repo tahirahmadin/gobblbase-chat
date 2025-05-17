@@ -12,9 +12,8 @@ interface Agent {
 }
 
 const Header = () => {
-  const { activeBotData, activeBotId, activeClientId, setActiveBotId } =
-    useBotConfig();
-  const { agents, adminId, fetchAllAgents } = useAdminStore();
+  const { activeBotData, activeBotId, setActiveBotId } = useBotConfig();
+  const { agents, adminEmail, adminId, fetchAllAgents } = useAdminStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -130,14 +129,26 @@ const Header = () => {
           </div>
         </div>
         <div className="hidden lg:block">
-          <button
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-            onClick={() => {
-              navigate("/admin/account/plans");
-            }}
-          >
-            Upgrade Plan
-          </button>
+          <div className="flex items-center space-x-4">
+            <div className="relative inline-block">
+              <div className="absolute top-1 left-1 w-full h-full bg-[#6aff97] rounded"></div>
+              <div className="relative inline-block">
+                {/* Bottom layer for shadow effect */}
+                <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
+
+                {/* Main button */}
+                <button
+                  onClick={() => {
+                    navigate("/admin/account/plans");
+                  }}
+                  className="relative bg-[#6aff97] text-black font-semibold px-4 py-2 border border-black"
+                >
+                  Upgrade Plan
+                </button>
+              </div>
+            </div>
+            <div className="text-sm text-black">{adminEmail}</div>
+          </div>
         </div>
       </div>
     </header>
