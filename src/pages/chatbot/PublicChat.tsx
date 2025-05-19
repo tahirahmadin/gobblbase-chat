@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { BotConfig, ChatMessage } from "../../types";
 import { useBotConfig } from "../../store/useBotConfig";
@@ -11,6 +11,7 @@ import { useBookingLogic } from "../../hooks/useBookingLogic";
 import { useProductsLogic } from "../../hooks/useProductsLogic";
 import { useContactLogic } from "../../hooks/useContactLogic";
 import { useChatMessages } from "../../hooks/useChatMessages";
+import { useFeatureNotifications } from "../../hooks/useFeatureNotifications";
 
 type Screen = "about" | "chat" | "browse";
 
@@ -36,6 +37,10 @@ export default function PublicChat({
   const [message, setMessage] = useState<string>("");
   const [activeScreen, setActiveScreen] = useState<Screen>("chat");
   const [showCues, setShowCues] = useState<boolean>(true);
+  
+  // Use a ref to track if feature notifications have been initialized
+  const featureNotificationsInitialized = useRef<boolean>(false);
+  const featureNotificationTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -61,6 +66,7 @@ export default function PublicChat({
   
   const {
     handleProductRequest,
+    hasProducts
   } = useProductsLogic(currentConfig?.agentId);
   
   const {
@@ -79,6 +85,18 @@ export default function PublicChat({
     currentConfig
   );
 
+  // Initialize feature notifications hook
+  const { 
+    showFeatureNotifications, 
+    featuresShown,
+    resetFeaturesShown
+  } = useFeatureNotifications(
+    isBookingConfigured,
+    hasProducts,
+    currentConfig?.customerLeadFlag,
+    currentConfig?.isQueryable
+  );
+
   const theme = currentConfig?.themeColors ?? {
     id: "light-yellow",
     name: "Light Yellow",
@@ -93,6 +111,66 @@ export default function PublicChat({
       fetchBotData(botUsername, true);
     }
   }, [botUsername, previewConfig, fetchBotData]);
+
+  // Clean up feature notification timer on unmount
+  useEffect(() => {
+    return () => {
+      if (featureNotificationTimerRef.current) {
+        clearTimeout(featureNotificationTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Reset feature state when configuration changes
+  useEffect(() => {
+    resetFeaturesShown();
+    featureNotificationsInitialized.current = false;
+    console.log("Feature notifications reset due to config change");
+  }, [resetFeaturesShown, isBookingConfigured, hasProducts, currentConfig?.customerLeadFlag, currentConfig?.isQueryable]);
+
+  // Show feature notifications after welcome message - with improved handling
+  useEffect(() => {
+    // Do nothing if waiting for configuration to load
+    if (currentIsLoading || loadingPricing) {
+      return;
+    }
+
+    // Mark as initialized when configuration is loaded
+    if (!featureNotificationsInitialized.current) {
+      featureNotificationsInitialized.current = true;
+      console.log("Feature notifications initialized");
+    }
+
+    // Check if only welcome message is shown and features not already displayed
+    if (
+      messages.length === 1 && 
+      messages[0].sender === "agent" && 
+      !featuresShown && 
+      featureNotificationsInitialized.current
+    ) {
+      console.log("Preparing to show feature notifications");
+      
+      // Clear any existing timer
+      if (featureNotificationTimerRef.current) {
+        clearTimeout(featureNotificationTimerRef.current);
+      }
+      
+      // Set a new timer
+      featureNotificationTimerRef.current = setTimeout(() => {
+        console.log("Timeout fired - calling showFeatureNotifications");
+        showFeatureNotifications(setMessages, scrollToBottom);
+        featureNotificationTimerRef.current = null;
+      }, 2000);
+    }
+  }, [
+    messages, 
+    currentIsLoading, 
+    loadingPricing, 
+    featuresShown, 
+    showFeatureNotifications,
+    setMessages, 
+    scrollToBottom
+  ]);
 
   const handleSendMessage = async (inputMessage?: string): Promise<void> => {
     let msgToSend = typeof inputMessage === "string" ? inputMessage : message;

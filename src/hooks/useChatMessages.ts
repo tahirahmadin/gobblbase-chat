@@ -26,14 +26,16 @@ export function useChatMessages(
   const { addMessages } = useChatLogs();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
-      id: "1",
+      id: "1", // Using ID "1" for welcome message
       content: initialMessage || "Hi! How may I help you?",
       timestamp: new Date(),
       sender: "agent",
+      type: "welcome", // Adding a type to identify this as a welcome message
     },
   ]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const welcomeMessageRef = useRef<string | undefined>(initialMessage);
 
   const scrollToBottom = (): void => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -49,16 +51,30 @@ export function useChatMessages(
     scrollToBottom();
   }, [messages]);
 
+  // Update welcome message when it changes
   useEffect(() => {
-    if (initialMessage) {
+    // Only update if the initialMessage has actually changed
+    if (initialMessage && initialMessage !== welcomeMessageRef.current) {
+      welcomeMessageRef.current = initialMessage;
+      
+      // Reset message state with new welcome message
       setMessages([
         {
-          id: "1",
+          id: "1", // Always use "1" for welcome message
           content: initialMessage,
           timestamp: new Date(),
           sender: "agent",
+          type: "welcome", // Mark as welcome message
         },
       ]);
+      
+      // Clear any welcome message animation flags from localStorage
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('animated_1') || key.startsWith('animated_welcome'))) {
+          localStorage.removeItem(key);
+        }
+      }
     }
   }, [initialMessage]);
 

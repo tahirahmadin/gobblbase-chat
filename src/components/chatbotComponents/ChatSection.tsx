@@ -9,21 +9,7 @@ import ChatProductDisplay from "./ChatProductDisplay";
 
 interface ChatSectionProps {
   theme: Theme;
-  messages: (ChatMessage & {
-    type?:
-      | "booking"
-      | "booking-intro"
-      | "booking-loading"
-      | "booking-calendar"
-      | "booking-management-intro"
-      | "booking-management"
-      | "products-intro"
-      | "products-loading"
-      | "products-display"
-      | "contact-intro"
-      | "contact-loading"
-      | "contact-form";
-  })[];
+  messages: ChatMessage[];
   isLoading: boolean;
   activeScreen: "about" | "chat" | "browse";
   messagesEndRef: React.RefObject<HTMLDivElement>;
@@ -49,8 +35,11 @@ export default function ChatSection({
   setActiveScreen,
 }: ChatSectionProps) {
   // Render different message types
-  const renderMessage = (msg: ChatMessage & { type?: string }) => {
+  const renderMessage = (msg: ChatMessage) => {
     if (msg.sender === "agent") {
+      // Check if this is a welcome message (either by type or by ID)
+      const isWelcome = msg.type === "welcome" || msg.id === "1";
+
       // Different message types for agent
       if (
         msg.type === "booking-intro" ||
@@ -65,12 +54,25 @@ export default function ChatSection({
             messageId={`${msg.id}-intro`}
             textColor={!theme.isDark ? "black" : "white"}
             loadingTime={1000}
+            forceAnimation={isWelcome} // Force animation for welcome
+          />
+        );
+      } else if (msg.type === "features-combined") {
+        // Feature notification message with the same styling as other messages but with typing effect
+        return (
+          <StreamingText
+            text={msg.content}
+            speed={15} // Same speed as other messages
+            messageId={`${msg.id}-features`}
+            textColor={!theme.isDark ? "black" : "white"}
+            loadingTime={1000} // Same loading time as other messages
           />
         );
       } else if (
         msg.type === "booking-loading" ||
         msg.type === "products-loading" ||
-        msg.type === "contact-loading"
+        msg.type === "contact-loading" ||
+        msg.type === "features-loading"
       ) {
         return <LoadingBubbles textColor={theme.highlightColor} />;
       } else if (msg.type === "contact-form") {
@@ -118,7 +120,7 @@ export default function ChatSection({
           </div>
         );
       } else {
-        // Regular text message
+        // Regular text message or welcome message
         return (
           <StreamingText
             text={msg.content}
@@ -126,6 +128,7 @@ export default function ChatSection({
             messageId={msg.id}
             textColor={!theme.isDark ? "black" : "white"}
             loadingTime={1000}
+            forceAnimation={isWelcome} // Force animation for welcome message
           />
         );
       }
@@ -137,6 +140,19 @@ export default function ChatSection({
         </div>
       );
     }
+  };
+
+  // Simplified style for feature message - just add a subtle left border
+  const getMessageStyle = (msg: ChatMessage) => {
+    if (
+      msg.sender === "agent" &&
+      msg.type === "features-combined"
+    ) {
+      return {
+        borderLeft: `3px solid ${theme.mainDarkColor}`, // Just a subtle left border
+      };
+    }
+    return {};
   };
 
   return (
@@ -189,6 +205,7 @@ export default function ChatSection({
                           ? "black"
                           : "white"
                         : "black",
+                    ...getMessageStyle(msg)
                   }}
                 >
                   <div className="prose prose-sm max-w-none text-inherit">

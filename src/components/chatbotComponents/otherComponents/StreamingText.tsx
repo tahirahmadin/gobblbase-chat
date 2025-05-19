@@ -8,6 +8,7 @@ interface StreamingTextProps {
   messageId: string;
   textColor?: string;
   loadingTime?: number; // Time in ms to show loading bubbles
+  forceAnimation?: boolean; // New prop to force animation regardless of localStorage
 }
 
 const StreamingText: React.FC<StreamingTextProps> = ({
@@ -16,16 +17,23 @@ const StreamingText: React.FC<StreamingTextProps> = ({
   messageId,
   textColor = "inherit",
   loadingTime = 1000, // Default to 1 second
+  forceAnimation = false, // Default to respecting localStorage
 }) => {
   const [displayedText, setDisplayedText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const intervalRef = useRef<NodeJS.Timeout>();
   const currentIndexRef = useRef(0);
   const animatedKey = `animated_${messageId}`;
-  const hasAnimated = localStorage.getItem(animatedKey) === "true";
+  
+  // Check if this is a welcome message (ID is "1")
+  const isWelcomeMessage = messageId === "1" || messageId === "welcome";
+  
+  // Only check localStorage if we're not forcing animation and it's not a welcome message
+  const hasAnimated = !forceAnimation && !isWelcomeMessage && localStorage.getItem(animatedKey) === "true";
 
   useEffect(() => {
-    // If already animated, just show the full text immediately without loading
+    // If already animated and not forcing animation and not a welcome message, 
+    // just show the full text immediately without loading
     if (hasAnimated) {
       setIsLoading(false);
       setDisplayedText(text);
@@ -54,7 +62,10 @@ const StreamingText: React.FC<StreamingTextProps> = ({
         } else {
           if (intervalRef.current) {
             clearInterval(intervalRef.current);
-            localStorage.setItem(animatedKey, "true");
+            // Only store in localStorage if it's not a welcome message
+            if (!isWelcomeMessage) {
+              localStorage.setItem(animatedKey, "true");
+            }
           }
         }
       }, speed);
@@ -69,7 +80,7 @@ const StreamingText: React.FC<StreamingTextProps> = ({
         clearInterval(intervalRef.current);
       }
     };
-  }, [text, speed, hasAnimated, messageId, animatedKey, loadingTime]);
+  }, [text, speed, hasAnimated, messageId, animatedKey, loadingTime, forceAnimation, isWelcomeMessage]);
 
   return (
     <div

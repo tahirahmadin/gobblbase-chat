@@ -27,17 +27,35 @@ const WelcomeText = () => {
     }
   }, [activeBotData]);
 
+  // Helper function to clear welcome message animation flags from localStorage
+  const clearWelcomeAnimationFlags = () => {
+    // Clear any localStorage keys that might be related to welcome messages
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('animated_1') || key.startsWith('animated_welcome'))) {
+        localStorage.removeItem(key);
+      }
+    }
+  };
+
   const handleTemplateSelect = async (templateText: string) => {
     setSelectedTemplate(templateText);
 
     if (templateText && activeBotData) {
       try {
         await updateAgentWelcomeMessage(activeBotData.agentId, templateText);
+        
+        // Clear welcome animation flags
+        clearWelcomeAnimationFlags();
 
-        setPreviewConfig({
+        // Force a refresh of the preview component by creating a new unique timestamp
+        const refreshedConfig = {
           ...activeBotData,
           welcomeMessage: templateText,
-        });
+          _refreshKey: Date.now(), // Add a unique key to force re-render
+        };
+        
+        setPreviewConfig(refreshedConfig);
         setRefetchBotData();
         toast.success("Welcome message updated successfully");
       } catch (error) {
@@ -56,11 +74,18 @@ const WelcomeText = () => {
     if (activeBotData) {
       try {
         await updateAgentWelcomeMessage(activeBotData.agentId, customMessage);
+        
+        // Clear welcome animation flags
+        clearWelcomeAnimationFlags();
 
-        setPreviewConfig({
+        // Force a refresh of the preview component
+        const refreshedConfig = {
           ...activeBotData,
           welcomeMessage: customMessage,
-        });
+          _refreshKey: Date.now(), 
+        };
+        
+        setPreviewConfig(refreshedConfig);
         setRefetchBotData();
         toast.success("Custom welcome message updated successfully");
       } catch (error) {
@@ -149,11 +174,21 @@ const WelcomeText = () => {
             alignItems: "center",
           }}
         >
-          <PublicChat
-            previewConfig={previewConfig || activeBotData}
-            chatHeight={null}
-            isPreview={true}
-          />
+          {previewConfig && (
+            <PublicChat
+              key={previewConfig._refreshKey} 
+              previewConfig={previewConfig}
+              chatHeight={null}
+              isPreview={true}
+            />
+          )}
+          {!previewConfig && activeBotData && (
+            <PublicChat
+              previewConfig={activeBotData}
+              chatHeight={null}
+              isPreview={true}
+            />
+          )}
         </div>
       </div>
     </div>
