@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { ChatMessage, Theme } from "../../types";
+import React from "react";
+import { Theme, ChatMessage } from "../../types";
 import StreamingText from "./otherComponents/StreamingText";
 import LoadingBubbles from "./otherComponents/LoadingBubbles";
 import BookingSection from "./BookingSection";
@@ -48,44 +48,7 @@ export default function ChatSection({
   isBookingConfigured = true,
   setActiveScreen,
 }: ChatSectionProps) {
-  const [showBookingCard, setShowBookingCard] = useState(false);
-
-  const containsBookingKeywords = (message: string): boolean => {
-    const bookingKeywords = [
-      "book",
-      "appointment",
-      "meeting",
-      "call",
-      "schedule",
-      "reserve",
-      "booking",
-      "appointments",
-      "meetings",
-      "calls",
-      "scheduling",
-      "reservation",
-    ];
-
-    const lowerMessage = message.toLowerCase();
-    return bookingKeywords.some((keyword) => lowerMessage.includes(keyword));
-  };
-
-  useEffect(() => {
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      if (
-        lastMessage.sender === "user" &&
-        containsBookingKeywords(lastMessage.content)
-      ) {
-        if (isBookingConfigured) {
-          setShowBookingCard(true);
-        } else {
-          setShowBookingCard(false);
-        }
-      }
-    }
-  }, [messages, isBookingConfigured]);
-
+  // Render different message types
   const renderMessage = (msg: ChatMessage & { type?: string }) => {
     if (msg.sender === "agent") {
       // Different message types for agent
@@ -186,7 +149,7 @@ export default function ChatSection({
     >
       {activeScreen === "chat" && (
         <>
-          {messages.map((msg, index) => (
+          {messages.map((msg) => (
             <div
               key={msg.id}
               className={`mb-4 flex ${
@@ -199,7 +162,7 @@ export default function ChatSection({
                 msg.type === "products-display" ||
                 msg.type === "contact-form") ? (
                 <div
-                  className="rounded-xl overflow-hidden  "
+                  className="rounded-xl overflow-hidden"
                   style={{
                     backgroundColor: theme.isDark ? "black" : "white",
                     width: "80%",
@@ -225,7 +188,7 @@ export default function ChatSection({
                         ? !theme.isDark
                           ? "black"
                           : "white"
-                        : "black", // Ensure user messages have consistent text color
+                        : "black",
                   }}
                 >
                   <div className="prose prose-sm max-w-none text-inherit">
@@ -235,19 +198,6 @@ export default function ChatSection({
               )}
             </div>
           ))}
-
-          {/* {isLoading && (
-            <div className="mb-4 flex justify-start">
-              <div
-                className="rounded-2xl p-3"
-                style={{
-                  backgroundColor: theme.isDark ? "black" : "white",
-                }}
-              >
-                <LoadingBubbles textColor={theme.highlightColor} />
-              </div>
-            </div>
-          )} */}
         </>
       )}
 
