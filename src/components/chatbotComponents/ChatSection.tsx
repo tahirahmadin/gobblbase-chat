@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Theme, ChatMessage } from "../../types";
 import StreamingText from "./otherComponents/StreamingText";
 import LoadingBubbles from "./otherComponents/LoadingBubbles";
@@ -34,11 +34,26 @@ export default function ChatSection({
   isBookingConfigured = true,
   setActiveScreen,
 }: ChatSectionProps) {
+  const prevActiveScreenRef = useRef<string | null>(null);
+
+  // Effect to handle screen transition
+  useEffect(() => {
+    // We only care about transitions to the chat screen
+    if (activeScreen === "chat" && prevActiveScreenRef.current !== "chat") {
+      // No need to do anything special, the StreamingText component will handle animation state
+    }
+    
+    // Update the previous screen reference
+    prevActiveScreenRef.current = activeScreen;
+  }, [activeScreen]);
+  
   // Render different message types
   const renderMessage = (msg: ChatMessage) => {
     if (msg.sender === "agent") {
       // Check if this is a welcome message (either by type or by ID)
       const isWelcome = msg.type === "welcome" || msg.id === "1";
+      const isFeatureMessage = msg.type === "features-combined" || 
+                              (msg.id && (msg.id.includes("features-") || msg.id.includes("features")));
 
       // Different message types for agent
       if (
@@ -54,18 +69,19 @@ export default function ChatSection({
             messageId={`${msg.id}-intro`}
             textColor={!theme.isDark ? "black" : "white"}
             loadingTime={1000}
-            forceAnimation={isWelcome} // Force animation for welcome
+            forceAnimation={false} // Never force animation for better tab switching
           />
         );
-      } else if (msg.type === "features-combined") {
-        // Feature notification message with the same styling as other messages but with typing effect
+      } else if (msg.type === "features-combined" || isFeatureMessage) {
+        // Feature notification message with the same styling as regular messages
         return (
           <StreamingText
             text={msg.content}
-            speed={15} // Same speed as other messages
-            messageId={`${msg.id}-features`}
+            speed={15}
+            messageId={`${msg.id}`}
             textColor={!theme.isDark ? "black" : "white"}
-            loadingTime={1000} // Same loading time as other messages
+            loadingTime={1000}
+            forceAnimation={false}
           />
         );
       } else if (
@@ -128,7 +144,7 @@ export default function ChatSection({
             messageId={msg.id}
             textColor={!theme.isDark ? "black" : "white"}
             loadingTime={1000}
-            forceAnimation={isWelcome} // Force animation for welcome message
+            forceAnimation={false} // Never force animation for better tab switching
           />
         );
       }
@@ -142,16 +158,9 @@ export default function ChatSection({
     }
   };
 
-  // Simplified style for feature message - just add a subtle left border
+  // Style logic for messages - REMOVED THE BORDER STYLING FOR FEATURE MESSAGES
   const getMessageStyle = (msg: ChatMessage) => {
-    if (
-      msg.sender === "agent" &&
-      msg.type === "features-combined"
-    ) {
-      return {
-        borderLeft: `3px solid ${theme.mainDarkColor}`, // Just a subtle left border
-      };
-    }
+    // No special styling for any message types
     return {};
   };
 

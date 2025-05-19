@@ -41,7 +41,7 @@ export const containsBookingManagementKeywords = (text: string): boolean => {
     "change booking", "change appointment", "change meeting",
     "modify booking", "modify appointment", "modify meeting",
     "upcoming bookings", "upcoming appointments", "upcoming meetings",
-    "scheduled bookings", "scheduled appointments", "scheduled meetings",
+    "scheduled bookings", "scheduled appointments", "scheduled meetings","change date","change time"
   ];
 
   return specificManagementPhrases.some((phrase) =>

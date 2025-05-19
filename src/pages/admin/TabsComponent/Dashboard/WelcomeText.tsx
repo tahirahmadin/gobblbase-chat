@@ -20,6 +20,7 @@ const WelcomeText = () => {
   );
   const [customMessage, setCustomMessage] = useState("");
   const [previewConfig, setPreviewConfig] = useState<any>(null);
+  const [previewKey, setPreviewKey] = useState<number>(Date.now());
 
   useEffect(() => {
     if (activeBotData) {
@@ -27,32 +28,42 @@ const WelcomeText = () => {
     }
   }, [activeBotData]);
 
-  // Helper function to clear welcome message animation flags from localStorage
-  const clearWelcomeAnimationFlags = () => {
-    // Clear any localStorage keys that might be related to welcome messages
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && (key.startsWith('animated_1') || key.startsWith('animated_welcome'))) {
-        localStorage.removeItem(key);
+  const clearMessageAnimationStates = () => {
+    if (typeof window !== 'undefined') {
+      (window as any).welcomeMessageAnimated = false;
+      (window as any).featureMessageAnimated = false;
+      (window as any).featuresMessageShown = false;
+      (window as any).featuresMessageContent = "";
+      (window as any).featuresMessageId = "";
+      
+      if (window.hasOwnProperty('shouldShowFeaturesAfterWelcome')) {
+        (window as any).shouldShowFeaturesAfterWelcome = false;
+      }
+      
+      if ((window as any).allAnimatedMessages) {
+        (window as any).allAnimatedMessages.clear();
       }
     }
   };
 
   const handleTemplateSelect = async (templateText: string) => {
+    if (templateText === selectedTemplate) {
+      return;
+    }
+    
     setSelectedTemplate(templateText);
 
     if (templateText && activeBotData) {
       try {
         await updateAgentWelcomeMessage(activeBotData.agentId, templateText);
-        
-        // Clear welcome animation flags
-        clearWelcomeAnimationFlags();
 
-        // Force a refresh of the preview component by creating a new unique timestamp
+        clearMessageAnimationStates();
+        
+        setPreviewKey(Date.now());
+        
         const refreshedConfig = {
           ...activeBotData,
           welcomeMessage: templateText,
-          _refreshKey: Date.now(), // Add a unique key to force re-render
         };
         
         setPreviewConfig(refreshedConfig);
@@ -71,18 +82,21 @@ const WelcomeText = () => {
       return;
     }
 
+    if (customMessage.trim() === selectedTemplate) {
+      return;
+    }
+
     if (activeBotData) {
       try {
         await updateAgentWelcomeMessage(activeBotData.agentId, customMessage);
         
-        // Clear welcome animation flags
-        clearWelcomeAnimationFlags();
-
-        // Force a refresh of the preview component
+        clearMessageAnimationStates();
+        
+        setPreviewKey(Date.now());
+        
         const refreshedConfig = {
           ...activeBotData,
           welcomeMessage: customMessage,
-          _refreshKey: Date.now(), 
         };
         
         setPreviewConfig(refreshedConfig);
@@ -176,7 +190,7 @@ const WelcomeText = () => {
         >
           {previewConfig && (
             <PublicChat
-              key={previewConfig._refreshKey} 
+              key={previewKey}
               previewConfig={previewConfig}
               chatHeight={null}
               isPreview={true}
@@ -184,6 +198,7 @@ const WelcomeText = () => {
           )}
           {!previewConfig && activeBotData && (
             <PublicChat
+              key={`initial-${previewKey}`}
               previewConfig={activeBotData}
               chatHeight={null}
               isPreview={true}

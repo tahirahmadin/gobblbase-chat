@@ -1,4 +1,4 @@
-import { useState, useRef, Dispatch, SetStateAction } from 'react';
+import { useState, useRef, Dispatch, SetStateAction, useEffect } from 'react';
 import { ChatMessage } from '../types';
 
 // Template messages for feature notifications - make sure they match your tone
@@ -7,6 +7,20 @@ const featureNotificationMessages = [
   "I'm here to help with {{features}}. What can I do for you?",
   "My capabilities include {{features}}. How may I help you?",
 ];
+
+if (typeof window !== 'undefined') {
+  if (!window.hasOwnProperty('featuresMessageShown')) {
+    (window as any).featuresMessageShown = false;
+  }
+  
+  if (!window.hasOwnProperty('featuresMessageContent')) {
+    (window as any).featuresMessageContent = "";
+  }
+  
+  if (!window.hasOwnProperty('featuresMessageId')) {
+    (window as any).featuresMessageId = "";
+  }
+}
 
 export interface UseFeatureNotificationsReturn {
   showFeatureNotifications: (
@@ -23,26 +37,86 @@ export function useFeatureNotifications(
   customerLeadFlag?: boolean,
   isQueryable?: boolean
 ): UseFeatureNotificationsReturn {
-  const [featuresShown, setFeaturesShown] = useState<boolean>(false);
-  // Use a ref to ensure we don't show multiple messages
+  const [featuresShown, setFeaturesShown] = useState<boolean>(
+    typeof window !== 'undefined' ? (window as any).featuresMessageShown : false
+  );
+  
   const isShowingFeatures = useRef<boolean>(false);
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setFeaturesShown((window as any).featuresMessageShown);
+    }
+  }, []);
+
+  const isWelcomeMessageAnimated = (): boolean => {
+    if (typeof window !== 'undefined') {
+      return (window as any).welcomeMessageAnimated === true;
+    }
+    return false;
+  };
+
+  const areFeaturesMessageShown = (): boolean => {
+    if (typeof window !== 'undefined') {
+      return (window as any).featuresMessageShown === true;
+    }
+    return false;
+  };
 
   const resetFeaturesShown = () => {
     setFeaturesShown(false);
     isShowingFeatures.current = false;
+    
+    if (typeof window !== 'undefined') {
+      (window as any).featuresMessageShown = false;
+      (window as any).featureMessageAnimated = false;
+      (window as any).featuresMessageContent = "";
+      (window as any).featuresMessageId = "";
+    }
   };
 
   const showFeatureNotifications = (
     setMessages: Dispatch<SetStateAction<ChatMessage[]>>,
     scrollToBottom: () => void
   ) => {
-    // Check both the state and the ref to be extra safe
-    if (featuresShown || isShowingFeatures.current) {
-      console.log("Features already shown or in progress, skipping");
+    if (featuresShown || isShowingFeatures.current || areFeaturesMessageShown()) {
+      
+      if (typeof window !== 'undefined' && 
+          (window as any).featuresMessageShown && 
+          (window as any).featuresMessageContent && 
+          (window as any).featuresMessageId) {
+            
+        setMessages(messages => {
+          if (messages.some(msg => msg.id === (window as any).featuresMessageId)) {
+            return messages;
+          }
+          
+          const restoredMsg: ChatMessage = {
+            id: (window as any).featuresMessageId,
+            content: (window as any).featuresMessageContent,
+            timestamp: new Date(),
+            sender: "agent"
+          };
+          
+          return [...messages, restoredMsg];
+        });
+        
+        scrollToBottom();
+      }
+      
       return;
     }
 
-    // Set both state and ref immediately
+    if (!isWelcomeMessageAnimated()) {
+      console.log("Welcome message still animating, postponing feature notifications");
+      
+      setTimeout(() => {
+        showFeatureNotifications(setMessages, scrollToBottom);
+      }, 500);
+      
+      return;
+    }
+
     setFeaturesShown(true);
     isShowingFeatures.current = true;
     
@@ -93,14 +167,19 @@ export function useFeatureNotifications(
     
     console.log("Adding features message:", finalMessage);
     
-    // Add a single message directly, without loading animation
+    const featuresMsgId = "features-" + Date.now().toString();
+    
+    if (typeof window !== 'undefined') {
+      (window as any).featuresMessageShown = true;
+      (window as any).featuresMessageContent = finalMessage;
+      (window as any).featuresMessageId = featuresMsgId;
+    }
+    
     const featuresMsg: ChatMessage = {
-      id: (Date.now() + 1).toString(),
+      id: featuresMsgId,
       content: finalMessage,
       timestamp: new Date(),
-      sender: "agent",
-      // Using normal message type to ensure consistent styling
-      // type: "features-combined",
+      sender: "agent"
     };
     
     setMessages(messages => [...messages, featuresMsg]);
