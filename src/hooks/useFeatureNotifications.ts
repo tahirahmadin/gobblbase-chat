@@ -3,9 +3,9 @@ import { ChatMessage } from '../types';
 
 // Template messages for feature notifications - make sure they match your tone
 const featureNotificationMessages = [
-  "I can help you with {{features}}. How can I assist you today?",
-  "I'm here to help with {{features}}. What can I do for you?",
-  "My capabilities include {{features}}. How may I help you?",
+  "I can help you with {{features}}.",
+  "I'm here to help with {{features}}.",
+  "My capabilities include {{features}}.",
 ];
 
 if (typeof window !== 'undefined') {
