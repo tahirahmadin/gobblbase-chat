@@ -73,7 +73,7 @@ export default function InputSection({
           }}
           className="hover:underline"
         >
-          Powered by KiFor
+          Powered by Kifor
         </a>
       </div>
     </div>

@@ -61,7 +61,7 @@ export default function Embed() {
       try {
         await navigator.share({
           title: "Chat with my AI Assistant",
-          text: "Check out my AI assistant powered by KiFor.ai",
+          text: "Check out my AI assistant powered by Kifor.ai",
           url: chatbotUrl,
         });
       } catch (error) {
