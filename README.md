@@ -1,1 +1,1 @@
-KiFor - AI Agent for Business
+Kifor - AI Agent for Business

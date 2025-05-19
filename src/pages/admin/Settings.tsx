@@ -183,7 +183,7 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <p className="text-gray-600 mb-6">
                   Choose a unique handle for your bot. This will be used in your
-                  bot's URL: KiFor.ai/
+                  bot's URL: Kifor.ai/
                   <span className="font-mono text-gray-900">
                     {agentUsername || "your-handle"}
                   </span>
