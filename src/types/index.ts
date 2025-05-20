@@ -26,6 +26,7 @@ export interface ChatMessage {
   content: string;
   timestamp: Date;
   sender: "user" | "agent";
+  type?: MessageType;
 }
 
 export interface ChatLog {
@@ -63,7 +64,19 @@ export interface AdminAgent {
   name: string;
 }
 
-//Theme Types
+export type MessageType = 
+  | "booking"
+  | "booking-intro"
+  | "booking-loading"
+  | "booking-calendar"
+  | "booking-management-intro"
+  | "booking-management"
+  | "products-intro"
+  | "products-loading"
+  | "products-display"
+  | "contact-intro"
+  | "contact-loading"
+  | "contact-form";
 
 export interface Theme {
   id: string;

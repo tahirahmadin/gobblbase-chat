@@ -744,7 +744,8 @@ export async function updateUnavailableDates(
     endTime: string;
     allDay: boolean;
     timezone?: string;
-  }>
+  }>,
+  datesToMakeAvailable?: string[]
 ): Promise<any> {
   try {
     const response = await axios.post(
@@ -752,6 +753,7 @@ export async function updateUnavailableDates(
       {
         agentId,
         unavailableDates,
+        datesToMakeAvailable,
       }
     );
     if (response.data.error) throw new Error(response.data.error);
@@ -1335,7 +1337,7 @@ export async function subscribeToPlan(
 ): Promise<any> {
   try {
     const response = await axios.post(
-      "https://rag.gobbl.ai/client/subscribeToCredits",
+      "https://rag.gobbl.ai/product/subscribeOrChangePlan",
       {
         clientId,
         planId,
@@ -1896,4 +1898,24 @@ export async function saveEventProduct(
     body: formData,
   });
   return await response.json();
+}
+
+export async function getStripeBillingSession(
+  clientId: string
+): Promise<string> {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/product/createBillingSession`,
+      { params: { clientId } }
+    );
+    if (response.data.error) {
+      throw new Error(
+        response.data.error || "Failed to create billing session"
+      );
+    }
+    return response.data.result; // Assuming the URL is in result
+  } catch (error) {
+    console.error("Error creating Stripe billing session:", error);
+    throw error;
+  }
 }

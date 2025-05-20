@@ -418,27 +418,40 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
     if (!activeAgentId) return;
     setIsSaving(true);
     setSaveError(null);
-    
     try {
-      const unavailableDates = scheduleDays
+      // Separate dates into two categories
+      const unavailableDatesToUpdate = [];
+      const datesToMakeAvailable = [];
+      
+      scheduleDays
         .filter((d) => d.isModified)
-        .map((d) => ({
-          date: d.apiDate,
-          startTime: d.startTime,
-          endTime: d.endTime,
-          allDay: !d.available || d.allDay,
-          timezone: userTimezone,
-        }));
-
-      await updateUnavailableDates(activeAgentId, unavailableDates);
+        .forEach((d) => {
+          if (d.available) {
+            // If the day is being made available, add to datesToMakeAvailable
+            datesToMakeAvailable.push(d.apiDate);
+          } else {
+            // If the day is being made unavailable or has custom hours
+            unavailableDatesToUpdate.push({
+              date: d.apiDate,
+              startTime: d.startTime,
+              endTime: d.endTime,
+              allDay: !d.available || d.allDay,
+              timezone: userTimezone,
+            });
+          }
+        });
+  
+      // Call the updated API with both parameters
+      await updateUnavailableDates(
+        activeAgentId, 
+        unavailableDatesToUpdate,
+        datesToMakeAvailable
+      );
+      
       setSaveSuccess(true);
-
-      // Reload the schedule data to get the updated settings
       await loadScheduleData();
-
       setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (error) {
-      console.error("Error saving changes:", error);
+    } catch {
       setSaveError("Failed to update your schedule. Please try again.");
     } finally {
       setIsSaving(false);

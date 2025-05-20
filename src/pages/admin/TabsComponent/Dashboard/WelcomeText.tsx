@@ -20,6 +20,7 @@ const WelcomeText = () => {
   );
   const [customMessage, setCustomMessage] = useState("");
   const [previewConfig, setPreviewConfig] = useState<any>(null);
+  const [previewKey, setPreviewKey] = useState<number>(Date.now());
 
   useEffect(() => {
     if (activeBotData) {
@@ -27,17 +28,45 @@ const WelcomeText = () => {
     }
   }, [activeBotData]);
 
+  const clearMessageAnimationStates = () => {
+    if (typeof window !== 'undefined') {
+      (window as any).welcomeMessageAnimated = false;
+      (window as any).featureMessageAnimated = false;
+      (window as any).featuresMessageShown = false;
+      (window as any).featuresMessageContent = "";
+      (window as any).featuresMessageId = "";
+      
+      if (window.hasOwnProperty('shouldShowFeaturesAfterWelcome')) {
+        (window as any).shouldShowFeaturesAfterWelcome = false;
+      }
+      
+      if ((window as any).allAnimatedMessages) {
+        (window as any).allAnimatedMessages.clear();
+      }
+    }
+  };
+
   const handleTemplateSelect = async (templateText: string) => {
+    if (templateText === selectedTemplate) {
+      return;
+    }
+    
     setSelectedTemplate(templateText);
 
     if (templateText && activeBotData) {
       try {
         await updateAgentWelcomeMessage(activeBotData.agentId, templateText);
 
-        setPreviewConfig({
+        clearMessageAnimationStates();
+        
+        setPreviewKey(Date.now());
+        
+        const refreshedConfig = {
           ...activeBotData,
           welcomeMessage: templateText,
-        });
+        };
+        
+        setPreviewConfig(refreshedConfig);
         setRefetchBotData();
         toast.success("Welcome message updated successfully");
       } catch (error) {
@@ -53,14 +82,24 @@ const WelcomeText = () => {
       return;
     }
 
+    if (customMessage.trim() === selectedTemplate) {
+      return;
+    }
+
     if (activeBotData) {
       try {
         await updateAgentWelcomeMessage(activeBotData.agentId, customMessage);
-
-        setPreviewConfig({
+        
+        clearMessageAnimationStates();
+        
+        setPreviewKey(Date.now());
+        
+        const refreshedConfig = {
           ...activeBotData,
           welcomeMessage: customMessage,
-        });
+        };
+        
+        setPreviewConfig(refreshedConfig);
         setRefetchBotData();
         toast.success("Custom welcome message updated successfully");
       } catch (error) {
@@ -149,11 +188,22 @@ const WelcomeText = () => {
             alignItems: "center",
           }}
         >
-          <PublicChat
-            previewConfig={previewConfig || activeBotData}
-            chatHeight={null}
-            isPreview={true}
-          />
+          {previewConfig && (
+            <PublicChat
+              key={previewKey}
+              previewConfig={previewConfig}
+              chatHeight={null}
+              isPreview={true}
+            />
+          )}
+          {!previewConfig && activeBotData && (
+            <PublicChat
+              key={`initial-${previewKey}`}
+              previewConfig={activeBotData}
+              chatHeight={null}
+              isPreview={true}
+            />
+          )}
         </div>
       </div>
     </div>

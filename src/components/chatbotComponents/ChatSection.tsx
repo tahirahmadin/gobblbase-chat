@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { ChatMessage, Theme } from "../../types";
+import React, { useEffect, useRef } from "react";
+import { Theme, ChatMessage } from "../../types";
 import StreamingText from "./otherComponents/StreamingText";
 import LoadingBubbles from "./otherComponents/LoadingBubbles";
 import BookingSection from "./BookingSection";
@@ -9,21 +9,7 @@ import ChatProductDisplay from "./ChatProductDisplay";
 
 interface ChatSectionProps {
   theme: Theme;
-  messages: (ChatMessage & {
-    type?:
-      | "booking"
-      | "booking-intro"
-      | "booking-loading"
-      | "booking-calendar"
-      | "booking-management-intro"
-      | "booking-management"
-      | "products-intro"
-      | "products-loading"
-      | "products-display"
-      | "contact-intro"
-      | "contact-loading"
-      | "contact-form";
-  })[];
+  messages: ChatMessage[];
   isLoading: boolean;
   activeScreen: "about" | "chat" | "browse";
   messagesEndRef: React.RefObject<HTMLDivElement>;
@@ -48,46 +34,27 @@ export default function ChatSection({
   isBookingConfigured = true,
   setActiveScreen,
 }: ChatSectionProps) {
-  const [showBookingCard, setShowBookingCard] = useState(false);
+  const prevActiveScreenRef = useRef<string | null>(null);
 
-  const containsBookingKeywords = (message: string): boolean => {
-    const bookingKeywords = [
-      "book",
-      "appointment",
-      "meeting",
-      "call",
-      "schedule",
-      "reserve",
-      "booking",
-      "appointments",
-      "meetings",
-      "calls",
-      "scheduling",
-      "reservation",
-    ];
-
-    const lowerMessage = message.toLowerCase();
-    return bookingKeywords.some((keyword) => lowerMessage.includes(keyword));
-  };
-
+  // Effect to handle screen transition
   useEffect(() => {
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      if (
-        lastMessage.sender === "user" &&
-        containsBookingKeywords(lastMessage.content)
-      ) {
-        if (isBookingConfigured) {
-          setShowBookingCard(true);
-        } else {
-          setShowBookingCard(false);
-        }
-      }
+    // We only care about transitions to the chat screen
+    if (activeScreen === "chat" && prevActiveScreenRef.current !== "chat") {
+      // No need to do anything special, the StreamingText component will handle animation state
     }
-  }, [messages, isBookingConfigured]);
-
-  const renderMessage = (msg: ChatMessage & { type?: string }) => {
+    
+    // Update the previous screen reference
+    prevActiveScreenRef.current = activeScreen;
+  }, [activeScreen]);
+  
+  // Render different message types
+  const renderMessage = (msg: ChatMessage) => {
     if (msg.sender === "agent") {
+      // Check if this is a welcome message (either by type or by ID)
+      const isWelcome = msg.type === "welcome" || msg.id === "1";
+      const isFeatureMessage = msg.type === "features-combined" || 
+                              (msg.id && (msg.id.includes("features-") || msg.id.includes("features")));
+
       // Different message types for agent
       if (
         msg.type === "booking-intro" ||
@@ -102,12 +69,26 @@ export default function ChatSection({
             messageId={`${msg.id}-intro`}
             textColor={!theme.isDark ? "black" : "white"}
             loadingTime={1000}
+            forceAnimation={false} // Never force animation for better tab switching
+          />
+        );
+      } else if (msg.type === "features-combined" || isFeatureMessage) {
+        // Feature notification message with the same styling as regular messages
+        return (
+          <StreamingText
+            text={msg.content}
+            speed={15}
+            messageId={`${msg.id}`}
+            textColor={!theme.isDark ? "black" : "white"}
+            loadingTime={1000}
+            forceAnimation={false}
           />
         );
       } else if (
         msg.type === "booking-loading" ||
         msg.type === "products-loading" ||
-        msg.type === "contact-loading"
+        msg.type === "contact-loading" ||
+        msg.type === "features-loading"
       ) {
         return <LoadingBubbles textColor={theme.highlightColor} />;
       } else if (msg.type === "contact-form") {
@@ -155,7 +136,7 @@ export default function ChatSection({
           </div>
         );
       } else {
-        // Regular text message
+        // Regular text message or welcome message
         return (
           <StreamingText
             text={msg.content}
@@ -163,6 +144,7 @@ export default function ChatSection({
             messageId={msg.id}
             textColor={!theme.isDark ? "black" : "white"}
             loadingTime={1000}
+            forceAnimation={false} // Never force animation for better tab switching
           />
         );
       }
@@ -176,6 +158,12 @@ export default function ChatSection({
     }
   };
 
+  // Style logic for messages - REMOVED THE BORDER STYLING FOR FEATURE MESSAGES
+  const getMessageStyle = (msg: ChatMessage) => {
+    // No special styling for any message types
+    return {};
+  };
+
   return (
     <div
       className="flex-1 overflow-y-auto p-2"
@@ -186,7 +174,7 @@ export default function ChatSection({
     >
       {activeScreen === "chat" && (
         <>
-          {messages.map((msg, index) => (
+          {messages.map((msg) => (
             <div
               key={msg.id}
               className={`mb-4 flex ${
@@ -199,7 +187,7 @@ export default function ChatSection({
                 msg.type === "products-display" ||
                 msg.type === "contact-form") ? (
                 <div
-                  className="rounded-xl overflow-hidden  "
+                  className="rounded-xl overflow-hidden"
                   style={{
                     backgroundColor: theme.isDark ? "black" : "white",
                     width: "80%",
@@ -225,7 +213,8 @@ export default function ChatSection({
                         ? !theme.isDark
                           ? "black"
                           : "white"
-                        : "black", // Ensure user messages have consistent text color
+                        : "black",
+                    ...getMessageStyle(msg)
                   }}
                 >
                   <div className="prose prose-sm max-w-none text-inherit">
@@ -235,19 +224,6 @@ export default function ChatSection({
               )}
             </div>
           ))}
-
-          {/* {isLoading && (
-            <div className="mb-4 flex justify-start">
-              <div
-                className="rounded-2xl p-3"
-                style={{
-                  backgroundColor: theme.isDark ? "black" : "white",
-                }}
-              >
-                <LoadingBubbles textColor={theme.highlightColor} />
-              </div>
-            </div>
-          )} */}
         </>
       )}
 

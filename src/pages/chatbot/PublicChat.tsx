@@ -1,138 +1,46 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { BotConfig, ChatMessage } from "../../types";
-import { queryDocument, getAppointmentSettings } from "../../lib/serverActions";
-import OpenAI from "openai";
 import { useBotConfig } from "../../store/useBotConfig";
-import { useCartStore } from "../../store/useCartStore";
 import HeaderSection from "../../components/chatbotComponents/HeaderSection";
 import ChatSection from "../../components/chatbotComponents/ChatSection";
 import InputSection from "../../components/chatbotComponents/InputSection";
 import AboutSection from "../../components/chatbotComponents/AboutSection";
 import BrowseSection from "../../components/chatbotComponents/BrowseSection";
-import { useChatLogs } from "../../hooks/useChatLogs";
-import {
-  LeadCollectionStage,
-  LeadData,
-  startLeadCollection,
-  handleLeadCollectionResponse,
-  isInLeadCollectionMode,
-} from "../../utils/leadCollectionUtils";
-
-type ExtendedChatMessage = ChatMessage & {
-  type?:
-    | "booking"
-    | "booking-intro"
-    | "booking-loading"
-    | "booking-calendar"
-    | "booking-management-intro"
-    | "booking-management"
-    | "products-intro"
-    | "products-loading"
-    | "products-display"
-    | "contact-intro"
-    | "contact-loading"
-    | "contact-form";
-};
-
-const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_PUBLIC_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true,
-});
+import { useBookingLogic } from "../../hooks/useBookingLogic";
+import { useProductsLogic } from "../../hooks/useProductsLogic";
+import { useContactLogic } from "../../hooks/useContactLogic";
+import { useChatMessages } from "../../hooks/useChatMessages";
+import { useFeatureNotifications } from "../../hooks/useFeatureNotifications";
 
 type Screen = "about" | "chat" | "browse";
 
-const CURRENCY_SYMBOLS: Record<string, string> = {
-  USD: "$",
-  EUR: "€",
-  GBP: "£",
-  INR: "₹",
-  CAD: "C$",
-  AUD: "A$",
-  JPY: "¥",
-};
-
-const usedBookingUnavailableIndices = new Set<number>();
-const usedBookingIntroIndices = new Set<number>();
-const usedManagementIntroIndices = new Set<number>();
-const usedProductIntroIndices = new Set<number>();
-const usedProductUnavailableIndices = new Set<number>();
-const usedContactIntroIndices = new Set<number>();
-
-const bookingUnavailableMessages = [
-  "I'm sorry, but booking appointments is not available at this time. Is there anything else I can help you with?",
-  "Unfortunately, our booking system is not currently set up. I apologize for the inconvenience. Is there something else I can assist you with?",
-  "I wish I could help you book an appointment, but that feature isn't available right now. Would you like help with something else instead?",
-  "Our scheduling system is currently offline. If you'd like to arrange an appointment, please contact us directly. Can I help with anything else in the meantime?",
-  "We're still in the process of setting up our booking system. Until then, we're unable to process appointment requests through this chat. Is there another way I can assist you today?",
-];
-
-const bookingManagementIntroMessages = [
-  "I'll help you manage your upcoming appointments. Here are your confirmed bookings:",
-  "Sure! Let me show you your scheduled appointments that you can reschedule or cancel:",
-  "I understand you want to manage your bookings. Here are your upcoming appointments:",
-  "No problem! Here are your confirmed bookings that you can modify:",
-  "I can help you with that. Here are your scheduled appointments:",
-];
-
-const productIntroMessages = [
-  "Here's what I have available for you to browse:",
-  "I'd be happy to show you our products. Take a look at what we offer:",
-  "Great! Here are the products we currently have available:",
-  "Sure thing! Here's our product catalog for you to browse:",
-  "Of course! Take a look at our selection of products:",
-];
-
-const productUnavailableMessages = [
-  "I'm sorry, but we don't have any products available at the moment. Is there anything else I can help you with?",
-  "Unfortunately, our product catalog is currently empty. Please check back later. Can I assist you with something else?",
-  "We don't have any items for sale right now. Is there anything else you'd like to know?",
-  "Our store is currently being updated and products aren't available for viewing. Would you like help with something else instead?",
-  "I don't see any products in our catalog at the moment. Would you like to know more about our services instead?",
-];
-
-const contactIntroMessages = [
-  "I'd be happy to help you get in touch with us. Please fill out this form with your information:",
-  "Sure, let me connect you with our team. Please share your details using this form:",
-  "Great! To best assist you, please provide some information through this contact form:",
-  "I'll help you reach out to our team. Please complete this contact form:",
-  "Let's get you connected with our team. Please fill in your details below:",
-];
-
-const getRandomUniqueMessage = (
-  messages: string[],
-  usedIndices: Set<number>
-): string => {
-  if (usedIndices.size >= messages.length) {
-    usedIndices.clear();
-  }
-
-  let index;
-  do {
-    index = Math.floor(Math.random() * messages.length);
-  } while (usedIndices.has(index));
-
-  usedIndices.add(index);
-  return messages[index];
-};
+interface PublicChatProps {
+  chatHeight: string | null;
+  previewConfig: BotConfig | null;
+  isPreview: boolean;
+}
 
 export default function PublicChat({
   chatHeight,
   previewConfig,
   isPreview,
-}: {
-  chatHeight: string | null;
-  previewConfig: BotConfig | null;
-  isPreview: boolean;
-}) {
-  const { botUsername } = useParams();
+}: PublicChatProps) {
+  const { botUsername } = useParams<{ botUsername: string }>();
   const {
     activeBotData,
     isLoading: isConfigLoading,
     fetchBotData,
   } = useBotConfig();
-  const { addMessages } = useChatLogs();
-  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
+  
+  const [viewportHeight, setViewportHeight] = useState<number>(window.innerHeight);
+  const [message, setMessage] = useState<string>("");
+  const [activeScreen, setActiveScreen] = useState<Screen>("chat");
+  const [showCues, setShowCues] = useState<boolean>(true);
+  
+  // Use a ref to track if feature notifications have been initialized
+  const featureNotificationsInitialized = useRef<boolean>(false);
+  const featureNotificationTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -144,40 +52,50 @@ export default function PublicChat({
   }, []);
 
   const currentConfig = isPreview ? previewConfig : activeBotData;
-
   const currentIsLoading = previewConfig ? false : isConfigLoading;
 
-  const { products } = useCartStore();
-  const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<ExtendedChatMessage[]>([
-    {
-      id: "1",
-      content: currentConfig?.welcomeMessage || "Hi! How may I help you?",
-      timestamp: new Date(),
-      sender: "agent",
-    },
-  ]);
+  const {
+    isBookingConfigured,
+    pricingInfo,
+    loadingPricing,
+    handleBookingRequest
+  } = useBookingLogic(
+    currentConfig?.agentId, 
+    currentConfig?.sessionName
+  );
+  
+  const {
+    handleProductRequest,
+    hasProducts
+  } = useProductsLogic(currentConfig?.agentId);
+  
+  const {
+    handleContactRequest
+  } = useContactLogic(currentConfig?.agentId);
+  
+  const {
+    messages,
+    setMessages,
+    isLoading,
+    messagesEndRef,
+    scrollToBottom,
+    handleAIResponse
+  } = useChatMessages(
+    currentConfig?.welcomeMessage || "Hi! How may I help you?",
+    currentConfig
+  );
 
-  const [activeScreen, setActiveScreen] = useState<Screen>("chat");
-  const [isLoading, setIsLoading] = useState(false);
-  const [showCues, setShowCues] = useState(true);
-  const messagesEndRef = React.useRef<HTMLDivElement>(null);
-
-  const [pricingInfo, setPricingInfo] = useState({
-    isFreeSession: false,
-    sessionPrice: "$0",
-    sessionName: "Consultation",
-  });
-  const [loadingPricing, setLoadingPricing] = useState(false);
-  const [isBookingConfigured, setIsBookingConfigured] = useState(false);
-  const [leadCollectionStage, setLeadCollectionStage] =
-    useState<LeadCollectionStage>(LeadCollectionStage.NOT_COLLECTING);
-  const [leadData, setLeadData] = useState<LeadData>({
-    name: "",
-    email: "",
-    phone: "",
-    message: "",
-  });
+  // Initialize feature notifications hook
+  const { 
+    showFeatureNotifications, 
+    featuresShown,
+    resetFeaturesShown
+  } = useFeatureNotifications(
+    isBookingConfigured,
+    hasProducts,
+    currentConfig?.customerLeadFlag,
+    currentConfig?.isQueryable
+  );
 
   const theme = currentConfig?.themeColors ?? {
     id: "light-yellow",
@@ -188,507 +106,79 @@ export default function PublicChat({
     highlightColor: "#000000",
   };
 
-  const getBookingIntroMessages = () => {
-    const orgName = currentConfig?.name || "us";
-    const sessionType = pricingInfo.sessionName || "appointment";
-    const price = pricingInfo.sessionPrice || "free session";
-    const isPriceMessage = pricingInfo.isFreeSession
-      ? "This is completely free!"
-      : `The cost is ${price}.`;
-
-    return [
-      `Great! You can schedule a ${sessionType} with ${orgName}. ${isPriceMessage} Please select a date and time that works for you:`,
-      `I'd be happy to help you book a ${sessionType}! ${isPriceMessage} Just use the calendar below to find a time that works for you:`,
-      `Perfect timing! We have availability for ${sessionType}s with ${orgName}. ${isPriceMessage} Please choose from the available slots below:`,
-      `Absolutely! You can book a ${sessionType} right here. ${isPriceMessage} Take a look at our availability and select what works best for you:`,
-      `I can help you schedule that ${sessionType}! ${isPriceMessage} Just browse through our available time slots and pick one that's convenient for you:`,
-    ];
-  };
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    if (!isLoading) {
-      scrollToBottom();
-    }
-  }, [isLoading]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  useEffect(() => {
-    if (previewConfig?.welcomeMessage) {
-      setMessages([
-        {
-          id: "1",
-          content: previewConfig.welcomeMessage,
-          timestamp: new Date(),
-          sender: "agent",
-        },
-      ]);
-    }
-  }, [previewConfig?.welcomeMessage]);
-
-  useEffect(() => {
-    const fetchPricingAndBookingConfig = async () => {
-      if (!currentConfig?.agentId) return;
-
-      setLoadingPricing(true);
-      try {
-        const data = await getAppointmentSettings(currentConfig.agentId);
-        const hasBookingConfig =
-          data &&
-          data.availability &&
-          Array.isArray(data.availability) &&
-          data.availability.length > 0;
-
-        setIsBookingConfigured(hasBookingConfig);
-
-        if (data && data.price) {
-          const formattedPrice = data.price.isFree
-            ? "Free"
-            : `${CURRENCY_SYMBOLS[data.price.currency] || "$"}${
-                data.price.amount
-              }`;
-
-          setPricingInfo({
-            isFreeSession: data.price.isFree,
-            sessionPrice: formattedPrice,
-            sessionName:
-              data.sessionType || currentConfig.sessionName || "Consultation",
-          });
-        }
-      } catch (error) {
-        console.error("Failed to fetch pricing and booking data:", error);
-        setIsBookingConfigured(false);
-      } finally {
-        setLoadingPricing(false);
-      }
-    };
-
-    fetchPricingAndBookingConfig();
-  }, [currentConfig?.agentId, currentConfig?.sessionName]);
-
   useEffect(() => {
     if (!previewConfig && botUsername) {
-      console.log("Fetching bot data", botUsername);
       fetchBotData(botUsername, true);
     }
-  }, [botUsername, previewConfig]);
+  }, [botUsername, previewConfig, fetchBotData]);
 
-  const containsBookingManagementKeywords = (text: string): boolean => {
-    const personalPhrases = [
-      "my appointment",
-      "my booking",
-      "my meeting",
-      "my scheduled",
-      "i have an appointment",
-      "i have a booking",
-      "i have a meeting",
-      "my existing",
-      "my current",
-    ];
+  // Clean up feature notification timer on unmount
+  useEffect(() => {
+    return () => {
+      if (featureNotificationTimerRef.current) {
+        clearTimeout(featureNotificationTimerRef.current);
+      }
+    };
+  }, []);
 
-    const lowerText = text.toLowerCase();
+  // Reset feature state when configuration changes
+  useEffect(() => {
+    resetFeaturesShown();
+    featureNotificationsInitialized.current = false;
+    console.log("Feature notifications reset due to config change");
+  }, [resetFeaturesShown, isBookingConfigured, hasProducts, currentConfig?.customerLeadFlag, currentConfig?.isQueryable]);
 
-    const hasPersonalContext = personalPhrases.some((phrase) =>
-      lowerText.includes(phrase)
-    );
+  // Show feature notifications after welcome message - with improved handling
+  useEffect(() => {
+    // Do nothing if waiting for configuration to load
+    if (currentIsLoading || loadingPricing) {
+      return;
+    }
 
+    // Mark as initialized when configuration is loaded
+    if (!featureNotificationsInitialized.current) {
+      featureNotificationsInitialized.current = true;
+      console.log("Feature notifications initialized");
+    }
+
+    // Check if only welcome message is shown and features not already displayed
     if (
-      lowerText.includes("reschedule") &&
-      (lowerText.includes("appointment") ||
-        lowerText.includes("booking") ||
-        lowerText.includes("meeting"))
+      messages.length === 1 && 
+      messages[0].sender === "agent" && 
+      !featuresShown && 
+      featureNotificationsInitialized.current
     ) {
-      return true;
-    }
-
-    if (hasPersonalContext) {
-      const managementActions = [
-        "reschedule",
-        "cancel",
-        "change",
-        "modify",
-        "update",
-        "manage",
-        "view",
-        "check",
-        "see",
-        "upcoming",
-      ];
-
-      return managementActions.some((action) => lowerText.includes(action));
-    }
-
-    const specificManagementPhrases = [
-      "manage booking",
-      "manage appointment",
-      "manage meeting",
-      "view bookings",
-      "view appointments",
-      "view meetings",
-      "cancel booking",
-      "cancel appointment",
-      "cancel meeting",
-      "reschedule booking",
-      "reschedule appointment",
-      "reschedule meeting",
-      "change booking",
-      "change appointment",
-      "change meeting",
-      "modify booking",
-      "modify appointment",
-      "modify meeting",
-      "upcoming bookings",
-      "upcoming appointments",
-      "upcoming meetings",
-      "scheduled bookings",
-      "scheduled appointments",
-      "scheduled meetings",
-    ];
-
-    return specificManagementPhrases.some((phrase) =>
-      lowerText.includes(phrase)
-    );
-  };
-
-  const containsProductKeywords = (text: string): boolean => {
-    const productKeywords = [
-      "product",
-      "products",
-      "catalog",
-      "catalogue",
-      "shop",
-      "store",
-      "buy",
-      "purchase",
-      "order",
-      "item",
-      "items",
-      "merchandise",
-      "good",
-      "goods",
-      "sale",
-      "shopping",
-      "browse",
-      "browsing",
-    ];
-
-    const productPhrases = [
-      "show me what you have",
-      "show me what you're selling",
-      "what do you sell",
-      "what are you selling",
-      "what's for sale",
-      "see your products",
-      "view products",
-      "display products",
-      "what products",
-      "check out products",
-      "browse products",
-      "buy something",
-      "purchase something",
-      "get something",
-      "inventory",
-      "stock",
-      "collection",
-      "selections",
-      "offerings",
-    ];
-
-    const lowerText = text.toLowerCase();
-
-    if (productPhrases.some((phrase) => lowerText.includes(phrase))) {
-      return true;
-    }
-
-    for (const keyword of productKeywords) {
-      if (lowerText.includes(keyword)) {
-        const buyingPatterns = [
-          `your ${keyword}`,
-          `the ${keyword}`,
-          `show ${keyword}`,
-          `view ${keyword}`,
-          `see ${keyword}`,
-          `browse ${keyword}`,
-          `available ${keyword}`,
-          `${keyword} available`,
-          `${keyword} you have`,
-          `${keyword} for sale`,
-          `${keyword} to buy`,
-          `${keyword} to purchase`,
-        ];
-
-        if (buyingPatterns.some((pattern) => lowerText.includes(pattern))) {
-          return true;
-        }
-
-        const simpleProductQueries = [
-          `${keyword}?`,
-          `${keyword}.`,
-          `${keyword}!`,
-          `${keyword} `,
-          ` ${keyword}`,
-        ];
-
-        if (
-          simpleProductQueries.some((pattern) => lowerText.includes(pattern))
-        ) {
-          return true;
-        }
-
-        if (lowerText.startsWith(keyword)) {
-          return true;
-        }
+      console.log("Preparing to show feature notifications");
+      
+      // Clear any existing timer
+      if (featureNotificationTimerRef.current) {
+        clearTimeout(featureNotificationTimerRef.current);
       }
+      
+      // Set a new timer
+      featureNotificationTimerRef.current = setTimeout(() => {
+        console.log("Timeout fired - calling showFeatureNotifications");
+        showFeatureNotifications(setMessages, scrollToBottom);
+        featureNotificationTimerRef.current = null;
+      }, 2000);
     }
+  }, [
+    messages, 
+    currentIsLoading, 
+    loadingPricing, 
+    featuresShown, 
+    showFeatureNotifications,
+    setMessages, 
+    scrollToBottom
+  ]);
 
-    return false;
-  };
-
-  const containsContactKeywords = (text: string): boolean => {
-    const contactKeywords = [
-      "contact",
-      "reach out",
-      "get in touch",
-      "talk to",
-      "speak with",
-      "connect with",
-      "email",
-      "call",
-      "phone",
-      "message",
-      "contact form",
-      "contact us",
-      "customer service",
-      "support",
-      "representative",
-      "agent",
-      "team",
-      "feedback",
-      "inquiry",
-      "question",
-      "help desk",
-      "assistance",
-    ];
-
-    const contactPhrases = [
-      "how can i contact",
-      "i want to contact",
-      "i need to contact",
-      "how do i reach",
-      "i want to talk to",
-      "i need to speak with",
-      "how can i get in touch",
-      "i want to get in touch",
-      "can i talk to someone",
-      "can i speak to someone",
-      "is there someone i can talk to",
-      "is there a way to contact",
-      "i have a question for",
-      "need human assistance",
-      "talk to a human",
-      "speak to a human",
-      "talk to a person",
-      "speak to a person",
-      "talk to a representative",
-      "speak to a representative",
-      "talk to support",
-      "speak to support",
-      "need help from a person",
-      "real person",
-      "leave feedback",
-      "submit feedback",
-      "send a message to",
-    ];
-
-    const lowerText = text.toLowerCase();
-
-    if (contactPhrases.some((phrase) => lowerText.includes(phrase))) {
-      return true;
-    }
-
-    // Check for simple keywords
-    return contactKeywords.some((keyword) => {
-      // Make sure it's a standalone word or part of a relevant phrase
-      const regex = new RegExp(`\\b${keyword}\\b`, "i");
-      return regex.test(lowerText);
-    });
-  };
-
-  const containsNewBookingKeywords = (text: string): boolean => {
-    if (containsBookingManagementKeywords(text)) {
-      return false;
-    }
-
-    const bookingPhrases = [
-      "book new",
-      "book a",
-      "book an",
-      "make appointment",
-      "make a booking",
-      "schedule new",
-      "schedule a",
-      "schedule an",
-      "create appointment",
-      "create booking",
-      "set up appointment",
-      "set up meeting",
-      "arrange appointment",
-      "arrange meeting",
-      "arrange call",
-      "reserve slot",
-      "reserve time",
-      "book slot",
-      "book time",
-      "i want to book",
-      "i'd like to book",
-      "can i book",
-      "i need to book",
-      "i want to schedule",
-      "i'd like to schedule",
-      "can i schedule",
-      "i need to schedule",
-      "i want an appointment",
-      "i need an appointment",
-      "available slots",
-      "available times",
-      "availability",
-      "when can i",
-      "when are you available",
-      "book appointment",
-      "book meeting",
-      "book call",
-      "schedule appointment",
-      "schedule meeting",
-      "schedule call",
-      "make an appointment",
-      "make a meeting",
-      "reservation",
-      "make reservation",
-      "create reservation",
-      "do a booking",
-      "do booking",
-    ];
-
-    const lowerText = text.toLowerCase();
-    return bookingPhrases.some((phrase) => lowerText.includes(phrase));
-  };
-
-  const shouldUseContext = (newQuery, recentMessages) => {
-    if (!newQuery || typeof newQuery !== "string") return false;
-
-    const query = newQuery.toLowerCase().trim();
-
-    const followUpIndicators = [
-      /\b(it|they|them|those|that|this|these|he|she|his|her|its)\b/i,
-      /\b(also|too|as well|additionally|furthermore|moreover|besides|otherwise|however|though)\b/i,
-      /\b(previous|earlier|before|above|mentioned|you said|you mentioned|what about)\b/i,
-      /\b(instead|rather|why not|then what|and how|so what|but how|and what|so how)\b/i,
-      /\b(why|how come|what if|can you explain)\b/i,
-      /^(and|but|so|then|what about|how about|tell me more|continue)/i,
-      /^(is it|are they|does it|do they|can it|will it|would it|should it|has it|have they)/i,
-    ];
-
-    const hasFollowUpMarkers = followUpIndicators.some((pattern) =>
-      pattern.test(query)
-    );
-    if (hasFollowUpMarkers) return true;
-
-    const wordCount = query
-      .split(/\s+/)
-      .filter((word) => word.length > 0).length;
-    if (wordCount <= 3 && recentMessages.length > 0) {
-      const lastBotMessage = [...recentMessages]
-        .reverse()
-        .find((msg) => msg.sender === "agent");
-      if (lastBotMessage && lastBotMessage.content) {
-        const lastBotContent = lastBotMessage.content.toLowerCase();
-
-        const botAskedQuestion = /\?/.test(lastBotContent);
-        if (botAskedQuestion) return true;
-      }
-    }
-
-    if (recentMessages.length > 0) {
-      const lastUserMessage = [...recentMessages]
-        .reverse()
-        .find((msg) => msg.sender === "user");
-      const lastBotMessage = [...recentMessages]
-        .reverse()
-        .find((msg) => msg.sender === "agent");
-
-      if (lastUserMessage?.content || lastBotMessage?.content) {
-        const lastContent = [
-          lastUserMessage?.content || "",
-          lastBotMessage?.content || "",
-        ]
-          .join(" ")
-          .toLowerCase();
-
-        const stopwords = new Set([
-          "the",
-          "and",
-          "that",
-          "have",
-          "for",
-          "not",
-          "with",
-          "you",
-          "this",
-          "but",
-          "his",
-          "her",
-          "she",
-          "they",
-          "from",
-          "will",
-          "would",
-          "could",
-          "should",
-          "what",
-          "when",
-          "where",
-          "how",
-          "there",
-          "here",
-          "their",
-          "your",
-          "about",
-        ]);
-
-        const lastContentWords = lastContent
-          .split(/\W+/)
-          .filter((word) => word.length > 3)
-          .filter((word) => !stopwords.has(word))
-          .filter((word) => !/^\d+$/.test(word));
-
-        const queryWords = query
-          .split(/\W+/)
-          .filter((word) => word.length > 3)
-          .filter((word) => !stopwords.has(word))
-          .filter((word) => !/^\d+$/.test(word));
-
-        const sharedWords = lastContentWords.filter((word) =>
-          queryWords.includes(word)
-        );
-        if (sharedWords.length >= 1) return true;
-      }
-    }
-
-    return false;
-  };
-
-  const handleSendMessage = async (inputMessage) => {
+  const handleSendMessage = async (inputMessage?: string): Promise<void> => {
     let msgToSend = typeof inputMessage === "string" ? inputMessage : message;
 
     if (!msgToSend.trim() || !currentConfig?.agentId) return;
 
-    const userMsg = {
+    // Add user message to chat
+    const userMsg: ChatMessage = {
       id: Date.now().toString(),
       content: msgToSend,
       timestamp: new Date(),
@@ -699,327 +189,45 @@ export default function PublicChat({
     setShowCues(false);
     scrollToBottom();
 
-    if (isInLeadCollectionMode(leadCollectionStage)) {
-      const isHandled = await handleLeadCollectionResponse(
-        msgToSend,
-        leadCollectionStage,
-        setLeadCollectionStage,
-        leadData,
-        setLeadData,
-        setMessages,
-        currentConfig?.agentId,
-        scrollToBottom
-      );
+    // Process contact requests first (including lead collection)
+    const contactHandled = await handleContactRequest(
+      msgToSend, 
+      setMessages, 
+      scrollToBottom, 
+      currentConfig?.customerLeadFlag
+    );
+    
+    if (contactHandled) return;
 
-      if (isHandled) {
-        return;
-      }
-    }
+    // Process booking-related messages
+    const bookingHandled = handleBookingRequest(
+      msgToSend, 
+      setMessages, 
+      scrollToBottom
+    );
+    
+    if (bookingHandled) return;
 
-    if (containsBookingManagementKeywords(msgToSend)) {
-      const introMessage = getRandomUniqueMessage(
-        bookingManagementIntroMessages,
-        usedManagementIntroIndices
-      );
+    // Process product-related messages
+    const productHandled = handleProductRequest(
+      msgToSend, 
+      setMessages, 
+      scrollToBottom
+    );
+    
+    if (productHandled) return;
 
-      const managementIntroMsg = {
-        id: (Date.now() + 1).toString(),
-        content: introMessage,
-        timestamp: new Date(),
-        sender: "agent",
-        type: "booking-management-intro",
-      };
-
-      setMessages((m) => [...m, managementIntroMsg]);
-      scrollToBottom();
-
-      setTimeout(() => {
-        const loadingMsg = {
-          id: (Date.now() + 2).toString(),
-          content: "",
-          timestamp: new Date(),
-          sender: "agent",
-          type: "booking-loading",
-        };
-        setMessages((m) => [...m, loadingMsg]);
-        scrollToBottom();
-
-        setTimeout(() => {
-          setMessages((m) => m.filter((msg) => msg.type !== "booking-loading"));
-
-          const managementMsg = {
-            id: (Date.now() + 3).toString(),
-            content: "",
-            timestamp: new Date(),
-            sender: "agent",
-            type: "booking-management",
-          };
-          setMessages((m) => [...m, managementMsg]);
-          scrollToBottom();
-        }, 1000);
-      }, 1500);
-
-      return;
-    }
-
-    if (containsNewBookingKeywords(msgToSend)) {
-      if (isBookingConfigured) {
-        const introMessage = getRandomUniqueMessage(
-          getBookingIntroMessages(),
-          usedBookingIntroIndices
-        );
-        const bookingIntroMsg = {
-          id: (Date.now() + 1).toString(),
-          content: introMessage,
-          timestamp: new Date(),
-          sender: "agent",
-          type: "booking-intro",
-        };
-        setMessages((m) => [...m, bookingIntroMsg]);
-        scrollToBottom();
-
-        setTimeout(() => {
-          const loadingMsg = {
-            id: (Date.now() + 2).toString(),
-            content: "",
-            timestamp: new Date(),
-            sender: "agent",
-            type: "booking-loading",
-          };
-          setMessages((m) => [...m, loadingMsg]);
-          scrollToBottom();
-
-          setTimeout(() => {
-            setMessages((m) =>
-              m.filter((msg) => msg.type !== "booking-loading")
-            );
-
-            const bookingCalendarMsg = {
-              id: (Date.now() + 3).toString(),
-              content: "",
-              timestamp: new Date(),
-              sender: "agent",
-              type: "booking-calendar",
-            };
-            setMessages((m) => [...m, bookingCalendarMsg]);
-            scrollToBottom();
-          }, 1000);
-        }, 1500);
-
-        return;
-      } else {
-        const unavailableMessage = getRandomUniqueMessage(
-          bookingUnavailableMessages,
-          usedBookingUnavailableIndices
-        );
-        const notAvailableMsg = {
-          id: (Date.now() + 1).toString(),
-          content: unavailableMessage,
-          timestamp: new Date(),
-          sender: "agent",
-        };
-        setMessages((m) => [...m, notAvailableMsg]);
-        return;
-      }
-    }
-
-    if (containsProductKeywords(msgToSend)) {
-      if (products && products.length > 0) {
-        const introMessage = getRandomUniqueMessage(
-          productIntroMessages,
-          usedProductIntroIndices
-        );
-
-        const productIntroMsg = {
-          id: (Date.now() + 1).toString(),
-          content: introMessage,
-          timestamp: new Date(),
-          sender: "agent",
-          type: "products-intro",
-        };
-
-        setMessages((m) => [...m, productIntroMsg]);
-        scrollToBottom();
-
-        setTimeout(() => {
-          const loadingMsg = {
-            id: (Date.now() + 2).toString(),
-            content: "",
-            timestamp: new Date(),
-            sender: "agent",
-            type: "products-loading",
-          };
-          setMessages((m) => [...m, loadingMsg]);
-          scrollToBottom();
-
-          setTimeout(() => {
-            setMessages((m) =>
-              m.filter((msg) => msg.type !== "products-loading")
-            );
-
-            const productsMsg = {
-              id: (Date.now() + 3).toString(),
-              content: "",
-              timestamp: new Date(),
-              sender: "agent",
-              type: "products-display",
-            };
-            setMessages((m) => [...m, productsMsg]);
-            scrollToBottom();
-          }, 1000);
-        }, 1500);
-
-        return;
-      } else {
-        const unavailableMessage = getRandomUniqueMessage(
-          productUnavailableMessages,
-          usedProductUnavailableIndices
-        );
-        const notAvailableMsg = {
-          id: (Date.now() + 1).toString(),
-          content: unavailableMessage,
-          timestamp: new Date(),
-          sender: "agent",
-        };
-        setMessages((m) => [...m, notAvailableMsg]);
-        return;
-      }
-    }
-
-    if (containsContactKeywords(msgToSend)) {
-      if (currentConfig?.customerLeadFlag) {
-        startLeadCollection(
-          setMessages,
-          setLeadCollectionStage,
-          scrollToBottom
-        );
-        return;
-      } else {
-        // If contact form is not enabled, continue with normal chat flow
-        // Let the normal AI response handle this case
-      }
-    }
-
-    setIsLoading(true);
-    try {
-      const recentMessages = messages.slice(-1);
-      const useContext = shouldUseContext(msgToSend, recentMessages);
-      let enhancedQuery;
-      if (useContext && recentMessages.length > 0) {
-        const conversationContext = recentMessages
-          .map(
-            (msg) =>
-              `${msg.sender === "agent" ? "Assistant" : "User"}: ${msg.content}`
-          )
-          .join("\n\n");
-
-        enhancedQuery = `${conversationContext}\n\nUser: ${msgToSend}\n\nAssistant should respond to the user's latest message with the previous context in mind.`;
-      } else {
-        enhancedQuery = msgToSend;
-      }
-
-      const queryContext = await queryDocument(
-        currentConfig.agentId,
-        enhancedQuery
-      );
-
-      let voiceTone =
-        currentConfig?.personalityType?.value?.toString() || "friendly";
-      let systemPrompt = `You are a conversational AI assistant creating engaging, personalized responses. When context is available: ${JSON.stringify(
-        queryContext
-      )}, use it for relevant answers. For conversational queries or insufficient context, build rapport.
-
-      Core Rules:
-      - Keep responses concise yet engaging (1-2 sentences)
-      - Personalize using details from user queries
-      - Maintain a ${voiceTone} tone that connects
-      - Ask thoughtful follow-up questions when appropriate
-      - Use natural, warm language
-      - Greeting should be replied with greeting only.
-
-      Formatting:
-      - **Bold** for key points
-      - *Italic* for subtle emphasis
-      - Bullet points (-) for lists
-      - \`code\` for technical snippets
-      - > for important quotes
-      - [text](url) for resources
-
-      Engagement:
-      - Acknowledge user emotions and perspectives
-      - Use relevant examples and analogies
-      - Offer actionable insights when possible
-      - Create collaborative problem-solving
-      - Show enthusiasm for user interests
-      - End with helpful suggestions or questions
-
-      Boundaries:
-      - Focus on user inquiries and training data
-      - Ask clarifying questions when needed
-      - Never mention access to training data
-      - Stay within knowledge scope
-      - Redirect off-topic conversations politely
-      - End on a positive, forward-moving note`;
-
-      const streamingMsgId = (Date.now() + 2).toString();
-      const streamingMsg = {
-        id: streamingMsgId,
-        content: "",
-        timestamp: new Date(),
-        sender: "agent",
-      };
-      setMessages((m) => [...m, streamingMsg]);
-
-      const stream = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: enhancedQuery },
-        ],
-        temperature: 0.6,
-        stream: true,
-      });
-
-      let fullResponse = "";
-
-      for await (const chunk of stream) {
-        const content = chunk.choices[0]?.delta?.content || "";
-        fullResponse += content;
-
-        setMessages((messages) =>
-          messages.map((msg) =>
-            msg.id === streamingMsgId ? { ...msg, content: fullResponse } : msg
-          )
-        );
-
-        scrollToBottom();
-      }
-
-      await addMessages(msgToSend, fullResponse);
-    } catch (err) {
-      console.error("Error generating response:", err);
-      setMessages((m) => [
-        ...m,
-        {
-          id: (Date.now() + 3).toString(),
-          content: "Sorry, there was an error. Please try again.",
-          timestamp: new Date(),
-          sender: "agent",
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
+    await handleAIResponse(msgToSend);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e: React.KeyboardEvent): void => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
   };
 
-  const handleCueClick = (cue: string) => {
+  const handleCueClick = (cue: string): void => {
     setMessage(cue);
     setShowCues(false);
     handleSendMessage(cue);

@@ -12,7 +12,7 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { calculateSmartnessLevel } from "../../../../utils/helperFn";
 import { PERSONALITY_OPTIONS } from "../../../../utils/constants";
-import SocialMediaSection from "./SocialMediaSection"; 
+import SocialMediaSection from "./SocialMediaSection";
 
 interface SocialMediaLinks {
   instagram: string;
@@ -85,11 +85,11 @@ const Profile = () => {
       setAgentUsername(activeBotData.username);
       setAgentName(activeBotData.name);
       setAgentBio(activeBotData.bio);
-      
+
       if (activeBotData.socials) {
         setSocialMedia(activeBotData.socials as SocialMediaLinks);
       }
-      
+
       setPromotionalBanner(activeBotData.promotionalBanner || "");
       setIsPromoBannerEnabled(activeBotData.isPromoBannerEnabled);
 
@@ -130,7 +130,8 @@ const Profile = () => {
 
     try {
       setIsCheckingUrl(true);
-      await updateAgentUsername(activeBotId, agentUsername);
+      let response = await updateAgentUsername(activeBotId, agentUsername);
+      console.log(response);
       setRefetchBotData();
       setIsEditingUrl(false);
       setUrlAvailable(true);
@@ -138,7 +139,8 @@ const Profile = () => {
     } catch (error: any) {
       console.error("Error updating agent username:", error);
       setUrlAvailable(false);
-      toast.error(error.message || "Failed to update agent URL");
+      console.log(error);
+      toast.error("Username already exists!");
     } finally {
       setIsCheckingUrl(false);
     }
@@ -559,15 +561,11 @@ const Profile = () => {
 
           {/* Social Media Section - Using the new component */}
           <div className="p-6 shadow-sm">
-            <SocialMediaSection 
+            <SocialMediaSection
               externalSocialMedia={socialMedia}
               onExternalUpdate={handleSocialMediaUpdate}
             />
-          </div>
-        </div>
-      </div>
       <div
-        className="hidden lg:block col-span-2 h-full sticky top-0 flex items-center justify-center"
         style={{ backgroundColor: "#eaefff" }}
       >
         <div
