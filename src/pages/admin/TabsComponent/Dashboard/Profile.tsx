@@ -565,8 +565,13 @@ const Profile = () => {
               externalSocialMedia={socialMedia}
               onExternalUpdate={handleSocialMediaUpdate}
             />
+          </div>
+        </div>
+      </div>
+
       <div
         style={{ backgroundColor: "#eaefff" }}
+        className="col-span-1 lg:col-span-2"
       >
         <div
           className="mx-auto"
@@ -586,7 +591,7 @@ const Profile = () => {
               bio: agentBio,
               name: agentName,
               username: agentUsername,
-              socials: socialMedia, 
+              socials: socialMedia,
             }}
             chatHeight={null}
             isPreview={true}
