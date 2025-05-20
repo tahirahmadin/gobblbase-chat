@@ -48,6 +48,7 @@ function StripePaymentForm({
   const stripe = useStripe();
   const elements = useElements();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { userEmail, userName } = useUserStore(); 
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -78,13 +79,44 @@ function StripePaymentForm({
       }
 
       if (paymentIntent && paymentIntent.status === "succeeded") {
-        onOrderDetails({
+        const orderDetails = {
           product: product,
           total: product.price,
           orderId: paymentIntent.id,
           paymentMethod: "Credit Card",
           paymentDate: new Date().toLocaleDateString(),
-        });
+        };
+        
+        try {
+          console.log("Attempting to send order confirmation email...");
+          const response = await fetch(
+            "https://rag.gobbl.ai/product/send-order-email",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                paymentIntentId: paymentIntent.id,
+                userEmail: userEmail,
+                userName: userName || "Customer",
+              }),
+            }
+          );
+          
+          const responseData = await response.json();
+          console.log("Email API response:", responseData);
+          
+          if (response.ok) {
+            console.log("Order confirmation email sent successfully");
+          } else {
+            console.error("Failed to send order confirmation email:", responseData);
+          }
+        } catch (emailError) {
+          console.error("Error sending order confirmation email:", emailError);
+        }
+        
+        onOrderDetails(orderDetails);
         onSuccess();
       } else {
         throw new Error("Payment was not successful");
@@ -92,6 +124,7 @@ function StripePaymentForm({
     } catch (error: any) {
       console.error("Payment error:", error);
       toast.error(error.message || "Payment failed. Please try again.");
+    } finally {
       setIsSubmitting(false);
     }
   };

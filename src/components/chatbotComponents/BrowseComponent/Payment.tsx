@@ -18,18 +18,27 @@ interface PaymentProps {
   setActiveScreen: (screen: "chat" | "book" | "browse" | "cart") => void;
 }
 
+interface OrderInfo {
+  orderId: string;
+  date: string;
+  paymentIntentId?: string;
+}
+
 const PaymentForm = ({
   onSuccess,
   onBack,
+  userEmail,
 }: {
-  onSuccess: () => void;
+  onSuccess: (paymentIntentId?: string) => void;
   onBack: () => void;
+  userEmail: string;
 }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
   const { clearCart } = useCartStore();
   const { activeBotData } = useBotConfig();
+  const { userName } = useUserStore();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -46,7 +55,8 @@ const PaymentForm = ({
         throw submitError;
       }
 
-      const { error } = await stripe.confirmPayment({
+      // Capture the paymentIntent from the response
+      const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
           return_url: window.location.href,
@@ -58,8 +68,43 @@ const PaymentForm = ({
         throw error;
       }
 
+      if (!paymentIntent) {
+        throw new Error("Payment succeeded but no payment intent was returned");
+      }
+
       clearCart();
-      onSuccess();
+
+      try {
+        console.log("Sending email request with data:", {
+          paymentIntentId: paymentIntent.id,
+          userEmail: userEmail
+        });
+        
+        const response = await fetch("https://rag.gobbl.ai/product/send-order-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            paymentIntentId: paymentIntent.id,
+            userEmail: userEmail,
+            userName: userName || "Customer",
+          }),
+        });
+        
+        const responseData = await response.json();
+        console.log("Email API response:", responseData);
+        
+        if (response.ok) {
+          console.log("Order confirmation email sent successfully");
+        } else {
+          console.error("Failed to send order confirmation email:", responseData);
+        }
+      } catch (emailError) {
+        console.error("Error sending order confirmation email:", emailError);
+      }
+      // Pass the payment intent ID to the success handler
+      onSuccess(paymentIntent.id);
     } catch (error: any) {
       toast.error(error.message || "Payment failed. Please try again.");
     } finally {
@@ -107,6 +152,10 @@ const Payment: React.FC<PaymentProps> = ({
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [orderInfo, setOrderInfo] = useState<OrderInfo>({
+    orderId: '',
+    date: new Date().toLocaleDateString()
+  });
   const { items, getTotalPrice } = useCartStore();
   const { activeBotId, activeBotData } = useBotConfig();
   const { userId, userEmail } = useUserStore();
@@ -117,7 +166,7 @@ const Payment: React.FC<PaymentProps> = ({
 
   useEffect(() => {
     const createPaymentIntent = async () => {
-      if (isLoading || clientSecret || !items || !activeBotData) {
+      if (isLoading || clientSecret || !items || !activeBotData || items.length === 0) {
         return;
       }
 
@@ -176,6 +225,23 @@ const Payment: React.FC<PaymentProps> = ({
     setClientSecret(null);
   };
 
+  const handlePaymentSuccess = (paymentIntentId?: string) => {
+    if (paymentIntentId) {
+      const shortId = paymentIntentId.slice(-8).toUpperCase();
+      setOrderInfo({
+        orderId: shortId,
+        date: new Date().toLocaleDateString(),
+        paymentIntentId
+      });
+    } else {
+      setOrderInfo({
+        orderId: Math.random().toString(36).substr(2, 9).toUpperCase(),
+        date: new Date().toLocaleDateString()
+      });
+    }
+    setIsSuccess(true);
+  };
+
   if (isSuccess) {
     return (
       <div className="container py-4">
@@ -210,13 +276,11 @@ const Payment: React.FC<PaymentProps> = ({
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <p className="text-sm text-gray-500">Order Date</p>
-                <p className="font-medium">{new Date().toLocaleDateString()}</p>
+                <p className="font-medium">{orderInfo.date}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Order ID</p>
-                <p className="font-medium">
-                  #{Math.random().toString(36).substr(2, 9).toUpperCase()}
-                </p>
+                <p className="font-medium">#{orderInfo.orderId}</p>
               </div>
             </div>
             <div className="mb-4">
@@ -296,8 +360,9 @@ const Payment: React.FC<PaymentProps> = ({
 
       <Elements stripe={stripePromise} options={{ clientSecret }}>
         <PaymentForm
-          onSuccess={() => setIsSuccess(true)}
+          onSuccess={handlePaymentSuccess}
           onBack={handleBackFromPayment}
+          userEmail={userEmail}
         />
       </Elements>
     </div>
