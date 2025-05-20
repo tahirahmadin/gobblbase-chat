@@ -152,7 +152,10 @@ const Login: React.FC = () => {
         </span>
         LOGIN WITH GOOGLE
       </button>
-      <button className="flex items-center w-full max-w-[300px] px-4 py-2 bg-[#d6ffe0] border border-black rounded shadow hover:bg-[#bbf7d0] transition justify-center">
+      <button
+        disabled={true}
+        className="flex items-center w-full max-w-[300px] px-4 py-2 bg-[#d6ffe0] border border-black rounded shadow hover:bg-[#bbf7d0] transition justify-center text-xs"
+      >
         <span className="mr-2">
           {/* Email Icon SVG */}
           <svg
@@ -169,7 +172,7 @@ const Login: React.FC = () => {
             <polyline points="22,6 12,13 2,6" />
           </svg>
         </span>
-        LOGIN WITH EMAIL
+        LOGIN WITH EMAIL(coming soon)
       </button>
     </div>
   );

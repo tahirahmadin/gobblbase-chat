@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { getPlans, subscribeToPlan } from "../../lib/serverActions";
+import {
+  getPlans,
+  subscribeToPlan,
+  getStripeBillingSession,
+} from "../../lib/serverActions";
 import { useAdminStore } from "../../store/useAdminStore";
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
@@ -22,6 +26,7 @@ const Plans = () => {
   const [billing, setBilling] = useState("monthly");
   const [plans, setPlans] = useState<PlanData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [billingLoading, setBillingLoading] = useState(false);
 
   const [upgradingPlanId, setUpgradingPlanId] = useState<string | null>(null);
 
@@ -136,7 +141,7 @@ const Plans = () => {
       const stripeUrl = await subscribeToPlan(adminId, planId);
       console.log(stripeUrl);
       // Redirect to Stripe payment page
-      window.location.href = stripeUrl;
+      window.open(stripeUrl, "_blank", "noopener,noreferrer");
     } catch (error) {
       console.error("Error changing plan:", error);
       toast.error("Failed to change plan");
@@ -153,7 +158,31 @@ const Plans = () => {
     <div className="p-6 overflow-auto h-full w-full">
       <div className="flex flex-row justify-between items-center gap-4 mb-8">
         <h2 className="text-2xl font-bold">Plans & Pricing</h2>
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
+          <button
+            className="px-4 py-2 rounded-2xl border border-purple-600 font-semibold bg-black text-white hover:bg-purple-700 transition-colors duration-200 focus:outline-none"
+            onClick={async () => {
+              if (!adminId) return;
+              try {
+                setBillingLoading(true);
+                const url = await getStripeBillingSession(adminId);
+                window.open(url, "_blank", "noopener,noreferrer");
+              } catch (error) {
+                toast.error("Failed to open Stripe Billing");
+              } finally {
+                setBillingLoading(false);
+              }
+            }}
+            disabled={billingLoading}
+          >
+            {billingLoading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" /> Loading Billing...
+              </span>
+            ) : (
+              "Billing History"
+            )}
+          </button>
           <button
             className={`px-4 py-2 rounded-l-full border border-blue-600 font-semibold focus:outline-none transition-colors duration-200 ${
               billing === "monthly"

@@ -1899,3 +1899,23 @@ export async function saveEventProduct(
   });
   return await response.json();
 }
+
+export async function getStripeBillingSession(
+  clientId: string
+): Promise<string> {
+  try {
+    const response = await axios.get(
+      `https://rag.gobbl.ai/product/createBillingSession`,
+      { params: { clientId } }
+    );
+    if (response.data.error) {
+      throw new Error(
+        response.data.error || "Failed to create billing session"
+      );
+    }
+    return response.data.result; // Assuming the URL is in result
+  } catch (error) {
+    console.error("Error creating Stripe billing session:", error);
+    throw error;
+  }
+}
