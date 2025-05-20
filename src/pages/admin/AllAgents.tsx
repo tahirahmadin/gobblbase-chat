@@ -3,10 +3,9 @@ import { useAdminStore } from "../../store/useAdminStore";
 import { AdminAgent } from "../../types";
 import { useNavigate } from "react-router-dom";
 import { useBotConfig } from "../../store/useBotConfig";
-import { Delete, Trash } from "lucide-react";
+import { PERSONALITY_OPTIONS } from "../../utils/constants";
 
-const placeholderAvatar =
-  "https://cdn-icons-png.flaticon.com/512/616/616408.png";
+const placeholderAvatar = "/assets/voice/expert.png";
 
 const AllAgents: React.FC = () => {
   const { agents, totalAgents, deleteAgent, fetchAllAgents, isLoading } =
@@ -30,6 +29,17 @@ const AllAgents: React.FC = () => {
       setDeletingId(null);
       setPendingDeleteId(null);
     }
+  };
+
+  const getPersonalityImage = (agent: AdminAgent) => {
+    if (agent.logo) return agent.logo;
+    if (agent.personalityType?.name) {
+      const personality = PERSONALITY_OPTIONS.find(
+        (p) => p.title === agent.personalityType.name
+      );
+      if (personality) return personality.image;
+    }
+    return placeholderAvatar;
   };
 
   return (
@@ -61,7 +71,7 @@ const AllAgents: React.FC = () => {
             className="bg-[#eaefff] rounded-lg shadow flex flex-col items-center p-6 border border-gray-200"
           >
             <img
-              src={agent.logo || placeholderAvatar}
+              src={getPersonalityImage(agent)}
               alt="Agent Avatar"
               className="w-24 h-24 rounded-full mb-4 border-4 border-white shadow"
             />
@@ -121,13 +131,6 @@ const AllAgents: React.FC = () => {
                 </button>
               </div>
             </div>
-            {/* <button
-              className="bg-gray-300 text-black px-4 py-2 rounded"
-              onClick={() => setPendingDeleteId(null)}
-              disabled={isLoading}
-            >
-              Cancel
-            </button> */}
           </div>
         </div>
       )}
