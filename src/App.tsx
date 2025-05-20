@@ -7,6 +7,7 @@ import {
   useNavigate,
   useLocation,
 } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import Header from "./components/adminComponents/Header";
 import PublicChat from "./pages/chatbot/PublicChat";
 import CustomerBooking from "./components/adminComponents/bookingComponents/CustomerBooking";
@@ -152,33 +153,41 @@ function CustomerBookingPage() {
 
 function App() {
   return (
-    <Router>
-      <Toaster position="top-right" />
-      <Routes>
-        <Route path="/admin/signup" element={<Login />} />
-        <Route path="/admin/dashboard/create-bot" element={<CreateNewBot />} />
-        <Route path="/book/:agentId" element={<CustomerBookingPage />} />
-        <Route
-          path="/reschedule/:bookingId"
-          element={<RescheduleBookingWrapper />}
-        />
-        <Route
-          path=":botUsername"
-          element={
-            <PublicChat
-              chatHeight={null}
-              previewConfig={null}
-              isPreview={false}
-            />
-          }
-        />
-        <Route path="/admin/payment-success" element={<PaymentSuccessPage />} />
-        <Route path="/admin/payment-cancel" element={<PaymentCancelPage />} />
-        <Route path="/admin/*" element={<Dashboard />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="/" element={<Home />} />
-      </Routes>
-    </Router>
+    <HelmetProvider>
+      <Router>
+        <Toaster position="top-right" />
+        <Routes>
+          <Route path="/admin/signup" element={<Login />} />
+          <Route
+            path="/admin/dashboard/create-bot"
+            element={<CreateNewBot />}
+          />
+          <Route path="/book/:agentId" element={<CustomerBookingPage />} />
+          <Route
+            path="/reschedule/:bookingId"
+            element={<RescheduleBookingWrapper />}
+          />
+          <Route
+            path=":botUsername"
+            element={
+              <PublicChat
+                chatHeight={null}
+                previewConfig={null}
+                isPreview={false}
+              />
+            }
+          />
+          <Route
+            path="/admin/payment-success"
+            element={<PaymentSuccessPage />}
+          />
+          <Route path="/admin/payment-cancel" element={<PaymentCancelPage />} />
+          <Route path="/admin/*" element={<Dashboard />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/" element={<Home />} />
+        </Routes>
+      </Router>
+    </HelmetProvider>
   );
 }
 

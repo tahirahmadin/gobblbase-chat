@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { BotConfig, ChatMessage } from "../../types";
 import { useBotConfig } from "../../store/useBotConfig";
 import HeaderSection from "../../components/chatbotComponents/HeaderSection";
@@ -32,12 +33,14 @@ export default function PublicChat({
     isLoading: isConfigLoading,
     fetchBotData,
   } = useBotConfig();
-  
-  const [viewportHeight, setViewportHeight] = useState<number>(window.innerHeight);
+
+  const [viewportHeight, setViewportHeight] = useState<number>(
+    window.innerHeight
+  );
   const [message, setMessage] = useState<string>("");
   const [activeScreen, setActiveScreen] = useState<Screen>("chat");
   const [showCues, setShowCues] = useState<boolean>(true);
-  
+
   // Use a ref to track if feature notifications have been initialized
   const featureNotificationsInitialized = useRef<boolean>(false);
   const featureNotificationTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -58,44 +61,35 @@ export default function PublicChat({
     isBookingConfigured,
     pricingInfo,
     loadingPricing,
-    handleBookingRequest
-  } = useBookingLogic(
-    currentConfig?.agentId, 
-    currentConfig?.sessionName
+    handleBookingRequest,
+  } = useBookingLogic(currentConfig?.agentId, currentConfig?.sessionName);
+
+  const { handleProductRequest, hasProducts } = useProductsLogic(
+    currentConfig?.agentId
   );
-  
-  const {
-    handleProductRequest,
-    hasProducts
-  } = useProductsLogic(currentConfig?.agentId);
-  
-  const {
-    handleContactRequest
-  } = useContactLogic(currentConfig?.agentId);
-  
+
+  const { handleContactRequest } = useContactLogic(currentConfig?.agentId);
+
   const {
     messages,
     setMessages,
     isLoading,
     messagesEndRef,
     scrollToBottom,
-    handleAIResponse
+    handleAIResponse,
   } = useChatMessages(
     currentConfig?.welcomeMessage || "Hi! How may I help you?",
     currentConfig
   );
 
   // Initialize feature notifications hook
-  const { 
-    showFeatureNotifications, 
-    featuresShown,
-    resetFeaturesShown
-  } = useFeatureNotifications(
-    isBookingConfigured,
-    hasProducts,
-    currentConfig?.customerLeadFlag,
-    currentConfig?.isQueryable
-  );
+  const { showFeatureNotifications, featuresShown, resetFeaturesShown } =
+    useFeatureNotifications(
+      isBookingConfigured,
+      hasProducts,
+      currentConfig?.customerLeadFlag,
+      currentConfig?.isQueryable
+    );
 
   const theme = currentConfig?.themeColors ?? {
     id: "light-yellow",
@@ -126,7 +120,13 @@ export default function PublicChat({
     resetFeaturesShown();
     featureNotificationsInitialized.current = false;
     console.log("Feature notifications reset due to config change");
-  }, [resetFeaturesShown, isBookingConfigured, hasProducts, currentConfig?.customerLeadFlag, currentConfig?.isQueryable]);
+  }, [
+    resetFeaturesShown,
+    isBookingConfigured,
+    hasProducts,
+    currentConfig?.customerLeadFlag,
+    currentConfig?.isQueryable,
+  ]);
 
   // Show feature notifications after welcome message - with improved handling
   useEffect(() => {
@@ -143,18 +143,18 @@ export default function PublicChat({
 
     // Check if only welcome message is shown and features not already displayed
     if (
-      messages.length === 1 && 
-      messages[0].sender === "agent" && 
-      !featuresShown && 
+      messages.length === 1 &&
+      messages[0].sender === "agent" &&
+      !featuresShown &&
       featureNotificationsInitialized.current
     ) {
       console.log("Preparing to show feature notifications");
-      
+
       // Clear any existing timer
       if (featureNotificationTimerRef.current) {
         clearTimeout(featureNotificationTimerRef.current);
       }
-      
+
       // Set a new timer
       featureNotificationTimerRef.current = setTimeout(() => {
         console.log("Timeout fired - calling showFeatureNotifications");
@@ -163,13 +163,13 @@ export default function PublicChat({
       }, 2000);
     }
   }, [
-    messages, 
-    currentIsLoading, 
-    loadingPricing, 
-    featuresShown, 
+    messages,
+    currentIsLoading,
+    loadingPricing,
+    featuresShown,
     showFeatureNotifications,
-    setMessages, 
-    scrollToBottom
+    setMessages,
+    scrollToBottom,
   ]);
 
   const handleSendMessage = async (inputMessage?: string): Promise<void> => {
@@ -191,30 +191,30 @@ export default function PublicChat({
 
     // Process contact requests first (including lead collection)
     const contactHandled = await handleContactRequest(
-      msgToSend, 
-      setMessages, 
-      scrollToBottom, 
+      msgToSend,
+      setMessages,
+      scrollToBottom,
       currentConfig?.customerLeadFlag
     );
-    
+
     if (contactHandled) return;
 
     // Process booking-related messages
     const bookingHandled = handleBookingRequest(
-      msgToSend, 
-      setMessages, 
+      msgToSend,
+      setMessages,
       scrollToBottom
     );
-    
+
     if (bookingHandled) return;
 
     // Process product-related messages
     const productHandled = handleProductRequest(
-      msgToSend, 
-      setMessages, 
+      msgToSend,
+      setMessages,
       scrollToBottom
     );
-    
+
     if (productHandled) return;
 
     await handleAIResponse(msgToSend);
@@ -244,48 +244,119 @@ export default function PublicChat({
   return (
     <div className="w-full flex items-start justify-center">
       {currentConfig?.themeColors && (
-        <div
-          className="w-full max-w-md shadow-2xl overflow-hidden flex flex-col relative"
-          style={{
-            height: previewConfig
-              ? chatHeight
+        <>
+          <Helmet>
+            <title>
+              {currentConfig.name
+                ? `${currentConfig.name} | KiFor.ai chatbot`
+                : "KiFor.ai chatbot"}
+            </title>
+          </Helmet>
+          <div
+            className="w-full max-w-md shadow-2xl overflow-hidden flex flex-col relative"
+            style={{
+              height: previewConfig
                 ? chatHeight
-                : 620
-              : `${viewportHeight}px`,
-          }}
-        >
-          <div className="flex flex-col h-full">
-            <HeaderSection
-              theme={currentConfig.themeColors}
-              currentConfig={currentConfig}
-              activeScreen={activeScreen}
-              setActiveScreen={setActiveScreen}
-            />
+                  ? chatHeight
+                  : 620
+                : `${viewportHeight}px`,
+            }}
+          >
+            <div className="flex flex-col h-full">
+              <HeaderSection
+                theme={currentConfig.themeColors}
+                currentConfig={currentConfig}
+                activeScreen={activeScreen}
+                setActiveScreen={setActiveScreen}
+              />
 
-            {activeScreen === "about" && (
-              <div className="flex-1 overflow-y-auto">
-                <AboutSection
-                  theme={currentConfig.themeColors}
-                  currentConfig={currentConfig}
-                  socials={currentConfig?.socials}
-                />
-              </div>
-            )}
+              {activeScreen === "about" && (
+                <div className="flex-1 overflow-y-auto">
+                  <AboutSection
+                    theme={currentConfig.themeColors}
+                    currentConfig={currentConfig}
+                    socials={currentConfig?.socials}
+                  />
+                </div>
+              )}
 
-            {activeScreen === "chat" && (
-              <>
-                <div
-                  className="flex-1 overflow-y-auto"
-                  style={{
-                    backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
-                  }}
-                >
-                  <ChatSection
+              {activeScreen === "chat" && (
+                <>
+                  <div
+                    className="flex-1 overflow-y-auto"
+                    style={{
+                      backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
+                    }}
+                  >
+                    <ChatSection
+                      theme={theme}
+                      messages={messages}
+                      isLoading={isLoading}
+                      activeScreen={activeScreen}
+                      messagesEndRef={messagesEndRef}
+                      currentConfig={{
+                        agentId: currentConfig?.agentId,
+                        name: currentConfig?.name,
+                        sessionName: pricingInfo.sessionName,
+                        sessionPrice: pricingInfo.sessionPrice,
+                        isFreeSession: pricingInfo.isFreeSession,
+                      }}
+                      isBookingConfigured={isBookingConfigured}
+                      setActiveScreen={setActiveScreen}
+                    />
+                  </div>
+
+                  {showCues && currentConfig?.prompts && (
+                    <div
+                      className="p-2 grid grid-cols-1 gap-1"
+                      style={{
+                        backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
+                      }}
+                    >
+                      {[currentConfig.prompts].map((row, i) => (
+                        <div key={i} className="grid grid-cols-2 gap-2">
+                          {row.map((cue) => (
+                            <button
+                              key={cue}
+                              onClick={() => handleCueClick(cue)}
+                              disabled={isLoading}
+                              className="px-2 py-1 rounded-xl text-xs font-medium"
+                              style={{
+                                backgroundColor: theme.isDark
+                                  ? "#1c1c1c"
+                                  : "#e9e9e9",
+                                color: theme.isDark ? "white" : "black",
+                                border: `1px solid ${
+                                  theme.isDark ? "white" : "black"
+                                }`,
+                                borderRadius: "20px",
+                              }}
+                            >
+                              {cue}
+                            </button>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="sticky bottom-0">
+                    <InputSection
+                      theme={theme}
+                      message={message}
+                      isLoading={isLoading}
+                      setMessage={setMessage}
+                      handleSendMessage={handleSendMessage}
+                      handleKeyPress={handleKeyPress}
+                    />
+                  </div>
+                </>
+              )}
+
+              {activeScreen === "browse" && (
+                <div className="flex-1 overflow-y-auto">
+                  <BrowseSection
                     theme={theme}
-                    messages={messages}
-                    isLoading={isLoading}
-                    activeScreen={activeScreen}
-                    messagesEndRef={messagesEndRef}
                     currentConfig={{
                       agentId: currentConfig?.agentId,
                       name: currentConfig?.name,
@@ -297,72 +368,10 @@ export default function PublicChat({
                     setActiveScreen={setActiveScreen}
                   />
                 </div>
-
-                {showCues && currentConfig?.prompts && (
-                  <div
-                    className="p-2 grid grid-cols-1 gap-1"
-                    style={{
-                      backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
-                    }}
-                  >
-                    {[currentConfig.prompts].map((row, i) => (
-                      <div key={i} className="grid grid-cols-2 gap-2">
-                        {row.map((cue) => (
-                          <button
-                            key={cue}
-                            onClick={() => handleCueClick(cue)}
-                            disabled={isLoading}
-                            className="px-2 py-1 rounded-xl text-xs font-medium"
-                            style={{
-                              backgroundColor: theme.isDark
-                                ? "#1c1c1c"
-                                : "#e9e9e9",
-                              color: theme.isDark ? "white" : "black",
-                              border: `1px solid ${
-                                theme.isDark ? "white" : "black"
-                              }`,
-                              borderRadius: "20px",
-                            }}
-                          >
-                            {cue}
-                          </button>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="sticky bottom-0">
-                  <InputSection
-                    theme={theme}
-                    message={message}
-                    isLoading={isLoading}
-                    setMessage={setMessage}
-                    handleSendMessage={handleSendMessage}
-                    handleKeyPress={handleKeyPress}
-                  />
-                </div>
-              </>
-            )}
-
-            {activeScreen === "browse" && (
-              <div className="flex-1 overflow-y-auto">
-                <BrowseSection
-                  theme={theme}
-                  currentConfig={{
-                    agentId: currentConfig?.agentId,
-                    name: currentConfig?.name,
-                    sessionName: pricingInfo.sessionName,
-                    sessionPrice: pricingInfo.sessionPrice,
-                    isFreeSession: pricingInfo.isFreeSession,
-                  }}
-                  isBookingConfigured={isBookingConfigured}
-                  setActiveScreen={setActiveScreen}
-                />
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

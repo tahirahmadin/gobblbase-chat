@@ -407,7 +407,7 @@ const CreateNewBot: React.FC = () => {
         toast.error("Failed to create agent");
       }
     } catch (e) {
-      toast.error("An error occurred while creating agent");
+      toast.error("Bot limit reached, Upgrade your plan");
     } finally {
       setLoading(false);
     }

@@ -568,9 +568,10 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
       <div
-        className="hidden lg:block col-span-2 h-full sticky top-0 flex items-center justify-center"
         style={{ backgroundColor: "#eaefff" }}
+        className="col-span-1 lg:col-span-2"
       >
         <div
           className="mx-auto"

@@ -62,9 +62,12 @@ export interface AdminAgent {
   username: string;
   logo: string;
   name: string;
+  personalityType?: {
+    name: string;
+  };
 }
 
-export type MessageType = 
+export type MessageType =
   | "booking"
   | "booking-intro"
   | "booking-loading"

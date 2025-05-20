@@ -84,7 +84,7 @@ const navItems: NavItem[] = [
     path: "/admin/account",
     expandable: true,
     subItems: [
-      { name: "Billing", path: "/admin/account/billing" },
+      // { name: "Billing", path: "/admin/account/billing" },
       { name: "Plans", path: "/admin/account/plans" },
       { name: "Usage", path: "/admin/account/usage" },
     ],

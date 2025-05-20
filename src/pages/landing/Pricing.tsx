@@ -61,7 +61,8 @@ const LoginButton = styled.button`
 interface Plan {
   id: string;
   name: string;
-  price: number;
+  monthlyPrice: number;
+  yearlyPrice: number;
   features: string[];
   isCurrentPlan?: boolean;
 }
@@ -78,7 +79,8 @@ const Pricing = () => {
     {
       id: "starter",
       name: "STARTER",
-      price: 0,
+      monthlyPrice: 0,
+      yearlyPrice: 0,
       features: [
         "1 AI Agent",
         "Basic Chat Features",
@@ -90,7 +92,8 @@ const Pricing = () => {
     {
       id: "solo",
       name: "SOLO",
-      price: 29,
+      monthlyPrice: 29,
+      yearlyPrice: 19,
       features: [
         "Everything in STARTER",
         "2 AI Agents",
@@ -103,7 +106,8 @@ const Pricing = () => {
     {
       id: "pro",
       name: "PRO",
-      price: 99,
+      monthlyPrice: 99,
+      yearlyPrice: 79,
       features: [
         "Everything in SOLO",
         "5 AI Agents",
@@ -116,7 +120,8 @@ const Pricing = () => {
     {
       id: "business",
       name: "BUSINESS",
-      price: 299,
+      monthlyPrice: 499,
+      yearlyPrice: 399,
       features: [
         "Everything in PRO",
         "Unlimited AI Agents",
@@ -196,9 +201,21 @@ const Pricing = () => {
 
                   {/* Price */}
                   <div className="text-4xl font-extrabold">
-                    {plan.price === 0 ? "$0" : `$${plan.price}`}
+                    {plan[
+                      billing === "monthly" ? "monthlyPrice" : "yearlyPrice"
+                    ] === 0
+                      ? "$0"
+                      : `$${
+                          plan[
+                            billing === "monthly"
+                              ? "monthlyPrice"
+                              : "yearlyPrice"
+                          ]
+                        }`}
                   </div>
-                  <div className="text-gray-600 mb-4 text-base">per month</div>
+                  <div className="text-gray-600 mb-4 text-base">
+                    per {billing === "monthly" ? "month" : "year"}
+                  </div>
 
                   {/* Upgrade Button */}
                   <button

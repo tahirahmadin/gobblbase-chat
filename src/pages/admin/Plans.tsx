@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   getPlans,
   subscribeToPlan,
@@ -27,35 +27,53 @@ const Plans = () => {
   const [plans, setPlans] = useState<PlanData[]>([]);
   const [loading, setLoading] = useState(true);
   const [billingLoading, setBillingLoading] = useState(false);
-
   const [upgradingPlanId, setUpgradingPlanId] = useState<string | null>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const fetchPlans = async () => {
+    if (!adminId) return;
+
+    try {
+      const response = await getPlans(adminId);
+      setPlans(response as PlanData[]);
+
+      const currentPlan = (response as PlanData[]).find(
+        (plan) => plan.isCurrentPlan
+      );
+      if (currentPlan) {
+        setBilling(currentPlan.recurrence.toLowerCase());
+      }
+    } catch (error) {
+      console.error("Error fetching plans:", error);
+      toast.error("Failed to load plans");
+    }
+  };
 
   useEffect(() => {
     if (!adminId) return;
 
-    const fetchPlans = async () => {
+    const initialFetch = async () => {
       try {
         setLoading(true);
-        const response = await getPlans(adminId);
-        setPlans(response as PlanData[]);
-
-        const currentPlan = (response as PlanData[]).find(
-          (plan) => plan.isCurrentPlan
-        );
-        if (currentPlan) {
-          setBilling(currentPlan.recurrence.toLowerCase());
-        }
-
+        await fetchPlans();
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching plans:", error);
-        toast.error("Failed to load plans");
+        console.error("Error in initial fetch:", error);
         setLoading(false);
       }
     };
 
-    fetchPlans();
+    initialFetch();
   }, [adminId]);
+
+  // Cleanup polling on component unmount
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -65,66 +83,19 @@ const Plans = () => {
     }
   }, []);
 
+  // Find the current plan (any recurrence)
+  const currentPlan = plans.find((p) => p.isCurrentPlan);
   const getPlanDisplayName = (name: string): string => {
-    return name.replace("(YEARLY)", "");
+    return name.replace("(YEARLY)", "").trim();
   };
 
-  const getPlanTierLevel = (planName: string): number => {
-    const name = planName.replace("(YEARLY)", "");
-    if (name === "STARTER") return 1;
-    if (name === "SOLO") return 2;
-    if (name === "PRO") return 3;
-    if (name === "BUSINESS") return 4;
-    return 0;
-  };
-
-  const getCurrentPlanInfo = () => {
-    const currentPlan = plans.find((plan) => plan.isCurrentPlan);
-    if (!currentPlan) return { tier: 0, isYearly: false };
-
-    const tier = getPlanTierLevel(currentPlan.name);
-    const isYearly = currentPlan.recurrence.toLowerCase() === "yearly";
-
-    return { tier, isYearly };
-  };
-
-  const getPlanAction = (
-    plan: PlanData
-  ): "upgrade" | "downgrade" | "current" => {
-    if (plan.isCurrentPlan) return "current";
-
-    const { tier: currentTier, isYearly: currentIsYearly } =
-      getCurrentPlanInfo();
-    const planTier = getPlanTierLevel(plan.name);
-    const planIsYearly = plan.recurrence.toLowerCase() === "yearly";
-
-    if (planTier > currentTier) return "upgrade";
-
-    if (planTier < currentTier) return "downgrade";
-
-    if (planTier === currentTier) {
-      if (planIsYearly && !currentIsYearly) return "upgrade";
-      if (!planIsYearly && currentIsYearly) return "downgrade";
-    }
-
-    return "downgrade";
-  };
-
-  const getYearlySavings = (plan: PlanData): number => {
-    if (plan.recurrence.toLowerCase() !== "yearly") return 0;
-
-    const monthlyPlanName = plan.name.replace("(YEARLY)", "");
-    const monthlyPlan = plans.find((p) => p.name === monthlyPlanName);
-
-    if (monthlyPlan) {
-      const monthlyAnnualCost = monthlyPlan.price * 12;
-      const savingsPercentage = Math.round(
-        (1 - plan.totalPrice / monthlyAnnualCost) * 100
-      );
-      return savingsPercentage > 0 ? savingsPercentage : 0;
-    }
-
-    return 0;
+  // Helper: is this plan the current plan, regardless of recurrence?
+  const isCurrentPlanAnyRecurrence = (plan: PlanData): boolean => {
+    if (!currentPlan) return false;
+    return (
+      getPlanDisplayName(plan.name).toLowerCase() ===
+      getPlanDisplayName(currentPlan.name).toLowerCase()
+    );
   };
 
   const filteredPlans = plans.filter(
@@ -140,18 +111,92 @@ const Plans = () => {
       // Get Stripe session URL
       const stripeUrl = await subscribeToPlan(adminId, planId);
       console.log(stripeUrl);
+
+      // Start polling for plan updates
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+
+      pollingIntervalRef.current = setInterval(async () => {
+        await fetchPlans();
+      }, 5000); // Poll every 5 seconds
+
       // Redirect to Stripe payment page
       window.open(stripeUrl, "_blank", "noopener,noreferrer");
     } catch (error) {
       console.error("Error changing plan:", error);
       toast.error("Failed to change plan");
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
     } finally {
       setUpgradingPlanId(null);
     }
   };
 
+  // Stop polling when billing type changes
+  useEffect(() => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+  }, [billing]);
+
   const isUpgrading = (planId: string): boolean => {
     return upgradingPlanId === planId;
+  };
+
+  const isLowerTierPlan = (plan: PlanData): boolean => {
+    const currentPlan = plans.find((p) => p.isCurrentPlan);
+    if (!currentPlan) {
+      console.log("No current plan found");
+      return false;
+    }
+
+    // Updated plan tiers to include BUSINESS
+    const planTiers = [
+      { name: "STARTER", price: 0 },
+      { name: "SOLO", price: 29 },
+      { name: "PRO", price: 99 },
+      { name: "BUSINESS", price: 499 },
+      { name: "ENTERPRISE", price: 299 }, // keep for legacy
+    ];
+
+    const currentPlanName = currentPlan.name.toUpperCase();
+    const planName = plan.name.toUpperCase();
+
+    // Try to find tier by name first
+    let currentPlanTier = planTiers.findIndex((tier) =>
+      currentPlanName.includes(tier.name)
+    );
+    let planTier = planTiers.findIndex((tier) => planName.includes(tier.name));
+
+    // Fallback to price if name not found
+    if (currentPlanTier === -1)
+      currentPlanTier = planTiers.findIndex(
+        (tier) => currentPlan.price === tier.price
+      );
+    if (planTier === -1)
+      planTier = planTiers.findIndex((tier) => plan.price === tier.price);
+
+    // Fallback to array order if still not found
+    if (currentPlanTier === -1)
+      currentPlanTier = plans.findIndex((p) => p.id === currentPlan.id);
+    if (planTier === -1) planTier = plans.findIndex((p) => p.id === plan.id);
+
+    console.log("Current Plan Details:", {
+      name: currentPlanName,
+      price: currentPlan.price,
+      tier: currentPlanTier,
+    });
+    console.log("Comparing Plan Details:", {
+      name: planName,
+      price: plan.price,
+      tier: planTier,
+    });
+    console.log("Is Lower Tier:", planTier < currentPlanTier);
+
+    return planTier < currentPlanTier;
   };
 
   return (
@@ -246,25 +291,31 @@ const Plans = () => {
 
                 {/* Upgrade Button */}
                 <button
-                  disabled={isCurrent || isUpgrading(plan.id)}
+                  disabled={
+                    isCurrentPlanAnyRecurrence(plan) || isUpgrading(plan.id)
+                  }
                   onClick={() => handleUpgrade(plan.id)}
                   className={`w-full px-6 py-2 font-bold rounded-lg uppercase mb-4 shadow border
                     ${
-                      isCurrent
+                      isCurrentPlanAnyRecurrence(plan)
                         ? "bg-gray-300 text-gray-600 cursor-default"
                         : isUpgrading(plan.id)
                         ? "bg-green-200 text-black border-green-700 cursor-wait"
+                        : isLowerTierPlan(plan)
+                        ? "bg-yellow-300 hover:bg-yellow-400 text-black border-yellow-700"
                         : "bg-green-300 hover:bg-green-400 text-black border-green-700"
                     }
                   `}
                 >
-                  {isCurrent ? (
+                  {isCurrentPlanAnyRecurrence(plan) ? (
                     "CURRENT PLAN"
                   ) : isUpgrading(plan.id) ? (
                     <span className="flex items-center justify-center gap-2">
                       <Loader2 className="h-5 w-5 animate-spin" />
                       Upgrading...
                     </span>
+                  ) : isLowerTierPlan(plan) ? (
+                    "DOWNGRADE"
                   ) : (
                     "UPGRADE"
                   )}
