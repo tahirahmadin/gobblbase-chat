@@ -219,6 +219,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           {/* Images Section */}
           <div>
             <label className="font-semibold">Thumbnail & Images</label>
+            <div className="text-xs">(*only .png, .jpg, .jpeg)</div>
             <div className="flex flex-wrap gap-2 mt-1">
               {/* If thumbnailUrl (new upload) exists, show it as main preview */}
               {form.thumbnailUrl ? (

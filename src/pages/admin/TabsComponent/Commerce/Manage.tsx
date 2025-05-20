@@ -182,7 +182,7 @@ const Manage = () => {
               <th className="py-2 px-4 text-left">ITEM NAME</th>
               <th className="py-2 px-4 text-left">PRICE</th>
               <th className="py-2 px-4 text-left">INVENTORY</th>
-              <th className="py-2 px-4 text-left">ACTIONS</th>
+              {/* <th className="py-2 px-4 text-left">ACTIONS</th> */}
             </tr>
           </thead>
           <tbody>

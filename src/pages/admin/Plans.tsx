@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   getPlans,
   subscribeToPlan,
@@ -27,35 +27,53 @@ const Plans = () => {
   const [plans, setPlans] = useState<PlanData[]>([]);
   const [loading, setLoading] = useState(true);
   const [billingLoading, setBillingLoading] = useState(false);
-
   const [upgradingPlanId, setUpgradingPlanId] = useState<string | null>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const fetchPlans = async () => {
+    if (!adminId) return;
+
+    try {
+      const response = await getPlans(adminId);
+      setPlans(response as PlanData[]);
+
+      const currentPlan = (response as PlanData[]).find(
+        (plan) => plan.isCurrentPlan
+      );
+      if (currentPlan) {
+        setBilling(currentPlan.recurrence.toLowerCase());
+      }
+    } catch (error) {
+      console.error("Error fetching plans:", error);
+      toast.error("Failed to load plans");
+    }
+  };
 
   useEffect(() => {
     if (!adminId) return;
 
-    const fetchPlans = async () => {
+    const initialFetch = async () => {
       try {
         setLoading(true);
-        const response = await getPlans(adminId);
-        setPlans(response as PlanData[]);
-
-        const currentPlan = (response as PlanData[]).find(
-          (plan) => plan.isCurrentPlan
-        );
-        if (currentPlan) {
-          setBilling(currentPlan.recurrence.toLowerCase());
-        }
-
+        await fetchPlans();
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching plans:", error);
-        toast.error("Failed to load plans");
+        console.error("Error in initial fetch:", error);
         setLoading(false);
       }
     };
 
-    fetchPlans();
+    initialFetch();
   }, [adminId]);
+
+  // Cleanup polling on component unmount
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -67,64 +85,6 @@ const Plans = () => {
 
   const getPlanDisplayName = (name: string): string => {
     return name.replace("(YEARLY)", "");
-  };
-
-  const getPlanTierLevel = (planName: string): number => {
-    const name = planName.replace("(YEARLY)", "");
-    if (name === "STARTER") return 1;
-    if (name === "SOLO") return 2;
-    if (name === "PRO") return 3;
-    if (name === "BUSINESS") return 4;
-    return 0;
-  };
-
-  const getCurrentPlanInfo = () => {
-    const currentPlan = plans.find((plan) => plan.isCurrentPlan);
-    if (!currentPlan) return { tier: 0, isYearly: false };
-
-    const tier = getPlanTierLevel(currentPlan.name);
-    const isYearly = currentPlan.recurrence.toLowerCase() === "yearly";
-
-    return { tier, isYearly };
-  };
-
-  const getPlanAction = (
-    plan: PlanData
-  ): "upgrade" | "downgrade" | "current" => {
-    if (plan.isCurrentPlan) return "current";
-
-    const { tier: currentTier, isYearly: currentIsYearly } =
-      getCurrentPlanInfo();
-    const planTier = getPlanTierLevel(plan.name);
-    const planIsYearly = plan.recurrence.toLowerCase() === "yearly";
-
-    if (planTier > currentTier) return "upgrade";
-
-    if (planTier < currentTier) return "downgrade";
-
-    if (planTier === currentTier) {
-      if (planIsYearly && !currentIsYearly) return "upgrade";
-      if (!planIsYearly && currentIsYearly) return "downgrade";
-    }
-
-    return "downgrade";
-  };
-
-  const getYearlySavings = (plan: PlanData): number => {
-    if (plan.recurrence.toLowerCase() !== "yearly") return 0;
-
-    const monthlyPlanName = plan.name.replace("(YEARLY)", "");
-    const monthlyPlan = plans.find((p) => p.name === monthlyPlanName);
-
-    if (monthlyPlan) {
-      const monthlyAnnualCost = monthlyPlan.price * 12;
-      const savingsPercentage = Math.round(
-        (1 - plan.totalPrice / monthlyAnnualCost) * 100
-      );
-      return savingsPercentage > 0 ? savingsPercentage : 0;
-    }
-
-    return 0;
   };
 
   const filteredPlans = plans.filter(
@@ -140,15 +100,36 @@ const Plans = () => {
       // Get Stripe session URL
       const stripeUrl = await subscribeToPlan(adminId, planId);
       console.log(stripeUrl);
+
+      // Start polling for plan updates
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+
+      pollingIntervalRef.current = setInterval(async () => {
+        await fetchPlans();
+      }, 5000); // Poll every 5 seconds
+
       // Redirect to Stripe payment page
       window.open(stripeUrl, "_blank", "noopener,noreferrer");
     } catch (error) {
       console.error("Error changing plan:", error);
       toast.error("Failed to change plan");
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
     } finally {
       setUpgradingPlanId(null);
     }
   };
+
+  // Stop polling when billing type changes
+  useEffect(() => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+  }, [billing]);
 
   const isUpgrading = (planId: string): boolean => {
     return upgradingPlanId === planId;

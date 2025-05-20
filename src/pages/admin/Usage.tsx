@@ -470,7 +470,9 @@ const Usage = () => {
         <div className="bg-blue-100 rounded-lg p-4 flex-1 flex flex-col justify-between">
           <div className="flex items-center mb-2">
             <span className="text-2xl font-bold mr-2">{creditsUsed}</span>
-            <span className="text-gray-700">/ {totalCredits} Credits used</span>
+            <span className="text-gray-700">
+              / {totalCredits.toLocaleString()} Credits used
+            </span>
           </div>
           <div className="w-full h-2 bg-white rounded-full">
             <div
@@ -485,32 +487,36 @@ const Usage = () => {
         </div>
 
         {/* Agents Used */}
-          <div className="bg-blue-100 rounded-lg p-4 flex-1 flex flex-col justify-between">
-            <div className="flex items-center mb-2">
-              <span className="text-2xl font-bold mr-2">{agentsUsed}</span>
-              <span className="text-gray-700">/ {formatAgentLimit(agentLimit)} Agents</span>
-            </div>
-            <div className="w-full h-2 bg-white rounded-full">
-              <div
-                className={`h-2 rounded-full ${agentLimit === 9999 ? 'bg-green-500' : 'bg-blue-500'}`}
-                style={{
-                  width:
-                    agentLimit === 9999 
-                      ? '100%' // For unlimited plans, show a full green bar
-                      : selectedAgent === "All Agents"
-                        ? `${Math.min((totalAgents / agentLimit) * 100, 100)}%`
-                        : `${
-                            usageData &&
-                            usageData.usage.totalTokensUsedAllAgents > 0
-                              ? (selectedAgentTokens /
-                                  usageData.usage.totalTokensUsedAllAgents) *
-                                100
-                              : 0
-                          }%`,
-                }}
-              ></div>
-            </div>
+        <div className="bg-blue-100 rounded-lg p-4 flex-1 flex flex-col justify-between">
+          <div className="flex items-center mb-2">
+            <span className="text-2xl font-bold mr-2">{agentsUsed}</span>
+            <span className="text-gray-700">
+              / {formatAgentLimit(agentLimit)} Agents
+            </span>
           </div>
+          <div className="w-full h-2 bg-white rounded-full">
+            <div
+              className={`h-2 rounded-full ${
+                agentLimit === 9999 ? "bg-green-500" : "bg-blue-500"
+              }`}
+              style={{
+                width:
+                  agentLimit === 9999
+                    ? "100%" // For unlimited plans, show a full green bar
+                    : selectedAgent === "All Agents"
+                    ? `${Math.min((totalAgents / agentLimit) * 100, 100)}%`
+                    : `${
+                        usageData &&
+                        usageData.usage.totalTokensUsedAllAgents > 0
+                          ? (selectedAgentTokens /
+                              usageData.usage.totalTokensUsedAllAgents) *
+                            100
+                          : 0
+                      }%`,
+              }}
+            ></div>
+          </div>
+        </div>
       </div>
 
       {/* Usage History */}
