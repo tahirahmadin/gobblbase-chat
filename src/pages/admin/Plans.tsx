@@ -83,8 +83,19 @@ const Plans = () => {
     }
   }, []);
 
+  // Find the current plan (any recurrence)
+  const currentPlan = plans.find((p) => p.isCurrentPlan);
   const getPlanDisplayName = (name: string): string => {
-    return name.replace("(YEARLY)", "");
+    return name.replace("(YEARLY)", "").trim();
+  };
+
+  // Helper: is this plan the current plan, regardless of recurrence?
+  const isCurrentPlanAnyRecurrence = (plan: PlanData): boolean => {
+    if (!currentPlan) return false;
+    return (
+      getPlanDisplayName(plan.name).toLowerCase() ===
+      getPlanDisplayName(currentPlan.name).toLowerCase()
+    );
   };
 
   const filteredPlans = plans.filter(
@@ -133,6 +144,59 @@ const Plans = () => {
 
   const isUpgrading = (planId: string): boolean => {
     return upgradingPlanId === planId;
+  };
+
+  const isLowerTierPlan = (plan: PlanData): boolean => {
+    const currentPlan = plans.find((p) => p.isCurrentPlan);
+    if (!currentPlan) {
+      console.log("No current plan found");
+      return false;
+    }
+
+    // Updated plan tiers to include BUSINESS
+    const planTiers = [
+      { name: "STARTER", price: 0 },
+      { name: "SOLO", price: 29 },
+      { name: "PRO", price: 99 },
+      { name: "BUSINESS", price: 499 },
+      { name: "ENTERPRISE", price: 299 }, // keep for legacy
+    ];
+
+    const currentPlanName = currentPlan.name.toUpperCase();
+    const planName = plan.name.toUpperCase();
+
+    // Try to find tier by name first
+    let currentPlanTier = planTiers.findIndex((tier) =>
+      currentPlanName.includes(tier.name)
+    );
+    let planTier = planTiers.findIndex((tier) => planName.includes(tier.name));
+
+    // Fallback to price if name not found
+    if (currentPlanTier === -1)
+      currentPlanTier = planTiers.findIndex(
+        (tier) => currentPlan.price === tier.price
+      );
+    if (planTier === -1)
+      planTier = planTiers.findIndex((tier) => plan.price === tier.price);
+
+    // Fallback to array order if still not found
+    if (currentPlanTier === -1)
+      currentPlanTier = plans.findIndex((p) => p.id === currentPlan.id);
+    if (planTier === -1) planTier = plans.findIndex((p) => p.id === plan.id);
+
+    console.log("Current Plan Details:", {
+      name: currentPlanName,
+      price: currentPlan.price,
+      tier: currentPlanTier,
+    });
+    console.log("Comparing Plan Details:", {
+      name: planName,
+      price: plan.price,
+      tier: planTier,
+    });
+    console.log("Is Lower Tier:", planTier < currentPlanTier);
+
+    return planTier < currentPlanTier;
   };
 
   return (
@@ -227,29 +291,41 @@ const Plans = () => {
 
                 {/* Upgrade Button */}
                 <button
-                  disabled={isCurrent || isUpgrading(plan.id)}
+                  disabled={
+                    isCurrentPlanAnyRecurrence(plan) || isUpgrading(plan.id)
+                  }
                   onClick={() => handleUpgrade(plan.id)}
                   className={`w-full px-6 py-2 font-bold rounded-lg uppercase mb-4 shadow border
                     ${
-                      isCurrent
+                      isCurrentPlanAnyRecurrence(plan)
                         ? "bg-gray-300 text-gray-600 cursor-default"
                         : isUpgrading(plan.id)
                         ? "bg-green-200 text-black border-green-700 cursor-wait"
+                        : isLowerTierPlan(plan)
+                        ? "bg-yellow-300 hover:bg-yellow-400 text-black border-yellow-700"
                         : "bg-green-300 hover:bg-green-400 text-black border-green-700"
                     }
                   `}
                 >
-                  {isCurrent ? (
+                  {isCurrentPlanAnyRecurrence(plan) ? (
                     "CURRENT PLAN"
                   ) : isUpgrading(plan.id) ? (
                     <span className="flex items-center justify-center gap-2">
                       <Loader2 className="h-5 w-5 animate-spin" />
                       Upgrading...
                     </span>
+                  ) : isLowerTierPlan(plan) ? (
+                    "DOWNGRADE"
                   ) : (
                     "UPGRADE"
                   )}
                 </button>
+                {/* Debug: Show if this is the current plan */}
+                {isCurrentPlanAnyRecurrence(plan) && (
+                  <div className="text-xs text-blue-700 font-bold">
+                    [DEBUG: isCurrentPlanAnyRecurrence]
+                  </div>
+                )}
 
                 {/* Divider */}
                 <div className="w-full bg-black my-2 h-[3px]"></div>

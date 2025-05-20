@@ -53,7 +53,7 @@ const CustomerLeads = () => {
   const paginatedLeads = leads.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleFieldChange = (field: keyof typeof fields) => {
-    setFields((prev) => ({ ...prev, [field]: !prev[field] }));
+    // setFields((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
   const handleFormToggle = async () => {
