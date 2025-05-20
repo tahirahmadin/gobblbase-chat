@@ -745,7 +745,7 @@ export async function updateUnavailableDates(
     allDay: boolean;
     timezone?: string;
   }>,
-  datesToMakeAvailable?: string[] 
+  datesToMakeAvailable?: string[]
 ): Promise<any> {
   try {
     const response = await axios.post(
@@ -753,7 +753,7 @@ export async function updateUnavailableDates(
       {
         agentId,
         unavailableDates,
-        datesToMakeAvailable 
+        datesToMakeAvailable,
       }
     );
     if (response.data.error) throw new Error(response.data.error);
@@ -1337,7 +1337,7 @@ export async function subscribeToPlan(
 ): Promise<any> {
   try {
     const response = await axios.post(
-      "https://rag.gobbl.ai/client/subscribeToCredits",
+      "https://rag.gobbl.ai/product/subscribeOrChangePlan",
       {
         clientId,
         planId,

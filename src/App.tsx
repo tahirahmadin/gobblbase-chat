@@ -38,6 +38,8 @@ import Home from "./pages/landing/Home";
 import AllAgents from "./pages/admin/AllAgents";
 import Pricing from "./pages/landing/Pricing";
 import { Loader } from "lucide-react";
+import PaymentSuccessPage from "./pages/admin/PlanComponents/PaymentSuccessPage";
+import PaymentCancelPage from "./pages/admin/PlanComponents/PaymentCancelPage";
 
 // Add type definition for window
 declare global {
@@ -170,6 +172,8 @@ function App() {
             />
           }
         />
+        <Route path="/admin/payment-success" element={<PaymentSuccessPage />} />
+        <Route path="/admin/payment-cancel" element={<PaymentCancelPage />} />
         <Route path="/admin/*" element={<Dashboard />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/" element={<Home />} />
