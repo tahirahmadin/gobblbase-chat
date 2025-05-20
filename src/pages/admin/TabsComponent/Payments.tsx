@@ -482,8 +482,8 @@ const Payments = () => {
       </div>
 
       {/* Payments Log */}
-      <div className="w-1/2 bg-blue-500 p-6 overflow-y-auto">
-        <div className="sticky top-0 z-10 bg-blue-500 pb-4">
+      <div className="w-1/2 bg-blue-500 p-6 overflow-y-auto h-screen">
+        <div className=" z-10 bg-blue-500 pb-4 ">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-white">Payments Log</h2>
             <button
@@ -510,7 +510,7 @@ const Payments = () => {
           </div>
         ) : (
           <>
-            <div className="space-y-6">
+            <div className="space-y-6 ">
               {currentTransactions.map((transaction) => {
                 const item = transaction.items[0] || {};
                 return (

@@ -25,6 +25,12 @@ const CustomerLeads = () => {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
+    if (activeBotData) {
+      setFormEnabled(activeBotData.customerLeadFlag);
+    }
+  }, [activeBotData]);
+
+  useEffect(() => {
     fetchLeads();
   }, [activeBotId]);
 
