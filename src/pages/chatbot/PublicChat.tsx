@@ -248,8 +248,8 @@ export default function PublicChat({
           <Helmet>
             <title>
               {currentConfig.name
-                ? `${currentConfig.name} | KiFor.ai Chatbot`
-                : "KiFor.ai Chatbot"}
+                ? `${currentConfig.name} | KiFor.ai chatbot`
+                : "KiFor.ai chatbot"}
             </title>
           </Helmet>
           <div
