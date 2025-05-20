@@ -35,7 +35,7 @@ const AllAgents: React.FC = () => {
     if (agent.logo) return agent.logo;
     if (agent.personalityType?.name) {
       const personality = PERSONALITY_OPTIONS.find(
-        (p) => p.title === agent.personalityType.name
+        (p) => p.title === agent.personalityType?.name
       );
       if (personality) return personality.image;
     }
@@ -68,7 +68,7 @@ const AllAgents: React.FC = () => {
         {agents.map((agent: AdminAgent) => (
           <div
             key={agent.agentId}
-            className="bg-[#eaefff] rounded-lg shadow flex flex-col items-center p-6 border border-gray-200"
+            className="bg-[#eaefff] rounded-lg flex flex-col items-center px-8 py-6"
           >
             <img
               src={getPersonalityImage(agent)}
@@ -79,20 +79,39 @@ const AllAgents: React.FC = () => {
               {agent.name || "Agent Name"}
             </div>
             <div className="flex gap-2 mt-2">
-              <button
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm font-medium"
-                onClick={() => handleEdit(agent.agentId)}
-                disabled={isLoading || deletingId === agent.agentId}
-              >
-                EDIT
-              </button>
-              <button
-                className="bg-white border border-gray-400 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded shadow text-sm font-medium"
-                onClick={() => setPendingDeleteId(agent.agentId)}
-                disabled={isLoading || deletingId === agent.agentId}
-              >
-                {deletingId === agent.agentId ? "DELETING..." : "DELETE"}
-              </button>
+              <div className="relative inline-block">
+                <div className="absolute top-1 left-1 w-full h-full bg-[#AEB8FF] rounded"></div>
+                <div className="relative inline-block">
+                  {/* Bottom layer for shadow effect */}
+                  <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
+
+                  {/* Main button */}
+                  <button
+                    onClick={() => handleEdit(agent.agentId)}
+                    disabled={isLoading || deletingId === agent.agentId}
+                    className="relative bg-[#AEB8FF] text-black font-regular px-4 py-2 border border-black text-sm"
+                  >
+                    EDIT
+                  </button>
+                </div>
+              </div>
+
+              <div className="relative inline-block">
+                <div className="absolute top-1 left-1 w-full h-full bg-[#ffffff] rounded"></div>
+                <div className="relative inline-block">
+                  {/* Bottom layer for shadow effect */}
+                  <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
+
+                  {/* Main button */}
+                  <button
+                    onClick={() => setPendingDeleteId(agent.agentId)}
+                    disabled={isLoading || deletingId === agent.agentId}
+                    className="relative bg-[#ffffff] text-black font-regular px-4 py-2 border border-black text-sm"
+                  >
+                    {deletingId === agent.agentId ? "DELETING..." : "DELETE"}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         ))}
@@ -108,6 +127,7 @@ const AllAgents: React.FC = () => {
             <br />
             Are you certain you want to proceed with deletion?
           </p>
+
           <div className="flex flex-row justify-end gap-2">
             <div className="relative inline-block">
               <div className="absolute top-1 left-1 w-full h-full bg-red-500 rounded"></div>
