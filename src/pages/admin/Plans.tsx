@@ -320,12 +320,6 @@ const Plans = () => {
                     "UPGRADE"
                   )}
                 </button>
-                {/* Debug: Show if this is the current plan */}
-                {isCurrentPlanAnyRecurrence(plan) && (
-                  <div className="text-xs text-blue-700 font-bold">
-                    [DEBUG: isCurrentPlanAnyRecurrence]
-                  </div>
-                )}
 
                 {/* Divider */}
                 <div className="w-full bg-black my-2 h-[3px]"></div>
