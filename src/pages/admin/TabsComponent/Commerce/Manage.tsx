@@ -9,16 +9,16 @@ import {
 import toast from "react-hot-toast";
 
 const TABS = [
-  { label: "Physical Goods", value: "physical" },
-  { label: "Digital Goods", value: "digital" },
-  { label: "Services", value: "service" },
-  { label: "Events", value: "event" },
+  { label: "Physical Goods", value: "physicalProduct" },
+  { label: "Digital Goods", value: "digitalProduct" },
+  { label: "Services", value: "Service" },
+  { label: "Events", value: "Event" },
 ];
 
 const Manage = () => {
   const navigate = useNavigate();
   const { activeBotId } = useBotConfig();
-  const [tab, setTab] = useState("physical");
+  const [tab, setTab] = useState("physicalProduct");
   const [products, setProducts] = useState<any[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -182,7 +182,7 @@ const Manage = () => {
               <th className="py-2 px-4 text-left">ITEM NAME</th>
               <th className="py-2 px-4 text-left">PRICE</th>
               <th className="py-2 px-4 text-left">INVENTORY</th>
-              {/* <th className="py-2 px-4 text-left">ACTIONS</th> */}
+              <th className="py-2 px-4 text-left">ACTIONS</th>
             </tr>
           </thead>
           <tbody>

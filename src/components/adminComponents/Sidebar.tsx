@@ -62,7 +62,7 @@ const navItems: NavItem[] = [
     path: "/admin/commerce",
     expandable: true,
     subItems: [
-      { name: "Add New", path: "/admin/commerce/add" },
+      { name: "Add Product", path: "/admin/commerce/add" },
       { name: "Manage", path: "/admin/commerce/manage" },
       { name: "Calendar", path: "/admin/commerce/calendar" },
       { name: "Policies", path: "/admin/commerce/policies" },

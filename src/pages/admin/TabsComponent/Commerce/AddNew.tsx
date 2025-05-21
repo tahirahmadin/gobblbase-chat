@@ -46,8 +46,10 @@ const AddNew = () => {
   const handleBack = () => {
     if (editData) {
       localStorage.removeItem("editingProduct");
+      navigate("/admin/commerce/manage");
+    } else {
+      setSelectedType(null);
     }
-    navigate("/admin/commerce/manage");
   };
 
   return (
