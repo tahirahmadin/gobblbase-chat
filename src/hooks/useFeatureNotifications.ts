@@ -1,242 +1,171 @@
-import { useState, useRef, Dispatch, SetStateAction, useCallback } from "react";
+import { useState, useEffect, Dispatch, SetStateAction, useCallback } from "react";
 import { ChatMessage } from "../types";
 
-// Template messages for feature notifications - make sure they match your tone
+// Template messages for feature notifications
 const featureNotificationMessages = [
   "I can help you with {{features}}.",
   "I'm here to help with {{features}}.",
   "My capabilities include {{features}}.",
 ];
 
-// Initialize window properties only once
-if (typeof window !== "undefined") {
-  if (!window.hasOwnProperty("featuresMessageShown")) {
-    (window as any).featuresMessageShown = false;
-  }
-  if (!window.hasOwnProperty("featuresMessageContent")) {
-    (window as any).featuresMessageContent = "";
-  }
-  if (!window.hasOwnProperty("featuresMessageId")) {
-    (window as any).featuresMessageId = "";
-  }
-}
-
 export interface UseFeatureNotificationsReturn {
-  showFeatureNotifications: (
+  showFeatureNotification: (
     setMessages: Dispatch<SetStateAction<ChatMessage[]>>,
     scrollToBottom: () => void
-  ) => boolean; 
-  featuresShown: boolean;
-  resetFeaturesShown: () => void;
-  hasAnyFeatures: boolean; 
+  ) => void;
+  resetFeatures: () => void;
+  updateFeatures: () => void;
 }
 
 export function useFeatureNotifications(
-  isBookingConfigured: boolean | undefined,
-  hasProducts: boolean | undefined,
-  customerLeadFlag?: boolean | undefined,
-  isQueryable?: boolean | undefined
+  isBookingConfigured: boolean | undefined | null,
+  hasProducts: boolean | undefined | null,
+  customerLeadFlag: boolean | undefined | null,
+  isQueryable: boolean | undefined | null,
 ): UseFeatureNotificationsReturn {
-  // Use a single ref to track all internal state
-  const stateRef = useRef({
-    featuresShown:
-      typeof window !== "undefined"
-        ? (window as any).featuresMessageShown
-        : false,
-    isShowingFeatures: false,
-    lastUpdate: Date.now(),
-  });
-
-  // console.log("Feature check values:", {
-  //   isBookingConfigured,
-  //   hasProducts,
-  //   customerLeadFlag,
-  //   isQueryable
-  // });
-  
-  const hasBooking = !!isBookingConfigured;
-  const hasProductFeature = !!hasProducts;
-  const hasContactFeature = !!customerLeadFlag;
-  const hasKnowledgeBase = !!isQueryable;
-  
-  const hasAnyFeatures = !!(
-    hasBooking ||
-    hasProductFeature ||
-    hasContactFeature ||
-    hasKnowledgeBase
-  );
-  
-  // console.log("hasAnyFeatures result:", hasAnyFeatures);
-
-  // Only use state for UI updates
-  const [featuresShown, setFeaturesShown] = useState<boolean>(
-    stateRef.current.featuresShown
-  );
-
-  const resetFeaturesShown = useCallback(() => {
-    stateRef.current = {
-      ...stateRef.current,
-      featuresShown: false,
-      isShowingFeatures: false,
-      lastUpdate: Date.now(),
-    };
-    setFeaturesShown(false);
-
+  // Window state to track across renders
+  const getMessageShown = () => {
     if (typeof window !== "undefined") {
-      (window as any).featuresMessageShown = false;
-      (window as any).featureMessageAnimated = false;
-      (window as any).featuresMessageContent = "";
-      (window as any).featuresMessageId = "";
+      return (window as any).featureMessageShown === true;
     }
+    return false;
+  };
+  
+  const setMessageShown = (value: boolean) => {
+    if (typeof window !== "undefined") {
+      (window as any).featureMessageShown = value;
+    }
+  };
+
+  // Simple state to track if features notification has been shown
+  const [featureMessageShown, setFeatureMessageShown] = useState<boolean>(getMessageShown());
+  const [featuresChanged, setFeaturesChanged] = useState<boolean>(false);
+  
+  // More robust feature checking
+  const checkFeature = (value: any): boolean => {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'string') return value.toLowerCase() === 'true' || value === '1';
+    if (typeof value === 'number') return value === 1;
+    if (typeof value === 'object' && value !== null) return true;
+    return false;
+  };
+
+  // Generate the feature notification message
+  const generateFeatureMessage = useCallback(() => {
+    const features: string[] = [];
+    
+    if (checkFeature(isBookingConfigured)) {
+      features.push("booking appointments");
+    }
+    
+    if (checkFeature(hasProducts)) {
+      features.push("browsing our products");
+    }
+    
+    if (checkFeature(customerLeadFlag)) {
+      features.push("contacting us directly");
+    }
+    
+    if (checkFeature(isQueryable)) {
+      features.push("answering questions about our knowledge base");
+    }
+    
+    if (features.length === 0) {
+      return "";
+    }
+    
+    let featuresContent = "";
+    if (features.length === 1) {
+      featuresContent = features[0];
+    } else if (features.length === 2) {
+      featuresContent = `${features[0]} and ${features[1]}`;
+    } else {
+      const lastFeature = features[features.length - 1];
+      featuresContent = `${features.slice(0, -1).join(", ")}, and ${lastFeature}`;
+    }
+    
+    const messageIndex = Math.floor(Math.random() * featureNotificationMessages.length);
+    return featureNotificationMessages[messageIndex].replace("{{features}}", featuresContent);
+  }, [isBookingConfigured, hasProducts, customerLeadFlag, isQueryable, checkFeature]);
+  
+  // Update features state
+  const updateFeatures = useCallback(() => {
+    setFeaturesChanged(true);
   }, []);
-
-  const showFeatureNotifications = useCallback(
-    (
-      setMessages: Dispatch<SetStateAction<ChatMessage[]>>,
-      scrollToBottom: () => void
-    ): boolean => {
-      console.log("showFeatureNotifications called, checking for features...");
-      
-      if (!hasAnyFeatures) {
-        console.log("No features available, marking as shown without displaying message");
-        if (!stateRef.current.featuresShown) {
-          stateRef.current.featuresShown = true;
-          setFeaturesShown(true);
+  
+  // Show feature notification in chat
+  const showFeatureNotification = useCallback((
+    setMessages: Dispatch<SetStateAction<ChatMessage[]>>,
+    scrollToBottom: () => void
+  ) => {
+    const featureMessage = generateFeatureMessage();
+    if (!featureMessage) {
+      return;
+    }
+    
+    if (featureMessageShown || getMessageShown()) {
+      if (featuresChanged) {
+        setMessages(messages => {
+          const updatedMessages = messages.filter(msg => 
+            !(msg.sender === "agent" && 
+              (msg.content.includes("capabilities include") || 
+               msg.content.includes("I can help you with") ||
+               msg.content.includes("I'm here to help with")))
+          );
           
-          if (typeof window !== "undefined") {
-            (window as any).featuresMessageShown = true;
-          }
-        }
-        return false;
+          const newFeatureMsg: ChatMessage = {
+            id: "features-" + Date.now().toString(),
+            content: featureMessage,
+            timestamp: new Date(),
+            sender: "agent",
+          };
+          
+          return [...updatedMessages, newFeatureMsg];
+        });
+        
+        scrollToBottom();
+        setFeaturesChanged(false);
       }
-
-      // Prevent rapid re-renders by checking last update time
-      const now = Date.now();
-      if (now - stateRef.current.lastUpdate < 100) {
-        return false;
-      }
-
-      // Check if features are already shown
-      if (
-        stateRef.current.featuresShown ||
-        stateRef.current.isShowingFeatures
-      ) {
-        // Restore message if it exists
-        if (
-          typeof window !== "undefined" &&
-          (window as any).featuresMessageShown &&
-          (window as any).featuresMessageContent &&
-          (window as any).featuresMessageId
-        ) {
-          setMessages((messages) => {
-            if (
-              messages.some(
-                (msg) => msg.id === (window as any).featuresMessageId
-              )
-            ) {
-              return messages;
-            }
-
-            const restoredMsg: ChatMessage = {
-              id: (window as any).featuresMessageId,
-              content: (window as any).featuresMessageContent,
-              timestamp: new Date(),
-              sender: "agent",
-            };
-
-            return [...messages, restoredMsg];
-          });
-
-          scrollToBottom();
-        }
-        return true;
-      }
-
-      // Update state ref
-      stateRef.current = {
-        ...stateRef.current,
-        featuresShown: true,
-        isShowingFeatures: true,
-        lastUpdate: now,
-      };
-      setFeaturesShown(true);
-
-      // Collect available features
-      const availableFeatures: string[] = [];
-
-      if (hasBooking) {
-        console.log("Adding booking feature");
-        availableFeatures.push("booking appointments");
-      }
-      if (hasProductFeature) {
-        console.log("Adding products feature");
-        availableFeatures.push("browsing our products");
-      }
-      if (hasContactFeature) {
-        console.log("Adding contact feature");
-        availableFeatures.push("contacting us directly");
-      }
-      if (hasKnowledgeBase) {
-        console.log("Adding knowledge base feature");
-        availableFeatures.push("answering questions about our knowledge base");
-      }
-
-      if (availableFeatures.length === 0) {
-        if (typeof window !== "undefined") {
-          (window as any).featuresMessageShown = true;
-        }
-        return false;
-      }
-
-      // Format features message
-      let featuresContent = "";
-      if (availableFeatures.length === 1) {
-        featuresContent = availableFeatures[0];
-      } else if (availableFeatures.length === 2) {
-        featuresContent = `${availableFeatures[0]} and ${availableFeatures[1]}`;
-      } else {
-        const lastFeature = availableFeatures.pop();
-        featuresContent = `${availableFeatures.join(", ")}, and ${lastFeature}`;
-      }
-
-      // Generate message
-      const messageIndex = Math.floor(
-        Math.random() * featureNotificationMessages.length
+      return;
+    }
+    
+    const featureMsg: ChatMessage = {
+      id: "features-" + Date.now().toString(),
+      content: featureMessage,
+      timestamp: new Date(),
+      sender: "agent",
+    };
+    
+    setMessages(messages => {
+      // Check if we already have a feature message in the chat
+      const hasFeatureMessage = messages.some(msg => 
+        msg.sender === "agent" && 
+        (msg.content.includes("capabilities include") || 
+         msg.content.includes("I can help you with") ||
+         msg.content.includes("I'm here to help with"))
       );
-      const messageTemplate = featureNotificationMessages[messageIndex];
-      const finalMessage = messageTemplate.replace(
-        "{{features}}",
-        featuresContent
-      );
-
-      const featuresMsgId = "features-" + now.toString();
-
-      // Update window state
-      if (typeof window !== "undefined") {
-        (window as any).featuresMessageShown = true;
-        (window as any).featuresMessageContent = finalMessage;
-        (window as any).featuresMessageId = featuresMsgId;
+      
+      if (hasFeatureMessage) {
+        return messages; 
       }
-
-      // Create and add message
-      const featuresMsg: ChatMessage = {
-        id: featuresMsgId,
-        content: finalMessage,
-        timestamp: new Date(),
-        sender: "agent",
-      };
-
-      setMessages((messages) => [...messages, featuresMsg]);
-      scrollToBottom();
-      return true;
-    },
-    [isBookingConfigured, hasProducts, customerLeadFlag, isQueryable, hasAnyFeatures]
-  );
-
+      
+      return [...messages, featureMsg];
+    });
+    
+    setFeatureMessageShown(true);
+    setMessageShown(true);
+    scrollToBottom();
+  }, [featureMessageShown, featuresChanged, generateFeatureMessage, getMessageShown, setMessageShown]);
+  
+  const resetFeatures = useCallback(() => {
+    setFeatureMessageShown(false);
+    setMessageShown(false);
+    setFeaturesChanged(false);
+  }, []);
+  
   return {
-    showFeatureNotifications,
-    featuresShown,
-    resetFeaturesShown,
-    hasAnyFeatures, 
+    showFeatureNotification,
+    resetFeatures,
+    updateFeatures
   };
 }

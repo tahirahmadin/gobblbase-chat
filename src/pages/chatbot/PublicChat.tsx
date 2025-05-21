@@ -40,10 +40,13 @@ export default function PublicChat({
   const [message, setMessage] = useState<string>("");
   const [activeScreen, setActiveScreen] = useState<Screen>("chat");
   const [showCues, setShowCues] = useState<boolean>(true);
-
-  // Use a ref to track if feature notifications have been initialized
-  const featureNotificationsInitialized = useRef<boolean>(false);
-  const initialMessagesSet = useRef<boolean>(false);
+  
+  const prevFeaturesRef = useRef({
+    isBookingConfigured: null as boolean | null,
+    hasProducts: null as boolean | null,
+    customerLeadFlag: null as boolean | null,
+    isQueryable: null as boolean | null
+  });
 
   useEffect(() => {
     const handleResize = () => {
@@ -82,23 +85,12 @@ export default function PublicChat({
     currentConfig
   );
 
-  const { showFeatureNotifications, featuresShown, resetFeaturesShown, hasAnyFeatures } =
-    useFeatureNotifications(
-      isBookingConfigured,
-      hasProducts,
-      currentConfig?.customerLeadFlag,
-      currentConfig?.isQueryable
-    );
-
-  useEffect(() => {
-    console.log("Feature status updated:", {
-      isBookingConfigured,
-      hasProducts, 
-      customerLeadFlag: currentConfig?.customerLeadFlag,
-      isQueryable: currentConfig?.isQueryable,
-      hasAnyFeatures
-    });
-  }, [isBookingConfigured, hasProducts, currentConfig?.customerLeadFlag, currentConfig?.isQueryable, hasAnyFeatures]);
+  const { showFeatureNotification, resetFeatures, updateFeatures } = useFeatureNotifications(
+    isBookingConfigured,
+    hasProducts,
+    currentConfig?.customerLeadFlag,
+    currentConfig?.isQueryable
+  );
 
   const theme = currentConfig?.themeColors ?? {
     id: "light-yellow",
@@ -116,63 +108,116 @@ export default function PublicChat({
   }, [botUsername, previewConfig, fetchBotData]);
 
   useEffect(() => {
-    console.log("Configuration changed, resetting feature notifications");
-    console.log("Current feature status:", {
-      isBookingConfigured,
-      hasProducts,
-      customerLeadFlag: currentConfig?.customerLeadFlag,
-      isQueryable: currentConfig?.isQueryable
-    });
+    resetFeatures();
+    prevFeaturesRef.current = {
+      isBookingConfigured: null,
+      hasProducts: null,
+      customerLeadFlag: null,
+      isQueryable: null
+    };
+  }, [resetFeatures, currentConfig?.agentId]);
+
+  const checkFeature = (value: any): boolean => {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'string') return value.toLowerCase() === 'true' || value === '1';
+    if (typeof value === 'number') return value === 1;
+    if (typeof value === 'object' && value !== null) return true;
+    return false;
+  };
+  
+  useEffect(() => {
+    if (currentIsLoading || loadingPricing) {
+      return;
+    }
     
-    resetFeaturesShown();
-    featureNotificationsInitialized.current = false;
-    initialMessagesSet.current = false;
+    const currBooking = checkFeature(isBookingConfigured);
+    const currProducts = checkFeature(hasProducts);
+    const currContact = checkFeature(currentConfig?.customerLeadFlag);
+    const currQueryable = checkFeature(currentConfig?.isQueryable);
+    
+    const bookingChanged = prevFeaturesRef.current.isBookingConfigured !== null && 
+                          prevFeaturesRef.current.isBookingConfigured !== currBooking;
+    const productsChanged = prevFeaturesRef.current.hasProducts !== null && 
+                           prevFeaturesRef.current.hasProducts !== currProducts;
+    const contactChanged = prevFeaturesRef.current.customerLeadFlag !== null && 
+                          prevFeaturesRef.current.customerLeadFlag !== currContact;
+    const queryableChanged = prevFeaturesRef.current.isQueryable !== null && 
+                            prevFeaturesRef.current.isQueryable !== currQueryable;
+    
+    if (bookingChanged || productsChanged || contactChanged || queryableChanged) {
+      console.log("Features changed:", {
+        bookingBefore: prevFeaturesRef.current.isBookingConfigured,
+        bookingNow: currBooking,
+        productsBefore: prevFeaturesRef.current.hasProducts,
+        productsNow: currProducts,
+        contactBefore: prevFeaturesRef.current.customerLeadFlag,
+        contactNow: currContact,
+        queryableBefore: prevFeaturesRef.current.isQueryable,
+        queryableNow: currQueryable
+      });
+      
+      updateFeatures();
+      
+      if (messages.length >= 1) {
+        showFeatureNotification(setMessages, scrollToBottom);
+      }
+    }
+    
+    prevFeaturesRef.current = {
+      isBookingConfigured: currBooking,
+      hasProducts: currProducts,
+      customerLeadFlag: currContact,
+      isQueryable: currQueryable
+    };
   }, [
-    resetFeaturesShown,
+    currentIsLoading,
+    loadingPricing,
     isBookingConfigured,
     hasProducts,
     currentConfig?.customerLeadFlag,
     currentConfig?.isQueryable,
+    updateFeatures,
+    showFeatureNotification,
+    messages.length,
+    setMessages,
+    scrollToBottom
   ]);
 
-
   useEffect(() => {
-    // Do nothing if waiting for configuration to load
     if (currentIsLoading || loadingPricing) {
-      console.log("Skipping feature notifications - still loading configuration or pricing");
       return;
     }
-
-    // If we haven't set the initial messages yet
-    if (!initialMessagesSet.current && messages.length === 1) {
-      console.log("Setting initial feature notifications");
-      console.log("Current status:", {
-        featuresShown,
-        isBookingConfigured,
-        hasProducts,
-        hasFeatures: hasAnyFeatures
-      });
+    
+    const hasAnyFeature = checkFeature(isBookingConfigured) || 
+                         checkFeature(hasProducts) || 
+                         checkFeature(currentConfig?.customerLeadFlag) || 
+                         checkFeature(currentConfig?.isQueryable);
+    
+    if (messages.length >= 1 && hasAnyFeature) {
+      const hasFeatureMessage = messages.some(msg => 
+        msg.sender === "agent" && 
+        (msg.content.includes("capabilities include") || 
+         msg.content.includes("I can help you with") ||
+         msg.content.includes("I'm here to help with"))
+      );
       
-      setTimeout(() => {
-        initialMessagesSet.current = true; 
-        
-        if (!featuresShown) {
-          console.log("Attempting to show feature notifications - delayed");
-          showFeatureNotifications(setMessages, scrollToBottom);
-        }
-      }, 500); 
+      if (!hasFeatureMessage) {
+        setTimeout(() => {
+          showFeatureNotification(setMessages, scrollToBottom);
+        }, 100);
+      }
     }
   }, [
     messages,
     currentIsLoading,
     loadingPricing,
-    featuresShown,
-    showFeatureNotifications,
-    setMessages,
-    scrollToBottom,
-    hasAnyFeatures,
     isBookingConfigured,
-    hasProducts
+    hasProducts,
+    currentConfig?.customerLeadFlag,
+    currentConfig?.isQueryable,
+    showFeatureNotification,
+    setMessages,
+    scrollToBottom
   ]);
 
   const handleSendMessage = async (inputMessage?: string): Promise<void> => {
