@@ -82,14 +82,23 @@ export default function PublicChat({
     currentConfig
   );
 
-  // Initialize feature notifications hook
-  const { showFeatureNotifications, featuresShown, resetFeaturesShown } =
+  const { showFeatureNotifications, featuresShown, resetFeaturesShown, hasAnyFeatures } =
     useFeatureNotifications(
       isBookingConfigured,
       hasProducts,
       currentConfig?.customerLeadFlag,
       currentConfig?.isQueryable
     );
+
+  useEffect(() => {
+    console.log("Feature status updated:", {
+      isBookingConfigured,
+      hasProducts, 
+      customerLeadFlag: currentConfig?.customerLeadFlag,
+      isQueryable: currentConfig?.isQueryable,
+      hasAnyFeatures
+    });
+  }, [isBookingConfigured, hasProducts, currentConfig?.customerLeadFlag, currentConfig?.isQueryable, hasAnyFeatures]);
 
   const theme = currentConfig?.themeColors ?? {
     id: "light-yellow",
@@ -106,12 +115,18 @@ export default function PublicChat({
     }
   }, [botUsername, previewConfig, fetchBotData]);
 
-  // Reset feature state when configuration changes
   useEffect(() => {
+    console.log("Configuration changed, resetting feature notifications");
+    console.log("Current feature status:", {
+      isBookingConfigured,
+      hasProducts,
+      customerLeadFlag: currentConfig?.customerLeadFlag,
+      isQueryable: currentConfig?.isQueryable
+    });
+    
     resetFeaturesShown();
     featureNotificationsInitialized.current = false;
     initialMessagesSet.current = false;
-    console.log("Feature notifications reset due to config change");
   }, [
     resetFeaturesShown,
     isBookingConfigured,
@@ -120,22 +135,32 @@ export default function PublicChat({
     currentConfig?.isQueryable,
   ]);
 
-  // Combined effect for initial welcome message and features
+
   useEffect(() => {
     // Do nothing if waiting for configuration to load
     if (currentIsLoading || loadingPricing) {
+      console.log("Skipping feature notifications - still loading configuration or pricing");
       return;
     }
 
     // If we haven't set the initial messages yet
-    if (!initialMessagesSet.current) {
-      initialMessagesSet.current = true; // Mark as initialized
+    if (!initialMessagesSet.current && messages.length === 1) {
+      console.log("Setting initial feature notifications");
+      console.log("Current status:", {
+        featuresShown,
+        isBookingConfigured,
+        hasProducts,
+        hasFeatures: hasAnyFeatures
+      });
       
-      // Show the welcome message and features together
-      if (messages.length === 1 && !featuresShown) {
-        console.log("Showing feature notifications alongside welcome message");
-        showFeatureNotifications(setMessages, scrollToBottom);
-      }
+      setTimeout(() => {
+        initialMessagesSet.current = true; 
+        
+        if (!featuresShown) {
+          console.log("Attempting to show feature notifications - delayed");
+          showFeatureNotifications(setMessages, scrollToBottom);
+        }
+      }, 500); 
     }
   }, [
     messages,
@@ -145,6 +170,9 @@ export default function PublicChat({
     showFeatureNotifications,
     setMessages,
     scrollToBottom,
+    hasAnyFeatures,
+    isBookingConfigured,
+    hasProducts
   ]);
 
   const handleSendMessage = async (inputMessage?: string): Promise<void> => {

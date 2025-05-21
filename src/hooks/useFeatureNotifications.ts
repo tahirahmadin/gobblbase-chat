@@ -25,16 +25,17 @@ export interface UseFeatureNotificationsReturn {
   showFeatureNotifications: (
     setMessages: Dispatch<SetStateAction<ChatMessage[]>>,
     scrollToBottom: () => void
-  ) => void;
+  ) => boolean; 
   featuresShown: boolean;
   resetFeaturesShown: () => void;
+  hasAnyFeatures: boolean; 
 }
 
 export function useFeatureNotifications(
-  isBookingConfigured: boolean,
-  hasProducts: boolean,
-  customerLeadFlag?: boolean,
-  isQueryable?: boolean
+  isBookingConfigured: boolean | undefined,
+  hasProducts: boolean | undefined,
+  customerLeadFlag?: boolean | undefined,
+  isQueryable?: boolean | undefined
 ): UseFeatureNotificationsReturn {
   // Use a single ref to track all internal state
   const stateRef = useRef({
@@ -45,6 +46,27 @@ export function useFeatureNotifications(
     isShowingFeatures: false,
     lastUpdate: Date.now(),
   });
+
+  // console.log("Feature check values:", {
+  //   isBookingConfigured,
+  //   hasProducts,
+  //   customerLeadFlag,
+  //   isQueryable
+  // });
+  
+  const hasBooking = !!isBookingConfigured;
+  const hasProductFeature = !!hasProducts;
+  const hasContactFeature = !!customerLeadFlag;
+  const hasKnowledgeBase = !!isQueryable;
+  
+  const hasAnyFeatures = !!(
+    hasBooking ||
+    hasProductFeature ||
+    hasContactFeature ||
+    hasKnowledgeBase
+  );
+  
+  // console.log("hasAnyFeatures result:", hasAnyFeatures);
 
   // Only use state for UI updates
   const [featuresShown, setFeaturesShown] = useState<boolean>(
@@ -72,11 +94,26 @@ export function useFeatureNotifications(
     (
       setMessages: Dispatch<SetStateAction<ChatMessage[]>>,
       scrollToBottom: () => void
-    ) => {
+    ): boolean => {
+      console.log("showFeatureNotifications called, checking for features...");
+      
+      if (!hasAnyFeatures) {
+        console.log("No features available, marking as shown without displaying message");
+        if (!stateRef.current.featuresShown) {
+          stateRef.current.featuresShown = true;
+          setFeaturesShown(true);
+          
+          if (typeof window !== "undefined") {
+            (window as any).featuresMessageShown = true;
+          }
+        }
+        return false;
+      }
+
       // Prevent rapid re-renders by checking last update time
       const now = Date.now();
       if (now - stateRef.current.lastUpdate < 100) {
-        return;
+        return false;
       }
 
       // Check if features are already shown
@@ -112,7 +149,7 @@ export function useFeatureNotifications(
 
           scrollToBottom();
         }
-        return;
+        return true;
       }
 
       // Update state ref
@@ -127,21 +164,28 @@ export function useFeatureNotifications(
       // Collect available features
       const availableFeatures: string[] = [];
 
-      if (isBookingConfigured) {
+      if (hasBooking) {
+        console.log("Adding booking feature");
         availableFeatures.push("booking appointments");
       }
-      if (hasProducts) {
+      if (hasProductFeature) {
+        console.log("Adding products feature");
         availableFeatures.push("browsing our products");
       }
-      if (customerLeadFlag) {
+      if (hasContactFeature) {
+        console.log("Adding contact feature");
         availableFeatures.push("contacting us directly");
       }
-      if (isQueryable) {
+      if (hasKnowledgeBase) {
+        console.log("Adding knowledge base feature");
         availableFeatures.push("answering questions about our knowledge base");
       }
 
       if (availableFeatures.length === 0) {
-        return;
+        if (typeof window !== "undefined") {
+          (window as any).featuresMessageShown = true;
+        }
+        return false;
       }
 
       // Format features message
@@ -184,13 +228,15 @@ export function useFeatureNotifications(
 
       setMessages((messages) => [...messages, featuresMsg]);
       scrollToBottom();
+      return true;
     },
-    [isBookingConfigured, hasProducts, customerLeadFlag, isQueryable]
+    [isBookingConfigured, hasProducts, customerLeadFlag, isQueryable, hasAnyFeatures]
   );
 
   return {
     showFeatureNotifications,
     featuresShown,
     resetFeaturesShown,
+    hasAnyFeatures, 
   };
 }
