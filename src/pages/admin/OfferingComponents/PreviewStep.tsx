@@ -54,7 +54,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
   let size = "One Size";
   let totalCost = priceType === "paid" && price ? `$${price}` : "Free";
 
-  if (type === "physical") {
+  if (type === "physicalProduct") {
     name = form.title || "Product Name";
     price = form.price;
     priceType = form.priceType;
@@ -71,7 +71,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
         ? form.variedSizes[0]
         : "One Size";
     totalCost = priceType === "paid" && price ? `$${price}` : "$22";
-  } else if (type === "digital") {
+  } else if (type === "digitalProduct") {
     name = form.title || "Product Name";
     price = form.price;
     priceType = form.priceType;
@@ -79,7 +79,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
     description = form.description;
     descriptionEnabled = form.descriptionEnabled;
     thumbnailUrl = form.thumbnailUrl || form.images?.[0];
-  } else if (type === "service") {
+  } else if (type === "Service") {
     name = form.title || "Service Name";
     price = form.price;
     priceType = form.priceType;
@@ -87,7 +87,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
     description = form.description;
     descriptionEnabled = form.descriptionEnabled;
     thumbnailUrl = form.thumbnailUrl || form.images?.[0];
-  } else if (type === "event") {
+  } else if (type === "Event") {
     name = form.title || "Event Name";
     price = form.price;
     priceType = form.priceType;
@@ -101,33 +101,28 @@ const PreviewStep: FC<PreviewStepProps> = ({
   const handleAddProduct = async () => {
     if (!activeBotId) return;
     setLoading(true);
-    try {
-      console.log("Adding/Updating product", form);
-      console.log("activeBotId", activeBotId);
-      console.log("editMode", editMode);
-      console.log("editProduct", editProduct);
 
+    try {
       let data;
-      if (type === "physical") {
+      if (type === "physicalProduct") {
         data = await savePhysicalProduct(
           form,
           activeBotId,
           editMode ? "179" : undefined
         );
-      } else if (type === "digital") {
+      } else if (type === "digitalProduct") {
         data = await saveDigitalProduct(
           form,
           activeBotId,
           editMode ? editProduct.productId : undefined
         );
-      } else if (type === "service") {
-        console.log("Saving service product", form);
+      } else if (type === "Service") {
         data = await saveServiceProduct(
           form,
           activeBotId,
           editMode ? editProduct.productId : undefined
         );
-      } else if (type === "event") {
+      } else if (type === "Event") {
         data = await saveEventProduct(
           form,
           activeBotId,
@@ -144,7 +139,6 @@ const PreviewStep: FC<PreviewStepProps> = ({
         if (typeof onApprove === "function") onApprove();
         navigate("/admin/commerce/manage");
       } else {
-        console.log("Error: ", data);
         toast.error("Error: " + (data?.result?.error || "Unknown error"));
       }
     } catch (err: any) {
@@ -237,7 +231,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
                 : `${type} & description, price, cta, etc.`}
             </div>
             {/* Dynamic Controls by Type */}
-            {type === "event" && (
+            {type === "Event" && (
               <div className="flex flex-col w-full px-6 mt-2 mb-2 gap-2">
                 <div className="flex flex-row gap-2">
                   <div className="flex flex-col flex-1">
@@ -281,7 +275,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
                 </div>
               </div>
             )}
-            {type === "physical" &&
+            {type === "physicalProduct" &&
               form.variedSizes &&
               form.variedSizes.length > 0 && (
                 <div className="flex flex-row justify-between w-full px-6 mt-2 mb-2 gap-4">
@@ -318,7 +312,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
                   </div>
                 </div>
               )}
-            {type === "physical" &&
+            {type === "physicalProduct" &&
               (!form.variedSizes || form.variedSizes.length === 0) && (
                 <div className="flex flex-row justify-between w-full px-6 mt-2 mb-2 gap-4">
                   <div className="flex flex-col items-start">
@@ -347,7 +341,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
                   </div>
                 </div>
               )}
-            {type === "service" && (
+            {type === "Service" && (
               <div className="flex flex-row justify-between w-full px-6 mt-2 mb-2 gap-4">
                 <div className="flex flex-col items-start">
                   <span className="text-xs text-gray-300 mb-1">LOCATION</span>
@@ -375,7 +369,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
                 </div>
               </div>
             )}
-            {type === "digital" && (
+            {type === "digitalProduct" && (
               <div className="flex flex-row justify-between w-full px-6 mt-2 mb-2 gap-4">
                 <div className="flex flex-col items-start">
                   <span className="text-xs text-gray-300 mb-1">

@@ -74,13 +74,13 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
 
   const getTitle = () => {
     switch (type) {
-      case "digital":
+      case "digitalProduct":
         return "Product Name *";
-      case "physical":
+      case "physicalProduct":
         return "Product Name *";
-      case "service":
+      case "Service":
         return "Service Name *";
-      case "event":
+      case "Event":
         return "Event Name *";
       default:
         return "Name *";
@@ -119,7 +119,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           </div>
 
           {/* Digital Product Specific */}
-          {type === "digital" && (
+          {type === "digitalProduct" && (
             <>
               <label className="font-semibold">File Format*</label>
               <div className="flex flex-wrap gap-1 mb-2 mt-1">
@@ -128,11 +128,13 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                     key={fmt}
                     type="button"
                     className={`px-2 py-1 rounded border text-xs font-semibold transition-colors duration-150 ${
-                      form.fileFormat?.[0] === fmt.toLocaleLowerCase()
+                      form.fileFormat === fmt.toLocaleLowerCase()
                         ? "bg-indigo-500 text-white border-indigo-600"
                         : "bg-white text-gray-700 border-gray-300 hover:bg-indigo-100"
                     }`}
                     onClick={() => {
+                      console.log(form.fileFormat);
+                      console.log(fmt.toLocaleLowerCase());
                       setForm((f) => {
                         return {
                           ...f,
@@ -149,7 +151,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           )}
 
           {/* Event Specific */}
-          {type === "event" && (
+          {type === "Event" && (
             <>
               <label className="font-semibold">Event Type*</label>
               <div className="flex flex-wrap gap-2 mb-2">
@@ -311,7 +313,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
         {/* Right Side */}
         <div className="flex-1 flex flex-col gap-4 min-w-0">
           {/* Digital Product Specific */}
-          {type === "digital" && (
+          {type === "digitalProduct" && (
             <div className="p-4 rounded-lg border border-indigo-200 bg-white mb-2">
               <label className="font-semibold block mb-2">Upload Product</label>
               <div className="flex flex-col gap-2">
@@ -387,7 +389,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           )}
 
           {/* Event Specific */}
-          {type === "event" && (
+          {type === "Event" && (
             <div className="mb-2 p-4 rounded-xl border border-indigo-300 bg-[#dbeafe]">
               <label className="font-semibold block mb-2">Set Slots</label>
 
@@ -564,7 +566,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           )}
 
           {/* Service Specific */}
-          {type === "service" && (
+          {type === "Service" && (
             <div className="mb-2 p-4 rounded-lg border border-indigo-200 bg-white">
               <label className="font-semibold block mb-2">Location</label>
               <div className="flex flex-col gap-2">
@@ -608,8 +610,8 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           )}
 
           {/* Physical Product Specific Quantity Section */}
-          {type !== "event" &&
-            (type === "physical" ? (
+          {type !== "Event" &&
+            (type === "physicalProduct" ? (
               <div className="bg-white border border-indigo-300 rounded-xl p-4 mb-4">
                 <label className="block font-semibold mb-2">Quantity</label>
                 <div className="flex flex-col gap-3">

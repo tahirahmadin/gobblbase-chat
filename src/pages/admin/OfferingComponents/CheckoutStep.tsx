@@ -66,17 +66,17 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
 
   // Map product types to template keys
   const templateKeyMap: Record<string, string> = {
-    physical: "physicalProduct",
-    digital: "digitalProduct",
-    service: "serviceProduct",
-    event: "eventProduct",
+    physicalProduct: "physicalProduct",
+    digitalProduct: "digitalProduct",
+    Service: "Service",
+    Event: "Event_Booking_Confirmation",
   };
   // Get the product type from the form (default to physical if missing)
-  const productType = form.type || "physical";
-  const templateKey = templateKeyMap[productType] || templateKeyMap["physical"];
-  const template = emailTemplates?.result?.[templateKey] as
-    | EmailTemplate
-    | undefined;
+
+  const productType = form.type || "physicalProduct";
+  const templateKey =
+    templateKeyMap[productType] || templateKeyMap["physicalProduct"];
+  const template = emailTemplates?.[templateKey] as EmailTemplate | undefined;
   const [localTemplate, setLocalTemplate] = useState<EmailTemplate | null>(
     null
   );
@@ -89,10 +89,10 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
   );
 
   useEffect(() => {
-    if (activeBotId && emailTemplates?.result) {
+    if (activeBotId && emailTemplates === null) {
       fetchEmailTemplates(activeBotId);
     }
-  }, [activeBotId, fetchEmailTemplates]);
+  }, [activeBotId, emailTemplates]);
 
   useEffect(() => {
     if (template) {

@@ -32,6 +32,17 @@ interface PaymentSectionProps {
     images?: string[];
     [key: string]: any;
   };
+  shipping: {
+    name: string;
+    email: string;
+    phone: string;
+    country: string;
+    address1: string;
+    address2: string;
+    city: string;
+    zipcode: string;
+    saveDetails: boolean;
+  };
 }
 
 type PaymentMethod = "stripe" | "razorpay" | "usdt" | "usdc";
@@ -48,7 +59,6 @@ function StripePaymentForm({
   const stripe = useStripe();
   const elements = useElements();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { userEmail, userName } = useUserStore();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -241,6 +251,7 @@ export function PaymentSection({
   onSuccess,
   onOrderDetails,
   product,
+  shipping,
 }: PaymentSectionProps) {
   const { activeBotId, activeBotData } = useBotConfig();
   const { userId, userEmail } = useUserStore();
@@ -248,6 +259,58 @@ export function PaymentSection({
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("stripe");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [freeOrderLoading, setFreeOrderLoading] = useState(false);
+  const [freeOrderError, setFreeOrderError] = useState<string | null>(null);
+
+  // Handle free product order
+  const isFreeProduct = product?.price === 0 && product?.priceType === "free";
+
+  const handleFreeOrder = async () => {
+    setFreeOrderLoading(true);
+    setFreeOrderError(null);
+    try {
+      const response = await fetch(
+        "https://rag.gobbl.ai/product/createFreeProductOrder",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            lineItems: [],
+            agentId: activeBotId,
+            userId: userId,
+            userEmail: userEmail,
+            amount: 0,
+            currency: "USD",
+            cart: [product],
+            shipping: shipping,
+            stripeAccountId:
+              activeBotData?.paymentMethods?.stripe?.accountId || "",
+          }),
+        }
+      );
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to create free order");
+      }
+      const data = await response.json();
+      // Callbacks as with paid orders
+      onOrderDetails({
+        product: product,
+        total: 0,
+        orderId: data.orderId || data._id || undefined,
+        paymentMethod: "Free",
+        paymentDate: new Date().toLocaleDateString(),
+      });
+      onSuccess();
+    } catch (err: any) {
+      setFreeOrderError(err.message || "Failed to create free order");
+      toast.error(err.message || "Failed to create free order");
+    } finally {
+      setFreeOrderLoading(false);
+    }
+  };
 
   const stripePromise = useMemo(() => {
     if (!activeBotData?.paymentMethods.stripe?.accountId) {
@@ -295,6 +358,7 @@ export function PaymentSection({
               stripeAccountId: activeBotData.paymentMethods.stripe.accountId,
               amount: Math.round(product.price * 100),
               currency: activeBotData.currency || "USD",
+              shipping: shipping,
             }),
           }
         );
@@ -401,6 +465,38 @@ export function PaymentSection({
         return null;
     }
   };
+
+  if (isFreeProduct) {
+    return (
+      <div className="p-4" style={{ paddingBottom: "100px" }}>
+        <h3 className="mb-4" style={{ color: theme.isDark ? "#fff" : "#000" }}>
+          This is a free product
+        </h3>
+        <button
+          onClick={handleFreeOrder}
+          className="w-full p-3 rounded font-medium"
+          style={{
+            backgroundColor: "#FFD700",
+            color: "#000",
+            opacity: freeOrderLoading ? 0.7 : 1,
+          }}
+          disabled={freeOrderLoading}
+        >
+          {freeOrderLoading ? (
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>
+              Processing...
+            </div>
+          ) : (
+            "Confirm Purchase"
+          )}
+        </button>
+        {freeOrderError && (
+          <div className="mt-2 text-red-500 text-center">{freeOrderError}</div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="p-4" style={{ paddingBottom: "100px" }}>
