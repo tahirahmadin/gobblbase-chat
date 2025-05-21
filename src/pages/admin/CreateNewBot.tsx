@@ -8,7 +8,80 @@ import { Check, MessageSquare, Mic } from "lucide-react";
 import { AVAILABLE_THEMES, PERSONALITY_OPTIONS } from "../../utils/constants";
 import { PersonalityOption } from "../../types";
 import PublicChat from "../chatbot/PublicChat";
+import styled from "styled-components";
+const Card = styled.div`
+  position: relative;
+  width: calc(100% - 30vw);
+  height: 100%;
+  padding: 4vh 0;
+  min-height: 500px
+  background: #eaefff;
+  border: 2px solid black;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  @media (max-width: 600px) {
+    width: 90%;
+  }
+  &::before {
+    box-sizing: border-box;
+    content: "";
+    position: absolute;
+    top: 17px;
+    right: -17px;
+    width: 100%;
+    height: 100%;
+    border: 8px solid #000000;
+    z-index: -1;
+    background: #ffffff;
+  }
 
+  .btn-container {
+    z-index: 2;
+  }
+`;
+const Button = styled.button`
+  position: relative;
+  max-width: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #6aff97;
+  padding: 0.75rem 1rem;
+  border: 2px solid black;
+  margin-bottom: 1rem;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: clamp(8px, 4vw, 16px);
+  &:hover {
+    background: #6ee7b7;
+  }
+
+  @media (max-width: 600px) {
+    max-width: 200px;
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: -6px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #000000;
+    z-index: -1; // place it behind the button
+    background: #6aff97;
+  }
+
+  &:disabled {
+    background: #d6ffe0;
+    cursor: not-allowed;
+  }
+  &:disabled::before {
+    background: #d6ffe0;
+  }
+`;
 // Theme options
 const themes = AVAILABLE_THEMES;
 
@@ -34,72 +107,103 @@ const CreateNewBot: React.FC = () => {
       {step === 1 && (
         <div className="w-full flex flex-col items-center">
           {/* Stepper Bar */}
-          <div className="flex flex-row items-center gap-6 mb-8 justify-center mt-8">
+          <div className="relative flex items-center justify-center w-[100%] mx-auto max-w-sm mb-16 mt-10">
             {[1, 2, 3].map((n, idx) => (
-              <button
+              <div
                 key={n}
-                type="button"
-                className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-150
-              ${
-                step === n
-                  ? "bg-white border-[#222b5f]"
-                  : "bg-[#e7eaff] border-[#e7eaff]"
-              }
-              text-black font-bold text-lg
-             
-            `}
+                className="relative flex items-center w-full justify-center"
               >
-                {n}
-              </button>
+                {/* Red or gray connecting line */}
+                {idx !== 0 && (
+                  <div
+                    className={`absolute top-1/2 left-[-50px] w-full h-1 z-0 ${
+                      step > idx
+                        ? "bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)]"
+                        : "bg-[#CDCDCD] shadow-[inset_0_1px_1px_0_rgba(0,0,0,0.25)]"
+                    }`}
+                  />
+                )}
+
+                {/* Step Circle */}
+                <button
+                  type="button"
+                  className={`para-font relative z-10 w-[40px] h-[40px] rounded-full flex items-center justify-center border-2 text-black font-bold text-lg
+                  ${
+                    step >= n
+                      ? "bg-white border-[#222b5f]"
+                      : "bg-[#CDCDCD] shadow-[inset_0_6px_6px_0_rgba(0,0,0,0.25)] border-[0px] text-[#7D7D7D]"
+                  }
+                `}
+                >
+                  {n}
+                </button>
+              </div>
             ))}
           </div>
-          <div className="text-2xl font-bold text-black mb-2">
+          <div className="main-font text-lg md:text-2xl lg:text-3xl font-bold text-black mb-2">
             Name your Agent
           </div>
-          <div className="text-md text-black font-medium mb-4">
+          <div className="para-font text-sm md:text-lg text-black font-medium mb-4 mx-2">
             Your Brand Name, Social Handle or Name
           </div>
-          <input
-            className="w-[380px] rounded-md px-4 py-3 bg-[#d6f5d6] border border-[#b6eab6] text-black placeholder:text-[#6b6b6b] focus:outline-none focus:ring-2 focus:ring-green-300 transition mb-2 shadow"
-            maxLength={30}
-            placeholder="Type here..."
-            value={agentName}
-            onChange={(e) => setAgentName(e.target.value)}
-          />
-          <div className="w-[380px] flex justify-between text-sm text-gray-500 mb-4">
-            <span>{agentName.length}/30</span>
-            {/* Empty for alignment */}
-            <span></span>
+          <div className="w-full input-and-btn flex flex-col items-center mt-8 z-4">
+            <input
+              className="w-[240px] md:w-[380px] rounded-md px-4 py-3 border-[0px] bg-[#CEFFDC] shadow-[inset_0_9px_9px_0_rgba(0,0,0,0.40)] text-black placeholder:text-[#6b6b6b] focus:outline-none focus:ring-2 focus:ring-green-300 transition mb-2 shadow"
+              maxLength={30}
+              placeholder="Type here..."
+              value={agentName}
+              onChange={(e) => setAgentName(e.target.value)}
+            />
+            <div className="w-[240px] md:w-[380px] flex justify-between text-sm text-gray-500 mb-4">
+              <span>{agentName.length}/30</span>
+              {/* Empty for alignment */}
+            </div>
+            <div className="w-[240px] md:w-[380px] btn-container  flex justify-end">
+              <Button
+                className="items-end w-[120px] py-2 bg-[#aaffc6] text-black font-bold"
+                disabled={!agentName.trim()}
+                onClick={() => setStep(2)}
+              >
+                NEXT <span className="ml-1">→</span>
+              </Button>
+            </div>
           </div>
-          <button
-            className="w-[120px] py-2 bg-[#aaffc6] text-black font-bold rounded shadow hover:bg-[#7beea2] transition border border-[#222b5f]"
-            disabled={!agentName.trim()}
-            onClick={() => setStep(2)}
-          >
-            NEXT <span className="ml-1">→</span>
-          </button>
         </div>
       )}
       {step === 2 && (
         <div className="w-full">
           {/* Stepper Bar */}
-          <div className="flex flex-row items-center gap-6 mb-8 justify-center mt-8">
+          <div className="relative flex items-center justify-center w-[100%] mx-auto max-w-sm mb-8 mt-8">
             {[1, 2, 3].map((n, idx) => (
-              <button
+              <div
                 key={n}
-                type="button"
-                className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-150
-              ${
-                step === n
-                  ? "bg-white border-[#222b5f]"
-                  : "bg-[#e7eaff] border-[#e7eaff]"
-              }
-              text-black font-bold text-lg
-             
-            `}
+                className="relative flex items-center w-full justify-center"
               >
-                {n}
-              </button>
+                {/* Red or gray connecting line */}
+                {idx !== 0 && (
+                  <div
+                    className={`absolute top-1/2 left-[-50px] w-full h-1 z-0 ${
+                      step > idx
+                        ? "bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)]"
+                        : "bg-[#CDCDCD] shadow-[inset_0_1px_1px_0_rgba(0,0,0,0.25)]"
+                    }`}
+                  />
+                )}
+
+                {/* Step Circle */}
+                <button
+                  type="button"
+                  className={`para-font relative z-10 w-[40px] h-[40px] rounded-full flex items-center justify-center border-2 text-black font-bold text-lg
+                  ${
+                    step >= n
+                      ? "bg-white border-[#222b5f]"
+                      : "bg-[#CDCDCD] shadow-[inset_0_6px_6px_0_rgba(0,0,0,0.25)] border-[0px] text-[#7D7D7D]"
+                  }
+                `}
+                >
+                  {n}
+                </button>
+              </div>
             ))}
           </div>
           <div className="mb-4 pl-14">
@@ -182,23 +286,37 @@ const CreateNewBot: React.FC = () => {
           {/* Left: Theme selection */}
           <div className="w-3/5 rounded-lg flex flex-col gap-4">
             {/* Stepper Bar */}
-            <div className="flex flex-row items-center gap-6 mb-2 justify-center mt-8">
+            <div className="relative flex items-center justify-center w-[100%] mx-auto max-w-sm mb-8 mt-8">
               {[1, 2, 3].map((n, idx) => (
-                <button
+                <div
                   key={n}
-                  type="button"
-                  className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-150
-          ${
-            step === n
-              ? "bg-white border-[#222b5f]"
-              : "bg-[#e7eaff] border-[#e7eaff]"
-          }
-          text-black font-bold text-lg
-         
-        `}
+                  className="relative flex items-center w-full justify-center"
                 >
-                  {n}
-                </button>
+                  {/* Red or gray connecting line */}
+                  {idx !== 0 && (
+                    <div
+                      className={`absolute top-1/2 left-[-50px] w-full h-1 z-0 ${
+                        step > idx
+                          ? "bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)]"
+                          : "bg-[#CDCDCD] shadow-[inset_0_1px_1px_0_rgba(0,0,0,0.25)]"
+                      }`}
+                    />
+                  )}
+
+                  {/* Step Circle */}
+                  <button
+                    type="button"
+                    className={`para-font relative z-10 w-[40px] h-[40px] rounded-full flex items-center justify-center border-2 text-black font-bold text-lg
+                  ${
+                    step >= n
+                      ? "bg-white border-[#222b5f]"
+                      : "bg-[#CDCDCD] shadow-[inset_0_6px_6px_0_rgba(0,0,0,0.25)] border-[0px] text-[#7D7D7D]"
+                  }
+                `}
+                  >
+                    {n}
+                  </button>
+                </div>
               ))}
             </div>
             <div className="pl-14">
@@ -416,10 +534,10 @@ const CreateNewBot: React.FC = () => {
   return (
     <div className="min-h-screen w-full bg-[#b6baf8] flex flex-col">
       {/* Centered content */}
-      <div className="flex-1 flex items-center justify-center w-full">
-        <div className="w-[80%] h-[650px] max-w-6xl  border-2 border-[#222b5f] bg-[#eaefff] shadow-[4px_4px_0_0_#222b5f] rounded-none flex flex-col justify-center items-center p-0">
+      <div className="flex-1 flex items-center justify-center z-10 relative">
+        <Card className="w-[80%] h-[650px] max-w-6xl  border-2 border-[#222b5f] bg-[#eaefff] rounded-none flex flex-col justify-center items-center p-0">
           <div className="w-full h-full flex flex-col">{renderStepper()}</div>
-        </div>
+        </Card>
       </div>
     </div>
   );
