@@ -1,5 +1,5 @@
-import { useState, useRef, Dispatch, SetStateAction, useEffect } from 'react';
-import { ChatMessage } from '../types';
+import { useState, useRef, Dispatch, SetStateAction, useCallback } from "react";
+import { ChatMessage } from "../types";
 
 // Template messages for feature notifications - make sure they match your tone
 const featureNotificationMessages = [
@@ -8,16 +8,15 @@ const featureNotificationMessages = [
   "My capabilities include {{features}}.",
 ];
 
-if (typeof window !== 'undefined') {
-  if (!window.hasOwnProperty('featuresMessageShown')) {
+// Initialize window properties only once
+if (typeof window !== "undefined") {
+  if (!window.hasOwnProperty("featuresMessageShown")) {
     (window as any).featuresMessageShown = false;
   }
-  
-  if (!window.hasOwnProperty('featuresMessageContent')) {
+  if (!window.hasOwnProperty("featuresMessageContent")) {
     (window as any).featuresMessageContent = "";
   }
-  
-  if (!window.hasOwnProperty('featuresMessageId')) {
+  if (!window.hasOwnProperty("featuresMessageId")) {
     (window as any).featuresMessageId = "";
   }
 }
@@ -37,146 +36,161 @@ export function useFeatureNotifications(
   customerLeadFlag?: boolean,
   isQueryable?: boolean
 ): UseFeatureNotificationsReturn {
+  // Use a single ref to track all internal state
+  const stateRef = useRef({
+    featuresShown:
+      typeof window !== "undefined"
+        ? (window as any).featuresMessageShown
+        : false,
+    isShowingFeatures: false,
+    lastUpdate: Date.now(),
+  });
+
+  // Only use state for UI updates
   const [featuresShown, setFeaturesShown] = useState<boolean>(
-    typeof window !== 'undefined' ? (window as any).featuresMessageShown : false
+    stateRef.current.featuresShown
   );
-  
-  const isShowingFeatures = useRef<boolean>(false);
-  
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setFeaturesShown((window as any).featuresMessageShown);
-    }
-  }, []);
 
-  const areFeaturesMessageShown = (): boolean => {
-    if (typeof window !== 'undefined') {
-      return (window as any).featuresMessageShown === true;
-    }
-    return false;
-  };
-
-  const resetFeaturesShown = () => {
+  const resetFeaturesShown = useCallback(() => {
+    stateRef.current = {
+      ...stateRef.current,
+      featuresShown: false,
+      isShowingFeatures: false,
+      lastUpdate: Date.now(),
+    };
     setFeaturesShown(false);
-    isShowingFeatures.current = false;
-    
-    if (typeof window !== 'undefined') {
+
+    if (typeof window !== "undefined") {
       (window as any).featuresMessageShown = false;
       (window as any).featureMessageAnimated = false;
       (window as any).featuresMessageContent = "";
       (window as any).featuresMessageId = "";
     }
-  };
+  }, []);
 
-  const showFeatureNotifications = (
-    setMessages: Dispatch<SetStateAction<ChatMessage[]>>,
-    scrollToBottom: () => void
-  ) => {
-    // If features already shown, just restore them
-    if (featuresShown || isShowingFeatures.current || areFeaturesMessageShown()) {
-      
-      if (typeof window !== 'undefined' && 
-          (window as any).featuresMessageShown && 
-          (window as any).featuresMessageContent && 
-          (window as any).featuresMessageId) {
-            
-        setMessages(messages => {
-          if (messages.some(msg => msg.id === (window as any).featuresMessageId)) {
-            return messages;
-          }
-          
-          const restoredMsg: ChatMessage = {
-            id: (window as any).featuresMessageId,
-            content: (window as any).featuresMessageContent,
-            timestamp: new Date(),
-            sender: "agent"
-          };
-          
-          return [...messages, restoredMsg];
-        });
-        
-        scrollToBottom();
+  const showFeatureNotifications = useCallback(
+    (
+      setMessages: Dispatch<SetStateAction<ChatMessage[]>>,
+      scrollToBottom: () => void
+    ) => {
+      // Prevent rapid re-renders by checking last update time
+      const now = Date.now();
+      if (now - stateRef.current.lastUpdate < 100) {
+        return;
       }
-      
-      return;
-    }
 
-    // REMOVED THE WELCOME MESSAGE ANIMATION CHECK - No need to wait for welcome animation
-    // Now the feature message will show immediately alongside the welcome message
+      // Check if features are already shown
+      if (
+        stateRef.current.featuresShown ||
+        stateRef.current.isShowingFeatures
+      ) {
+        // Restore message if it exists
+        if (
+          typeof window !== "undefined" &&
+          (window as any).featuresMessageShown &&
+          (window as any).featuresMessageContent &&
+          (window as any).featuresMessageId
+        ) {
+          setMessages((messages) => {
+            if (
+              messages.some(
+                (msg) => msg.id === (window as any).featuresMessageId
+              )
+            ) {
+              return messages;
+            }
 
-    setFeaturesShown(true);
-    isShowingFeatures.current = true;
-    
-    // Log the call for debugging
-    console.log("showFeatureNotifications called, features set to shown");
-    
-    // Collect the available features
-    const availableFeatures: string[] = [];
-    
-    if (isBookingConfigured) {
-      availableFeatures.push("booking appointments");
-    }
-    
-    if (hasProducts) {
-      availableFeatures.push("browsing our products");
-    }
-    
-    if (customerLeadFlag) {
-      availableFeatures.push("contacting us directly");
-    }
-    
-    if (isQueryable) {
-      availableFeatures.push("answering questions about our knowledge base");
-    }
-    
-    // If no features are available, do nothing
-    if (availableFeatures.length === 0) {
-      console.log("No features available, skipping notification");
-      return;
-    }
-    
-    // Format the features message based on how many features are available
-    let featuresContent = "";
-    
-    if (availableFeatures.length === 1) {
-      featuresContent = availableFeatures[0];
-    } else if (availableFeatures.length === 2) {
-      featuresContent = `${availableFeatures[0]} and ${availableFeatures[1]}`;
-    } else {
-      const lastFeature = availableFeatures.pop();
-      featuresContent = `${availableFeatures.join(', ')}, and ${lastFeature}`;
-    }
-    
-    // Get a single random message template and insert the features
-    const messageIndex = Math.floor(Math.random() * featureNotificationMessages.length);
-    const messageTemplate = featureNotificationMessages[messageIndex];
-    const finalMessage = messageTemplate.replace('{{features}}', featuresContent);
-    
-    console.log("Adding features message:", finalMessage);
-    
-    const featuresMsgId = "features-" + Date.now().toString();
-    
-    if (typeof window !== 'undefined') {
-      (window as any).featuresMessageShown = true;
-      (window as any).featuresMessageContent = finalMessage;
-      (window as any).featuresMessageId = featuresMsgId;
-    }
-    
-    const featuresMsg: ChatMessage = {
-      id: featuresMsgId,
-      content: finalMessage,
-      timestamp: new Date(),
-      sender: "agent",
-      type: "features-combined" 
-    };
-    
-    setMessages(messages => [...messages, featuresMsg]);
-    scrollToBottom();
-  };
+            const restoredMsg: ChatMessage = {
+              id: (window as any).featuresMessageId,
+              content: (window as any).featuresMessageContent,
+              timestamp: new Date(),
+              sender: "agent",
+            };
+
+            return [...messages, restoredMsg];
+          });
+
+          scrollToBottom();
+        }
+        return;
+      }
+
+      // Update state ref
+      stateRef.current = {
+        ...stateRef.current,
+        featuresShown: true,
+        isShowingFeatures: true,
+        lastUpdate: now,
+      };
+      setFeaturesShown(true);
+
+      // Collect available features
+      const availableFeatures: string[] = [];
+
+      if (isBookingConfigured) {
+        availableFeatures.push("booking appointments");
+      }
+      if (hasProducts) {
+        availableFeatures.push("browsing our products");
+      }
+      if (customerLeadFlag) {
+        availableFeatures.push("contacting us directly");
+      }
+      if (isQueryable) {
+        availableFeatures.push("answering questions about our knowledge base");
+      }
+
+      if (availableFeatures.length === 0) {
+        return;
+      }
+
+      // Format features message
+      let featuresContent = "";
+      if (availableFeatures.length === 1) {
+        featuresContent = availableFeatures[0];
+      } else if (availableFeatures.length === 2) {
+        featuresContent = `${availableFeatures[0]} and ${availableFeatures[1]}`;
+      } else {
+        const lastFeature = availableFeatures.pop();
+        featuresContent = `${availableFeatures.join(", ")}, and ${lastFeature}`;
+      }
+
+      // Generate message
+      const messageIndex = Math.floor(
+        Math.random() * featureNotificationMessages.length
+      );
+      const messageTemplate = featureNotificationMessages[messageIndex];
+      const finalMessage = messageTemplate.replace(
+        "{{features}}",
+        featuresContent
+      );
+
+      const featuresMsgId = "features-" + now.toString();
+
+      // Update window state
+      if (typeof window !== "undefined") {
+        (window as any).featuresMessageShown = true;
+        (window as any).featuresMessageContent = finalMessage;
+        (window as any).featuresMessageId = featuresMsgId;
+      }
+
+      // Create and add message
+      const featuresMsg: ChatMessage = {
+        id: featuresMsgId,
+        content: finalMessage,
+        timestamp: new Date(),
+        sender: "agent",
+      };
+
+      setMessages((messages) => [...messages, featuresMsg]);
+      scrollToBottom();
+    },
+    [isBookingConfigured, hasProducts, customerLeadFlag, isQueryable]
+  );
 
   return {
     showFeatureNotifications,
     featuresShown,
-    resetFeaturesShown
+    resetFeaturesShown,
   };
 }

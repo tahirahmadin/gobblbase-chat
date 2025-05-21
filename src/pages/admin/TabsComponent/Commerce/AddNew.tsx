@@ -8,22 +8,22 @@ const cardData = [
   {
     label: "Physical Product",
     icon: <FaBox size={40} />,
-    type: "physical",
+    type: "physicalProduct",
   },
   {
     label: "Digital Product",
     icon: <FaFileAlt size={40} />,
-    type: "digital",
+    type: "digitalProduct",
   },
   {
     label: "Service",
     icon: <FaCalendarAlt size={40} />,
-    type: "service",
+    type: "Service",
   },
   {
     label: "Event",
     icon: <FaUsers size={40} />,
-    type: "event",
+    type: "Event",
   },
 ];
 
@@ -38,6 +38,7 @@ const AddNew = () => {
     const storedEditData = localStorage.getItem("editingProduct");
     if (storedEditData) {
       const { product, type } = JSON.parse(storedEditData);
+
       setEditData(product);
       setSelectedType(type);
     }

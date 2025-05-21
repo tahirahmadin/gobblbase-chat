@@ -118,6 +118,13 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
     }
   };
 
+  const productTypeMap = {
+    physicalProduct: "Physical Product",
+    digitalProduct: "Digital Product",
+    Service: "Service",
+    Event: "Event",
+  };
+
   return (
     <div className="h-screen flex flex-col overflow-x-hidden">
       <div className="flex items-center gap-2 mb-2 px-4">
@@ -128,7 +135,9 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
           ← Back
         </button>
         <h1 className="text-2xl font-bold text-gray-900">
-          {editMode ? `Edit ${type}` : `Add New ${type}`}
+          {editMode
+            ? `Edit ${productTypeMap[type]}`
+            : `Add New ${productTypeMap[type]}`}
         </h1>
       </div>
       <div className="flex-1 min-h-0 flex flex-row gap-1">

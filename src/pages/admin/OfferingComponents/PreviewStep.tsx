@@ -148,6 +148,9 @@ const PreviewStep: FC<PreviewStepProps> = ({
     }
   };
 
+  {
+    console.log(type);
+  }
   return (
     <div className="bg-[#e7eaff] rounded-xl p-6 max-w-6xl mx-auto">
       <div className="flex flex-col justify-start items-start mb-6">
