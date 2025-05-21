@@ -12,7 +12,6 @@ import toast from "react-hot-toast";
 import { CreditCard, Wallet, Loader2 } from "lucide-react";
 import { Theme } from "../../types";
 import { bookAppointment } from "../../lib/serverActions";
-import { createInternationalPhone } from "../../utils/phoneUtils";
 
 interface BookingPaymentProps {
   theme: Theme;
@@ -83,7 +82,7 @@ function StripeBookingForm({
 
       if (paymentIntent && paymentIntent.status === "succeeded") {
         console.log("Payment successful with ID:", paymentIntent.id);
-        
+
         // Use the existing bookAppointment function from your lib/serverActions
         try {
           await bookAppointment({
@@ -103,7 +102,7 @@ function StripeBookingForm({
             paymentAmount: price.amount,
             paymentCurrency: price.currency,
           });
-          
+
           toast.success("Booking confirmed!");
           onSuccess();
         } catch (err) {
@@ -162,11 +161,11 @@ function StablecoinBookingForm({
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
       // Generate a simple payment ID for stablecoin payment
       const paymentId = "stablecoin_" + Date.now();
-      
+
       // Use the existing bookAppointment function from your lib/serverActions
       await bookAppointment({
         agentId: bookingDetails.businessId,
@@ -185,7 +184,7 @@ function StablecoinBookingForm({
         paymentAmount: price.amount,
         paymentCurrency: "USDC",
       });
-      
+
       toast.success("Booking confirmed!");
       onSuccess();
     } catch (error: any) {
@@ -196,9 +195,13 @@ function StablecoinBookingForm({
     }
   };
 
-  const walletAddress = activeBotData?.paymentMethods?.usdc?.walletAddress || 
-                         "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
-  const chains = activeBotData?.paymentMethods?.usdc?.chains || ["Ethereum", "Polygon"];
+  const walletAddress =
+    activeBotData?.paymentMethods?.usdc?.walletAddress ||
+    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
+  const chains = activeBotData?.paymentMethods?.usdc?.chains || [
+    "Ethereum",
+    "Polygon",
+  ];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -207,12 +210,8 @@ function StablecoinBookingForm({
           Send {price.displayPrice} USDC to the following address:
         </p>
         <div className="mt-2 text-center">
-          <p className="font-mono text-sm break-all">
-            {walletAddress}
-          </p>
-          <p className="text-sm mt-2">
-            Supported chains: {chains?.join(", ")}
-          </p>
+          <p className="font-mono text-sm break-all">{walletAddress}</p>
+          <p className="text-sm mt-2">Supported chains: {chains?.join(", ")}</p>
         </div>
       </div>
       <button
@@ -291,7 +290,7 @@ export function BookingPaymentComponent({
           booking: bookingDetails,
           amount: price.amount,
         });
-        
+
         // Convert booking to a format your product API can understand
         const bookingAsProduct = {
           _id: `booking_${bookingDetails.businessId}_${Date.now()}`,
@@ -301,7 +300,7 @@ export function BookingPaymentComponent({
           metadata: {
             type: "booking",
             bookingDetails: bookingDetails,
-          }
+          },
         };
 
         // Use the same product payment endpoint that works in PaymentSection
@@ -359,11 +358,11 @@ export function BookingPaymentComponent({
   // Handle manual payment without Stripe
   const handleManualPayment = async () => {
     setIsLoading(true);
-    
+
     try {
       // Generate a payment ID
       const paymentId = `manual_${selectedMethod}_${Date.now()}`;
-      
+
       // Use the existing bookAppointment function from your lib/serverActions
       await bookAppointment({
         agentId: bookingDetails.businessId,
@@ -380,9 +379,10 @@ export function BookingPaymentComponent({
         paymentId: paymentId,
         paymentMethod: selectedMethod === "stablecoin" ? "USDC" : "Credit Card",
         paymentAmount: price.amount,
-        paymentCurrency: selectedMethod === "stablecoin" ? "USDC" : price.currency,
+        paymentCurrency:
+          selectedMethod === "stablecoin" ? "USDC" : price.currency,
       });
-      
+
       toast.success("Booking confirmed!");
       onSuccess();
     } catch (error: any) {
@@ -410,7 +410,7 @@ export function BookingPaymentComponent({
               >
                 Try Again
               </button>
-              
+
               {/* Provide fallback manual payment option */}
               <button
                 onClick={handleManualPayment}
@@ -428,7 +428,10 @@ export function BookingPaymentComponent({
         if (isLoading) {
           return (
             <div className="flex items-center justify-center h-32">
-              <Loader2 className="animate-spin h-8 w-8" style={{ color: theme.mainLightColor }} />
+              <Loader2
+                className="animate-spin h-8 w-8"
+                style={{ color: theme.mainLightColor }}
+              />
             </div>
           );
         }
@@ -489,7 +492,7 @@ export function BookingPaymentComponent({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 ">
       <div className="flex justify-between items-center mb-4">
         <button
           onClick={onBack}
@@ -500,7 +503,10 @@ export function BookingPaymentComponent({
         </button>
       </div>
 
-      <h3 className="mb-4 font-medium" style={{ color: theme.isDark ? "#fff" : "#000" }}>
+      <h3
+        className="mb-4 font-medium"
+        style={{ color: theme.isDark ? "#fff" : "#000" }}
+      >
         PAY WITH
       </h3>
 
@@ -513,14 +519,26 @@ export function BookingPaymentComponent({
           }}
           className="flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
           style={{
-            backgroundColor: selectedMethod === "stripe" ? theme.highlightColor : (theme.isDark ? "#333" : "#f0f0f0"),
-            color: selectedMethod === "stripe" ? (theme.isDark ? "#000" : "#fff") : (theme.isDark ? "#fff" : "#000"),
+            backgroundColor:
+              selectedMethod === "stripe"
+                ? theme.highlightColor
+                : theme.isDark
+                ? "#333"
+                : "#f0f0f0",
+            color:
+              selectedMethod === "stripe"
+                ? theme.isDark
+                  ? "#000"
+                  : "#fff"
+                : theme.isDark
+                ? "#fff"
+                : "#000",
           }}
         >
           <CreditCard className="w-5 h-5" />
           <span>Credit Card</span>
         </button>
-        
+
         <button
           onClick={() => {
             setSelectedMethod("stablecoin");
@@ -528,8 +546,20 @@ export function BookingPaymentComponent({
           }}
           className="flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
           style={{
-            backgroundColor: selectedMethod === "stablecoin" ? theme.highlightColor : (theme.isDark ? "#333" : "#f0f0f0"),
-            color: selectedMethod === "stablecoin" ? (theme.isDark ? "#000" : "#fff") : (theme.isDark ? "#fff" : "#000"),
+            backgroundColor:
+              selectedMethod === "stablecoin"
+                ? theme.highlightColor
+                : theme.isDark
+                ? "#333"
+                : "#f0f0f0",
+            color:
+              selectedMethod === "stablecoin"
+                ? theme.isDark
+                  ? "#000"
+                  : "#fff"
+                : theme.isDark
+                ? "#fff"
+                : "#000",
           }}
         >
           <Wallet className="w-5 h-5" />
@@ -538,8 +568,16 @@ export function BookingPaymentComponent({
       </div>
 
       {/* Booking Summary */}
-      <div className="p-3 rounded-md mb-4" style={{ backgroundColor: theme.isDark ? "#222" : "#f5f5f5" }}>
-        <h4 className="font-medium mb-2" style={{ color: theme.highlightColor }}>BOOKING SUMMARY</h4>
+      <div
+        className="p-3 rounded-md mb-4"
+        style={{ backgroundColor: theme.isDark ? "#222" : "#f5f5f5" }}
+      >
+        <h4
+          className="font-medium mb-2"
+          style={{ color: theme.highlightColor }}
+        >
+          BOOKING SUMMARY
+        </h4>
         <div className="space-y-1">
           <div className="flex justify-between text-sm">
             <span>Service:</span>
@@ -551,7 +589,9 @@ export function BookingPaymentComponent({
           </div>
           <div className="flex justify-between text-sm">
             <span>Time:</span>
-            <span>{bookingDetails.startTime} - {bookingDetails.endTime}</span>
+            <span>
+              {bookingDetails.startTime} - {bookingDetails.endTime}
+            </span>
           </div>
           <div className="flex justify-between text-sm font-bold">
             <span>Total:</span>
