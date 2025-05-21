@@ -104,13 +104,15 @@ const PreviewStep: FC<PreviewStepProps> = ({
     try {
       console.log("Adding/Updating product", form);
       console.log("activeBotId", activeBotId);
+      console.log("editMode", editMode);
+      console.log("editProduct", editProduct);
 
       let data;
       if (type === "physical") {
         data = await savePhysicalProduct(
           form,
           activeBotId,
-          editMode ? editProduct.productId : undefined
+          editMode ? "179" : undefined
         );
       } else if (type === "digital") {
         data = await saveDigitalProduct(
@@ -119,6 +121,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
           editMode ? editProduct.productId : undefined
         );
       } else if (type === "service") {
+        console.log("Saving service product", form);
         data = await saveServiceProduct(
           form,
           activeBotId,
@@ -141,6 +144,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
         if (typeof onApprove === "function") onApprove();
         navigate("/admin/commerce/manage");
       } else {
+        console.log("Error: ", data);
         toast.error("Error: " + (data?.result?.error || "Unknown error"));
       }
     } catch (err: any) {

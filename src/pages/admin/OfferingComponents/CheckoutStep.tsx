@@ -136,7 +136,7 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
         <h2 className="text-2xl font-semibold text-gray-900">Checkout</h2>
       </div>
       <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
+        {/* <div className="flex-1">
           <div className="font-semibold mb-2">Choose Customer Details</div>
           <div className="flex flex-col gap-2">
             {mergedCustomerFields.map((field) => (
@@ -151,7 +151,7 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
               </label>
             ))}
           </div>
-        </div>
+        </div> */}
         <div className="flex-1">
           <div className="font-semibold mb-2">Confirmation Email</div>
           {emailTemplatesLoading && (

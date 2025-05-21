@@ -200,7 +200,7 @@ export interface Product {
   title: string;
   description?: string;
   price: number;
-  type: "digital" | "service" | "event" | "physical";
+  type: "digitalProduct" | "Service" | "Event" | "physicalProduct";
   images: string[];
   category: string;
   priceType: "paid" | "free";

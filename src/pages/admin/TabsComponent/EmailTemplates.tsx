@@ -13,6 +13,10 @@ interface EmailTemplate {
   body3: string;
 }
 
+interface EmailTemplatesResponse {
+  [key: string]: EmailTemplate | string;
+}
+
 const EmailTemplates = () => {
   const [selectedId, setSelectedId] = useState<string>("physicalProduct");
   const { activeBotId } = useBotConfig();
@@ -31,7 +35,7 @@ const EmailTemplates = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (activeBotId) {
+    if (activeBotId && emailTemplates === null) {
       fetchEmailTemplates(activeBotId);
     }
   }, [activeBotId, fetchEmailTemplates]);
@@ -40,32 +44,29 @@ const EmailTemplates = () => {
     field: "subject" | "body1" | "body2" | "body3",
     value: string
   ) => {
-    if (!emailTemplates?.result) return;
+    if (!emailTemplates) return;
 
-    const template = emailTemplates.result[selectedId] as EmailTemplate;
-    if (!template) return;
+    const template = emailTemplates[selectedId];
+    if (!template || typeof template === "string") return;
 
     const updatedTemplate = {
       ...template,
       [field]: value,
     };
 
-    const updatedTemplates = {
+    const updatedTemplates: EmailTemplatesResponse = {
       ...emailTemplates,
-      result: {
-        ...emailTemplates.result,
-        [selectedId]: updatedTemplate,
-      },
+      [selectedId]: updatedTemplate,
     };
 
     setEmailTemplates(updatedTemplates);
   };
 
   const handlePreview = () => {
-    if (!emailTemplates?.result) return;
+    if (!emailTemplates) return;
 
-    const template = emailTemplates.result[selectedId] as EmailTemplate;
-    if (!template) return;
+    const template = emailTemplates[selectedId];
+    if (!template || typeof template === "string") return;
 
     const previewText = `${template.body1}\n\n${template.body2}\n\n${template.body3}`;
     setTemplatePreview(previewText);
@@ -73,10 +74,10 @@ const EmailTemplates = () => {
   };
 
   const handleSave = async () => {
-    if (!activeBotId || !emailTemplates?.result) return;
+    if (!activeBotId || !emailTemplates) return;
 
-    const template = emailTemplates.result[selectedId] as EmailTemplate;
-    if (!template) return;
+    const template = emailTemplates[selectedId];
+    if (!template || typeof template === "string") return;
 
     setSaving(true);
     try {
@@ -95,22 +96,19 @@ const EmailTemplates = () => {
   };
 
   const handleToggle = async (templateKey: string) => {
-    if (!emailTemplates?.result || !activeBotId) return;
+    if (!emailTemplates || !activeBotId) return;
 
-    const template = emailTemplates.result[templateKey] as EmailTemplate;
-    if (!template) return;
+    const template = emailTemplates[templateKey];
+    if (!template || typeof template === "string") return;
 
     const updatedTemplate = {
       ...template,
       isActive: !template.isActive,
     };
 
-    const updatedTemplates = {
+    const updatedTemplates: EmailTemplatesResponse = {
       ...emailTemplates,
-      result: {
-        ...emailTemplates.result,
-        [templateKey]: updatedTemplate,
-      },
+      [templateKey]: updatedTemplate,
     };
 
     setEmailTemplates(updatedTemplates);
@@ -137,12 +135,12 @@ const EmailTemplates = () => {
     return <div>Error: {emailTemplatesError}</div>;
   }
 
-  if (!emailTemplates?.result) {
+  if (!emailTemplates) {
     return <div>No templates found</div>;
   }
 
-  const template = emailTemplates.result[selectedId] as EmailTemplate;
-  if (!template) {
+  const template = emailTemplates[selectedId];
+  if (!template || typeof template === "string") {
     return <div>Template not found</div>;
   }
 
@@ -155,50 +153,53 @@ const EmailTemplates = () => {
           Tailor messages to match every customer action
         </p>
         <div className="space-y-2">
-          {Object.entries(emailTemplates.result)
-            .filter(([key]) => key !== "agentId")
-            .map(([key, value]) => (
-              <div
-                key={key}
-                className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition border ${
-                  selectedId === key
-                    ? "bg-green-50 border-green-400"
-                    : "bg-white border-gray-200"
-                }`}
-                onClick={() => handleSelect(key)}
-              >
-                <div>
-                  <div
-                    className={`text-sm font-semibold ${
-                      selectedId === key ? "text-green-700" : "text-gray-800"
-                    }`}
-                  >
-                    {(value as EmailTemplate).subText}
-                  </div>
-                </div>
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={(value as EmailTemplate).isActive}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      handleToggle(key);
-                    }}
-                    className="sr-only peer"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <div
-                    className={`w-11 h-6 bg-gray-200 rounded-full relative transition-colors duration-200 peer-focus:outline-none peer-checked:bg-green-400`}
-                  >
+          {Object.entries(emailTemplates)
+            .filter(([_, value]) => typeof value !== "string")
+            .map(([key, value]) => {
+              const template = value as EmailTemplate;
+              return (
+                <div
+                  key={key}
+                  className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition border ${
+                    selectedId === key
+                      ? "bg-green-50 border-green-400"
+                      : "bg-white border-gray-200"
+                  }`}
+                  onClick={() => handleSelect(key)}
+                >
+                  <div>
                     <div
-                      className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
-                        (value as EmailTemplate).isActive ? "translate-x-5" : ""
+                      className={`text-sm font-semibold ${
+                        selectedId === key ? "text-green-700" : "text-gray-800"
                       }`}
-                    ></div>
+                    >
+                      {template.subText}
+                    </div>
                   </div>
-                </label>
-              </div>
-            ))}
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={template.isActive}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        handleToggle(key);
+                      }}
+                      className="sr-only peer"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <div
+                      className={`w-11 h-6 bg-gray-200 rounded-full relative transition-colors duration-200 peer-focus:outline-none peer-checked:bg-green-400`}
+                    >
+                      <div
+                        className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
+                          template.isActive ? "translate-x-5" : ""
+                        }`}
+                      ></div>
+                    </div>
+                  </label>
+                </div>
+              );
+            })}
         </div>
       </div>
 
