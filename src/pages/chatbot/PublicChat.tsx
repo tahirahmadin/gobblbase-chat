@@ -43,7 +43,7 @@ export default function PublicChat({
 
   // Use a ref to track if feature notifications have been initialized
   const featureNotificationsInitialized = useRef<boolean>(false);
-  const featureNotificationTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const initialMessagesSet = useRef<boolean>(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -106,19 +106,11 @@ export default function PublicChat({
     }
   }, [botUsername, previewConfig, fetchBotData]);
 
-  // Clean up feature notification timer on unmount
-  useEffect(() => {
-    return () => {
-      if (featureNotificationTimerRef.current) {
-        clearTimeout(featureNotificationTimerRef.current);
-      }
-    };
-  }, []);
-
   // Reset feature state when configuration changes
   useEffect(() => {
     resetFeaturesShown();
     featureNotificationsInitialized.current = false;
+    initialMessagesSet.current = false;
     console.log("Feature notifications reset due to config change");
   }, [
     resetFeaturesShown,
@@ -128,39 +120,22 @@ export default function PublicChat({
     currentConfig?.isQueryable,
   ]);
 
-  // Show feature notifications after welcome message - with improved handling
+  // Combined effect for initial welcome message and features
   useEffect(() => {
     // Do nothing if waiting for configuration to load
     if (currentIsLoading || loadingPricing) {
       return;
     }
 
-    // Mark as initialized when configuration is loaded
-    if (!featureNotificationsInitialized.current) {
-      featureNotificationsInitialized.current = true;
-      console.log("Feature notifications initialized");
-    }
-
-    // Check if only welcome message is shown and features not already displayed
-    if (
-      messages.length === 1 &&
-      messages[0].sender === "agent" &&
-      !featuresShown &&
-      featureNotificationsInitialized.current
-    ) {
-      console.log("Preparing to show feature notifications");
-
-      // Clear any existing timer
-      if (featureNotificationTimerRef.current) {
-        clearTimeout(featureNotificationTimerRef.current);
-      }
-
-      // Set a new timer
-      featureNotificationTimerRef.current = setTimeout(() => {
-        console.log("Timeout fired - calling showFeatureNotifications");
+    // If we haven't set the initial messages yet
+    if (!initialMessagesSet.current) {
+      initialMessagesSet.current = true; // Mark as initialized
+      
+      // Show the welcome message and features together
+      if (messages.length === 1 && !featuresShown) {
+        console.log("Showing feature notifications alongside welcome message");
         showFeatureNotifications(setMessages, scrollToBottom);
-        featureNotificationTimerRef.current = null;
-      }, 2000);
+      }
     }
   }, [
     messages,

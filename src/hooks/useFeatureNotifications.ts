@@ -49,13 +49,6 @@ export function useFeatureNotifications(
     }
   }, []);
 
-  const isWelcomeMessageAnimated = (): boolean => {
-    if (typeof window !== 'undefined') {
-      return (window as any).welcomeMessageAnimated === true;
-    }
-    return false;
-  };
-
   const areFeaturesMessageShown = (): boolean => {
     if (typeof window !== 'undefined') {
       return (window as any).featuresMessageShown === true;
@@ -79,6 +72,7 @@ export function useFeatureNotifications(
     setMessages: Dispatch<SetStateAction<ChatMessage[]>>,
     scrollToBottom: () => void
   ) => {
+    // If features already shown, just restore them
     if (featuresShown || isShowingFeatures.current || areFeaturesMessageShown()) {
       
       if (typeof window !== 'undefined' && 
@@ -107,15 +101,8 @@ export function useFeatureNotifications(
       return;
     }
 
-    if (!isWelcomeMessageAnimated()) {
-      console.log("Welcome message still animating, postponing feature notifications");
-      
-      setTimeout(() => {
-        showFeatureNotifications(setMessages, scrollToBottom);
-      }, 500);
-      
-      return;
-    }
+    // REMOVED THE WELCOME MESSAGE ANIMATION CHECK - No need to wait for welcome animation
+    // Now the feature message will show immediately alongside the welcome message
 
     setFeaturesShown(true);
     isShowingFeatures.current = true;
@@ -179,7 +166,8 @@ export function useFeatureNotifications(
       id: featuresMsgId,
       content: finalMessage,
       timestamp: new Date(),
-      sender: "agent"
+      sender: "agent",
+      type: "features-combined" 
     };
     
     setMessages(messages => [...messages, featuresMsg]);
