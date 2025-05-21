@@ -183,25 +183,8 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
               </div>
               <div className="mb-2">
                 <label className="block text-sm font-medium mb-1">Body</label>
-                <div className="bg-blue-100 rounded-t-md px-2 py-1 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <button className="hover:text-blue-700">
-                      <b>B</b>
-                    </button>
-                    <button className="hover:text-blue-700">
-                      <i>I</i>
-                    </button>
-                    <button className="hover:text-blue-700">U</button>
-                    <button className="hover:text-blue-700">S</button>
-                    <button className="hover:text-blue-700">&#128279;</button>
-                  </div>
-                  <select className="bg-blue-100 text-gray-700 text-sm rounded px-2 py-1">
-                    <option>Personalize</option>
-                    <option>&lt;My Username&gt;</option>
-                    <option>&lt;order number&gt;</option>
-                  </select>
-                </div>
-                <div className="border-t-0 border border-blue-300 rounded-b-md bg-white">
+
+                <div className="border border-blue-300 rounded-md bg-white">
                   <div className="p-4">
                     <div className="mb-4">
                       <div className="whitespace-pre-line text-gray-700 mb-2">

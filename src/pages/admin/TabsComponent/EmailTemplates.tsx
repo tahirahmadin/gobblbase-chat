@@ -221,7 +221,7 @@ const EmailTemplates = () => {
 
             <div className="mb-4">
               <label className="block text-sm font-semibold mb-1">Body</label>
-              <div className="border-t-0 border border-blue-300 rounded-b-md bg-white max-h-96 overflow-y-auto">
+              <div className=" border border-blue-300 rounded-md bg-white max-h-96 overflow-y-auto">
                 <div className="p-4">
                   <div className="mb-4">
                     <div className="whitespace-pre-line text-gray-700 mb-2">
