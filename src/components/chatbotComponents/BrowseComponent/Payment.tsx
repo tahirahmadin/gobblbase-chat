@@ -26,8 +26,6 @@ interface OrderInfo {
 
 const PaymentForm = ({
   onSuccess,
-  onBack,
-  userEmail,
 }: {
   onSuccess: (paymentIntentId?: string) => void;
   onBack: () => void;
@@ -38,7 +36,6 @@ const PaymentForm = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const { clearCart } = useCartStore();
   const { activeBotData } = useBotConfig();
-  const { userName } = useUserStore();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -74,35 +71,6 @@ const PaymentForm = ({
 
       clearCart();
 
-      try {
-        console.log("Sending email request with data:", {
-          paymentIntentId: paymentIntent.id,
-          userEmail: userEmail
-        });
-        
-        const response = await fetch("https://rag.gobbl.ai/product/send-order-email", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            paymentIntentId: paymentIntent.id,
-            userEmail: userEmail,
-            userName: userName || "Customer",
-          }),
-        });
-        
-        const responseData = await response.json();
-        console.log("Email API response:", responseData);
-        
-        if (response.ok) {
-          console.log("Order confirmation email sent successfully");
-        } else {
-          console.error("Failed to send order confirmation email:", responseData);
-        }
-      } catch (emailError) {
-        console.error("Error sending order confirmation email:", emailError);
-      }
       // Pass the payment intent ID to the success handler
       onSuccess(paymentIntent.id);
     } catch (error: any) {
@@ -153,8 +121,8 @@ const Payment: React.FC<PaymentProps> = ({
   const [isSuccess, setIsSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [orderInfo, setOrderInfo] = useState<OrderInfo>({
-    orderId: '',
-    date: new Date().toLocaleDateString()
+    orderId: "",
+    date: new Date().toLocaleDateString(),
   });
   const { items, getTotalPrice } = useCartStore();
   const { activeBotId, activeBotData } = useBotConfig();
@@ -166,7 +134,13 @@ const Payment: React.FC<PaymentProps> = ({
 
   useEffect(() => {
     const createPaymentIntent = async () => {
-      if (isLoading || clientSecret || !items || !activeBotData || items.length === 0) {
+      if (
+        isLoading ||
+        clientSecret ||
+        !items ||
+        !activeBotData ||
+        items.length === 0
+      ) {
         return;
       }
 
@@ -231,12 +205,12 @@ const Payment: React.FC<PaymentProps> = ({
       setOrderInfo({
         orderId: shortId,
         date: new Date().toLocaleDateString(),
-        paymentIntentId
+        paymentIntentId,
       });
     } else {
       setOrderInfo({
         orderId: Math.random().toString(36).substr(2, 9).toUpperCase(),
-        date: new Date().toLocaleDateString()
+        date: new Date().toLocaleDateString(),
       });
     }
     setIsSuccess(true);

@@ -1723,7 +1723,7 @@ export async function savePhysicalProduct(
   productId?: string
 ) {
   let formData = new FormData();
-  formData.append("type", "physical");
+  formData.append("type", "physicalProduct");
   formData.append("agentId", agentId);
   if (productId) {
     formData.append("productId", productId);
@@ -1769,7 +1769,7 @@ export async function saveDigitalProduct(
   productId?: string
 ) {
   let formData = new FormData();
-  formData.append("type", "digital");
+  formData.append("type", "digitalProduct");
   formData.append("agentId", agentId);
   if (productId) {
     formData.append("productId", productId);
@@ -1818,7 +1818,7 @@ export async function saveServiceProduct(
   productId?: string
 ) {
   let formData = new FormData();
-  formData.append("type", "service");
+  formData.append("type", "Service");
   formData.append("agentId", agentId);
   if (productId) {
     formData.append("productId", productId);
@@ -1860,7 +1860,7 @@ export async function saveEventProduct(
   productId?: string
 ) {
   let formData = new FormData();
-  formData.append("type", "event");
+  formData.append("type", "Event");
   formData.append("agentId", agentId);
   if (productId) {
     formData.append("productId", productId);

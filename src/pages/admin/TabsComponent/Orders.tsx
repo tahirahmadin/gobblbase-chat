@@ -87,9 +87,9 @@ const Orders = () => {
                     <th className="py-2 px-2 lg:py-3 lg:px-4 font-semibold whitespace-nowrap">
                       AMOUNT
                     </th>
-                    <th className="py-2 px-2 lg:py-3 lg:px-4 font-semibold whitespace-nowrap">
+                    {/* <th className="py-2 px-2 lg:py-3 lg:px-4 font-semibold whitespace-nowrap">
                       ACTION
-                    </th>
+                    </th> */}
                   </tr>
                 </thead>
                 <tbody>
@@ -149,11 +149,11 @@ const Orders = () => {
                               {order.paymentStatus}
                             </div>
                           </td>
-                          <td className="py-2 px-2 lg:py-4 lg:px-4 align-top whitespace-nowrap">
+                          {/* <td className="py-2 px-2 lg:py-4 lg:px-4 align-top whitespace-nowrap">
                             <button className="bg-white border border-red-300 text-red-500 rounded px-2 py-1 hover:bg-red-100 transition text-xs lg:text-sm font-medium">
                               Cancel
                             </button>
-                          </td>
+                          </td> */}
                         </tr>
                       );
                     })

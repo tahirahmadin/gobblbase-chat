@@ -222,6 +222,7 @@ const Payments = () => {
                 className="border border-gray-300 rounded px-3 py-2 w-32 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="USD">USD</option>
+                <option value="USD">AED</option>
                 <option value="EUR">EUR</option>
                 <option value="GBP">GBP</option>
               </select>
@@ -303,7 +304,7 @@ const Payments = () => {
           </div>
 
           {/* Razorpay */}
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Razorpay</span>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -333,10 +334,10 @@ const Payments = () => {
                 />
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* USDT (Crypto) */}
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">USDT (Crypto)</span>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -385,10 +386,10 @@ const Payments = () => {
                 ))}
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* USDC (Crypto) */}
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">USDC (Crypto)</span>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -457,7 +458,7 @@ const Payments = () => {
                 ))}
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Save Button */}
           <div className="flex justify-end mt-8">

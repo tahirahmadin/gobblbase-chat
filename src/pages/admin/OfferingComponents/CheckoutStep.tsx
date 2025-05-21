@@ -2,6 +2,15 @@ import React, { useEffect, useState } from "react";
 import { useBotConfig } from "../../../store/useBotConfig";
 import { useAdminStore } from "../../../store/useAdminStore";
 
+interface EmailTemplate {
+  subText: string;
+  isActive: boolean;
+  subject: string;
+  body1: string;
+  body2: string;
+  body3: string;
+}
+
 type CheckoutStepProps = {
   form: any;
   setForm: React.Dispatch<any>;
@@ -65,8 +74,12 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
   // Get the product type from the form (default to physical if missing)
   const productType = form.type || "physical";
   const templateKey = templateKeyMap[productType] || templateKeyMap["physical"];
-  const template = emailTemplates.find((t) => t.rawKey === templateKey);
-  const [localTemplate, setLocalTemplate] = useState<any | null>(null);
+  const template = emailTemplates?.result?.[templateKey] as
+    | EmailTemplate
+    | undefined;
+  const [localTemplate, setLocalTemplate] = useState<EmailTemplate | null>(
+    null
+  );
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -76,7 +89,7 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
   );
 
   useEffect(() => {
-    if (activeBotId && emailTemplates.length === 0) {
+    if (activeBotId && emailTemplates?.result) {
       fetchEmailTemplates(activeBotId);
     }
   }, [activeBotId, fetchEmailTemplates]);
@@ -89,7 +102,10 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
     }
   }, [template]);
 
-  const handleInputChange = (field: "subject" | "body", value: string) => {
+  const handleInputChange = (
+    field: "subject" | "body1" | "body2" | "body3",
+    value: string
+  ) => {
     if (!localTemplate) return;
     setLocalTemplate({ ...localTemplate, [field]: value });
   };
@@ -99,13 +115,7 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
     setSaving(true);
     setSuccess(false);
     try {
-      const updatedData = {
-        subText: localTemplate.name,
-        isActive: localTemplate.enabled,
-        subject: localTemplate.subject,
-        body: localTemplate.body,
-      };
-      await updateEmailTemplate(activeBotId, updatedData, localTemplate.rawKey);
+      await updateEmailTemplate(activeBotId, localTemplate, templateKey);
       setSuccess(true);
     } catch (err) {
       // error handled by store
@@ -158,7 +168,7 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
           {!emailTemplatesLoading && !emailTemplatesError && localTemplate && (
             <div className="bg-blue-50 border border-blue-300 rounded-lg p-4">
               <div className="mb-2 text-gray-700 font-semibold">
-                {localTemplate.category} &gt; {localTemplate.name}
+                {localTemplate.subText}
               </div>
               <div className="mb-2">
                 <label className="block text-sm font-medium mb-1">
@@ -191,12 +201,35 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
                     <option>&lt;order number&gt;</option>
                   </select>
                 </div>
-                <textarea
-                  value={localTemplate.body}
-                  onChange={(e) => handleInputChange("body", e.target.value)}
-                  className="w-full min-h-[120px] border-t-0 border border-blue-300 rounded-b-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
-                  placeholder="Type your message..."
-                />
+                <div className="border-t-0 border border-blue-300 rounded-b-md bg-white">
+                  <div className="p-4">
+                    <div className="mb-4">
+                      <div className="whitespace-pre-line text-gray-700 mb-2">
+                        {localTemplate.body1}
+                      </div>
+                    </div>
+
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-1">
+                        Custom Message
+                      </label>
+                      <textarea
+                        value={localTemplate.body2}
+                        onChange={(e) =>
+                          handleInputChange("body2", e.target.value)
+                        }
+                        className="w-full min-h-[120px] border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+                        placeholder="Type your message..."
+                      />
+                    </div>
+
+                    <div className="mb-4">
+                      <div className="whitespace-pre-line text-gray-700">
+                        {localTemplate.body3}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div className="flex items-center gap-4 mt-2">
                 <button

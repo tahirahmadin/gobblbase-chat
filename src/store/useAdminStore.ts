@@ -18,7 +18,7 @@ interface AdminState {
   isLoading: boolean;
   error: string | null;
   totalAgents: number;
-  emailTemplates: any[];
+  emailTemplates: EmailTemplatesResponse | null;
   emailTemplatesLoading?: boolean;
   emailTemplatesError?: string | null;
   setError: (error: string | null) => void;
@@ -35,7 +35,7 @@ interface AdminState {
     updatedData: any,
     emailTemplateId: string
   ) => Promise<void>;
-  setEmailTemplates: (templates: any[]) => void;
+  setEmailTemplates: (templates: EmailTemplatesResponse) => void;
   isAgentsLoaded: boolean;
   // Session management
   initializeSession: () => Promise<boolean>;
@@ -49,6 +49,23 @@ interface SignUpResult {
   [key: string]: any;
 }
 
+interface EmailTemplate {
+  subText: string;
+  isActive: boolean;
+  subject: string;
+  body1: string;
+  body2: string;
+  body3: string;
+}
+
+interface EmailTemplatesResponse {
+  error: boolean;
+  result: {
+    agentId: string;
+    [key: string]: EmailTemplate | string;
+  };
+}
+
 export const useAdminStore = create<AdminState>()((set, get) => ({
   // Initial state
   adminId: null,
@@ -59,7 +76,7 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
   isLoading: false,
   error: null,
   totalAgents: 0,
-  emailTemplates: [],
+  emailTemplates: null,
   emailTemplatesLoading: false,
   emailTemplatesError: null,
 
@@ -227,7 +244,7 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
       isLoading: false,
       error: null,
       totalAgents: 0,
-      emailTemplates: [],
+      emailTemplates: null,
       emailTemplatesLoading: false,
       emailTemplatesError: null,
     });
@@ -242,25 +259,38 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
     try {
       const res = await getEmailTemplates(agentId);
       if (res && res.result) {
-        // Flatten the result object into an array for UI
-        const arr = Object.entries(res.result)
-          .filter(
-            ([key]) => key !== "_id" && key !== "agentId" && key !== "__v"
-          )
-          .map(([key, value]: any, idx) => ({
-            id: idx + 1,
-            category: key
-              .replace(/([A-Z])/g, " $1")
-              .replace(/^./, (str: string) => str.toUpperCase()),
-            name: value.subText || key,
-            enabled: value.isActive,
-            subject: value.subject,
-            body: value.body,
-            rawKey: key,
-          }));
-        set({ emailTemplates: arr, emailTemplatesLoading: false });
+        // Convert the result object into the expected format
+        const templates = {
+          agentId: agentId,
+          ...Object.entries(res.result)
+            .filter(
+              ([key]) => key !== "_id" && key !== "agentId" && key !== "__v"
+            )
+            .reduce(
+              (acc, [key, value]: [string, any]) => ({
+                ...acc,
+                [key]: {
+                  subText: value.subText || key,
+                  isActive: value.isActive,
+                  subject: value.subject,
+                  body1: value.body1 || "",
+                  body2: value.body2 || "",
+                  body3: value.body3 || "",
+                },
+              }),
+              {}
+            ),
+        };
+
+        set({
+          emailTemplates: {
+            error: false,
+            result: templates,
+          },
+          emailTemplatesLoading: false,
+        });
       } else {
-        set({ emailTemplates: [], emailTemplatesLoading: false });
+        set({ emailTemplates: null, emailTemplatesLoading: false });
       }
     } catch (err: any) {
       set({
