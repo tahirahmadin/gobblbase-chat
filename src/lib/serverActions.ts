@@ -21,18 +21,19 @@ interface AvailabilityDay {
     endTime: string;
   }[];
 }
+
+interface SignUpResult {
+  _id: string;
+  signUpVia: {
+    via: string;
+    handle: string;
+  };
+  agents: any[];
+}
+
 interface SignUpClientResponse {
   error: boolean;
-  result:
-    | {
-        _id: string;
-        signUpVia: {
-          via: string;
-          handle: string;
-        };
-        agents: any[];
-      }
-    | string;
+  result: string | SignUpResult;
 }
 
 interface Agent {
@@ -368,6 +369,25 @@ export async function signUpClient(
         data: error.response?.data,
         message: error.message,
       });
+
+      // Handle different types of errors
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        return {
+          error: true,
+          result: "Authentication failed. Please log in again.",
+        };
+      } else if (error.response?.status === 429) {
+        return {
+          error: true,
+          result: "Too many requests. Please try again later.",
+        };
+      } else if (error.response?.status === 500) {
+        return {
+          error: true,
+          result: "Server error. Please try again later.",
+        };
+      }
+
       return {
         error: true,
         result: error.response?.data?.message || "Failed to sign up client",
@@ -822,6 +842,7 @@ export async function cancelBooking(bookingId: string) {
     throw error;
   }
 }
+
 export const addProduct = async (data: AddProductData) => {
   try {
     const formData = new FormData();

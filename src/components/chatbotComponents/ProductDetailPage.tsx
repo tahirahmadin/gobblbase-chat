@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Theme } from "../../types";
 import { useCartStore } from "../../store/useCartStore";
+import { useBotConfig } from "../../store/useBotConfig";
 
 interface ProductDetailPageProps {
   theme: Theme;
@@ -17,6 +18,7 @@ export default function ProductDetailPage({
   inChatMode = false,
 }: ProductDetailPageProps) {
   const { selectedProduct, setCartView } = useCartStore();
+  const { activeBotData } = useBotConfig();
   const [quantity, setQuantity] = useState(1);
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
@@ -46,10 +48,9 @@ export default function ProductDetailPage({
   // Adjust sizes based on inChatMode
   const imageSize = inChatMode ? "w-36 h-36" : "w-48 h-48";
   const titleSize = inChatMode ? "text-md" : "text-lg";
-  const descriptionSize = inChatMode ? "text-xs leading-tight" : "text-xs";
   const buttonSize = inChatMode ? "text-xs py-1.5 px-4" : "text-sm py-2 px-5";
   const sectionPadding = inChatMode ? "px-4" : "px-6";
-  const borderWidth = inChatMode ? "w-10" : "w-12";
+
   const contentMaxWidth = inChatMode ? "max-w-full" : "max-w-full";
 
   // UI blocks
@@ -399,7 +400,9 @@ export default function ProductDetailPage({
                 }
               >
                 {selectedProduct?.priceType === "paid"
-                  ? `$${selectedProduct?.price ?? 0}`
+                  ? `${selectedProduct?.price ?? 0} ${
+                      activeBotData?.currency || "USD"
+                    }`
                   : "FREE"}
               </div>
             </div>

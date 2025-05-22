@@ -293,11 +293,21 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                   <input
                     key={thumbnailInputKey}
                     type="file"
-                    accept="image/*"
+                    accept=".png,.jpg,.jpeg"
                     className="absolute inset-0 opacity-0 cursor-pointer"
                     onChange={(e) => {
                       const file = e.target.files?.[0] || null;
                       if (file) {
+                        // Check if file type is allowed
+                        const allowedTypes = [
+                          "image/png",
+                          "image/jpeg",
+                          "image/jpg",
+                        ];
+                        if (!allowedTypes.includes(file.type)) {
+                          alert("Please upload only PNG, JPG, or JPEG files");
+                          return;
+                        }
                         setForm((f) => ({
                           ...f,
                           thumbnail: file,
@@ -323,7 +333,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                   <input
                     type="radio"
                     name="uploadType"
-                    value="file"
+                    value="upload"
                     checked={form.uploadType === "upload"}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, uploadType: e.target.value }))

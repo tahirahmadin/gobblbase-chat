@@ -14,17 +14,6 @@ import { calculateSmartnessLevel } from "../../../../utils/helperFn";
 import { PERSONALITY_OPTIONS } from "../../../../utils/constants";
 import SocialMediaSection from "./SocialMediaSection";
 
-interface SocialMediaLinks {
-  instagram: string;
-  twitter: string;
-  tiktok: string;
-  facebook: string;
-  youtube: string;
-  linkedin: string;
-  snapchat: string;
-  link: string;
-}
-
 const Profile = () => {
   const navigate = useNavigate();
   const [agentName, setAgentName] = useState("");
@@ -36,16 +25,6 @@ const Profile = () => {
   const [promotionalBanner, setPromotionalBanner] = useState("");
   const [isPromoBannerEnabled, setIsPromoBannerEnabled] = useState(false);
   const [smartnessLevel, setSmartnessLevel] = useState(30);
-  const [socialMedia, setSocialMedia] = useState<SocialMediaLinks>({
-    instagram: "",
-    twitter: "",
-    tiktok: "",
-    facebook: "",
-    youtube: "",
-    linkedin: "",
-    snapchat: "",
-    link: "",
-  });
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const {
@@ -87,11 +66,6 @@ const Profile = () => {
       setAgentUsername(activeBotData.username);
       setAgentName(activeBotData.name);
       setAgentBio(activeBotData.bio);
-
-      if (activeBotData.socials) {
-        setSocialMedia(activeBotData.socials as SocialMediaLinks);
-      }
-
       setPromotionalBanner(activeBotData.promotionalBanner || "");
       setIsPromoBannerEnabled(activeBotData.isPromoBannerEnabled);
 
@@ -252,10 +226,6 @@ const Profile = () => {
     }
   };
 
-  const handleSocialMediaUpdate = (newSocials: SocialMediaLinks) => {
-    setSocialMedia(newSocials);
-  };
-
   const handlePromoBannerChange = (value: string) => {
     if (promotionalBanner === "" && value.length > 0) {
       setIsPromoBannerEnabled(true);
@@ -285,7 +255,7 @@ const Profile = () => {
                     />
                   ) : (
                     <img
-                      src={agentPicture}
+                      src={agentPicture || ""}
                       alt="Default Agent"
                       className="w-full h-full object-cover"
                     />
@@ -568,12 +538,9 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Social Media Section - Using the new component */}
+          {/* Social Media Section */}
           <div className="p-6 shadow-sm">
-            <SocialMediaSection
-              externalSocialMedia={socialMedia}
-              onExternalUpdate={handleSocialMediaUpdate}
-            />
+            <SocialMediaSection />
           </div>
         </div>
       </div>
@@ -600,7 +567,6 @@ const Profile = () => {
               bio: agentBio,
               name: agentName,
               username: agentUsername,
-              socials: socialMedia,
             }}
             chatHeight={null}
             isPreview={true}

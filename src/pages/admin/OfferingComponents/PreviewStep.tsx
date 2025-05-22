@@ -393,7 +393,8 @@ const PreviewStep: FC<PreviewStepProps> = ({
               <div className="w-full px-6 mt-2 mb-2 flex flex-col justify-between items-start">
                 <span className="text-xs text-gray-300">TOTAL COST</span>
                 <span className="text-lg font-bold text-white">
-                  {totalCost} {activeBotData?.currency}
+                  {totalCost}{" "}
+                  {totalCost === "Free" ? "" : activeBotData?.currency}
                 </span>
               </div>
               {/* Buy Now Button */}

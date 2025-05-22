@@ -209,3 +209,14 @@ export interface Product {
   category: string;
   priceType: "paid" | "free";
 }
+
+export interface SocialMediaLinks {
+  instagram: string;
+  twitter: string;
+  tiktok: string;
+  facebook: string;
+  youtube: string;
+  linkedin: string;
+  snapchat: string;
+  link: string;
+}

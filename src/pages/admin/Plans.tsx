@@ -312,7 +312,9 @@ const Plans = () => {
                   ) : isUpgrading(plan.id) ? (
                     <span className="flex items-center justify-center gap-2">
                       <Loader2 className="h-5 w-5 animate-spin" />
-                      Upgrading...
+                      {isLowerTierPlan(plan)
+                        ? "Downgrading..."
+                        : "Upgrading..."}
                     </span>
                   ) : isLowerTierPlan(plan) ? (
                     "DOWNGRADE"
