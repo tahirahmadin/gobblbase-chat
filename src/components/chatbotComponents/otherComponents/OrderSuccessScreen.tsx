@@ -86,18 +86,7 @@ export const OrderSuccessScreen: React.FC<OrderSuccessScreenProps> = ({
                 </div>
                 <span>${orderDetails.product.price.toFixed(2)}</span>
               </div>
-              <p
-                className="text-sm mb-2"
-                style={{ color: theme.isDark ? "#e0e0e0" : "#666666" }}
-              >
-                <strong>Order ID:</strong> {orderDetails.orderId}
-              </p>
-              <p
-                className="text-sm mb-2"
-                style={{ color: theme.isDark ? "#e0e0e0" : "#666666" }}
-              >
-                <strong>Product:</strong> {orderDetails.product.title}
-              </p>
+
               <p
                 className="text-sm mb-2"
                 style={{ color: theme.isDark ? "#e0e0e0" : "#666666" }}

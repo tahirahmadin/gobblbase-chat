@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Theme, Product } from "../../types";
+import { Theme } from "../../types";
 import { useCartStore } from "../../store/useCartStore";
-import toast from "react-hot-toast";
 
 interface ProductDetailPageProps {
   theme: Theme;
@@ -55,7 +54,7 @@ export default function ProductDetailPage({
 
   // UI blocks
   let extraFields = null;
-  if (selectedProduct?.type === "physical") {
+  if (selectedProduct?.type === "physicalProduct") {
     extraFields = (
       <div
         className={`flex flex-row justify-between gap-2 ${
@@ -91,10 +90,10 @@ export default function ProductDetailPage({
               -
             </button>
             <span
-              className="px-3 py-1 rounded-full  text-xs font-semibold "
+              className="px-3 py-3 rounded-full  text-sm font-semibold"
               style={{
                 backgroundColor: theme.mainLightColor,
-                color: !theme.isDark ? "#fff" : "#000000",
+                color: !theme.isDark ? "#ffffff" : "#000000",
               }}
             >
               {quantity}
@@ -113,7 +112,7 @@ export default function ProductDetailPage({
         </div>
       </div>
     );
-  } else if (selectedProduct?.type === "digital") {
+  } else if (selectedProduct?.type === "digitalProduct") {
     extraFields = (
       <div
         className={`flex flex-col gap-${inChatMode ? "2" : "3"} mb-${
@@ -135,7 +134,7 @@ export default function ProductDetailPage({
         </div>
       </div>
     );
-  } else if (selectedProduct?.type === "service") {
+  } else if (selectedProduct?.type === "Service") {
     extraFields = (
       <div
         className={`flex flex-row justify-between gap-2 mb-${
@@ -170,10 +169,10 @@ export default function ProductDetailPage({
               -
             </button>
             <span
-              className="px-3 py-1 rounded-full   text-xs font-semibold"
+              className="px-3 py-1 rounded-full   text-sm font-semibold"
               style={{
                 backgroundColor: theme.mainLightColor,
-                color: theme.isDark ? "#fff" : "#000000",
+                color: !theme.isDark ? "#ffffff" : "#000000",
               }}
             >
               {quantity}
@@ -192,7 +191,7 @@ export default function ProductDetailPage({
         </div>
       </div>
     );
-  } else if (selectedProduct?.type === "event") {
+  } else if (selectedProduct?.type === "Event") {
     extraFields = (
       <div
         className={`flex flex-col gap-${inChatMode ? "2" : "3"} mb-${
@@ -249,7 +248,7 @@ export default function ProductDetailPage({
                 className="px-3 py-1 rounded-full  text-xs font-semibold"
                 style={{
                   backgroundColor: theme.mainLightColor,
-                  color: theme.isDark ? "#fff" : "#000000",
+                  color: !theme.isDark ? "#ffffff" : "#000000",
                 }}
               >
                 {quantity}

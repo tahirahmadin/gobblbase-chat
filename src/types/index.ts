@@ -193,14 +193,18 @@ export interface PersonalityOption {
   isCustom?: boolean;
 }
 
-export type ProductType = "physical" | "digital" | "service" | "event";
+export type ProductType =
+  | "physicalProduct"
+  | "digitalProduct"
+  | "Service"
+  | "Event";
 export interface Product {
   _id: string;
   productId: string;
   title: string;
   description?: string;
   price: number;
-  type: "digital" | "service" | "event" | "physical";
+  type: ProductType;
   images: string[];
   category: string;
   priceType: "paid" | "free";

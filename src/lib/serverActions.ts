@@ -1681,7 +1681,12 @@ export async function getEmailTemplates(agentId: string): Promise<any> {
       `https://rag.gobbl.ai/email/getEmailTemplates`,
       { params: { agentId } }
     );
-    return response.data;
+    if (response.data.error) {
+      throw new Error(
+        response.data.result || "Failed to fetch email templates"
+      );
+    }
+    return response.data.result;
   } catch (error) {
     console.error("Error fetching email templates:", error);
     throw error;
@@ -1837,7 +1842,9 @@ export async function saveServiceProduct(
   formData.append("quantityType", form.quantityType);
   formData.append("ctaButton", form.cta);
   formData.append("locationType", form.locationType);
-  formData.append("address", form.address);
+  if (form.address) {
+    formData.append("address", form.address);
+  }
   form.images.forEach((img: File | null, idx: number) => {
     if (img) formData.append(`image${idx + 1}`, img);
   });

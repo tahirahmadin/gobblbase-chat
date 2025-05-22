@@ -1,11 +1,11 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { Theme, ChatMessage } from "../../types";
 import StreamingText from "./otherComponents/StreamingText";
 import LoadingBubbles from "./otherComponents/LoadingBubbles";
 import BookingSection from "./BookingSection";
 import BookingManagementComponent from "./BookingManagementComponent";
-import ContactFormComponent from "./ContactFormComponent";
 import ChatProductDisplay from "./ChatProductDisplay";
+import ReactMarkdown from "react-markdown";
 
 interface ChatSectionProps {
   theme: Theme;
@@ -34,74 +34,38 @@ export default function ChatSection({
   isBookingConfigured = true,
   setActiveScreen,
 }: ChatSectionProps) {
-  const prevActiveScreenRef = useRef<string | null>(null);
-
-  // Effect to handle screen transition
-  useEffect(() => {
-    // We only care about transitions to the chat screen
-    if (activeScreen === "chat" && prevActiveScreenRef.current !== "chat") {
-      // No need to do anything special, the StreamingText component will handle animation state
-    }
-    
-    // Update the previous screen reference
-    prevActiveScreenRef.current = activeScreen;
-  }, [activeScreen]);
+  // Separate messages by type
+  const welcomeAndFeatureMessages = messages.filter(
+    msg => (msg.type === "welcome" || msg.id === "1" || 
+           msg.type === "features-combined" || 
+           (msg.id && String(msg.id).includes("features"))) && 
+           msg.sender === "agent"
+  );
   
-  // Render different message types
+  const otherMessages = messages.filter(
+    msg => !(msg.type === "welcome" || msg.id === "1" || 
+           msg.type === "features-combined" || 
+           (msg.id && String(msg.id).includes("features"))) || 
+           msg.sender !== "agent"
+  );
+
+  // Render a message without animation
+  const renderInstantMessage = (msg: ChatMessage) => (
+    <div className="prose prose-sm max-w-none [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0 [&>blockquote]:m-0 [&>pre]:m-0 [&>*]:text-inherit prose-headings:text-inherit prose-ul:text-inherit prose-li:text-inherit prose-li:marker:text-inherit prose-strong:text-inherit"
+      style={{ color: !theme.isDark ? "black" : "white", fontSize: 13 }}>
+      <ReactMarkdown>{msg.content}</ReactMarkdown>
+    </div>
+  );
+
+  // Render a regular message with possible animation
   const renderMessage = (msg: ChatMessage) => {
     if (msg.sender === "agent") {
-      // Check if this is a welcome message (either by type or by ID)
-      const isWelcome = msg.type === "welcome" || msg.id === "1";
-      const isFeatureMessage = msg.type === "features-combined" || 
-                              (msg.id && (msg.id.includes("features-") || msg.id.includes("features")));
-
-      // Different message types for agent
-      if (
-        msg.type === "booking-intro" ||
-        msg.type === "booking-management-intro" ||
-        msg.type === "products-intro" ||
-        msg.type === "contact-intro"
-      ) {
-        return (
-          <StreamingText
-            text={msg.content}
-            speed={15}
-            messageId={`${msg.id}-intro`}
-            textColor={!theme.isDark ? "black" : "white"}
-            loadingTime={1000}
-            forceAnimation={false} // Never force animation for better tab switching
-          />
-        );
-      } else if (msg.type === "features-combined" || isFeatureMessage) {
-        // Feature notification message with the same styling as regular messages
-        return (
-          <StreamingText
-            text={msg.content}
-            speed={15}
-            messageId={`${msg.id}`}
-            textColor={!theme.isDark ? "black" : "white"}
-            loadingTime={1000}
-            forceAnimation={false}
-          />
-        );
-      } else if (
-        msg.type === "booking-loading" ||
-        msg.type === "products-loading" ||
-        msg.type === "contact-loading" ||
-        msg.type === "features-loading"
-      ) {
+      // Component types
+      if (["booking-loading", "products-loading", "contact-loading", "features-loading"].includes(msg.type || "")) {
         return <LoadingBubbles textColor={theme.highlightColor} />;
-      } else if (msg.type === "contact-form") {
-        return (
-          <StreamingText
-            text={msg.content}
-            speed={15}
-            messageId={msg.id}
-            textColor={!theme.isDark ? "black" : "white"}
-            loadingTime={1000}
-          />
-        );
-      } else if (msg.type === "booking-calendar") {
+      } 
+      
+      if (msg.type === "booking-calendar") {
         return (
           <div className="w-full">
             <BookingSection
@@ -113,7 +77,9 @@ export default function ChatSection({
             />
           </div>
         );
-      } else if (msg.type === "products-display") {
+      } 
+      
+      if (msg.type === "products-display") {
         return (
           <div className="w-full">
             <ChatProductDisplay
@@ -124,7 +90,9 @@ export default function ChatSection({
             />
           </div>
         );
-      } else if (msg.type === "booking-management") {
+      } 
+      
+      if (msg.type === "booking-management") {
         return (
           <div className="w-full">
             <BookingManagementComponent
@@ -135,21 +103,21 @@ export default function ChatSection({
             />
           </div>
         );
-      } else {
-        // Regular text message or welcome message
-        return (
-          <StreamingText
-            text={msg.content}
-            speed={15}
-            messageId={msg.id}
-            textColor={!theme.isDark ? "black" : "white"}
-            loadingTime={1000}
-            forceAnimation={false} // Never force animation for better tab switching
-          />
-        );
       }
+      
+      // Regular text message with animation
+      return (
+        <StreamingText
+          text={msg.content}
+          speed={15}
+          messageId={String(msg.id)}
+          textColor={!theme.isDark ? "black" : "white"}
+          loadingTime={1000}
+          forceAnimation={false}
+        />
+      );
     } else {
-      // User message - simplified for consistency
+      // User message
       return (
         <div style={{ color: !theme.isDark ? "black" : "white", fontSize: 13 }}>
           {msg.content}
@@ -158,11 +126,53 @@ export default function ChatSection({
     }
   };
 
-  // Style logic for messages - REMOVED THE BORDER STYLING FOR FEATURE MESSAGES
-  const getMessageStyle = (msg: ChatMessage) => {
-    // No special styling for any message types
-    return {};
+  // Create a message container with appropriate styling
+  const createMessageContainer = (msg: ChatMessage, content: React.ReactNode) => {
+    const isSpecialLayout = msg.sender === "agent" && 
+      ["booking-calendar", "booking-management", "products-display", "contact-form"].includes(msg.type || "");
+    
+    return (
+      <div
+        key={msg.id}
+        className={`mb-4 flex ${msg.sender === "agent" ? "justify-start" : "justify-end"}`}
+      >
+        {isSpecialLayout ? (
+          <div
+            className="rounded-xl overflow-hidden"
+            style={{
+              backgroundColor: theme.isDark ? "black" : "white",
+              width: "80%",
+              maxWidth: "600px",
+              margin: "0 auto 0 0",
+            }}
+          >
+            {content}
+          </div>
+        ) : (
+          <div
+            className={`max-w-[80%] rounded-xl p-2 font-medium`}
+            style={{
+              backgroundColor: msg.sender === "agent"
+                ? theme.isDark ? "black" : "white"
+                : theme.mainDarkColor,
+              color: msg.sender === "agent"
+                ? !theme.isDark ? "black" : "white"
+                : "black"
+            }}
+          >
+            <div className="prose prose-sm max-w-none text-inherit">
+              {content}
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
+
+  // Only render if chat screen is active
+  if (activeScreen !== "chat") {
+    return null;
+  }
 
   return (
     <div
@@ -172,59 +182,14 @@ export default function ChatSection({
         paddingBottom: "50px",
       }}
     >
-      {activeScreen === "chat" && (
-        <>
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`mb-4 flex ${
-                msg.sender === "agent" ? "justify-start" : "justify-end"
-              }`}
-            >
-              {msg.sender === "agent" &&
-              (msg.type === "booking-calendar" ||
-                msg.type === "booking-management" ||
-                msg.type === "products-display" ||
-                msg.type === "contact-form") ? (
-                <div
-                  className="rounded-xl overflow-hidden"
-                  style={{
-                    backgroundColor: theme.isDark ? "black" : "white",
-                    width: "80%",
-                    maxWidth: "600px",
-                    margin: "0 auto 0 0",
-                  }}
-                >
-                  {renderMessage(msg)}
-                </div>
-              ) : (
-                // Regular message layout
-                <div
-                  className={`max-w-[80%] rounded-xl p-2 font-medium`}
-                  style={{
-                    backgroundColor:
-                      msg.sender === "agent"
-                        ? theme.isDark
-                          ? "black"
-                          : "white"
-                        : theme.mainDarkColor,
-                    color:
-                      msg.sender === "agent"
-                        ? !theme.isDark
-                          ? "black"
-                          : "white"
-                        : "black",
-                    ...getMessageStyle(msg)
-                  }}
-                >
-                  <div className="prose prose-sm max-w-none text-inherit">
-                    {renderMessage(msg)}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </>
+      {/* Render welcome and feature messages first without animation */}
+      {welcomeAndFeatureMessages.map(msg => 
+        createMessageContainer(msg, renderInstantMessage(msg))
+      )}
+      
+      {/* Then render all other messages */}
+      {otherMessages.map(msg => 
+        createMessageContainer(msg, renderMessage(msg))
       )}
 
       <div ref={messagesEndRef} />

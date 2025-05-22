@@ -387,7 +387,9 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
                     color: "#000",
                   }}
                 >
-                  CONTINUE TO PAYMENT
+                  {selectedProduct.priceType === "free"
+                    ? "PROCEED"
+                    : "CONTINUE TO PAYMENT"}
                 </button>
               </form>
             </div>
@@ -397,6 +399,7 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
               onSuccess={() => setIsSuccess(true)}
               onOrderDetails={handleOrderDetails}
               product={selectedProduct}
+              shipping={shipping}
             />
           )}
         </div>
