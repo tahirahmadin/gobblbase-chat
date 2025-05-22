@@ -134,12 +134,11 @@ export default function ChatProductDisplay({
     const descriptionSize = "text-xs leading-tight";
     const buttonSize = "text-xs py-1.5 px-4";
     const sectionPadding = "px-4";
-    const borderWidth = "w-10";
+    const borderWidth = "w-24"; 
 
-    // Extra fields based on product type
     let extraFields = null;
 
-    if (localSelectedProduct.type === "physical") {
+    if (localSelectedProduct.type === "physicalProduct") {
       extraFields = (
         <div className="flex flex-row justify-between gap-2 py-2">
           <div>
@@ -147,9 +146,10 @@ export default function ChatProductDisplay({
               SELECT SIZE
             </div>
             <button
-              className="px-3 py-1 rounded-full border border-[#fff] text-xs font-semibold"
+              className="px-3 py-1 rounded-full border text-xs font-semibold"
               style={{
                 color: theme.highlightColor,
+                borderColor: theme.isDark ? "#fff" : "#000",
               }}
             >
               One Size
@@ -162,7 +162,7 @@ export default function ChatProductDisplay({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                className="px-2 py-1 rounded-full border border-[#fff] text-lg font-bold bg-[#232323]"
+                className="px-2 py-1 rounded-full text-lg font-bold"
                 style={{
                   backgroundColor: theme.highlightColor,
                   color: !theme.isDark ? "#fff" : "#000000",
@@ -171,17 +171,17 @@ export default function ChatProductDisplay({
                 -
               </button>
               <span
-                className="px-3 py-1 rounded-full border border-[#fff] text-xs font-semibold "
+                className="px-3 py-3 rounded-full text-sm font-semibold"
                 style={{
                   backgroundColor: theme.mainLightColor,
-                  color: !theme.isDark ? "#fff" : "#000000",
+                  color: !theme.isDark ? "#ffffff" : "#000000",
                 }}
               >
                 {quantity}
               </span>
               <button
                 onClick={() => setQuantity((q) => q + 1)}
-                className="px-2 py-1 rounded-full border border-[#fff] text-lg font-bold "
+                className="px-2 py-1 rounded-full text-lg font-bold"
                 style={{
                   backgroundColor: theme.highlightColor,
                   color: !theme.isDark ? "#fff" : "#000000",
@@ -193,6 +193,146 @@ export default function ChatProductDisplay({
           </div>
         </div>
       );
+    } else if (localSelectedProduct.type === "digitalProduct") {
+      extraFields = (
+        <div className="flex flex-col gap-2 mb-2">
+          <div>
+            <div className="text-xs font-semibold mb-1 text-left">
+              AVAILABLE FORMATS
+            </div>
+            <div className="flex gap-2">
+              <button className="px-3 py-1 rounded-full border border-[#fff] text-xs font-semibold bg-[#232323]">
+                PDF
+              </button>
+              <button className="px-3 py-1 rounded-full border border-[#fff] text-xs font-semibold bg-[#232323]">
+                PNG
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    } else if (localSelectedProduct.type === "Service") {
+      extraFields = (
+        <div className="flex flex-row justify-between gap-2 mb-1">
+          <div>
+            <div className="text-xs font-semibold mb-1 text-left">LOCATION</div>
+            <button
+              className="px-3 py-1 rounded-full border text-xs font-semibold"
+              style={{
+                color: theme.highlightColor,
+                borderColor: theme.isDark ? "#fff" : "#000",
+              }}
+            >
+              Online
+            </button>
+          </div>
+          <div>
+            <div className="text-xs font-semibold mb-1 text-left">
+              SELECT QUANTITY
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                className="px-2 py-1 rounded-full text-lg font-bold"
+                style={{
+                  backgroundColor: theme.highlightColor,
+                  color: !theme.isDark ? "#fff" : "#000000",
+                }}
+              >
+                -
+              </button>
+              <span
+                className="px-3 py-1 rounded-full text-sm font-semibold"
+                style={{
+                  backgroundColor: theme.mainLightColor,
+                  color: !theme.isDark ? "#ffffff" : "#000000",
+                }}
+              >
+                {quantity}
+              </span>
+              <button
+                onClick={() => setQuantity((q) => q + 1)}
+                className="px-2 py-1 rounded-full text-lg font-bold"
+                style={{
+                  backgroundColor: theme.highlightColor,
+                  color: !theme.isDark ? "#fff" : "#000000",
+                }}
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    } else if (localSelectedProduct.type === "Event") {
+      extraFields = (
+        <div className="flex flex-col gap-2 mb-2">
+          <div className="flex flex-row gap-4">
+            <div>
+              <div className="text-xs font-semibold mb-1 text-left">DATE</div>
+              <input
+                type="text"
+                placeholder="ddmmyyyy"
+                className="px-3 py-1 rounded-full border border-[#fff] text-xs font-semibold bg-[#232323] w-24"
+              />
+            </div>
+            <div>
+              <div className="text-xs font-semibold mb-1 text-left">TIMINGS</div>
+              <input
+                type="text"
+                placeholder="HH:MM TO HH:MM"
+                className="px-3 py-1 rounded-full border border-[#fff] text-xs font-semibold bg-[#232323] w-32"
+              />
+            </div>
+          </div>
+          <div className="flex flex-row justify-between gap-2">
+            <div>
+              <div className="text-xs font-semibold mb-1 text-left">
+                SLOTS AVAILABLE
+              </div>
+              <button className="px-3 py-1 rounded-full border border-[#fff] text-xs font-semibold bg-[#232323]">
+                XXXX
+              </button>
+            </div>
+            <div>
+              <div className="text-xs font-semibold mb-1 text-left">
+                SELECT QUANTITY
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  className="px-2 py-1 rounded-full text-lg font-bold"
+                  style={{
+                    backgroundColor: theme.highlightColor,
+                    color: !theme.isDark ? "#fff" : "#000000",
+                  }}
+                >
+                  -
+                </button>
+                <span
+                  className="px-3 py-1 rounded-full text-xs font-semibold"
+                  style={{
+                    backgroundColor: theme.mainLightColor,
+                    color: !theme.isDark ? "#ffffff" : "#000000",
+                  }}
+                >
+                  {quantity}
+                </span>
+                <button
+                  onClick={() => setQuantity((q) => q + 1)}
+                  className="px-2 py-1 rounded-full text-lg font-bold"
+                  style={{
+                    backgroundColor: theme.highlightColor,
+                    color: !theme.isDark ? "#fff" : "#000000",
+                  }}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
     }
 
     return (
@@ -200,7 +340,7 @@ export default function ChatProductDisplay({
         <div
           className="rounded-xl w-full relative mt-1"
           style={{
-            color: "#fff",
+            color: theme.isDark ? "#fff" : "#000", // Updated to match ProductDetailPage
           }}
         >
           <div className="flex items-center justify-between pt-2">
@@ -240,7 +380,7 @@ export default function ChatProductDisplay({
             <img
               src={
                 localSelectedProduct?.images?.[currentImageIndex] ||
-                "/placeholder-image.png"
+                "https://i.imgur.com/EJLFNOwg.jpg" // Updated placeholder to match ProductDetailPage
               }
               alt={localSelectedProduct?.title || "Product"}
               className={`${imageSize} object-contain mx-auto rounded-xl`}
@@ -281,14 +421,15 @@ export default function ChatProductDisplay({
           </div>
           {/* Product Info */}
           <div className={`${sectionPadding} pt-3 pb-2 text-center`}>
-            <div className={`${titleSize} font-semibold mb-1`}>
+            <div className={`${titleSize} font-bold mb-1`}> {/* Updated to font-bold */}
               {localSelectedProduct?.title || "Product Name"}
             </div>
             <div
-              className={`${borderWidth} mx-auto border-b-4 border-[#fff] mb-2 opacity-90`}
+              className={`${borderWidth} mx-auto border-b-4 mb-2 opacity-90`}
+              style={{ borderColor: theme.isDark ? "#fff" : "#000" }} // Updated border color logic
             />
             <div className={`${descriptionSize} mb-2 text-left opacity-90`}>
-              {localSelectedProduct?.description || "Product description"}
+              {localSelectedProduct?.description || "Product Bio "} {/* Updated fallback text */}
             </div>
 
             {extraFields}
@@ -306,7 +447,7 @@ export default function ChatProductDisplay({
                 className={`w-fit ${buttonSize} rounded-full font-bold`}
                 style={{
                   backgroundColor: theme.highlightColor,
-                  color: "#222",
+                  color: !theme.isDark ? "#fff" : "#000", // Updated color logic to match ProductDetailPage
                 }}
                 onClick={handleBuyNow}
               >
@@ -329,7 +470,7 @@ export default function ChatProductDisplay({
           {displayProducts.map((product) => (
             <div
               key={`${messageId}-${product._id}`}
-              className="rounded-lg overflow-hidden cursor-pointer hover:shadow-md transition-shadow bg-[#121212]"
+              className="rounded-lg overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => handleProductClick(product)}
               style={{
                 backgroundColor: theme.isDark ? "#121212" : "#f5f5f5",
@@ -337,7 +478,7 @@ export default function ChatProductDisplay({
             >
               <div className="relative">
                 <img
-                  src={product.images?.[0] || "/placeholder-image.png"}
+                  src={product.images?.[0] || "https://i.imgur.com/EJLFNOwg.jpg"}
                   alt={product.title}
                   className="w-full h-32 object-cover"
                 />
