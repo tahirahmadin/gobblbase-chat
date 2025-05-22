@@ -9,7 +9,7 @@ import {
 import { useBotConfig } from "../../store/useBotConfig";
 import { useUserStore } from "../../store/useUserStore";
 import toast from "react-hot-toast";
-import { CreditCard, Wallet, Loader2 } from "lucide-react";
+import { CreditCard, Wallet } from "lucide-react";
 import { Theme } from "../../types";
 import { bookAppointment } from "../../lib/serverActions";
 
@@ -36,7 +36,7 @@ interface BookingPaymentProps {
   };
 }
 
-type PaymentMethod = "stripe" | "stablecoin";
+type PaymentMethod = "stripe" | "razorpay" | "usdt" | "usdc";
 
 function StripeBookingForm({
   onSuccess,
@@ -83,7 +83,6 @@ function StripeBookingForm({
       if (paymentIntent && paymentIntent.status === "succeeded") {
         console.log("Payment successful with ID:", paymentIntent.id);
 
-        // Use the existing bookAppointment function from your lib/serverActions
         try {
           await bookAppointment({
             agentId: bookingDetails.businessId,
@@ -115,6 +114,7 @@ function StripeBookingForm({
     } catch (error: any) {
       console.error("Payment error:", error);
       toast.error(error.message || "Payment failed. Please try again.");
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -134,7 +134,7 @@ function StripeBookingForm({
       >
         {isSubmitting ? (
           <div className="flex items-center justify-center">
-            <Loader2 className="animate-spin h-5 w-5 mr-2" />
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>
             Processing...
           </div>
         ) : (
@@ -145,7 +145,7 @@ function StripeBookingForm({
   );
 }
 
-function StablecoinBookingForm({
+function RazorpayBookingForm({
   onSuccess,
   bookingDetails,
   price,
@@ -154,19 +154,16 @@ function StablecoinBookingForm({
   bookingDetails: BookingPaymentProps["bookingDetails"];
   price: BookingPaymentProps["price"];
 }) {
-  const { activeBotData } = useBotConfig();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const { isLoggedIn, userEmail } = useUserStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsSubmitting(true);
 
     try {
-      // Generate a simple payment ID for stablecoin payment
-      const paymentId = "stablecoin_" + Date.now();
+      const paymentId = "razorpay_" + Date.now();
 
-      // Use the existing bookAppointment function from your lib/serverActions
       await bookAppointment({
         agentId: bookingDetails.businessId,
         userId: isLoggedIn && userEmail ? userEmail : bookingDetails.email,
@@ -180,9 +177,9 @@ function StablecoinBookingForm({
         notes: bookingDetails.notes || "",
         userTimezone: bookingDetails.userTimezone,
         paymentId: paymentId,
-        paymentMethod: "USDC",
+        paymentMethod: "Razorpay",
         paymentAmount: price.amount,
-        paymentCurrency: "USDC",
+        paymentCurrency: price.currency,
       });
 
       toast.success("Booking confirmed!");
@@ -195,23 +192,115 @@ function StablecoinBookingForm({
     }
   };
 
-  const walletAddress =
-    activeBotData?.paymentMethods?.usdc?.walletAddress ||
-    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
-  const chains = activeBotData?.paymentMethods?.usdc?.chains || [
-    "Ethereum",
-    "Polygon",
-  ];
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="p-4 rounded-lg border" style={{ borderColor: "#FFD700" }}>
+        <p className="text-center" style={{ color: "#FFD700" }}>
+          You will be redirected to Razorpay payment gateway
+        </p>
+      </div>
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full p-3 rounded font-medium"
+        style={{
+          backgroundColor: "#FFD700",
+          color: "#000",
+          opacity: isSubmitting ? 0.7 : 1,
+        }}
+      >
+        {isSubmitting ? (
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>
+            Processing...
+          </div>
+        ) : (
+          "PROCEED TO PAYMENT"
+        )}
+      </button>
+    </form>
+  );
+}
+
+function CryptoBookingForm({
+  onSuccess,
+  bookingDetails,
+  type,
+  price,
+}: {
+  onSuccess: () => void;
+  bookingDetails: BookingPaymentProps["bookingDetails"];
+  type: "usdt" | "usdc";
+  price: BookingPaymentProps["price"];
+}) {
+  const { activeBotData } = useBotConfig();
+  const { isLoggedIn, userEmail } = useUserStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const paymentId = `${type}_${Date.now()}`;
+
+      await bookAppointment({
+        agentId: bookingDetails.businessId,
+        userId: isLoggedIn && userEmail ? userEmail : bookingDetails.email,
+        email: bookingDetails.email,
+        date: bookingDetails.date,
+        startTime: bookingDetails.startTime,
+        endTime: bookingDetails.endTime,
+        location: bookingDetails.location,
+        name: bookingDetails.name,
+        phone: bookingDetails.phone,
+        notes: bookingDetails.notes || "",
+        userTimezone: bookingDetails.userTimezone,
+        paymentId: paymentId,
+        paymentMethod: type.toUpperCase(),
+        paymentAmount: price.amount,
+        paymentCurrency: type.toUpperCase(),
+      });
+
+      toast.success("Booking confirmed!");
+      onSuccess();
+    } catch (error: any) {
+      console.error("Booking error:", error);
+      toast.error("Booking failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const walletAddress = activeBotData?.paymentMethods[type]?.walletAddress;
+  const chains = activeBotData?.paymentMethods[type]?.chains;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="p-4 rounded-lg border" style={{ borderColor: "#FFD700" }}>
-        <p className="text-center mb-2">
-          Send {price.displayPrice} USDC to the following address:
+        <p
+          className="text-center mb-2"
+          style={{ color: activeBotData?.themeColors.isDark ? "#fff" : "#000" }}
+        >
+          Send {price.displayPrice} {type.toUpperCase()} to the following address
         </p>
         <div className="mt-2 text-center">
-          <p className="font-mono text-sm break-all">{walletAddress}</p>
-          <p className="text-sm mt-2">Supported chains: {chains?.join(", ")}</p>
+          <p
+            className="font-mono text-sm break-all"
+            style={{
+              color: activeBotData?.themeColors.isDark ? "#fff" : "#000",
+            }}
+          >
+            {walletAddress}
+          </p>
+          <p
+            className="text-sm mt-2"
+            style={{
+              color: activeBotData?.themeColors.isDark ? "#fff" : "#000",
+            }}
+          >
+            Supported chains: {chains?.join(", ")}
+          </p>
         </div>
       </div>
       <button
@@ -226,7 +315,7 @@ function StablecoinBookingForm({
       >
         {isSubmitting ? (
           <div className="flex items-center justify-center">
-            <Loader2 className="animate-spin h-5 w-5 mr-2" />
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>
             Processing...
           </div>
         ) : (
@@ -237,8 +326,6 @@ function StablecoinBookingForm({
   );
 }
 
-// This component works with your existing BookingFlowComponent
-// and uses the bookAppointment function from your lib/serverActions
 export function BookingPaymentComponent({
   theme,
   onSuccess,
@@ -247,13 +334,49 @@ export function BookingPaymentComponent({
   price,
 }: BookingPaymentProps) {
   const { activeBotId, activeBotData } = useBotConfig();
-  const { userId, userEmail } = useUserStore();
+  const { userId, userEmail, isLoggedIn } = useUserStore();
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("stripe");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [freeBookingLoading, setFreeBookingLoading] = useState(false);
+  const [freeBookingError, setFreeBookingError] = useState<string | null>(null);
 
-  // Initialize Stripe in the same way as PaymentSection
+  // Handle free booking
+  const isFreeBooking = price?.amount === 0;
+
+  const handleFreeBooking = async () => {
+    setFreeBookingLoading(true);
+    setFreeBookingError(null);
+    try {
+      await bookAppointment({
+        agentId: bookingDetails.businessId,
+        userId: isLoggedIn && userEmail ? userEmail : bookingDetails.email,
+        email: bookingDetails.email,
+        date: bookingDetails.date,
+        startTime: bookingDetails.startTime,
+        endTime: bookingDetails.endTime,
+        location: bookingDetails.location,
+        name: bookingDetails.name,
+        phone: bookingDetails.phone,
+        notes: bookingDetails.notes || "",
+        userTimezone: bookingDetails.userTimezone,
+        paymentId: "free_" + Date.now(),
+        paymentMethod: "Free",
+        paymentAmount: 0,
+        paymentCurrency: "USD",
+      });
+
+      toast.success("Booking confirmed!");
+      onSuccess();
+    } catch (err: any) {
+      setFreeBookingError(err.message || "Failed to create booking");
+      toast.error(err.message || "Failed to create booking");
+    } finally {
+      setFreeBookingLoading(false);
+    }
+  };
+
   const stripePromise = useMemo(() => {
     if (!activeBotData?.paymentMethods?.stripe?.accountId) {
       console.log("No Stripe account ID found in bot data");
@@ -266,13 +389,11 @@ export function BookingPaymentComponent({
 
   useEffect(() => {
     const createPaymentIntent = async () => {
-      // Skip if price is invalid
       if (!price || price.amount <= 0) {
         setError("Invalid booking price");
         return;
       }
 
-      // Skip if we already have a client secret or other conditions aren't met
       if (
         clientSecret ||
         !activeBotData ||
@@ -286,12 +407,9 @@ export function BookingPaymentComponent({
       setError(null);
 
       try {
-        console.log("Creating payment intent for booking:", {
-          booking: bookingDetails,
-          amount: price.amount,
-        });
+        console.log("Creating payment intent for booking:", bookingDetails);
 
-        // Convert booking to a format your product API can understand
+        // Convert booking to a format compatible with the product API
         const bookingAsProduct = {
           _id: `booking_${bookingDetails.businessId}_${Date.now()}`,
           price: price.amount,
@@ -303,7 +421,6 @@ export function BookingPaymentComponent({
           },
         };
 
-        // Use the same product payment endpoint that works in PaymentSection
         const response = await fetch(
           "https://rag.gobbl.ai/product/create-payment-intent",
           {
@@ -319,6 +436,18 @@ export function BookingPaymentComponent({
               stripeAccountId: activeBotData.paymentMethods.stripe.accountId,
               amount: Math.round(price.amount * 100),
               currency: price.currency || "USD",
+              // Adding booking-specific shipping data
+              shipping: {
+                name: bookingDetails.name,
+                email: bookingDetails.email,
+                phone: bookingDetails.phone,
+                country: "US", // Default or get from booking details
+                address1: bookingDetails.location,
+                address2: "",
+                city: "",
+                zipcode: "",
+                saveDetails: false,
+              },
             }),
           }
         );
@@ -355,45 +484,6 @@ export function BookingPaymentComponent({
     stripePromise,
   ]);
 
-  // Handle manual payment without Stripe
-  const handleManualPayment = async () => {
-    setIsLoading(true);
-
-    try {
-      // Generate a payment ID
-      const paymentId = `manual_${selectedMethod}_${Date.now()}`;
-
-      // Use the existing bookAppointment function from your lib/serverActions
-      await bookAppointment({
-        agentId: bookingDetails.businessId,
-        userId: isLoggedIn && userEmail ? userEmail : bookingDetails.email,
-        email: bookingDetails.email,
-        date: bookingDetails.date,
-        startTime: bookingDetails.startTime,
-        endTime: bookingDetails.endTime,
-        location: bookingDetails.location,
-        name: bookingDetails.name,
-        phone: bookingDetails.phone,
-        notes: bookingDetails.notes || "",
-        userTimezone: bookingDetails.userTimezone,
-        paymentId: paymentId,
-        paymentMethod: selectedMethod === "stablecoin" ? "USDC" : "Credit Card",
-        paymentAmount: price.amount,
-        paymentCurrency:
-          selectedMethod === "stablecoin" ? "USDC" : price.currency,
-      });
-
-      toast.success("Booking confirmed!");
-      onSuccess();
-    } catch (error: any) {
-      console.error("Booking error:", error);
-      setError(error.message || "Booking failed. Please try again.");
-      toast.error("Booking failed. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const renderPaymentMethod = () => {
     switch (selectedMethod) {
       case "stripe":
@@ -410,62 +500,27 @@ export function BookingPaymentComponent({
               >
                 Try Again
               </button>
-
-              {/* Provide fallback manual payment option */}
-              <button
-                onClick={handleManualPayment}
-                className="mt-4 w-full p-3 rounded font-medium"
-                style={{
-                  backgroundColor: "#FFD700",
-                  color: "#000",
-                }}
-              >
-                Continue with Manual Payment
-              </button>
             </div>
           );
         }
         if (isLoading) {
           return (
             <div className="flex items-center justify-center h-32">
-              <Loader2
-                className="animate-spin h-8 w-8"
-                style={{ color: theme.mainLightColor }}
-              />
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
             </div>
           );
         }
         if (!stripePromise) {
           return (
             <div className="p-4 text-red-500 text-center">
-              Stripe is not properly configured.
-              <button
-                onClick={handleManualPayment}
-                className="mt-4 w-full p-3 rounded font-medium"
-                style={{
-                  backgroundColor: "#FFD700",
-                  color: "#000",
-                }}
-              >
-                Continue with Manual Payment
-              </button>
+              Stripe is not properly configured. Please contact support.
             </div>
           );
         }
         if (!clientSecret) {
           return (
             <div className="p-4 text-red-500 text-center">
-              Unable to initialize payment.
-              <button
-                onClick={handleManualPayment}
-                className="mt-4 w-full p-3 rounded font-medium"
-                style={{
-                  backgroundColor: "#FFD700",
-                  color: "#000",
-                }}
-              >
-                Continue with Manual Payment
-              </button>
+              Unable to initialize payment. Please try again.
             </div>
           );
         }
@@ -478,11 +533,21 @@ export function BookingPaymentComponent({
             />
           </Elements>
         );
-      case "stablecoin":
+      case "razorpay":
         return (
-          <StablecoinBookingForm
+          <RazorpayBookingForm
             onSuccess={onSuccess}
             bookingDetails={bookingDetails}
+            price={price}
+          />
+        );
+      case "usdt":
+      case "usdc":
+        return (
+          <CryptoBookingForm
+            onSuccess={onSuccess}
+            bookingDetails={bookingDetails}
+            type={selectedMethod}
             price={price}
           />
         );
@@ -491,8 +556,84 @@ export function BookingPaymentComponent({
     }
   };
 
+  if (isFreeBooking) {
+    return (
+      <div className="p-4" style={{ paddingBottom: "100px" }}>
+        <div className="flex justify-between items-center mb-4">
+          <button
+            onClick={onBack}
+            className="flex items-center text-sm"
+            style={{ color: theme.mainLightColor }}
+          >
+            <span className="mr-1">←</span> BACK
+          </button>
+        </div>
+
+        <h3 className="mb-4" style={{ color: theme.isDark ? "#fff" : "#000" }}>
+          This is a free booking
+        </h3>
+        
+        {/* Booking Summary for free booking */}
+        <div
+          className="p-3 rounded-md mb-4"
+          style={{ backgroundColor: theme.isDark ? "#222" : "#f5f5f5" }}
+        >
+          <h4
+            className="font-medium mb-2"
+            style={{ color: theme.highlightColor }}
+          >
+            BOOKING SUMMARY
+          </h4>
+          <div className="space-y-1">
+            <div className="flex justify-between text-sm">
+              <span>Service:</span>
+              <span>Consultation</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>Date:</span>
+              <span>{bookingDetails.date}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>Time:</span>
+              <span>
+                {bookingDetails.startTime} - {bookingDetails.endTime}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm font-bold">
+              <span>Total:</span>
+              <span>Free</span>
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={handleFreeBooking}
+          className="w-full p-3 rounded font-medium"
+          style={{
+            backgroundColor: "#FFD700",
+            color: "#000",
+            opacity: freeBookingLoading ? 0.7 : 1,
+          }}
+          disabled={freeBookingLoading}
+        >
+          {freeBookingLoading ? (
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>
+              Processing...
+            </div>
+          ) : (
+            "Confirm Booking"
+          )}
+        </button>
+        {freeBookingError && (
+          <div className="mt-2 text-red-500 text-center">{freeBookingError}</div>
+        )}
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4 ">
+    <div className="p-4" style={{ paddingBottom: "100px" }}>
       <div className="flex justify-between items-center mb-4">
         <button
           onClick={onBack}
@@ -503,68 +644,64 @@ export function BookingPaymentComponent({
         </button>
       </div>
 
-      <h3
-        className="mb-4 font-medium"
-        style={{ color: theme.isDark ? "#fff" : "#000" }}
-      >
-        PAY WITH
+      <h3 className="mb-4" style={{ color: theme.isDark ? "#fff" : "#000" }}>
+        Pay with
       </h3>
 
       {/* Payment Method Selection */}
-      <div className="flex gap-2 mb-4">
-        <button
-          onClick={() => {
-            setSelectedMethod("stripe");
-            setError(null);
-          }}
-          className="flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
-          style={{
-            backgroundColor:
+      <div className="flex gap-2 mb-4 pb-10">
+        {activeBotData?.paymentMethods?.stripe?.enabled && (
+          <button
+            onClick={() => setSelectedMethod("stripe")}
+            className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${
               selectedMethod === "stripe"
-                ? theme.highlightColor
-                : theme.isDark
-                ? "#333"
-                : "#f0f0f0",
-            color:
-              selectedMethod === "stripe"
-                ? theme.isDark
-                  ? "#000"
-                  : "#fff"
-                : theme.isDark
-                ? "#fff"
-                : "#000",
-          }}
-        >
-          <CreditCard className="w-5 h-5" />
-          <span>Credit Card</span>
-        </button>
-
-        <button
-          onClick={() => {
-            setSelectedMethod("stablecoin");
-            setError(null);
-          }}
-          className="flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
-          style={{
-            backgroundColor:
-              selectedMethod === "stablecoin"
-                ? theme.highlightColor
-                : theme.isDark
-                ? "#333"
-                : "#f0f0f0",
-            color:
-              selectedMethod === "stablecoin"
-                ? theme.isDark
-                  ? "#000"
-                  : "#fff"
-                : theme.isDark
-                ? "#fff"
-                : "#000",
-          }}
-        >
-          <Wallet className="w-5 h-5" />
-          <span>Stablecoin</span>
-        </button>
+                ? "bg-yellow-500 text-black"
+                : "bg-gray-100 text-gray-600"
+            }`}
+          >
+            <CreditCard className="w-5 h-5" />
+            <span>Credit Card</span>
+          </button>
+        )}
+        {activeBotData?.paymentMethods?.razorpay?.enabled && (
+          <button
+            onClick={() => setSelectedMethod("razorpay")}
+            className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${
+              selectedMethod === "razorpay"
+                ? "bg-yellow-500 text-black"
+                : "bg-gray-100 text-gray-600"
+            }`}
+          >
+            <Wallet className="w-5 h-5" />
+            <span>Razorpay</span>
+          </button>
+        )}
+        {activeBotData?.paymentMethods?.usdt?.enabled && (
+          <button
+            onClick={() => setSelectedMethod("usdt")}
+            className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${
+              selectedMethod === "usdt"
+                ? "bg-yellow-500 text-black"
+                : "bg-gray-100 text-gray-600"
+            }`}
+          >
+            <Wallet className="w-5 h-5" />
+            <span>USDT</span>
+          </button>
+        )}
+        {activeBotData?.paymentMethods?.usdc?.enabled && (
+          <button
+            onClick={() => setSelectedMethod("usdc")}
+            className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${
+              selectedMethod === "usdc"
+                ? "bg-yellow-500 text-black"
+                : "bg-gray-100 text-gray-600"
+            }`}
+          >
+            <Wallet className="w-5 h-5" />
+            <span>USDC</span>
+          </button>
+        )}
       </div>
 
       {/* Booking Summary */}
