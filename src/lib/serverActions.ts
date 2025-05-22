@@ -1944,3 +1944,19 @@ export async function getStripeBillingSession(
     throw error;
   }
 }
+
+export async function updateCustomHandles(
+  agentId: string,
+  customHandles: { label: string; url: string }[]
+): Promise<boolean> {
+  try {
+    await axios.post("https://rag.gobbl.ai/client/updateCustomHandles", {
+      agentId,
+      customHandles,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error updating custom handles:", error);
+    throw new Error("Failed to update custom links");
+  }
+}

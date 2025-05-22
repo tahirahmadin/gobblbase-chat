@@ -346,6 +346,7 @@ export default function PublicChat({
                     theme={currentConfig.themeColors}
                     currentConfig={currentConfig}
                     socials={currentConfig?.socials}
+                    customHandles={currentConfig?.customHandles}
                   />
                 </div>
               )}

@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { calculateSmartnessLevel } from "../../../../utils/helperFn";
 import { PERSONALITY_OPTIONS } from "../../../../utils/constants";
 import SocialMediaSection from "./SocialMediaSection";
+import CustomLinksSection from "./CustomLinksSection";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -541,6 +542,10 @@ const Profile = () => {
           {/* Social Media Section */}
           <div className="p-6 shadow-sm">
             <SocialMediaSection />
+          </div>
+          {/* Custom Links Section */}
+          <div className="p-6 shadow-sm">
+            <CustomLinksSection />
           </div>
         </div>
       </div>

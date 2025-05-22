@@ -132,6 +132,7 @@ export interface BotConfig {
     snapchat: string;
     link: string;
   };
+  customHandles: { label: string; url: string }[];
   prompts: string[];
   generatedPrompts: string[];
   promotionalBanner: string | null;

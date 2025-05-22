@@ -36,6 +36,7 @@ interface AboutSectionProps {
     snapchat: string;
     link: string;
   };
+  customHandles?: { label: string; url: string }[];
   onPolicyClick?: (
     policyKey: string,
     policy: PolicyContent,
@@ -272,6 +273,7 @@ export default function AboutSection({
   onPolicyClick,
   showContactForm,
   contactFormMessage,
+  customHandles,
 }: AboutSectionProps) {
   const { activeBotData } = useBotConfig();
   const [policies, setPolicies] = useState<{ [key: string]: PolicyContent }>(
@@ -483,9 +485,10 @@ export default function AboutSection({
 
           {/* Social Links */}
           <div className="w-full px-6 mt-4 space-y-3">
-            {socials?.youtube && (
+            {customHandles?.map((handle) => (
               <a
-                href={socials.youtube}
+                key={handle.label}
+                href={handle.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full py-3 rounded-full font-medium block text-center"
@@ -494,9 +497,9 @@ export default function AboutSection({
                   color: !theme.isDark ? "white" : "black",
                 }}
               >
-                Subscribe on YouTube
+                {handle.label}
               </a>
-            )}
+            ))}
           </div>
 
           {/* Policies Section */}

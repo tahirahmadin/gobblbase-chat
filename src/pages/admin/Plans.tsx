@@ -125,7 +125,7 @@ const Plans = () => {
       window.open(stripeUrl, "_blank", "noopener,noreferrer");
     } catch (error) {
       console.error("Error changing plan:", error);
-      toast.error("Failed to change plan");
+      toast.error(error?.response?.data?.result);
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
       }
