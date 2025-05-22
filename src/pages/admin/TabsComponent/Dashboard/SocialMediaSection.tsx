@@ -230,7 +230,7 @@ const SocialMediaSection = () => {
                   hasError ? "border-red-500" : "border-gray-300"
                 }`}
               >
-                <span className="px-3 py-2 bg-gray-100 text-gray-500 text-sm whitespace-nowrap border-r border-gray-300">
+                <span className="px-3 py-2 bg-gray-100 text-gray-500 text-sm whitespace-nowrap border-r border-gray-300 w-[220px] flex items-center">
                   {baseUrl}
                 </span>
                 <input

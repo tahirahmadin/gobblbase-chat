@@ -421,6 +421,7 @@ export default function PublicChat({
                     currentConfig={{
                       agentId: currentConfig?.agentId,
                       name: currentConfig?.name,
+                      currency: currentConfig.currency,
                       sessionName: pricingInfo.sessionName,
                       sessionPrice: pricingInfo.sessionPrice,
                       isFreeSession: pricingInfo.isFreeSession,
