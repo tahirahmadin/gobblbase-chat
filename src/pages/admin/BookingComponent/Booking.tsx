@@ -18,6 +18,7 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 
 interface TimeSlot {
+  id?: string;
   startTime: string;
   endTime: string;
 }
@@ -106,27 +107,27 @@ const DEFAULT_AVAILABILITY = [
   {
     day: "Monday",
     available: true,
-    timeSlots: [{ startTime: "09:00", endTime: "17:00" }],
+    timeSlots: [{ id: "monday_default", startTime: "09:00", endTime: "17:00" }],
   },
   {
     day: "Tuesday",
     available: true,
-    timeSlots: [{ startTime: "09:00", endTime: "17:00" }],
+    timeSlots: [{ id: "tuesday_default", startTime: "09:00", endTime: "17:00" }],
   },
   {
     day: "Wednesday",
     available: true,
-    timeSlots: [{ startTime: "09:00", endTime: "17:00" }],
+    timeSlots: [{ id: "wednesday_default", startTime: "09:00", endTime: "17:00" }],
   },
   {
     day: "Thursday",
     available: true,
-    timeSlots: [{ startTime: "09:00", endTime: "17:00" }],
+    timeSlots: [{ id: "thursday_default", startTime: "09:00", endTime: "17:00" }],
   },
   {
     day: "Friday",
     available: true,
-    timeSlots: [{ startTime: "09:00", endTime: "17:00" }],
+    timeSlots: [{ id: "friday_default", startTime: "09:00", endTime: "17:00" }],
   },
   { day: "Saturday", available: false, timeSlots: [] },
 ];
@@ -259,7 +260,15 @@ const Booking: React.FC<BookingProps> = ({
           setSessionType(settings.sessionType || "Consultation");
 
           if (settings.availability && settings.availability.length > 0) {
-            setAvailability(settings.availability);
+            // Ensure all timeSlots have IDs
+            const availabilityWithIds = settings.availability.map((day, dayIndex) => ({
+              ...day,
+              timeSlots: day.timeSlots.map((slot, slotIndex) => ({
+                ...slot,
+                id: slot.id || `fetched_${dayIndex}_${slotIndex}_${Date.now()}`
+              }))
+            }));
+            setAvailability(availabilityWithIds);
           }
 
           if (settings.locations && settings.locations.length > 0) {
@@ -338,7 +347,11 @@ const Booking: React.FC<BookingProps> = ({
         available: !current.available,
         timeSlots: current.available
           ? []
-          : [{ startTime: "09:00", endTime: "17:00" }],
+          : [{ 
+              id: `default_${dayIndex}_${Date.now()}`, 
+              startTime: "09:00", 
+              endTime: "17:00" 
+            }],
       };
       return updated;
     });
@@ -406,54 +419,256 @@ const Booking: React.FC<BookingProps> = ({
       return tz;
     }
   };
-
+  
+  const getAvailableStartTimes = (dayIndex, currentSlotIndex) => {
+    const currentSlots = availability[dayIndex].timeSlots;
+    
+    if (currentSlotIndex === 0) {
+      const nextSlot = currentSlots[1];
+      if (nextSlot) {
+        const nextStartHour = parseInt(nextSlot.startTime.split(':')[0]);
+        const maxHour = Math.min(nextStartHour - 1, 22); 
+        return Array.from({ length: maxHour + 1 }, (_, i) => `${i.toString().padStart(2, "0")}:00`);
+      }
+      return Array.from({ length: 23 }, (_, i) => `${i.toString().padStart(2, "0")}:00`);
+    }
+    
+    const previousSlot = currentSlots[currentSlotIndex - 1];
+    if (!previousSlot) {
+      return [`09:00`]; 
+    }
+    
+    const previousEndHour = parseInt(previousSlot.endTime.split(':')[0]);
+    
+    let maxStartHour = 22;
+    const nextSlot = currentSlots[currentSlotIndex + 1];
+    if (nextSlot) {
+      const nextStartHour = parseInt(nextSlot.startTime.split(':')[0]);
+      maxStartHour = Math.min(nextStartHour - 1, 22); 
+    }
+    
+    const availableTimes = [];
+    for (let hour = previousEndHour; hour <= maxStartHour; hour++) {
+      availableTimes.push(`${hour.toString().padStart(2, '0')}:00`);
+    }
+    
+    return availableTimes.length > 0 ? availableTimes : [`${previousEndHour.toString().padStart(2, '0')}:00`];
+  };
+  
+  const getAvailableEndTimes = (dayIndex, currentSlotIndex, startTime) => {
+    const currentSlots = availability[dayIndex].timeSlots;
+    const startHour = parseInt(startTime.split(':')[0]);
+    
+    let maxHour = 24;
+    
+    const nextSlot = currentSlots[currentSlotIndex + 1];
+    if (nextSlot) {
+      const nextStartHour = parseInt(nextSlot.startTime.split(':')[0]);
+      maxHour = nextStartHour;
+    }
+    
+    const availableTimes = [];
+    for (let hour = startHour + 1; hour <= maxHour; hour++) {
+      availableTimes.push(`${hour.toString().padStart(2, '0')}:00`);
+    }
+    
+    if (availableTimes.length === 0 && startHour + 1 <= 24) {
+      availableTimes.push(`${(startHour + 1).toString().padStart(2, '0')}:00`);
+    }
+    
+    return availableTimes;
+  };
+  
   const addTimeSlot = (dayIndex) => {
     setAvailability(prev => {
       const updated = [...prev];
-      const currentSlots = updated[dayIndex].timeSlots;
+      const currentDay = { ...updated[dayIndex] };
+      const currentSlots = [...currentDay.timeSlots];
       
-      // Find the last slot's end time to start the new slot
-      let newStartTime = "09:00";
-      if (currentSlots.length > 0) {
-        const lastSlot = currentSlots[currentSlots.length - 1];
-        const [hours, minutes] = lastSlot.endTime.split(':').map(Number);
-        const nextHour = hours + 1;
-        newStartTime = `${nextHour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+      console.log("Before adding slot - current slots:", currentSlots);
+      
+      if (currentSlots.length === 0) {
+        currentDay.timeSlots = [{
+          id: `slot_${Date.now()}`, 
+          startTime: "09:00",
+          endTime: "17:00"
+        }];
+        updated[dayIndex] = currentDay;
+        return updated;
       }
       
-      const newEndTime = (() => {
-        const [hours, minutes] = newStartTime.split(':').map(Number);
-        const endHour = hours + 1;
-        return `${endHour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-      })();
+      let latestEndHour = 0;
       
-      updated[dayIndex].timeSlots.push({
-        startTime: newStartTime,
-        endTime: newEndTime
-      });
+      for (const slot of currentSlots) {
+        const endHour = parseInt(slot.endTime.split(':')[0]);
+        if (endHour > latestEndHour) {
+          latestEndHour = endHour;
+        }
+      }
       
+      if (latestEndHour < 23) {
+        const newSlot = {
+          id: `slot_${Date.now()}`, 
+          startTime: `${latestEndHour.toString().padStart(2, '0')}:00`,
+          endTime: `${Math.min(latestEndHour + 1, 24).toString().padStart(2, '0')}:00`
+        };
+        currentDay.timeSlots = [...currentSlots, newSlot];
+        
+        console.log("After adding slot - all slots:", currentDay.timeSlots);
+      }
+      
+      updated[dayIndex] = currentDay;
       return updated;
     });
   };
-
+  
   const removeTimeSlot = (dayIndex, slotIndex) => {
     setAvailability(prev => {
       const updated = [...prev];
-      updated[dayIndex].timeSlots = updated[dayIndex].timeSlots.filter((_, index) => index !== slotIndex);
+      const currentDay = { ...updated[dayIndex] };
+      
+      currentDay.timeSlots = currentDay.timeSlots.filter((_, index) => index !== slotIndex);
+      
+      if (currentDay.timeSlots.length === 0 && currentDay.available) {
+        currentDay.timeSlots = [{ 
+          id: `default_${dayIndex}_${Date.now()}`, 
+          startTime: "09:00", 
+          endTime: "17:00" 
+        }];
+      }
+      
+      updated[dayIndex] = currentDay;
       return updated;
     });
   };
-
+  
   const updateSpecificTimeSlot = (dayIndex, slotIndex, field, value) => {
     setAvailability(prev => {
       const updated = [...prev];
-      if (updated[dayIndex]?.timeSlots[slotIndex]) {
-        updated[dayIndex].timeSlots[slotIndex][field] = value;
+      const currentDay = { ...updated[dayIndex] };
+      const slots = [...currentDay.timeSlots];
+      
+      if (!slots[slotIndex]) return updated;
+      
+      const valueHour = parseInt(value.split(':')[0]);
+      
+      if (field === 'startTime') {
+        if (slotIndex > 0) {
+          const previousSlot = slots[slotIndex - 1];
+          const previousEndHour = parseInt(previousSlot.endTime.split(':')[0]);
+          if (valueHour < previousEndHour) {
+            console.warn(`Cannot set start time ${value} before previous slot ends at ${previousSlot.endTime}`);
+            return updated; 
+          }
+        }
+        
+        if (slotIndex < slots.length - 1) {
+          const nextSlot = slots[slotIndex + 1];
+          const nextStartHour = parseInt(nextSlot.startTime.split(':')[0]);
+          if (valueHour >= nextStartHour) {
+            console.warn(`Cannot set start time ${value} at or after next slot starts at ${nextSlot.startTime}`);
+            return updated; 
+          }
+        }
+        
+        slots[slotIndex] = {
+          ...slots[slotIndex],
+          startTime: value
+        };
+        
+        const currentEndHour = parseInt(slots[slotIndex].endTime.split(':')[0]);
+        if (valueHour >= currentEndHour) {
+          let newEndHour = valueHour + 1;
+          
+          if (slotIndex < slots.length - 1) {
+            const nextSlot = slots[slotIndex + 1];
+            const nextStartHour = parseInt(nextSlot.startTime.split(':')[0]);
+            newEndHour = Math.min(newEndHour, nextStartHour);
+          }
+          
+          newEndHour = Math.min(newEndHour, 24);
+          
+          slots[slotIndex] = {
+            ...slots[slotIndex],
+            endTime: `${newEndHour.toString().padStart(2, '0')}:00`
+          };
+        }
+        
+      } else if (field === 'endTime') {
+        
+        const startHour = parseInt(slots[slotIndex].startTime.split(':')[0]);
+        
+        if (valueHour <= startHour) {
+          console.warn(`End time ${value} must be after start time ${slots[slotIndex].startTime}`);
+          return updated; 
+        }
+        
+        if (slotIndex < slots.length - 1) {
+          const nextSlot = slots[slotIndex + 1];
+          const nextStartHour = parseInt(nextSlot.startTime.split(':')[0]);
+          if (valueHour > nextStartHour) {
+            console.warn(`Cannot set end time ${value} after next slot starts at ${nextSlot.startTime}`);
+            return updated; 
+          }
+        }
+        
+        slots[slotIndex] = {
+          ...slots[slotIndex],
+          endTime: value
+        };
       }
+      
+      currentDay.timeSlots = slots;
+      updated[dayIndex] = currentDay;
+      
       return updated;
     });
   };
 
+  const validateAndFixSlots = (dayIndex) => {
+    setAvailability(prev => {
+      const updated = [...prev];
+      const currentDay = { ...updated[dayIndex] };
+      let slots = [...currentDay.timeSlots];
+      
+      // Sort slots by start time
+      slots.sort((a, b) => {
+        const aStart = parseInt(a.startTime.split(':')[0]);
+        const bStart = parseInt(b.startTime.split(':')[0]);
+        return aStart - bStart;
+      });
+      
+      // Remove overlaps
+      const validSlots = [];
+      for (let i = 0; i < slots.length; i++) {
+        const currentSlot = slots[i];
+        const currentStart = parseInt(currentSlot.startTime.split(':')[0]);
+        const currentEnd = parseInt(currentSlot.endTime.split(':')[0]);
+        
+        // Check if this slot overlaps with any already valid slot
+        const hasOverlap = validSlots.some(validSlot => {
+          const validStart = parseInt(validSlot.startTime.split(':')[0]);
+          const validEnd = parseInt(validSlot.endTime.split(':')[0]);
+          
+          // Check for any overlap
+          return (currentStart < validEnd && currentEnd > validStart);
+        });
+        
+        if (!hasOverlap) {
+          validSlots.push(currentSlot);
+        } else {
+          console.warn(`Removing overlapping slot: ${currentSlot.startTime}-${currentSlot.endTime}`);
+        }
+      }
+      
+      currentDay.timeSlots = validSlots;
+      updated[dayIndex] = currentDay;
+      
+      return updated;
+    });
+  };
+
+  // Helper function to check if a time slot conflicts with breaks
   const hasBreakConflict = (startTime, endTime) => {
     return breaks.some(breakItem => {
       const slotStart = new Date(`2000-01-01T${startTime}:00`);
@@ -871,7 +1086,8 @@ const Booking: React.FC<BookingProps> = ({
   );
 
   // Step 3 - Availability
-  const renderStep3 = () => (
+const renderStep3 = () => {
+  return (
     <div className="mt-8">
       <div className="bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex items-center">
@@ -926,7 +1142,7 @@ const Booking: React.FC<BookingProps> = ({
   
         <div className="space-y-6">
           {availability.map((day, dayIndex) => (
-            <div key={day.day} className="bg-white p-4 rounded-lg border border-gray-200">
+            <div key={`${day.day}-${day.timeSlots.length}`} className="bg-white p-4 rounded-lg border border-gray-200">
               <div className="flex items-center justify-between mb-4">
                 <div className="font-medium uppercase text-gray-700">{day.day}</div>
                 
@@ -954,24 +1170,29 @@ const Booking: React.FC<BookingProps> = ({
               {day.available && (
                 <div className="space-y-3">
                   {day.timeSlots.map((slot, slotIndex) => {
+                    // ADD THIS DEBUG LOG
+                    if (day.day === "Thursday") {
+                      console.log(`Rendering ${day.day} slot ${slotIndex}:`, slot);
+                      console.log(`Available start times:`, getAvailableStartTimes(dayIndex, slotIndex));
+                      console.log(`Available end times:`, getAvailableEndTimes(dayIndex, slotIndex, slot.startTime));
+                    }
+                    
                     return (
-                      <div key={slotIndex} className="space-y-2">
+                      <div key={slot.id || `${dayIndex}-${slotIndex}`} className="space-y-2">
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-gray-400" />
                             <select
                               value={slot.startTime}
-                              onChange={(e) =>
-                                updateSpecificTimeSlot(dayIndex, slotIndex, "startTime", e.target.value)
-                              }
+                              onChange={(e) => {
+                                console.log(`Changing start time for ${day.day} slot ${slotIndex} from ${slot.startTime} to ${e.target.value}`);
+                                updateSpecificTimeSlot(dayIndex, slotIndex, "startTime", e.target.value);
+                              }}
                               className="p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
-                              {Array.from({ length: 24 }).map((_, i) => (
-                                <option
-                                  key={i}
-                                  value={`${i.toString().padStart(2, "0")}:00`}
-                                >
-                                  {`${i.toString().padStart(2, "0")}:00`}
+                              {getAvailableStartTimes(dayIndex, slotIndex).map((time) => (
+                                <option key={time} value={time}>
+                                  {time}
                                 </option>
                               ))}
                             </select>
@@ -980,17 +1201,15 @@ const Booking: React.FC<BookingProps> = ({
   
                             <select
                               value={slot.endTime}
-                              onChange={(e) =>
-                                updateSpecificTimeSlot(dayIndex, slotIndex, "endTime", e.target.value)
-                              }
+                              onChange={(e) => {
+                                console.log(`Changing end time for ${day.day} slot ${slotIndex} from ${slot.endTime} to ${e.target.value}`);
+                                updateSpecificTimeSlot(dayIndex, slotIndex, "endTime", e.target.value);
+                              }}
                               className="p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
-                              {Array.from({ length: 24 }).map((_, i) => (
-                                <option
-                                  key={i}
-                                  value={`${i.toString().padStart(2, "0")}:00`}
-                                >
-                                  {`${i.toString().padStart(2, "0")}:00`}
+                              {getAvailableEndTimes(dayIndex, slotIndex, slot.startTime).map((time) => (
+                                <option key={time} value={time}>
+                                  {time}
                                 </option>
                               ))}
                             </select>
@@ -998,7 +1217,10 @@ const Booking: React.FC<BookingProps> = ({
   
                           <div className="flex items-center gap-2">
                             <button
-                              onClick={() => addTimeSlot(dayIndex)}
+                              onClick={() => {
+                                console.log(`Adding time slot for ${day.day} (index ${dayIndex})`);
+                                addTimeSlot(dayIndex);
+                              }}
                               className="flex items-center justify-center w-8 h-8 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors"
                               title="Add time slot"
                             >
@@ -1007,7 +1229,10 @@ const Booking: React.FC<BookingProps> = ({
   
                             {day.timeSlots.length > 1 && (
                               <button
-                                onClick={() => removeTimeSlot(dayIndex, slotIndex)}
+                                onClick={() => {
+                                  console.log(`Removing time slot ${slotIndex} for ${day.day}`);
+                                  removeTimeSlot(dayIndex, slotIndex);
+                                }}
                                 className="flex items-center justify-center w-8 h-8 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
                                 title="Remove time slot"
                               >
@@ -1016,8 +1241,6 @@ const Booking: React.FC<BookingProps> = ({
                             )}
                           </div>
                         </div>
-  
-  
                       </div>
                     );
                   })}
@@ -1036,7 +1259,7 @@ const Booking: React.FC<BookingProps> = ({
                 </div>
               )}
             </div>
-          )        )}
+          ))}
         </div>
   
         {breaks.length > 0 && (
@@ -1082,7 +1305,8 @@ const Booking: React.FC<BookingProps> = ({
       </div>
     </div>
   );
-  
+};
+
   // Step 4 - Location
   const renderStep4 = () => (
     <div className="mt-8">
