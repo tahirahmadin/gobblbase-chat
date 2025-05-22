@@ -1364,7 +1364,21 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
             )}
             
             <button
-                onClick={() => onClose()}
+                onClick={() => {
+                  setStep("date");
+                  setSelectedDate(null);
+                  setSelectedSlot(null);
+                  setSlots([]);
+                  setName("");
+                  setEmail(isLoggedIn && userEmail ? userEmail : "");
+                  setPhone("");
+                  setNotes("");
+                  setEmailError("");
+                  setPhoneError("");
+                  setNameError("");
+                  setPaymentError(null);
+                  setIsFormValid(false);
+                }}
                 className="px-6 py-2 rounded-2xl font-medium border"
                 style={{
                     backgroundColor: "transparent",
