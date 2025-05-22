@@ -38,7 +38,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
   editMode,
   editProduct,
 }) => {
-  const { activeBotId } = useBotConfig();
+  const { activeBotId, activeBotData } = useBotConfig();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   // Use form fields for each type
@@ -52,7 +52,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
   let category = form.category || "<CATEGORY>";
   let quantity = form.quantity || 1;
   let size = "One Size";
-  let totalCost = priceType === "paid" && price ? `$${price}` : "Free";
+  let totalCost = priceType === "paid" && price ? `${price}` : "Free";
 
   if (type === "physicalProduct") {
     name = form.title || "Product Name";
@@ -70,7 +70,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
       form.variedSizes && form.variedSizes.length > 0
         ? form.variedSizes[0]
         : "One Size";
-    totalCost = priceType === "paid" && price ? `$${price}` : "$22";
+    totalCost = priceType === "paid" && price ? `${price}` : "$22";
   } else if (type === "digitalProduct") {
     name = form.title || "Product Name";
     price = form.price;
@@ -181,7 +181,9 @@ const PreviewStep: FC<PreviewStepProps> = ({
                 {form.title || "Product Name"}
               </div>
               <div className="text-xs text-center">
-                {priceType === "paid" && price ? `$${price}` : "Free"}
+                {priceType === "paid" && price
+                  ? `${price} ${activeBotData?.currency}`
+                  : "Free"}
               </div>
             </div>
             <div className="absolute bottom-2 right-2 bg-yellow-400 rounded-full w-6 h-6 flex items-center justify-center shadow border border-yellow-500">
@@ -267,9 +269,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
                       <button className="w-6 h-6 rounded-full bg-[#222] border border-gray-600 flex items-center justify-center text-yellow-400">
                         <MinusIcon />
                       </button>
-                      <span className="text-white font-bold text-base">
-                        {quantity}
-                      </span>
+                      <span className="text-white font-bold text-base">1</span>
                       <button className="w-6 h-6 rounded-full bg-yellow-400 border border-yellow-500 flex items-center justify-center text-black">
                         <PlusIcon />
                       </button>
@@ -305,9 +305,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
                       <button className="w-6 h-6 rounded-full bg-[#222] border border-gray-600 flex items-center justify-center text-yellow-400">
                         <MinusIcon />
                       </button>
-                      <span className="text-white font-bold text-base">
-                        {quantity}
-                      </span>
+                      <span className="text-white font-bold text-base">1</span>
                       <button className="w-6 h-6 rounded-full bg-yellow-400 border border-yellow-500 flex items-center justify-center text-black">
                         <PlusIcon />
                       </button>
@@ -334,9 +332,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
                       <button className="w-6 h-6 rounded-full bg-[#222] border border-gray-600 flex items-center justify-center text-yellow-400">
                         <MinusIcon />
                       </button>
-                      <span className="text-white font-bold text-base">
-                        {quantity}
-                      </span>
+                      <span className="text-white font-bold text-base">1</span>
                       <button className="w-6 h-6 rounded-full bg-yellow-400 border border-yellow-500 flex items-center justify-center text-black">
                         <PlusIcon />
                       </button>
@@ -362,9 +358,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
                     <button className="w-6 h-6 rounded-full bg-[#222] border border-gray-600 flex items-center justify-center text-yellow-400">
                       <MinusIcon />
                     </button>
-                    <span className="text-white font-bold text-base">
-                      {quantity}
-                    </span>
+                    <span className="text-white font-bold text-base">1</span>
                     <button className="w-6 h-6 rounded-full bg-yellow-400 border border-yellow-500 flex items-center justify-center text-black">
                       <PlusIcon />
                     </button>
@@ -399,7 +393,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
               <div className="w-full px-6 mt-2 mb-2 flex flex-col justify-between items-start">
                 <span className="text-xs text-gray-300">TOTAL COST</span>
                 <span className="text-lg font-bold text-white">
-                  {totalCost}
+                  {totalCost} {activeBotData?.currency}
                 </span>
               </div>
               {/* Buy Now Button */}

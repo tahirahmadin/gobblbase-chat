@@ -1713,7 +1713,12 @@ export async function updateEmailTemplates(
         emailTemplateId,
       }
     );
-    return response.data;
+    if (response.data.error) {
+      throw new Error(
+        response.data.result || "Failed to update email templates"
+      );
+    }
+    return response.data.result;
   } catch (error) {
     console.error("Error updating email templates:", error);
     throw error;

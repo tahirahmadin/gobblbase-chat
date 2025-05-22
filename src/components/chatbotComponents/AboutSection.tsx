@@ -10,10 +10,12 @@ import {
   X,
   MessageCircle,
 } from "lucide-react";
-import { Theme } from "../../types";
+import { AdminAgent, Theme } from "../../types";
 import TryFreeBanner from "./TryFreeBanner";
 import { getAgentPolicies, saveCustomerLead } from "../../lib/serverActions";
 import { toast } from "react-hot-toast";
+import { PERSONALITY_OPTIONS } from "../../utils/constants";
+import { useBotConfig } from "../../store/useBotConfig";
 
 interface AboutSectionProps {
   currentConfig: {
@@ -39,8 +41,8 @@ interface AboutSectionProps {
     policy: PolicyContent,
     policyName: string
   ) => void;
-  showContactForm?: boolean; 
-  contactFormMessage?: string; 
+  showContactForm?: boolean;
+  contactFormMessage?: string;
 }
 
 interface PolicyContent {
@@ -63,7 +65,7 @@ interface CustomerLeadFormProps {
   currentConfig: {
     agentId?: string;
   };
-  initialMessage?: string; 
+  initialMessage?: string;
 }
 
 const PolicyPopup: React.FC<PolicyPopupProps> = ({
@@ -116,7 +118,7 @@ const CustomerLeadForm: React.FC<CustomerLeadFormProps> = ({
 
   useEffect(() => {
     if (initialMessage) {
-      setFormData(prev => ({ ...prev, message: initialMessage }));
+      setFormData((prev) => ({ ...prev, message: initialMessage }));
     }
   }, [initialMessage]);
 
@@ -271,6 +273,7 @@ export default function AboutSection({
   showContactForm,
   contactFormMessage,
 }: AboutSectionProps) {
+  const { activeBotData } = useBotConfig();
   const [policies, setPolicies] = useState<{ [key: string]: PolicyContent }>(
     {}
   );
@@ -279,7 +282,30 @@ export default function AboutSection({
     content: string;
     name: string;
   } | null>(null);
-  const [showContactFormState, setShowContactFormState] = useState(showContactForm || false);
+  const [showContactFormState, setShowContactFormState] = useState(
+    showContactForm || false
+  );
+  const [agentPicture, setAgentPicture] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (activeBotData?.logo) {
+      setAgentPicture(activeBotData?.logo);
+    } else if (activeBotData?.personalityType?.name) {
+      let voiceName = activeBotData?.personalityType?.name;
+
+      const logoObj = PERSONALITY_OPTIONS.find(
+        (model) => model.title === voiceName
+      );
+
+      if (logoObj) {
+        setAgentPicture(logoObj?.image);
+      } else {
+        setAgentPicture(
+          "https://t4.ftcdn.net/jpg/08/04/36/29/360_F_804362990_0n7bGLz9clMBi5ajG52k8OAUQTneMbj4.jpg"
+        );
+      }
+    }
+  }, [activeBotData?.logo, activeBotData?.personalityType?.name]);
 
   useEffect(() => {
     if (showContactForm !== undefined) {
@@ -290,7 +316,7 @@ export default function AboutSection({
   //Fetching policies from the database
   useEffect(() => {
     const fetchPolicies = async () => {
-      if (!currentConfig?.agentId) return;
+      if (!activeBotData?.agentId) return;
       try {
         const response = await getAgentPolicies(currentConfig.agentId);
         if (!response.error) {
@@ -337,10 +363,7 @@ export default function AboutSection({
             {/* Profile Image */}
             <div className="w-20 h-20 rounded-full overflow-hidden">
               <img
-                src={
-                  currentConfig?.logo ||
-                  "https://t4.ftcdn.net/jpg/08/04/36/29/360_F_804362990_0n7bGLz9clMBi5ajG52k8OAUQTneMbj4.jpg"
-                }
+                src={agentPicture}
                 alt="Agent"
                 className="w-full h-full object-cover"
               />
@@ -372,7 +395,7 @@ export default function AboutSection({
                 >
                   <Instagram className="w-5 h-5" />
                 </a>
-                )}
+              )}
               {socials?.tiktok && (
                 <a
                   href={socials.tiktok}
@@ -493,7 +516,8 @@ export default function AboutSection({
                   }}
                   onClick={() => handlePolicyClick(key, p)}
                 >
-                  {policyNames[key] || key.charAt(0).toUpperCase() + key.slice(1)}
+                  {policyNames[key] ||
+                    key.charAt(0).toUpperCase() + key.slice(1)}
                 </button>
               ))}
           </div>

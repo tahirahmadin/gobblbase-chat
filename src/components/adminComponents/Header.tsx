@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { ChevronDown } from "lucide-react";
 import { useBotConfig } from "../../store/useBotConfig";
 import { useAdminStore } from "../../store/useAdminStore";

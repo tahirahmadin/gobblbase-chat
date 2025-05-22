@@ -22,6 +22,7 @@ interface SocialMediaLinks {
   youtube: string;
   linkedin: string;
   snapchat: string;
+  link: string;
 }
 
 const Profile = () => {
@@ -43,6 +44,7 @@ const Profile = () => {
     youtube: "",
     linkedin: "",
     snapchat: "",
+    link: "",
   });
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -252,6 +254,13 @@ const Profile = () => {
 
   const handleSocialMediaUpdate = (newSocials: SocialMediaLinks) => {
     setSocialMedia(newSocials);
+  };
+
+  const handlePromoBannerChange = (value: string) => {
+    if (promotionalBanner === "" && value.length > 0) {
+      setIsPromoBannerEnabled(true);
+    }
+    setPromotionalBanner(value);
   };
 
   return (
@@ -533,7 +542,7 @@ const Profile = () => {
               <input
                 type="text"
                 value={promotionalBanner}
-                onChange={(e) => setPromotionalBanner(e.target.value)}
+                onChange={(e) => handlePromoBannerChange(e.target.value)}
                 placeholder="Type your promotional text..."
                 maxLength={50}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"

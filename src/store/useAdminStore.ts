@@ -19,8 +19,6 @@ interface AdminState {
   error: string | null;
   totalAgents: number;
   emailTemplates: EmailTemplatesResponse | null;
-  emailTemplatesLoading?: boolean;
-  emailTemplatesError?: string | null;
   setError: (error: string | null) => void;
   // Admin operations
   fetchAllAgents: () => Promise<void>;
@@ -254,8 +252,6 @@ export const useAdminStore = create<AdminState>()((set, get) => {
         error: null,
         totalAgents: 0,
         emailTemplates: null,
-        emailTemplatesLoading: false,
-        emailTemplatesError: null,
       });
 
       // Clear the stored email
@@ -264,26 +260,19 @@ export const useAdminStore = create<AdminState>()((set, get) => {
 
     // Email template actions
     fetchEmailTemplates: async (agentId: string) => {
-      set({ emailTemplatesLoading: true, emailTemplatesError: null });
       try {
         const response = await getEmailTemplates(agentId);
         if (response) {
           set({
             emailTemplates: response,
-            emailTemplatesLoading: false,
           });
         } else {
           set({
             emailTemplates: null,
-            emailTemplatesLoading: false,
           });
         }
       } catch (err: any) {
         console.error("Error fetching email templates:", err);
-        set({
-          emailTemplatesError: "Failed to load email templates",
-          emailTemplatesLoading: false,
-        });
       }
     },
 
@@ -292,20 +281,18 @@ export const useAdminStore = create<AdminState>()((set, get) => {
       updatedData: any,
       emailTemplateId: string
     ) => {
-      set({ emailTemplatesLoading: true, emailTemplatesError: null });
       try {
-        await updateEmailTemplates(agentId, updatedData, emailTemplateId);
+        let response = await updateEmailTemplates(
+          agentId,
+          updatedData,
+          emailTemplateId
+        );
         // Optionally, you can refetch templates after update
-        await get().fetchEmailTemplates(agentId);
-        toast.success("Email template updated successfully");
+        if (response) {
+          set({ emailTemplates: response });
+        }
       } catch (err: any) {
-        set({
-          emailTemplatesError: "Failed to update email template",
-          emailTemplatesLoading: false,
-        });
-        toast.error("Failed to update email template");
       } finally {
-        set({ emailTemplatesLoading: false });
       }
     },
 

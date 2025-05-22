@@ -40,12 +40,12 @@ export default function PublicChat({
   const [message, setMessage] = useState<string>("");
   const [activeScreen, setActiveScreen] = useState<Screen>("chat");
   const [showCues, setShowCues] = useState<boolean>(true);
-  
+
   const prevFeaturesRef = useRef({
     isBookingConfigured: null as boolean | null,
     hasProducts: null as boolean | null,
     customerLeadFlag: null as boolean | null,
-    isQueryable: null as boolean | null
+    isQueryable: null as boolean | null,
   });
 
   useEffect(() => {
@@ -85,12 +85,13 @@ export default function PublicChat({
     currentConfig
   );
 
-  const { showFeatureNotification, resetFeatures, updateFeatures } = useFeatureNotifications(
-    isBookingConfigured,
-    hasProducts,
-    currentConfig?.customerLeadFlag,
-    currentConfig?.isQueryable
-  );
+  const { showFeatureNotification, resetFeatures, updateFeatures } =
+    useFeatureNotifications(
+      isBookingConfigured,
+      hasProducts,
+      currentConfig?.customerLeadFlag,
+      currentConfig?.isQueryable
+    );
 
   const theme = currentConfig?.themeColors ?? {
     id: "light-yellow",
@@ -113,38 +114,48 @@ export default function PublicChat({
       isBookingConfigured: null,
       hasProducts: null,
       customerLeadFlag: null,
-      isQueryable: null
+      isQueryable: null,
     };
   }, [resetFeatures, currentConfig?.agentId]);
 
   const checkFeature = (value: any): boolean => {
-    if (typeof value === 'boolean') return value;
-    if (typeof value === 'string') return value.toLowerCase() === 'true' || value === '1';
-    if (typeof value === 'number') return value === 1;
-    if (typeof value === 'object' && value !== null) return true;
+    if (typeof value === "boolean") return value;
+    if (typeof value === "string")
+      return value.toLowerCase() === "true" || value === "1";
+    if (typeof value === "number") return value === 1;
+    if (typeof value === "object" && value !== null) return true;
     return false;
   };
-  
+
   useEffect(() => {
     if (currentIsLoading || loadingPricing) {
       return;
     }
-    
+
     const currBooking = checkFeature(isBookingConfigured);
     const currProducts = checkFeature(hasProducts);
     const currContact = checkFeature(currentConfig?.customerLeadFlag);
     const currQueryable = checkFeature(currentConfig?.isQueryable);
-    
-    const bookingChanged = prevFeaturesRef.current.isBookingConfigured !== null && 
-                          prevFeaturesRef.current.isBookingConfigured !== currBooking;
-    const productsChanged = prevFeaturesRef.current.hasProducts !== null && 
-                           prevFeaturesRef.current.hasProducts !== currProducts;
-    const contactChanged = prevFeaturesRef.current.customerLeadFlag !== null && 
-                          prevFeaturesRef.current.customerLeadFlag !== currContact;
-    const queryableChanged = prevFeaturesRef.current.isQueryable !== null && 
-                            prevFeaturesRef.current.isQueryable !== currQueryable;
-    
-    if (bookingChanged || productsChanged || contactChanged || queryableChanged) {
+
+    const bookingChanged =
+      prevFeaturesRef.current.isBookingConfigured !== null &&
+      prevFeaturesRef.current.isBookingConfigured !== currBooking;
+    const productsChanged =
+      prevFeaturesRef.current.hasProducts !== null &&
+      prevFeaturesRef.current.hasProducts !== currProducts;
+    const contactChanged =
+      prevFeaturesRef.current.customerLeadFlag !== null &&
+      prevFeaturesRef.current.customerLeadFlag !== currContact;
+    const queryableChanged =
+      prevFeaturesRef.current.isQueryable !== null &&
+      prevFeaturesRef.current.isQueryable !== currQueryable;
+
+    if (
+      bookingChanged ||
+      productsChanged ||
+      contactChanged ||
+      queryableChanged
+    ) {
       console.log("Features changed:", {
         bookingBefore: prevFeaturesRef.current.isBookingConfigured,
         bookingNow: currBooking,
@@ -153,21 +164,21 @@ export default function PublicChat({
         contactBefore: prevFeaturesRef.current.customerLeadFlag,
         contactNow: currContact,
         queryableBefore: prevFeaturesRef.current.isQueryable,
-        queryableNow: currQueryable
+        queryableNow: currQueryable,
       });
-      
+
       updateFeatures();
-      
+
       if (messages.length >= 1) {
         showFeatureNotification(setMessages, scrollToBottom);
       }
     }
-    
+
     prevFeaturesRef.current = {
       isBookingConfigured: currBooking,
       hasProducts: currProducts,
       customerLeadFlag: currContact,
-      isQueryable: currQueryable
+      isQueryable: currQueryable,
     };
   }, [
     currentIsLoading,
@@ -180,27 +191,29 @@ export default function PublicChat({
     showFeatureNotification,
     messages.length,
     setMessages,
-    scrollToBottom
+    scrollToBottom,
   ]);
 
   useEffect(() => {
     if (currentIsLoading || loadingPricing) {
       return;
     }
-    
-    const hasAnyFeature = checkFeature(isBookingConfigured) || 
-                         checkFeature(hasProducts) || 
-                         checkFeature(currentConfig?.customerLeadFlag) || 
-                         checkFeature(currentConfig?.isQueryable);
-    
+
+    const hasAnyFeature =
+      checkFeature(isBookingConfigured) ||
+      checkFeature(hasProducts) ||
+      checkFeature(currentConfig?.customerLeadFlag) ||
+      checkFeature(currentConfig?.isQueryable);
+
     if (messages.length >= 1 && hasAnyFeature) {
-      const hasFeatureMessage = messages.some(msg => 
-        msg.sender === "agent" && 
-        (msg.content.includes("capabilities include") || 
-         msg.content.includes("I can help you with") ||
-         msg.content.includes("I'm here to help with"))
+      const hasFeatureMessage = messages.some(
+        (msg) =>
+          msg.sender === "agent" &&
+          (msg.content.includes("capabilities include") ||
+            msg.content.includes("I can help you with") ||
+            msg.content.includes("I'm here to help with"))
       );
-      
+
       if (!hasFeatureMessage) {
         setTimeout(() => {
           showFeatureNotification(setMessages, scrollToBottom);
@@ -217,7 +230,7 @@ export default function PublicChat({
     currentConfig?.isQueryable,
     showFeatureNotification,
     setMessages,
-    scrollToBottom
+    scrollToBottom,
   ]);
 
   const handleSendMessage = async (inputMessage?: string): Promise<void> => {

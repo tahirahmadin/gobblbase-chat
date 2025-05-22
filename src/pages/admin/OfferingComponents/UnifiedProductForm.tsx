@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ProductType } from "../../../types";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useBotConfig } from "../../../store/useBotConfig";
 
 type UnifiedFormType = {
   // Common fields
@@ -70,6 +71,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
   setForm,
   onNext,
 }) => {
+  const { activeBotData } = useBotConfig();
   const [thumbnailInputKey, setThumbnailInputKey] = useState(0);
 
   const getTitle = () => {
@@ -825,7 +827,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                   }
                   className="accent-green-500 w-5 h-5"
                 />
-                <span className="text-gray-700">USD</span>
+                <span className="text-gray-700">{activeBotData?.currency}</span>
                 <input
                   value={form.price || ""}
                   onChange={(e) =>
