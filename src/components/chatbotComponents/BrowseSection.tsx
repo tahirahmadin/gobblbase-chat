@@ -31,7 +31,6 @@ export default function BrowseSection({
   isBookingConfigured: propIsBookingConfigured,
   containerStyle,
   setActiveScreen,
-  currency,
 }: BrowseSectionProps) {
   const {
     products,

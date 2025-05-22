@@ -57,9 +57,9 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
     address2: "",
     city: "",
     zipcode: "",
-    saveDetails: false,
+    saveDetails: true,
   });
-  const { isLoggedIn } = useUserStore();
+  const { isLoggedIn, userDetails } = useUserStore();
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderDetails, setOrderDetails] = useState<{
     product: any;
@@ -71,10 +71,17 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
   } | null>(null);
 
   useEffect(() => {
-    if (userEmail) {
+    if (userDetails) {
       setShipping({
         ...shipping,
-        email: userEmail,
+        name: userDetails.shipping.name || "",
+        email: userDetails.shipping.email || "",
+        phone: userDetails.shipping.phone || "",
+        country: userDetails.shipping.country || "United States",
+        address1: userDetails.shipping.address1 || "",
+        address2: userDetails.shipping.address2 || "",
+        city: userDetails.shipping.city || "",
+        zipcode: userDetails.shipping.zipcode || "",
       });
     }
   }, [userEmail]);
@@ -424,7 +431,7 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
                     onChange={handleShippingChange}
                   />
                   <span style={{ color: theme.isDark ? "#fff" : "#000" }}>
-                    Save for my details for next time
+                    Save details for next time
                   </span>
                 </label>
                 <button

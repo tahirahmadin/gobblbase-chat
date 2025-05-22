@@ -220,3 +220,24 @@ export interface SocialMediaLinks {
   snapchat: string;
   link: string;
 }
+
+export interface UserDetails {
+  _id: string;
+  email: string;
+  name?: string;
+  avatar?: string;
+  signUpVia: {
+    via: string;
+    handle: string;
+  };
+  shipping: {
+    name: string;
+    email: string;
+    phone: string;
+    country: string;
+    address1: string;
+    address2: string;
+    city: string;
+    zipcode: string;
+  };
+}

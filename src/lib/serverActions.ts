@@ -1,5 +1,10 @@
 import axios from "axios";
-import { AdminAgent, CreateNewAgentResponse, Theme } from "../types";
+import {
+  AdminAgent,
+  CreateNewAgentResponse,
+  Theme,
+  UserDetails,
+} from "../types";
 
 interface QueryDocumentResponse {
   context: any; // You might want to define a more specific type based on the actual response
@@ -407,10 +412,8 @@ export async function signUpUser(
 ): Promise<SignUpClientResponse> {
   try {
     const response = await axios.post("https://rag.gobbl.ai/user/signupUser", {
-      body: {
-        via,
-        handle,
-      },
+      via,
+      handle,
     });
 
     return response.data;
@@ -973,17 +976,6 @@ export const getTransactions = async (agentId: string): Promise<any[]> => {
     throw new Error("Failed to fetch transactions");
   }
 };
-
-interface UserDetails {
-  _id: string;
-  email: string;
-  name?: string;
-  avatar?: string;
-  signUpVia: {
-    via: string;
-    handle: string;
-  };
-}
 
 export async function getUserDetails(userId: string): Promise<UserDetails> {
   try {

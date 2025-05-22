@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Theme } from "../../types";
 import { useCartStore } from "../../store/useCartStore";
 import { useBotConfig } from "../../store/useBotConfig";
+import { useUserStore } from "../../store/useUserStore";
 
 interface ProductDetailPageProps {
   theme: Theme;
@@ -19,6 +20,7 @@ export default function ProductDetailPage({
 }: ProductDetailPageProps) {
   const { selectedProduct, setCartView } = useCartStore();
   const { activeBotData } = useBotConfig();
+
   const [quantity, setQuantity] = useState(1);
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");

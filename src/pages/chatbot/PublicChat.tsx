@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { BotConfig, ChatMessage } from "../../types";
 import { useBotConfig } from "../../store/useBotConfig";
+import { useUserStore } from "../../store/useUserStore";
 import HeaderSection from "../../components/chatbotComponents/HeaderSection";
 import ChatSection from "../../components/chatbotComponents/ChatSection";
 import InputSection from "../../components/chatbotComponents/InputSection";
@@ -33,6 +34,7 @@ export default function PublicChat({
     isLoading: isConfigLoading,
     fetchBotData,
   } = useBotConfig();
+  const { initializeSession } = useUserStore();
 
   const [viewportHeight, setViewportHeight] = useState<number>(
     window.innerHeight
@@ -40,6 +42,13 @@ export default function PublicChat({
   const [message, setMessage] = useState<string>("");
   const [activeScreen, setActiveScreen] = useState<Screen>("chat");
   const [showCues, setShowCues] = useState<boolean>(true);
+
+  // Initialize user session
+  useEffect(() => {
+    if (!isPreview) {
+      initializeSession();
+    }
+  }, [isPreview, initializeSession]);
 
   const prevFeaturesRef = useRef({
     isBookingConfigured: null as boolean | null,
