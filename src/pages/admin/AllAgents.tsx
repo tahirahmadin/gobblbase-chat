@@ -75,9 +75,12 @@ const AllAgents: React.FC = () => {
               alt="Agent Avatar"
               className="w-24 h-24 rounded-full mb-4 border-4 border-white shadow"
             />
-            <div className="font-semibold text-lg mb-2 text-center">
+            <div className="font-semibold text-lg text-center">
               {agent.name || "Agent Name"}
             </div>
+            <a href={`https://kifor.ai/${agent.username}`} target="_blank">
+              <div className="text-sm text-blue-500 mb-2">Visit chatbot</div>
+            </a>
             <div className="flex gap-2 mt-2">
               <div className="relative inline-block">
                 <div className="absolute top-1 left-1 w-full h-full bg-[#AEB8FF] rounded"></div>

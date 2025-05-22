@@ -9,6 +9,7 @@ import {
 import toast from "react-hot-toast";
 
 const TABS = [
+  { label: "All", value: "ALL" },
   { label: "Physical Goods", value: "physicalProduct" },
   { label: "Digital Goods", value: "digitalProduct" },
   { label: "Services", value: "Service" },
@@ -18,7 +19,7 @@ const TABS = [
 const Manage = () => {
   const navigate = useNavigate();
   const { activeBotId } = useBotConfig();
-  const [tab, setTab] = useState("physicalProduct");
+  const [tab, setTab] = useState("All");
   const [products, setProducts] = useState<any[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -47,10 +48,14 @@ const Manage = () => {
   // Fetch products based on tab
   useEffect(() => {
     setLoading(true);
-    let filteredProducts = products.filter((p: any) => p.type === tab);
-    console.log("filteredProducts", filteredProducts);
-    console.log("products", products);
-    setFilteredProducts(filteredProducts);
+    if (tab === "ALL") {
+      setFilteredProducts(products);
+    } else {
+      let filteredProducts = products.filter((p: any) => p.type === tab);
+      console.log("filteredProducts", filteredProducts);
+      console.log("products", products);
+      setFilteredProducts(filteredProducts);
+    }
     setLoading(false);
   }, [tab, products]);
 
