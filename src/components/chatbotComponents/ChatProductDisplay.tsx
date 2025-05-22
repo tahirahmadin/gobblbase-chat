@@ -484,8 +484,14 @@ export default function ChatProductDisplay({
                 />
                 {product.category && (
                   <div
-                    className="absolute top-2 right-2 bg-black/60 text-white text-xs py-0.5 px-2 rounded-full"
-                    style={{ color: theme.highlightColor }}
+                    className="absolute top-2 right-2 bg-highlight text-white text-xs py-0.5 px-2 rounded-full"
+                    style={{
+                      backgroundColor: theme.isDark ? "#222" : "#f3f3f3",
+                      color: theme.isDark ? theme.highlightColor : "#333",
+                      border: `0.5px solid ${theme.highlightColor}`,
+                      minWidth: "60px",
+                      textAlign: "center",
+                    }}
                   >
                     {product.category}
                   </div>
