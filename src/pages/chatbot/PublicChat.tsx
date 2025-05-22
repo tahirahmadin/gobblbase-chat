@@ -21,12 +21,14 @@ interface PublicChatProps {
   chatHeight: string | null;
   previewConfig: BotConfig | null;
   isPreview: boolean;
+  screenName: string;
 }
 
 export default function PublicChat({
   chatHeight,
   previewConfig,
   isPreview,
+  screenName = "chat",
 }: PublicChatProps) {
   const { botUsername } = useParams<{ botUsername: string }>();
   const {
@@ -49,6 +51,12 @@ export default function PublicChat({
       initializeSession();
     }
   }, [isPreview, initializeSession]);
+
+  useEffect(() => {
+    if (screenName) {
+      setActiveScreen(screenName as Screen);
+    }
+  }, [screenName]);
 
   const prevFeaturesRef = useRef({
     isBookingConfigured: null as boolean | null,

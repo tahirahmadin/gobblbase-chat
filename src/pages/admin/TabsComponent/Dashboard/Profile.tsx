@@ -565,6 +565,7 @@ const Profile = () => {
           }}
         >
           <PublicChat
+            screenName={"about"}
             previewConfig={{
               ...activeBotData,
               isPromoBannerEnabled: isPromoBannerEnabled,
