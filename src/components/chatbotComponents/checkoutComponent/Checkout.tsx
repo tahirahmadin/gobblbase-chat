@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useCartStore } from "../../../store/useCartStore";
 import { useBotConfig } from "../../../store/useBotConfig";
 import { useUserStore } from "../../../store/useUserStore";
@@ -21,10 +21,32 @@ const countries = [
   "India",
   "Canada",
   "Australia",
-];
+] as const;
+
+type Country = (typeof countries)[number];
+
+const countryCodes: Record<Country, string> = {
+  "United States": "+1",
+  "United Kingdom": "+44",
+  "United Arab Emirates": "+971",
+  India: "+91",
+  Canada: "+1",
+  Australia: "+61",
+};
+
+// Create reverse mapping for country codes to countries
+const countryCodeToCountry: Record<string, Country> = Object.entries(
+  countryCodes
+).reduce(
+  (acc, [country, code]) => ({ ...acc, [code]: country as Country }),
+  {}
+);
 
 export function Checkout({ theme, onBack }: CheckoutProps) {
   const { selectedProduct, setCartView, setSelectedProduct } = useCartStore();
+  const { userEmail } = useUserStore();
+  const { activeBotData } = useBotConfig();
+
   const [step, setStep] = useState<1 | 2>(1);
   const [shipping, setShipping] = useState({
     name: "",
@@ -35,9 +57,9 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
     address2: "",
     city: "",
     zipcode: "",
-    saveDetails: false,
+    saveDetails: true,
   });
-  const { isLoggedIn } = useUserStore();
+  const { isLoggedIn, userDetails } = useUserStore();
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderDetails, setOrderDetails] = useState<{
     product: any;
@@ -48,6 +70,22 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
     paymentDate?: string;
   } | null>(null);
 
+  useEffect(() => {
+    if (userDetails) {
+      setShipping({
+        ...shipping,
+        name: userDetails.shipping.name || "",
+        email: userDetails.shipping.email || "",
+        phone: userDetails.shipping.phone || "",
+        country: userDetails.shipping.country || "United States",
+        address1: userDetails.shipping.address1 || "",
+        address2: userDetails.shipping.address2 || "",
+        city: userDetails.shipping.city || "",
+        zipcode: userDetails.shipping.zipcode || "",
+      });
+    }
+  }, [userEmail]);
+
   const handleShippingChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -56,6 +94,15 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
       ...prev,
       [name]:
         type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+    }));
+  };
+
+  const handlePhoneCodeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedCode = e.target.value;
+    const selectedCountry = countryCodeToCountry[selectedCode];
+    setShipping((prev) => ({
+      ...prev,
+      country: selectedCountry,
     }));
   };
 
@@ -178,7 +225,8 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
                 {selectedProduct.quantity || 1}x {selectedProduct.title}
               </div>
               <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
-                ${selectedProduct.price * (selectedProduct.quantity || 1)}
+                {selectedProduct.price * (selectedProduct.quantity || 1)}{" "}
+                {activeBotData?.currency || "USD"}
               </div>
             </div>
             <div className="flex justify-between items-center mb-4 font-bold">
@@ -186,7 +234,8 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
                 Total Amount
               </div>
               <div style={{ color: "#FFD700" }}>
-                ${selectedProduct.price * (selectedProduct.quantity || 1)}
+                {selectedProduct.price * (selectedProduct.quantity || 1)}{" "}
+                {activeBotData?.currency || "USD"}
               </div>
             </div>
           </div>
@@ -246,14 +295,20 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
                     PHONE
                   </label>
                   <select
-                    name="phone"
+                    name="phoneCode"
                     className="w-15 p-2 rounded-lg"
                     style={{
                       backgroundColor: theme.mainLightColor,
                       color: !theme.isDark ? "#fff" : "#000",
                     }}
+                    onChange={handlePhoneCodeChange}
+                    value={countryCodes[shipping.country as Country]}
                   >
-                    <option>+971</option>
+                    {countries.map((country) => (
+                      <option key={country} value={countryCodes[country]}>
+                        {countryCodes[country]}
+                      </option>
+                    ))}
                   </select>
                   <input
                     type="tel"
@@ -376,7 +431,7 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
                     onChange={handleShippingChange}
                   />
                   <span style={{ color: theme.isDark ? "#fff" : "#000" }}>
-                    Save for my details for next time
+                    Save details for next time
                   </span>
                 </label>
                 <button

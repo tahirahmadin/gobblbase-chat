@@ -125,7 +125,7 @@ const Plans = () => {
       window.open(stripeUrl, "_blank", "noopener,noreferrer");
     } catch (error) {
       console.error("Error changing plan:", error);
-      toast.error("Failed to change plan");
+      toast.error(error?.response?.data?.result);
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
       }
@@ -312,7 +312,9 @@ const Plans = () => {
                   ) : isUpgrading(plan.id) ? (
                     <span className="flex items-center justify-center gap-2">
                       <Loader2 className="h-5 w-5 animate-spin" />
-                      Upgrading...
+                      {isLowerTierPlan(plan)
+                        ? "Downgrading..."
+                        : "Upgrading..."}
                     </span>
                   ) : isLowerTierPlan(plan) ? (
                     "DOWNGRADE"

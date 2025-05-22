@@ -254,7 +254,7 @@ export function PaymentSection({
   shipping,
 }: PaymentSectionProps) {
   const { activeBotId, activeBotData } = useBotConfig();
-  const { userId, userEmail } = useUserStore();
+  const { userId, userEmail, fetchUserDetails } = useUserStore();
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("stripe");
   const [isLoading, setIsLoading] = useState(false);
@@ -293,6 +293,9 @@ export function PaymentSection({
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || "Failed to create free order");
+      }
+      if (userId) {
+        fetchUserDetails(userId);
       }
       const data = await response.json();
       // Callbacks as with paid orders
@@ -372,6 +375,9 @@ export function PaymentSection({
 
         const data = await response.json();
         console.log("Payment intent created successfully:", data);
+        if (userId) {
+          fetchUserDetails(userId);
+        }
         setClientSecret(data.clientSecret);
       } catch (error: any) {
         console.error("Payment intent creation error:", error);

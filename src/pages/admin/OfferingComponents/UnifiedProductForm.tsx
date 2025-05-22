@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ProductType } from "../../../types";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useBotConfig } from "../../../store/useBotConfig";
 
 type UnifiedFormType = {
   // Common fields
@@ -70,6 +71,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
   setForm,
   onNext,
 }) => {
+  const { activeBotData } = useBotConfig();
   const [thumbnailInputKey, setThumbnailInputKey] = useState(0);
 
   const getTitle = () => {
@@ -291,11 +293,21 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                   <input
                     key={thumbnailInputKey}
                     type="file"
-                    accept="image/*"
+                    accept=".png,.jpg,.jpeg"
                     className="absolute inset-0 opacity-0 cursor-pointer"
                     onChange={(e) => {
                       const file = e.target.files?.[0] || null;
                       if (file) {
+                        // Check if file type is allowed
+                        const allowedTypes = [
+                          "image/png",
+                          "image/jpeg",
+                          "image/jpg",
+                        ];
+                        if (!allowedTypes.includes(file.type)) {
+                          alert("Please upload only PNG, JPG, or JPEG files");
+                          return;
+                        }
                         setForm((f) => ({
                           ...f,
                           thumbnail: file,
@@ -321,7 +333,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                   <input
                     type="radio"
                     name="uploadType"
-                    value="file"
+                    value="upload"
                     checked={form.uploadType === "upload"}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, uploadType: e.target.value }))
@@ -825,7 +837,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                   }
                   className="accent-green-500 w-5 h-5"
                 />
-                <span className="text-gray-700">USD</span>
+                <span className="text-gray-700">{activeBotData?.currency}</span>
                 <input
                   value={form.price || ""}
                   onChange={(e) =>

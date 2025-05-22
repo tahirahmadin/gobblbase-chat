@@ -41,6 +41,7 @@ import Pricing from "./pages/landing/Pricing";
 import { Loader } from "lucide-react";
 import PaymentSuccessPage from "./pages/admin/PlanComponents/PaymentSuccessPage";
 import PaymentCancelPage from "./pages/admin/PlanComponents/PaymentCancelPage";
+import { useUserStore } from "./store/useUserStore";
 
 // Add type definition for window
 declare global {
@@ -52,19 +53,21 @@ declare global {
 function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAdminLoggedIn, initializeSession } = useAdminStore();
+  const { isAdminLoggedIn, initializeSession: initializeAdminSession } =
+    useAdminStore();
+  const { initializeSession: initializeUserSession } = useUserStore();
   const [isInitializing, setIsInitializing] = useState(true);
   const [hasInitialized, setHasInitialized] = useState(true);
 
-  // Initialize session on mount
+  // Initialize sessions on mount
   useEffect(() => {
     const init = async () => {
-      await initializeSession();
+      await Promise.all([initializeAdminSession(), initializeUserSession()]);
       setIsInitializing(false);
       setHasInitialized(true);
     };
     init();
-  }, [initializeSession]);
+  }, [initializeAdminSession, initializeUserSession]);
 
   // Handle redirect to signup when user has no agents
   useEffect(() => {

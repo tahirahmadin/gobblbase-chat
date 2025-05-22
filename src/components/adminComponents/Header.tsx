@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { ChevronDown } from "lucide-react";
 import { useBotConfig } from "../../store/useBotConfig";
 import { useAdminStore } from "../../store/useAdminStore";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useServerHook } from "../../hooks/useServerHook";
 
 interface Agent {
@@ -132,17 +132,45 @@ const Header = () => {
                 <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
 
                 {/* Main button */}
-                <button
+                {/* <button
                   onClick={() => {
                     navigate("/admin/account/plans");
                   }}
                   className="relative bg-[#6aff97] text-black font-semibold px-4 py-2 border border-black"
                 >
                   Upgrade Plan
-                </button>
+                </button> */}
               </div>
             </div>
-            <div className="text-sm text-black">{adminEmail}</div>
+            <div className="flex items-center space-x-2">
+              <div>
+                {activeBotData?.logo ? (
+                  <img
+                    key={`${activeBotData.logo}?t=${Date.now()}`}
+                    src={`${activeBotData.logo}?t=${Date.now()}`}
+                    alt="Agent avatar"
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
+                    <span className="text-xs text-gray-500">
+                      {activeBotData?.name?.charAt(0) || "A"}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div>
+                <div className="text-sm text-black">{adminEmail}</div>{" "}
+                <a
+                  href={`https://kifor.ai/${activeBotData?.username}`}
+                  target="_blank"
+                >
+                  <div className="text-sm text-blue-500">
+                    {">> "}Access chatbot
+                  </div>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </div>

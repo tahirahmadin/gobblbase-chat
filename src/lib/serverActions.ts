@@ -1,5 +1,10 @@
 import axios from "axios";
-import { AdminAgent, CreateNewAgentResponse, Theme } from "../types";
+import {
+  AdminAgent,
+  CreateNewAgentResponse,
+  Theme,
+  UserDetails,
+} from "../types";
 
 interface QueryDocumentResponse {
   context: any; // You might want to define a more specific type based on the actual response
@@ -21,18 +26,19 @@ interface AvailabilityDay {
     endTime: string;
   }[];
 }
+
+interface SignUpResult {
+  _id: string;
+  signUpVia: {
+    via: string;
+    handle: string;
+  };
+  agents: any[];
+}
+
 interface SignUpClientResponse {
   error: boolean;
-  result:
-    | {
-        _id: string;
-        signUpVia: {
-          via: string;
-          handle: string;
-        };
-        agents: any[];
-      }
-    | string;
+  result: string | SignUpResult;
 }
 
 interface Agent {
@@ -368,6 +374,25 @@ export async function signUpClient(
         data: error.response?.data,
         message: error.message,
       });
+
+      // Handle different types of errors
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        return {
+          error: true,
+          result: "Authentication failed. Please log in again.",
+        };
+      } else if (error.response?.status === 429) {
+        return {
+          error: true,
+          result: "Too many requests. Please try again later.",
+        };
+      } else if (error.response?.status === 500) {
+        return {
+          error: true,
+          result: "Server error. Please try again later.",
+        };
+      }
+
       return {
         error: true,
         result: error.response?.data?.message || "Failed to sign up client",
@@ -387,10 +412,8 @@ export async function signUpUser(
 ): Promise<SignUpClientResponse> {
   try {
     const response = await axios.post("https://rag.gobbl.ai/user/signupUser", {
-      body: {
-        via,
-        handle,
-      },
+      via,
+      handle,
     });
 
     return response.data;
@@ -822,6 +845,7 @@ export async function cancelBooking(bookingId: string) {
     throw error;
   }
 }
+
 export const addProduct = async (data: AddProductData) => {
   try {
     const formData = new FormData();
@@ -952,17 +976,6 @@ export const getTransactions = async (agentId: string): Promise<any[]> => {
     throw new Error("Failed to fetch transactions");
   }
 };
-
-interface UserDetails {
-  _id: string;
-  email: string;
-  name?: string;
-  avatar?: string;
-  signUpVia: {
-    via: string;
-    handle: string;
-  };
-}
 
 export async function getUserDetails(userId: string): Promise<UserDetails> {
   try {
@@ -1713,7 +1726,12 @@ export async function updateEmailTemplates(
         emailTemplateId,
       }
     );
-    return response.data;
+    if (response.data.error) {
+      throw new Error(
+        response.data.result || "Failed to update email templates"
+      );
+    }
+    return response.data.result;
   } catch (error) {
     console.error("Error updating email templates:", error);
     throw error;
@@ -1924,5 +1942,21 @@ export async function getStripeBillingSession(
   } catch (error) {
     console.error("Error creating Stripe billing session:", error);
     throw error;
+  }
+}
+
+export async function updateCustomHandles(
+  agentId: string,
+  customHandles: { label: string; url: string }[]
+): Promise<boolean> {
+  try {
+    await axios.post("https://rag.gobbl.ai/client/updateCustomHandles", {
+      agentId,
+      customHandles,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error updating custom handles:", error);
+    throw new Error("Failed to update custom links");
   }
 }

@@ -16,6 +16,7 @@ interface BrowseSectionProps {
     sessionName?: string;
     sessionPrice?: string;
     isFreeSession?: boolean;
+    currency?: string;
   };
   showOnlyBooking?: boolean;
   isBookingConfigured?: boolean;
@@ -186,7 +187,9 @@ export default function BrowseSection({
                               color: theme.highlightColor,
                             }}
                           >
-                            ${product.price}
+                            {product.priceType === "free"
+                              ? "Free"
+                              : `${product.price} ${currentConfig?.currency}`}
                           </span>
                         </div>
                       </div>

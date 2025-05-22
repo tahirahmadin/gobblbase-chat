@@ -4,6 +4,7 @@ import { useBotConfig } from "../../../../store/useBotConfig";
 import { updateAgentModel } from "../../../../lib/serverActions";
 import toast from "react-hot-toast";
 import { ChevronDown } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const AiModel = () => {
   const [selectedModelId, setSelectedModelId] = useState(MODEL_PRESETS[0]?.id);
@@ -161,9 +162,13 @@ const AiModel = () => {
             <span className="font-medium text-sm lg:text-base">
               {currentModel?.name}
             </span>
-            <button className="ml-auto bg-green-200 text-green-900 px-2 py-1 rounded text-xs font-semibold hover:bg-green-300 transition">
-              VIEW USAGE
-            </button>
+            <div className="ml-auto ">
+              <Link to="/admin/account/usage">
+                <button className="ml-auto bg-green-200 text-green-900 px-2 py-1 rounded text-xs font-semibold hover:bg-green-300 transition">
+                  VIEW USAGE
+                </button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

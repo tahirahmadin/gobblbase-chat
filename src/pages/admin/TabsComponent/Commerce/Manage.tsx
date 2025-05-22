@@ -9,6 +9,7 @@ import {
 import toast from "react-hot-toast";
 
 const TABS = [
+  { label: "All", value: "ALL" },
   { label: "Physical Goods", value: "physicalProduct" },
   { label: "Digital Goods", value: "digitalProduct" },
   { label: "Services", value: "Service" },
@@ -18,7 +19,7 @@ const TABS = [
 const Manage = () => {
   const navigate = useNavigate();
   const { activeBotId } = useBotConfig();
-  const [tab, setTab] = useState("physicalProduct");
+  const [tab, setTab] = useState("ALL");
   const [products, setProducts] = useState<any[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -47,10 +48,14 @@ const Manage = () => {
   // Fetch products based on tab
   useEffect(() => {
     setLoading(true);
-    let filteredProducts = products.filter((p: any) => p.type === tab);
-    console.log("filteredProducts", filteredProducts);
-    console.log("products", products);
-    setFilteredProducts(filteredProducts);
+    if (tab === "ALL") {
+      setFilteredProducts(products);
+    } else {
+      let filteredProducts = products.filter((p: any) => p.type === tab);
+      console.log("filteredProducts", filteredProducts);
+      console.log("products", products);
+      setFilteredProducts(filteredProducts);
+    }
     setLoading(false);
   }, [tab, products]);
 
@@ -211,7 +216,10 @@ const Manage = () => {
                       alt=""
                       className="w-10 h-10 rounded object-cover"
                     />
-                    {p.title}
+                    <div>
+                      <div>{p.title}</div>
+                      <div className="text-xs text-gray-500">{p.category}</div>
+                    </div>
                   </td>
                   <td className="py-2 px-4">
                     {p.priceType === "paid" ? `$${p.price}` : `Free`}
@@ -222,34 +230,36 @@ const Manage = () => {
                       ? "Unlimited"
                       : p.quantity}
                   </td>
-                  <td className="py-2 px-4 flex gap-2">
-                    <button
-                      className="bg-blue-100 px-3 py-1 rounded"
-                      onClick={() => handleEdit(p, p.type)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => openPauseModal(p._id, p.isPaused)}
-                      disabled={loadingStates[p._id]}
-                      className={`${
-                        p.isPaused
-                          ? "bg-green-100 text-green-700"
-                          : "bg-blue-100 text-blue-700"
-                      } px-3 py-1 rounded hover:opacity-80 transition-opacity disabled:opacity-50`}
-                    >
-                      {loadingStates[p._id]
-                        ? "Updating..."
-                        : p.isPaused
-                        ? "Activate"
-                        : "Pause"}
-                    </button>
-                    <button
-                      className="bg-red-100 text-red-600 px-3 py-1 rounded border border-red-300"
-                      onClick={() => openDeleteModal(p._id)}
-                    >
-                      Cancel
-                    </button>
+                  <td className="py-2 px-4">
+                    <div className="flex gap-2 items-center">
+                      <button
+                        className="bg-blue-100 px-3 py-1 rounded"
+                        onClick={() => handleEdit(p, p.type)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => openPauseModal(p._id, p.isPaused)}
+                        disabled={loadingStates[p._id]}
+                        className={`${
+                          p.isPaused
+                            ? "bg-green-100 text-green-700"
+                            : "bg-blue-100 text-blue-700"
+                        } px-3 py-1 rounded hover:opacity-80 transition-opacity disabled:opacity-50`}
+                      >
+                        {loadingStates[p._id]
+                          ? "Updating..."
+                          : p.isPaused
+                          ? "Activate"
+                          : "Pause"}
+                      </button>
+                      <button
+                        className="bg-red-100 text-red-600 px-3 py-1 rounded border border-red-300"
+                        onClick={() => openDeleteModal(p._id)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

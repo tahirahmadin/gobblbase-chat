@@ -84,13 +84,8 @@ const CustomerLeads = () => {
         </p>
         <div className="flex items-center mb-6">
           <button
-            className={`w-40 h-12 rounded-full text-lg font-medium shadow border border-gray-200 transition-all ${
-              formEnabled
-                ? "bg-blue-100 text-black"
-                : "bg-gray-100 text-gray-400"
-            }`}
+            className={`w-40 h-12 rounded-full text-lg font-medium shadow border border-gray-200 transition-all bg-blue-100 text-black`}
             style={{ outline: "none" }}
-            disabled={!formEnabled}
           >
             Contact Form
           </button>
