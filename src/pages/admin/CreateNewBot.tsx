@@ -11,9 +11,8 @@ import PublicChat from "../chatbot/PublicChat";
 import styled from "styled-components";
 const Card = styled.div`
   position: relative;
-  width: calc(100% - 30vw);
+  width: calc(100% - 20vw);
   height: 100%;
-  padding: 4vh 0;
   min-height: 500px
   background: #eaefff;
   border: 2px solid black;
@@ -40,6 +39,9 @@ const Card = styled.div`
   .btn-container {
     z-index: 2;
   }
+    @media (max-width: 500px){
+      margin: 4vh 0
+    }
 `;
 const Button = styled.button`
   position: relative;
@@ -105,7 +107,7 @@ const CreateNewBot: React.FC = () => {
     <div className="h-full flex flex-col">
       {/* Step Content */}
       {step === 1 && (
-        <div className="w-full flex flex-col items-center">
+        <div className="w-full flex flex-col items-center py-8">
           {/* Stepper Bar */}
           <div className="relative flex items-center justify-center w-[100%] mx-auto max-w-sm mb-16 mt-10">
             {[1, 2, 3].map((n, idx) => (
@@ -118,7 +120,7 @@ const CreateNewBot: React.FC = () => {
                   <div
                     className={`absolute top-1/2 left-[-50px] w-full h-1 z-0 ${
                       step > idx
-                        ? "bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)]"
+                        ? "bg-[#000000] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)]"
                         : "bg-[#CDCDCD] shadow-[inset_0_1px_1px_0_rgba(0,0,0,0.25)]"
                     }`}
                   />
@@ -170,8 +172,8 @@ const CreateNewBot: React.FC = () => {
           </div>
         </div>
       )}
-      {step === 2 && (
-        <div className="w-full">
+      {step === 2 && ( 
+        <div className="w-full py-8 px-4">
           {/* Stepper Bar */}
           <div className="relative flex items-center justify-center w-[100%] mx-auto max-w-sm mb-8 mt-8">
             {[1, 2, 3].map((n, idx) => (
@@ -184,7 +186,7 @@ const CreateNewBot: React.FC = () => {
                   <div
                     className={`absolute top-1/2 left-[-50px] w-full h-1 z-0 ${
                       step > idx
-                        ? "bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)]"
+                        ? "bg-[#000000] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)]"
                         : "bg-[#CDCDCD] shadow-[inset_0_1px_1px_0_rgba(0,0,0,0.25)]"
                     }`}
                   />
@@ -206,87 +208,140 @@ const CreateNewBot: React.FC = () => {
               </div>
             ))}
           </div>
-          <div className="mb-4 pl-14">
-            <h2 className="text-xl font-bold text-black">Pick a Voice</h2>
-            <p className="text-sm font-[500] text-black mt-1">
-              Set the tone for customer conversations
-            </p>
-          </div>
-          <div className="w-full flex flex-col items-center">
-            <div className="grid grid-cols-3 gap-4 overflow-y-auto p-3">
-              {personalityOptions.map((personality) => (
-                <div
-                  key={personality.id}
-                  className={`relative rounded-xl p-3 cursor-pointer transition-all
+            <div className="flex flex-col mx-auto overflow-hidden px-1 sm:px-2 lg:px-16">
+                <div className="mb-4 p-4">
+                  <h2 className="main-font text-xl lg:text-3xl font-[800] text-black">
+                    Pick a Voice 
+                  </h2>
+                  <p className="para-font text-sm font-[400] text-black mt-1">
+                    Set the tone for customer conversations
+                  </p>
+                </div>
+                
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto p-4">
+                {personalityOptions.map((personality) => (
+                  <div
+                    key={personality.id}
+                    className={`relative rounded-xl p-3 cursor-pointer transition-all
               ${
                 selectedVoice.id === personality.id
-                  ? "bg-green-50 border-2 border-black"
+                  ? "bg-[#CEFFDC] border-2 border-black"
                   : "bg-[#f4f6ff] border-2 border-gray-400"
               }`}
-                  onClick={() => setSelectedVoice(personality)}
-                >
-                  {/* Selection Indicator */}
-                  {selectedVoice.id === personality.id && (
-                    <div className="absolute -top-2 -left-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                      <Check className="w-4 h-4 text-white" />
-                    </div>
-                  )}
+                    onClick={() => setSelectedVoice(personality)}
+                  >
+                    {/* Selection Indicator */}
+                    {selectedVoice.id === personality.id ? (
+                      <>
+                        <div className="absolute -top-3 -left-3 w-8 h-8 bg-[#CEFFDC] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000]"></div>
+                        <div className="absolute -top-2 -left-2 w-6 h-6 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]"></div>
+                      </>
+                    ) : (
+                      <div className="absolute -top-2 -left-2 w-6 h-6 rounded-full flex items-center justify-center bg-[#EAEFFF] border border-[#7D7D7D] shadow-[inset_0_6px_6px_0_rgba(0,0,0,0.25)]"></div>
+                    )}
 
-                  <div className="flex items-start space-x-5">
-                    {/* Avatar */}
-                    <div className="w-28 h-28 rounded-lg overflow-hidden bg-white">
-                      <img
-                        src={personality.image}
-                        alt={`${personality.title} personality`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+                    <div className="flex items-start space-x-2 sm:space-x-5">
+                      {/* Avatar */}
+                      <div className="w-28 h-28  rounded-lg overflow-hidden bg-white">
+                        <img
+                          src={personality.image}
+                          alt={`${personality.title} personality`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
 
-                    {/* Content */}
-                    <div className="flex-1 ">
-                      <h3 className="text-md font-semibold black mb-1">
-                        {personality.title}
-                      </h3>
-                      <hr
-                        className="my-3 border-black w-10 "
-                        style={{ border: "2px solid black", borderRadius: 30 }}
-                      />
+                      {/* Content */}
+                      <div className="w-[60%]">
+                        <h3 className="text-md font-semibold black mb-1">
+                          {personality.title}
+                        </h3>
+                        <hr
+                          className="my-3 border-black w-10 "
+                          style={{
+                            border: "2px solid black",
+                            borderRadius: 30,
+                          }}
+                        />
 
-                      <div className="space-y-0.5">
-                        {personality.traits.map((trait, index) => (
-                          <p key={index} className="text-sm text-black">
-                            {trait}
-                          </p>
-                        ))}
+                        <div className="space-y-0.5">
+                          {personality.traits.map((trait, index) => (
+                            <p key={index} className="text-sm text-black">
+                              {trait}
+                            </p>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-between mt-4">
-              <button
-                className="px-8 py-2 bg-gray-200 rounded font-bold"
-                onClick={() => setStep(1)}
-              >
-                BACK
-              </button>
-              <button
-                className="px-8 py-2 bg-green-400 text-black font-bold rounded hover:bg-green-500 transition"
-                onClick={() => setStep(3)}
-              >
-                NEXT
-              </button>
+                ))}
+              </div>
+              <div className="btn-container flex justify-end gap-4 p-4">
+                <Button
+                  className="px-8 py-2 bg-gray-200 rounded font-bold flex gap-4 items-center bg-[#EAEFFF]!important"
+                  onClick={() => setStep(1)}
+                >
+                  <span className="-rotate-180">
+                    <svg
+                      width="14"
+                      height="16"
+                      viewBox="0 0 16 18"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M7.07031 2L14.0691 8.99883"
+                        stroke="black"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M7.07031 16.1406L14.0691 9.1418"
+                        stroke="black"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </span>
+                  BACK
+                </Button>
+                <Button
+                  className="px-8 py-2 bg-gray-200 rounded font-bold flex gap-4 items-center"
+                  onClick={() => setStep(3)}
+                >
+                  NEXT
+                  <span>
+                    <svg
+                      width="14"
+                      height="16"
+                      viewBox="0 0 16 18"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M7.07031 2L14.0691 8.99883"
+                        stroke="black"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M7.07031 16.1406L14.0691 9.1418"
+                        stroke="black"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </span>
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
       )}
       {step === 3 && (
-        <div className="w-full h-full flex flex-row gap-0">
+        <div className="w-full h-full flex flex-col lg:flex-row gap-0">
           {/* Left: Theme selection */}
-          <div className="w-3/5 rounded-lg flex flex-col gap-4">
+          <div className="w-full lg:w-3/5 rounded-lg flex flex-col gap-2 lg:gap-4">  
             {/* Stepper Bar */}
-            <div className="relative flex items-center justify-center w-[100%] mx-auto max-w-sm mb-8 mt-8">
+            <div className="relative flex items-center justify-center w-[100%]  max-w-sm mx-auto mb-8 mt-8">
               {[1, 2, 3].map((n, idx) => (
                 <div
                   key={n}
@@ -297,7 +352,7 @@ const CreateNewBot: React.FC = () => {
                     <div
                       className={`absolute top-1/2 left-[-50px] w-full h-1 z-0 ${
                         step > idx
-                          ? "bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)]"
+                          ? "bg-[#000000] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)]"
                           : "bg-[#CDCDCD] shadow-[inset_0_1px_1px_0_rgba(0,0,0,0.25)]"
                       }`}
                     />
@@ -307,26 +362,26 @@ const CreateNewBot: React.FC = () => {
                   <button
                     type="button"
                     className={`para-font relative z-10 w-[40px] h-[40px] rounded-full flex items-center justify-center border-2 text-black font-bold text-lg
-                  ${
-                    step >= n
-                      ? "bg-white border-[#222b5f]"
-                      : "bg-[#CDCDCD] shadow-[inset_0_6px_6px_0_rgba(0,0,0,0.25)] border-[0px] text-[#7D7D7D]"
-                  }
-                `}
+                    ${
+                      step >= n
+                        ? "bg-white border-[#222b5f]"
+                        : "bg-[#CDCDCD] shadow-[inset_0_6px_6px_0_rgba(0,0,0,0.25)] border-[0px] text-[#7D7D7D]"
+                    }
+                  `}
                   >
                     {n}
                   </button>
                 </div>
               ))}
             </div>
-            <div className="pl-14">
-              <h2 className="text-xl font-bold text-black">Select a Theme</h2>
-              <p className="text-sm font-[500] text-black mt-1">
+            <div className="pl-4 lg:pl-14">
+              <h2 className="main-font text-xl lg:text-3xl font-[800] text-black">Select a Theme</h2>
+              <p className="para-font text-sm font-[400] text-black mt-1">
                 Choose a look that matches your brand
               </p>
             </div>
-            <div className="w-full flex flex-col items-center px-2">
-              <div className="grid grid-cols-3 gap-4 overflow-y-auto p-3 max-h-[400px]">
+            <div className="w-full flex flex-col items-center px-2 pb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-4 overflow-y-auto  p-6 max-h-[320px] lg:max-h-[500px]">
                 {themes.map((currentTheme) => (
                   <div
                     key={currentTheme.id}
@@ -334,20 +389,15 @@ const CreateNewBot: React.FC = () => {
                     onClick={() => setSelectedTheme(currentTheme)}
                   >
                     {/* Selection Indicator */}
-                    <div
-                      className={`border absolute  -left-3 w-7 h-7 rounded-full shadow border-2 border-white bg-gradient-to-br from-gray-300 to-gray-500 z-10 ${
-                        selectedTheme.id === currentTheme.id
-                          ? "bg-green-500"
-                          : "opacity-100"
-                      }`}
-                      style={{
-                        border: `2px solid black`,
-                        background:
-                          selectedTheme.id === currentTheme.id
-                            ? "#6aff97"
-                            : "#bdbdbd",
-                      }}
-                    />
+                      
+                    {selectedTheme.id === currentTheme.id ? (
+                      <>
+                        <div className="absolute -top-2 -left-3 w-8 h-8 bg-[#CEFFDC] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000]"></div>
+                        <div className="absolute -top-1 -left-2 w-6 h-6 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]"></div>
+                      </>
+                    ) : (
+                      <div className="absolute -top-1 -left-2 w-6 h-6 rounded-full flex items-center justify-center bg-[#EAEFFF] border border-[#7D7D7D] shadow-[inset_0_6px_6px_0_rgba(0,0,0,0.25)]"></div>
+                    )}
 
                     {/* Theme Header Bar */}
                     <div
@@ -432,28 +482,13 @@ const CreateNewBot: React.FC = () => {
                   </div>
                 ))}
               </div>
-              <div className="flex justify-between mt-6">
-                <button
-                  className="px-8 py-2 bg-gray-200 rounded font-bold"
-                  onClick={() => setStep(2)}
-                >
-                  BACK
-                </button>
-                <button
-                  className="px-8 py-2 bg-green-400 text-black font-bold rounded hover:bg-green-500 transition"
-                  onClick={handleFinish}
-                  disabled={loading}
-                >
-                  {loading ? "Creating..." : "FINISH"}
-                </button>
-              </div>
             </div>
           </div>
           {/* Right: PublicChat Preview */}
-          <div className="w-2/5 flex flex-col items-center justify-center h-full bg-[#d4deff]">
+          <div className="w-full lg:w-2/5 py-2 lg:py-8 flex flex-col items-center justify-center bg-[#d4deff]">
             <div className="w-full flex flex-col items-center">
-              <div className="text-lg font-bold mb-2 mt-4">PREVIEW</div>
-              <div className="w-[300px] h-[550px] border  border-gray-300 rounded-xl overflow-hidden shadow bg-white">
+              <h1 className="main-font mb-4 text-lg lg:text-2xl font-[800] text-black">PREVIEW</h1>
+              <div className="w-[250px] [@media(min-width:340px)]:w-[280px] [@media(min-width:380px)]:w-[300px]] h-[550px] border  border-gray-300 rounded-xl overflow-hidden shadow bg-white">
                 <PublicChat
                   chatHeight={"550px"}
                   previewConfig={{
@@ -494,6 +529,65 @@ const CreateNewBot: React.FC = () => {
                   isPreview={true}
                 />
               </div>
+              <div className="btn-container flex justify-end gap-4 p-4 mt-4">
+                <Button
+                  className="px-8 py-2 bg-gray-200 rounded font-bold flex gap-4 items-center"
+                  onClick={() => setStep(2)}
+                >
+                  <span className="-rotate-180">
+                    <svg
+                      width="14"
+                      height="16"
+                      viewBox="0 0 16 18"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M7.07031 2L14.0691 8.99883"
+                        stroke="black"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M7.07031 16.1406L14.0691 9.1418"
+                        stroke="black"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </span>
+                  BACK
+                </Button>
+                <Button
+                  className="px-8 py-2 bg-gray-200 rounded font-bold flex gap-4 items-center"
+                  onClick={handleFinish}
+                  disabled={loading}
+                >
+                  {loading ? "Creating..." : "FINISH"}
+                  <span className="">
+                    <svg
+                      width="14"
+                      height="16"
+                      viewBox="0 0 16 18"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M7.07031 2L14.0691 8.99883"
+                        stroke="black"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M7.07031 16.1406L14.0691 9.1418"
+                        stroke="black"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </span>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -532,7 +626,7 @@ const CreateNewBot: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#b6baf8] flex flex-col">
+    <div className="min-h-screen h-[100%] w-full bg-[#b6baf8] flex flex-col pb-6 pt-2">
       {/* Centered content */}
       <div className="flex-1 flex items-center justify-center z-10 relative">
         <Card className="w-[80%] h-[650px] max-w-6xl  border-2 border-[#222b5f] bg-[#eaefff] rounded-none flex flex-col justify-center items-center p-0">
