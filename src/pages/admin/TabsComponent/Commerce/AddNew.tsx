@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FaBox, FaFileAlt, FaCalendarAlt, FaUsers } from "react-icons/fa";
 import NewOfferingForm from "../../OfferingComponents/NewOfferingForm";
 import { ProductType } from "../../../../types";
+import { useBotConfig } from "../../../../store/useBotConfig";
 
 const cardData = [
   {
@@ -29,6 +30,7 @@ const cardData = [
 
 const AddNew = () => {
   const navigate = useNavigate();
+  const { activeBotId } = useBotConfig();
 
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>(null);
@@ -38,11 +40,13 @@ const AddNew = () => {
     const storedEditData = localStorage.getItem("editingProduct");
     if (storedEditData) {
       const { product, type } = JSON.parse(storedEditData);
-
       setEditData(product);
       setSelectedType(type);
+    } else if (!selectedType) {
+      // Only redirect if we're not in edit mode and no type is selected
+      navigate("/admin/commerce/manage");
     }
-  }, []);
+  }, [selectedType, navigate]);
 
   const handleBack = () => {
     if (editData) {
