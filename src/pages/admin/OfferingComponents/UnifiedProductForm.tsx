@@ -100,7 +100,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
             value={form.title || ""}
             onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
             className="w-full border border-gray-300 rounded p-2 mt-1 mb-1 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white"
-            placeholder={`Type your ${type.toLowerCase()} name...`}
+            placeholder={`Type title...`}
           />
           <div className="text-xs text-gray-500 text-right mb-2">
             {form.title?.length}/50

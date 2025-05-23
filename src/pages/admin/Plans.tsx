@@ -125,7 +125,7 @@ const Plans = () => {
       window.open(stripeUrl, "_blank", "noopener,noreferrer");
     } catch (error) {
       console.error("Error changing plan:", error);
-      toast.error(error?.response?.data?.result);
+      toast.error(error?.response?.data?.result || "Failed to change plan");
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
       }
@@ -133,14 +133,6 @@ const Plans = () => {
       setUpgradingPlanId(null);
     }
   };
-
-  // Stop polling when billing type changes
-  useEffect(() => {
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current);
-      pollingIntervalRef.current = null;
-    }
-  }, [billing]);
 
   const isUpgrading = (planId: string): boolean => {
     return upgradingPlanId === planId;
