@@ -4,6 +4,9 @@ export default {
   
   theme: {
     extend: {
+      screens: {
+        xs: "450px", // ✅ Custom breakpoint for small devices
+      },
       colors: {
         primary: {
           50: "#f0f9ff",

@@ -14,7 +14,103 @@ import { calculateSmartnessLevel } from "../../../../utils/helperFn";
 import { PERSONALITY_OPTIONS } from "../../../../utils/constants";
 import SocialMediaSection from "./SocialMediaSection";
 import CustomLinksSection from "./CustomLinksSection";
+import styled from "styled-components";
+const Lable = styled.label`
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border: 2px solid black;
+  display: grid;
+  place-items: center;
+  background: #aeb8ff;
+  overflow: none;
+  @media (max-width: 600px) {
+    width: 30px;
+    height: 30px;
+  }
+  &::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: -6px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #000000;
+    z-index: -1; // place it behind the button
+    background: #aeb8ff;
+  }
 
+  .btn-container {
+    z-index: 2;
+  }
+`;
+const Icon = styled.button`
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #aeb8ff;
+  border: 2px solid black;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: clamp(8px, 4vw, 16px);
+  &:hover {
+    background: #aeb8ff;
+  }
+
+  @media (max-width: 600px) {
+    width: 30px;
+    height: 30px;
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: -6px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #000000;
+    z-index: -1; // place it behind the button
+    background: #aeb8ff;
+  }
+`;
+
+const Button = styled.button`
+  position: relative;
+  background: #4d65ff;
+  padding: 1vh 2vw;
+  border: 2px solid black;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: clamp(8px, 4vw, 16px);
+  color: white;
+  @media (max-width: 600px) {
+    min-width: 120px;
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: -6px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #000000;
+    z-index: -1; // place it behind the button
+    background: #6aff97;
+  }
+
+  &:disabled {
+    background: #d6ffe0;
+    cursor: not-allowed;
+  }
+  &:disabled::before {
+    background: #d6ffe0;
+  }
+`;
 const Profile = () => {
   const navigate = useNavigate();
   const [agentName, setAgentName] = useState("");
@@ -236,15 +332,15 @@ const Profile = () => {
 
   return (
     <div
-      className="grid grid-cols-1 lg:grid-cols-5 w-full bg-white"
+      className="grid grid-cols-1 lg:grid-cols-5 w-full bg-white overflow-scroll lg:overflow-hidden"
       style={{ height: "calc(100vh - 64px)" }}
     >
-      <div className="col-span-1 lg:col-span-3 overflow-y-auto h-full">
+      <div className="col-span-1 lg:col-span-3 h-full sm:px-6 lg:overflow-auto">
         <div className="max-w-3xl mx-auto p-4 lg:p-6 space-y-6">
-          <div className="p-6 shadow-sm">
+          <div className="shadow-sm flex flex-col sm:flex-row sm:gap-8 lg:flex-col lg:gap-4">
             {/* Profile Image Upload */}
             <div className="flex items-start mb-6">
-              <div className="relative">
+              <div className="relative flex flex-col items-center gap-2">
                 <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center overflow-hidden border-2 border-gray-200">
                   {isUploading ? (
                     <div className="animate-pulse bg-gray-200 w-full h-full" />
@@ -262,168 +358,182 @@ const Profile = () => {
                     />
                   )}
                 </div>
-                <div className="absolute -top-1 -right-1 flex space-x-1">
-                  <label
-                    className={`w-5 h-5 ${
-                      isUploading
-                        ? "bg-gray-400"
-                        : "bg-blue-600 hover:bg-blue-700"
-                    } flex items-center justify-center cursor-pointer transition-colors`}
-                  >
-                    <input
-                      type="file"
-                      className="hidden"
-                      onChange={handleImageUpload}
-                      accept="image/*"
-                      disabled={isUploading}
-                    />
-                    <Upload className="w-3 h-3 text-white" />
-                  </label>
-                  {profileImage && (
-                    <button
-                      className="w-5 h-5 bg-red-600 flex items-center justify-center hover:bg-red-700 transition-colors"
-                      onClick={handleRemoveImage}
-                      disabled={isUploading}
+                <div className="relative flex gap-2">
+                  <div style={{ zIndex: "2" }}>
+                    <Lable
+                      className={`${
+                        isUploading ? "bg-gray-400" : ""
+                      } flex items-center justify-center`}
                     >
-                      <X className="w-3 h-3 text-white" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Agent Name */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Agent Name
-              </label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  value={agentName}
-                  onChange={(e) => setAgentName(e.target.value)}
-                  placeholder="Type your name or brand"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                />
-                <button
-                  onClick={handleSaveName}
-                  disabled={isSavingName}
-                  className={`px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm transition-colors ${
-                    isSavingName ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                >
-                  {isSavingName ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                      <span>Saving...</span>
-                    </div>
-                  ) : (
-                    "Save"
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Agent URL */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Agent URL
-              </label>
-              {!isEditingUrl ? (
-                <div className="flex items-center space-x-2">
-                  <div className="flex-1 relative">
-                    <div className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50">
-                      <span className="text-gray-500">{baseUrl}</span>
-                      <span>{agentUsername}</span>
-                    </div>
-                    <div className="absolute right-1 top-1/2 -translate-y-1/2 flex space-x-1">
-                      <button
-                        onClick={handleCopyUrl}
-                        className="w-5 h-5 bg-gray-100 flex items-center justify-center hover:bg-gray-200 rounded-sm transition-colors"
-                        title="Copy URL"
-                      >
-                        <Copy className="w-3 h-3 text-gray-600" />
-                      </button>
-                      <button
-                        onClick={handleVisitUrl}
-                        className="w-5 h-5 bg-gray-100 flex items-center justify-center hover:bg-gray-200 rounded-sm transition-colors"
-                        title="Visit URL"
-                      >
-                        <Link2 className="w-3 h-3 text-gray-600" />
-                      </button>
-                    </div>
+                      <input
+                        type="file"
+                        className="hidden"
+                        onChange={handleImageUpload}
+                        accept="image/*"
+                        disabled={isUploading}
+                      />
+                      <Upload className="w-4 h-4" />
+                    </Lable>
                   </div>
-                  <button
-                    onClick={handleUrlEdit}
-                    className="px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm transition-colors"
-                  >
-                    Edit
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <div className="flex-1 relative">
-                      <div className="flex items-center border border-gray-300 rounded-md overflow-hidden">
-                        <span className="px-3 py-2 bg-gray-100 text-gray-500 text-sm border-r">
-                          {baseUrl}
-                        </span>
-                        <input
-                          type="text"
-                          value={agentUsername}
-                          onChange={handleUsernameChange}
-                          placeholder="your-username"
-                          className="flex-1 px-3 py-2 focus:outline-none text-sm"
-                          disabled={isCheckingUrl}
-                        />
-                      </div>
-                      {urlAvailable !== null && !isCheckingUrl && (
-                        <div
-                          className={`absolute right-3 top-1/2 -translate-y-1/2 flex items-center ${
-                            urlAvailable ? "text-green-500" : "text-red-500"
-                          }`}
-                        >
-                          {urlAvailable ? (
-                            <Check className="w-4 h-4" />
-                          ) : (
-                            <span className="text-xs">
-                              Username not available
-                            </span>
-                          )}
-                        </div>
-                      )}
+                  {profileImage && (
+                    <div style={{ zIndex: "2" }} className="icon">
+                      <Icon
+                        className="w-5 h-5 bg-red-600 flex items-center justify-center hover:bg-red-700 transition-colors"
+                        onClick={handleRemoveImage}
+                        disabled={isUploading}
+                      >
+                        <X className="w-4 h-4" />
+                      </Icon>
                     </div>
-                    <button
-                      onClick={handleUrlSave}
-                      disabled={isCheckingUrl}
-                      className={`px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm transition-colors
-                        ${
-                          isCheckingUrl ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
+                  )}
+                </div>
+              </div>
+            </div>
+            {/* Agent Name */} {/* Agent URL */}
+            <div className="name-and-url">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Agent Name
+                </label>
+                <div className="flex flex-col space-y-2 xs:flex-row xs:items-center  xs:space-x-2 xs:space-y-0">
+                  <input
+                    type="text"
+                    value={agentName}
+                    onChange={(e) => setAgentName(e.target.value)}
+                    placeholder="Type your name or brand"
+                    className="flex-1 px-3 py-2 border border-[#7D7D7D] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  />
+                  <div className="flex justify-end relative z-10">
+                    <Button
+                      onClick={handleSaveName}
+                      disabled={isSavingName}
+                      className={`${
+                        isSavingName ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
                     >
-                      {isCheckingUrl ? (
+                      {isSavingName ? (
                         <div className="flex items-center space-x-2">
                           <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                          <span>Checking...</span>
+                          <span>Saving...</span>
                         </div>
                       ) : (
                         "Save"
                       )}
-                    </button>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    Username must be 3-30 characters and can only contain
-                    letters, numbers, underscores, and hyphens
+                    </Button>
                   </div>
                 </div>
-              )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Agent URL
+                </label>
+                {!isEditingUrl ? (
+                  <div className="flex flex-col space-y-2 xs:flex-row xs:items-center  xs:space-x-2 xs:space-y-0">
+                    <div className="flex-1 relative">
+                      <div className="truncate max-w-[100%] w-full px-3 py-2 border border-[#7D7D7D] text-sm bg-gray-50 overflow-x-scroll-auto">
+                        <span className="truncate max-w-[2%] text-gray-500">
+                          {baseUrl}
+                        </span>
+                        <span className="truncate max-w-[2%]">
+                          {agentUsername}
+                        </span>
+                      </div>
+                      <div className="absolute right-1 top-1/2 -translate-y-1/2 flex space-x-1">
+                        <button
+                          onClick={handleCopyUrl}
+                          className="w-5 h-5 bg-gray-100 flex items-center justify-center hover:bg-gray-200 rounded-sm transition-colors"
+                          title="Copy URL"
+                        >
+                          <Copy className="w-3 h-3 text-gray-600" />
+                        </button>
+                        <button
+                          onClick={handleVisitUrl}
+                          className="w-5 h-5 bg-gray-100 flex items-center justify-center hover:bg-gray-200 rounded-sm transition-colors"
+                          title="Visit URL"
+                        >
+                          <Link2 className="w-3 h-3 text-gray-600" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex justify-end relative z-10">
+                        <Button
+                        onClick={handleUrlEdit}
+                        className=""
+                      >
+                        Edit
+                      </Button>
+                    </div>
+                 
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex flex-col space-y-2 xs:flex-row xs:items-center  xs:space-x-2 xs:space-y-0">
+                      <div className="flex-1 relative">
+                        <div className="flex items-center border border-[#7D7D7D] overflow-hidden">
+                          <span className="px-3 py-2 bg-gray-100 text-gray-500 text-sm border-r">
+                            {baseUrl}
+                          </span>
+                          <input
+                            type="text"
+                            value={agentUsername}
+                            onChange={handleUsernameChange}
+                            placeholder="your-username"
+                            className="flex-1 px-3 py-2 focus:outline-none text-sm"
+                            disabled={isCheckingUrl}
+                          />
+                        </div>
+                        {urlAvailable !== null && !isCheckingUrl && (
+                          <div
+                            className={`absolute right-3 top-1/2 -translate-y-1/2 flex items-center ${
+                              urlAvailable ? "text-green-500" : "text-red-500"
+                            }`}
+                          >
+                            {urlAvailable ? (
+                              <Check className="w-4 h-4" />
+                            ) : (
+                              <span className="hidden sm:block text-xs">
+                                Username not available
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                        <div className="flex justify-end relative z-10">
+                      <Button
+                        onClick={handleUrlSave}
+                        disabled={isCheckingUrl}
+                        className={`
+                            ${
+                              isCheckingUrl
+                                ? "opacity-50 cursor-not-allowed"
+                                : ""
+                            }`}
+                      >
+                        {isCheckingUrl ? (
+                          <div className="flex items-center space-x-2">
+                            <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                            <span>Checking...</span>
+                          </div>
+                        ) : (
+                          "Save"
+                        )}
+                      </Button>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Username must be 3-30 characters and can only contain
+                      letters, numbers, underscores, and hyphens
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Agent Bio */}
-          <div className="p-6 shadow-sm">
+          <div className="">
             <div>
-              <div className="flex justify-between mb-1">
+              <div className="flex justify-between mb-1 pt-4">
                 <label className="block text-sm font-medium text-gray-700">
                   Agent Bio
                 </label>
@@ -438,13 +548,13 @@ const Profile = () => {
                   placeholder="Describe your agent purpose or business..."
                   maxLength={150}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  className="w-full px-3 py-2 border border-[#7D7D7D] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
                 />
-                <div className="flex justify-end">
-                  <button
+               <div className="flex justify-end relative z-10">
+                  <Button
                     onClick={handleSaveBio}
                     disabled={isSavingBio}
-                    className={`px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm transition-colors ${
+                    className={` ${
                       isSavingBio ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                   >
@@ -456,48 +566,51 @@ const Profile = () => {
                     ) : (
                       "Save"
                     )}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Agent Smartness */}
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-gray-700">
-                AGENT SMARTNESS
-              </span>
-              <span className="text-sm text-gray-500">
-                {smartnessLevel}% COMPLETE
-              </span>
-            </div>
-            <div className="relative pt-1">
-              <div className="overflow-hidden h-2 text-xs flex rounded bg-blue-200">
-                <div
-                  style={{ width: `${smartnessLevel}%` }}
-                  className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-600"
-                />
+          <div className="bg-[#D4DEFF] p-4 rounded-lg flex flex-col sm:flex-row w-full gap-5">
+            <div className="smartness-details w-full">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-gray-700">
+                  AGENT SMARTNESS
+                </span>
+                <span className="text-sm text-[#0D0D0D]">
+                  {smartnessLevel}% COMPLETE
+                </span>
+              </div>
+              <div className="relative pt-1">
+                <div className="overflow-hidden h-[10px] text-xs flex rounded-lg bg-[#FFFFFF] shadow-[inset_0_3px_3px_0_rgba(0,0,0,0.25)]">
+                  <div
+                    style={{ width: `${smartnessLevel}%` }}
+                    className="shadow-none h-[10px] flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#4D65FF] border-2 border-[#135220] rounded-lg"
+                  />
+                </div>
               </div>
             </div>
-            <button
-              className="mt-2 px-4 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
-              onClick={() => {
-                navigate("/admin/dashboard/brain");
-              }}
-            >
-              SMARTEN
-            </button>
+            <div style={{ zIndex: 10 }} className="btn-container z-10 relative">
+              <Button
+                className=""
+                onClick={() => {
+                  navigate("/admin/dashboard/brain");
+                }}
+              >
+                SMARTEN
+              </Button>
+            </div>
           </div>
 
           {/* Promotional Banner */}
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Promotional Banner
-              </label>
-              <div className="flex items-center space-x-2">
-                <span className="text-xs text-gray-500">MAX 50 CHARACTERS</span>
+          <div className="bg-[#CDCDCD] p-4 rounded-[10px]">
+            <div className="mb-2">
+              <div className="title flex w-full justify-between items-center">
+                <h1 className="main-font block text-md md:text-xl font-medium text-[#000000]">
+                  Promotional Banner
+                </h1>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -505,8 +618,14 @@ const Profile = () => {
                     checked={isPromoBannerEnabled}
                     onChange={(e) => setIsPromoBannerEnabled(e.target.checked)}
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-[#CDCDCD] peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-[#000000] rounded-full peer peer-checked:after:translate-x-full border-[#000000] peer-checked:after:border-[#000000] after:content-[''] after:absolute after:top-[2px] after:border-[#000000] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>
+              </div>
+              <div className="flex w-full justify-between items-center space-x-2 mt-4">
+                <span className="text-xs text-gray-500">
+                  Display banner under the main header
+                </span>
+                <span className="text-xs text-gray-500">MAX 50 CHARACTERS</span>
               </div>
             </div>
             <div className="space-y-2">
@@ -516,13 +635,13 @@ const Profile = () => {
                 onChange={(e) => handlePromoBannerChange(e.target.value)}
                 placeholder="Type your promotional text..."
                 maxLength={50}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-[#7D7D7D] focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <div className="flex justify-end">
-                <button
+              <div className="flex justify-end relative z-10">
+                <Button
                   onClick={handleSavePromoBanner}
                   disabled={isSavingPromoBanner}
-                  className={`px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm transition-colors ${
+                  className={` ${
                     isSavingPromoBanner ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
@@ -534,13 +653,13 @@ const Profile = () => {
                   ) : (
                     "Save"
                   )}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
 
           {/* Social Media Section */}
-          <div className="p-6 shadow-sm">
+          <div className="">
             <SocialMediaSection />
           </div>
           {/* Custom Links Section */}
@@ -558,6 +677,7 @@ const Profile = () => {
           className="mx-auto"
           style={{
             maxWidth: 400,
+            width: "80%",
             height: "100%",
             display: "flex",
             justifyContent: "center",
