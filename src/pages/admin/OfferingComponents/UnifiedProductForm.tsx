@@ -45,6 +45,15 @@ type UnifiedFormType = {
   quantityUnlimited?: boolean;
 };
 
+type FormErrors = {
+  title?: string;
+  category?: string;
+  description?: string;
+  price?: string;
+  quantity?: string;
+  variedQuantities?: Record<string, string>;
+};
+
 type UnifiedProductFormProps = {
   type: ProductType;
   form: UnifiedFormType;
@@ -73,6 +82,67 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
 }) => {
   const { activeBotData } = useBotConfig();
   const [thumbnailInputKey, setThumbnailInputKey] = useState(0);
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    // Title validation
+    if (!form.title) {
+      newErrors.title = "Title is required";
+    } else if (form.title.length > 50) {
+      newErrors.title = "Title must be 50 characters or less";
+    }
+
+    // Category validation
+    if (form.category && form.category.length > 20) {
+      newErrors.category = "Category must be 20 characters or less";
+    }
+
+    // Description validation
+    if (form.descriptionEnabled && form.description) {
+      if (form.description.length > 300) {
+        newErrors.description = "Description must be 300 characters or less";
+      }
+    }
+
+    // Price validation
+    if (form.priceType === "paid" && form.price) {
+      const priceNum = parseFloat(form.price);
+      if (isNaN(priceNum) || priceNum < 0) {
+        newErrors.price = "Price must be a positive number";
+      }
+    }
+
+    // Quantity validation
+    if (form.quantityType === "oneSize" && !form.quantityUnlimited) {
+      if (form.quantity < 0) {
+        newErrors.quantity = "Quantity cannot be negative";
+      }
+    }
+
+    // Varied sizes quantity validation
+    if (form.quantityType === "variedSizes") {
+      const variedErrors: Record<string, string> = {};
+      Object.entries(form.variedQuantities || {}).forEach(([size, qty]) => {
+        if (qty < 0) {
+          variedErrors[size] = "Quantity cannot be negative";
+        }
+      });
+      if (Object.keys(variedErrors).length > 0) {
+        newErrors.variedQuantities = variedErrors;
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (validateForm()) {
+      onNext();
+    }
+  };
 
   const getTitle = () => {
     switch (type) {
@@ -98,26 +168,42 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           <input
             maxLength={50}
             value={form.title || ""}
-            onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-            className="w-full border border-gray-300 rounded p-2 mt-1 mb-1 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white"
+            onChange={(e) => {
+              setForm((f) => ({ ...f, title: e.target.value }));
+              if (errors.title) {
+                setErrors((prev) => ({ ...prev, title: undefined }));
+              }
+            }}
+            className={`w-full border ${
+              errors.title ? "border-red-500" : "border-gray-300"
+            } rounded p-2 mt-1 mb-1 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white`}
             placeholder={`Type title...`}
           />
-          <div className="text-xs text-gray-500 text-right mb-2">
-            {form.title?.length}/50
+          <div className="flex justify-between">
+            <div className="text-xs text-red-500">{errors.title}</div>
+            <div className="text-xs text-gray-500">{form.title?.length}/50</div>
           </div>
 
           <label className="font-semibold">Category / Type</label>
           <input
-            maxLength={50}
+            maxLength={20}
             value={form.category || ""}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, category: e.target.value }))
-            }
-            className="w-full border border-gray-300 rounded p-2 mt-1 mb-1 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white"
+            onChange={(e) => {
+              setForm((f) => ({ ...f, category: e.target.value }));
+              if (errors.category) {
+                setErrors((prev) => ({ ...prev, category: undefined }));
+              }
+            }}
+            className={`w-full border ${
+              errors.category ? "border-red-500" : "border-gray-300"
+            } rounded p-2 mt-1 mb-1 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white`}
             placeholder="Type the category..."
           />
-          <div className="text-xs text-gray-500 text-right mb-2">
-            {(form.category || "").length}/50
+          <div className="flex justify-between">
+            <div className="text-xs text-red-500">{errors.category}</div>
+            <div className="text-xs text-gray-500">
+              {(form.category || "").length}/20
+            </div>
           </div>
 
           {/* Digital Product Specific */}
@@ -210,14 +296,26 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
             </div>
             <textarea
               value={form.description || ""}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, description: e.target.value }))
-              }
-              className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white"
+              onChange={(e) => {
+                setForm((f) => ({ ...f, description: e.target.value }));
+                if (errors.description) {
+                  setErrors((prev) => ({ ...prev, description: undefined }));
+                }
+              }}
+              className={`w-full border ${
+                errors.description ? "border-red-500" : "border-gray-300"
+              } rounded p-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white`}
               placeholder="Describe your offering..."
               rows={3}
               disabled={!form.descriptionEnabled}
+              maxLength={300}
             />
+            <div className="flex justify-between">
+              <div className="text-xs text-red-500">{errors.description}</div>
+              <div className="text-xs text-gray-500">
+                {(form.description || "").length}/300
+              </div>
+            </div>
           </div>
 
           {/* Images Section */}
@@ -657,21 +755,51 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                           quantityUnlimited: false,
                         }))
                       }
-                      className="accent-gray-500 w-5 h-5"
+                      className="accent-green-500 w-5 h-5"
                     />
                     <span className="font-medium">One size/Qty.</span>
                     <input
-                      type="number"
-                      className="ml-2 border rounded px-2 py-1 w-32"
-                      value={form.quantity || 0}
-                      onChange={(e) =>
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={form.quantity === 0 ? "" : form.quantity}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Allow empty value
+                        if (value === "") {
+                          setForm((f) => ({
+                            ...f,
+                            quantity: 0,
+                          }));
+                          return;
+                        }
+                        // Only allow numbers
+                        if (!/^\d*$/.test(value)) return;
+
+                        const numValue = parseInt(value);
+                        if (numValue < 0) return;
                         setForm((f) => ({
                           ...f,
-                          quantity: parseInt(e.target.value) || 0,
-                        }))
-                      }
+                          quantity: numValue,
+                        }));
+                        if (errors.quantity) {
+                          setErrors((prev) => ({
+                            ...prev,
+                            quantity: undefined,
+                          }));
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        // Prevent minus sign
+                        if (e.key === "-") {
+                          e.preventDefault();
+                        }
+                      }}
+                      className={`border ${
+                        errors.quantity ? "border-red-500" : "border-gray-300"
+                      } rounded p-1 w-24 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-300`}
+                      placeholder="Enter quantity"
                       disabled={form.quantityType !== "oneSize"}
-                      placeholder="99999.99"
                     />
                   </label>
                   <div className="flex items-start gap-2">
@@ -730,11 +858,17 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                           </button>
                           <input
                             type="number"
-                            className="border rounded px-2 py-1 w-16 text-center text-xs"
+                            className={`border ${
+                              errors.variedQuantities?.[size]
+                                ? "border-red-500"
+                                : "border-gray-300"
+                            } rounded px-2 py-1 w-16 text-center text-xs`}
                             placeholder="XXXXX"
                             value={form.variedQuantities?.[size] || ""}
                             onChange={(e) => {
                               const value = e.target.value;
+                              // Prevent negative numbers
+                              if (parseInt(value) < 0) return;
                               setForm((f) => ({
                                 ...f,
                                 variedQuantities: {
@@ -742,12 +876,32 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                                   [size]: parseInt(value) || 0,
                                 },
                               }));
+                              if (errors.variedQuantities?.[size]) {
+                                setErrors((prev) => ({
+                                  ...prev,
+                                  variedQuantities: {
+                                    ...prev.variedQuantities,
+                                    [size]: undefined,
+                                  },
+                                }));
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              // Prevent minus sign
+                              if (e.key === "-") {
+                                e.preventDefault();
+                              }
                             }}
                             disabled={
                               form.quantityType !== "variedSizes" ||
                               !form.variedSizes?.includes(size)
                             }
                           />
+                          {errors.variedQuantities?.[size] && (
+                            <div className="text-xs text-red-500">
+                              {errors.variedQuantities[size]}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -793,16 +947,46 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                     />
                     <span className="text-gray-700">One size/Qty:</span>
                     <input
-                      type="number"
-                      value={form.quantity || 0}
-                      onChange={(e) =>
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={form.quantity === 0 ? "" : form.quantity}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Allow empty value
+                        if (value === "") {
+                          setForm((f) => ({
+                            ...f,
+                            quantity: 0,
+                          }));
+                          return;
+                        }
+                        // Only allow numbers
+                        if (!/^\d*$/.test(value)) return;
+
+                        const numValue = parseInt(value);
+                        if (numValue < 0) return;
                         setForm((f) => ({
                           ...f,
-                          quantity: parseInt(e.target.value) || 0,
-                        }))
-                      }
-                      className="border border-gray-300 rounded p-1 w-24 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                      placeholder="999999.99"
+                          quantity: numValue,
+                        }));
+                        if (errors.quantity) {
+                          setErrors((prev) => ({
+                            ...prev,
+                            quantity: undefined,
+                          }));
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        // Prevent minus sign
+                        if (e.key === "-") {
+                          e.preventDefault();
+                        }
+                      }}
+                      className={`border ${
+                        errors.quantity ? "border-red-500" : "border-gray-300"
+                      } rounded p-1 w-24 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-300`}
+                      placeholder="Enter quantity"
                       disabled={form.quantityType !== "oneSize"}
                     />
                   </label>
@@ -839,15 +1023,35 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                 />
                 <span className="text-gray-700">{activeBotData?.currency}</span>
                 <input
+                  type="number"
+                  min="0"
+                  step="0.01"
                   value={form.price || ""}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, price: e.target.value }))
-                  }
-                  className="border border-gray-300 rounded p-1 w-24 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Prevent negative numbers
+                    if (parseFloat(value) < 0) return;
+                    setForm((f) => ({ ...f, price: value }));
+                    if (errors.price) {
+                      setErrors((prev) => ({ ...prev, price: undefined }));
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    // Prevent minus sign
+                    if (e.key === "-") {
+                      e.preventDefault();
+                    }
+                  }}
+                  className={`border ${
+                    errors.price ? "border-red-500" : "border-gray-300"
+                  } rounded p-1 w-24 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-300`}
                   placeholder="999999.99"
                   disabled={form.priceType !== "paid"}
                 />
               </label>
+              {errors.price && (
+                <div className="text-xs text-red-500">{errors.price}</div>
+              )}
             </div>
           </div>
 
@@ -864,7 +1068,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           <div className="flex justify-end mt-2">
             <button
               className="bg-green-500 hover:bg-green-600 text-white rounded px-8 py-2 font-semibold shadow"
-              onClick={onNext}
+              onClick={handleNext}
             >
               NEXT
             </button>
