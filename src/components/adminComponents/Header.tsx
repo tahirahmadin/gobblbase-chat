@@ -166,7 +166,7 @@ const Header = () => {
                   target="_blank"
                 >
                   <div className="text-sm text-blue-500">
-                    {">> "}Access chatbot
+                    {">> "} Agent Link
                   </div>
                 </a>
               </div>
