@@ -252,34 +252,33 @@ const Usage = () => {
     switch (timeFrame) {
       case "Today": {
         const lastDays: { date: string; usage: number }[] = [];
-
-        const daysInCurrentMonth = agentDailyUsage
-          .filter((d) => d.month === currentMonth && d.year === currentYear)
-          .map((d) => d.day);
-
-        const maxDay =
-          daysInCurrentMonth.length > 0
-            ? Math.max(...daysInCurrentMonth)
-            : new Date().getDate();
-
-        const startDay = Math.max(1, maxDay - 6);
-
-        for (let day = startDay; day <= maxDay; day++) {
+        
+        const today = new Date();
+        const todayDay = today.getDate();
+        const todayYear = today.getFullYear();
+        
+        const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 
+                           'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        const todayMonth = monthNames[today.getMonth()];
+        
+        const startDay = Math.max(1, todayDay - 6);
+        
+        for (let day = startDay; day <= todayDay; day++) {
           const dayUsage = agentDailyUsage
             .filter(
               (d) =>
                 d.day === day &&
-                d.month === currentMonth &&
-                d.year === currentYear
+                d.month === todayMonth &&
+                d.year === todayYear
             )
             .reduce((sum, d) => sum + d.usage, 0);
-
+      
           lastDays.push({
-            date: `${currentMonthName.substring(0, 3)} ${day}`,
-            usage: dayUsage,
+            date: `${getMonthName(todayMonth).substring(0, 3)} ${day}`,
+            usage: dayUsage, 
           });
         }
-
+      
         result = lastDays;
         break;
       }
