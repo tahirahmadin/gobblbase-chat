@@ -9,10 +9,6 @@ export const useServerHook = ({ initHook = false }: { initHook: boolean }) => {
 
   //Fetch all agents when adminId is available
   useEffect(() => {
-    console.log("adminId");
-    console.log(adminId);
-    console.log(initHook);
-    console.log(isAgentsLoaded);
     if (adminId && initHook && !isAgentsLoaded) {
       console.log("1. Fetching all agents while not loaded");
       fetchAllAgents();
@@ -35,21 +31,6 @@ export const useServerHook = ({ initHook = false }: { initHook: boolean }) => {
       }
     }
   }, [agents, setActiveBotId, initHook]);
-
-  // useEffect(() => {
-  //   if (
-  //     isAgentsLoaded &&
-  //     agents.length > 0 &&
-  //     activeBotId !== null &&
-  //     initHook
-  //   ) {
-  //     const index = agents.findIndex((agent) => agent.agentId === activeBotId);
-  //     if (index === -1) {
-  //       console.log("2. Setting active bot id");
-  //       setActiveBotId(agents[0].agentId);
-  //     }
-  //   }
-  // }, [agents, setActiveBotId, initHook, isAgentsLoaded]);
 
   useEffect(() => {
     if (activeBotId && initHook) {

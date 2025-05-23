@@ -38,6 +38,8 @@ const Header = () => {
   const handleAgentSelect = (agentId: string) => {
     setActiveBotId(agentId);
     setIsDropdownOpen(false);
+    //To remove localStorage data of product in edit mode
+    localStorage.removeItem("editingProduct");
     navigate("/admin/dashboard/profile");
   };
 
