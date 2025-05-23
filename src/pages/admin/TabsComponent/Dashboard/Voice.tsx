@@ -1,11 +1,43 @@
 import React, { useState, useEffect } from "react";
-import { Check } from "lucide-react";
 import { updateAgentVoicePersonality } from "../../../../lib/serverActions";
 import { useBotConfig } from "../../../../store/useBotConfig";
 import toast from "react-hot-toast";
 import { PERSONALITY_OPTIONS } from "../../../../utils/constants";
 import { PersonalityOption } from "../../../../types";
+import styled from "styled-components";
+const Button = styled.button`
+  position: relative;
+  background: #6aff97;
+  padding: 1vh 2vw;
+  border: 2px solid black;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: clamp(8px, 4vw, 16px);
+  font-weight: 600;
+  @media (max-width: 600px) {
+    min-width: 120px;
+  }
 
+  &::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: -6px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #000000;
+    z-index: -1; // place it behind the button
+    background: #6aff97;
+  }
+
+  &:disabled {
+    background: #6aff97;
+    cursor: not-allowed;
+  }
+  &:disabled::before {
+    background: #6aff97;
+  }
+`;
 const personalityOptions: PersonalityOption[] = PERSONALITY_OPTIONS;
 
 const Voice = () => {
@@ -66,29 +98,32 @@ const Voice = () => {
   return (
     <div className="max-w-7xl mx-auto p-6 h-full overflow-y-auto">
       <div className="mb-8">
-        <h2 className="text-xl font-bold text-black">Voice Personality</h2>
+        <h2 className="text-xl font-[1000] text-black">Voice Personality</h2>
         <p className="text-sm font-[500] text-black mt-1">
           Define how your AI communicates with customers
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto p-4">
         {personalityOptions.map((personality) => (
           <div
             key={personality.id}
             className={`relative rounded-xl p-4 cursor-pointer transition-all
               ${
                 selectedPersonality.id === personality.id
-                  ? "bg-green-50 border-2 border-black"
-                  : "bg-[#f4f6ff] border-2 border-gray-400"
+                  ? "bg-[#CEFFDC] border-2 border-black"
+                  : "bg-[#EAEFFF] border-2 border-gray-400"
               }`}
             onClick={() => handlePersonalitySelect(personality)}
           >
             {/* Selection Indicator */}
-            {selectedPersonality.id === personality.id && (
-              <div className="absolute -top-2 -left-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                <Check className="w-4 h-4 text-white" />
-              </div>
+            {selectedPersonality.id === personality.id ? (
+              <>
+                <div className="absolute -top-3 -left-3 w-8 h-8 bg-[#CEFFDC] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000]"></div>
+                <div className="absolute -top-2 -left-2 w-6 h-6 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]"></div>
+              </>
+            ) : (
+              <div className="absolute -top-2 -left-2 w-6 h-6 rounded-full flex items-center justify-center bg-[#EAEFFF] border border-[#7D7D7D] shadow-[inset_0_6px_6px_0_rgba(0,0,0,0.25)]"></div>
             )}
 
             <div className="flex items-start space-x-5">
@@ -171,13 +206,11 @@ const Voice = () => {
         </div>
       )} */}
 
-      <div className="mt-8 flex justify-end">
-        <button
+      <div className="flex justify-end relative z-10">
+        <Button
           onClick={handleSave}
           disabled={isSaving}
-          className={`px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold transition-colors ${
-            isSaving ? "opacity-50 cursor-not-allowed" : ""
-          }`}
+          className={`${isSaving ? "cursor-not-allowed" : ""}`}
         >
           {isSaving ? (
             <div className="flex items-center space-x-2">
@@ -187,7 +220,7 @@ const Voice = () => {
           ) : (
             "SAVE"
           )}
-        </button>
+        </Button>
       </div>
     </div>
   );

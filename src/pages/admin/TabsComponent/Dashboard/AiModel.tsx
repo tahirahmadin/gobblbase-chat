@@ -5,7 +5,41 @@ import { updateAgentModel } from "../../../../lib/serverActions";
 import toast from "react-hot-toast";
 import { ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
+import styled from "styled-components";
+const Button = styled.button`
+  position: relative;
+  background: #6AFF97;
+  padding: 1vh 2vw;
+  border: 2px solid black;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: clamp(8px, 4vw, 16px);
+  white-space: nowrap;
+  @media (max-width: 600px) {
+    min-width: 120px;
+  }
 
+  &::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: -6px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #000000;
+    z-index: -1; // place it behind the button
+    background: #6aff97;
+  }
+
+  &:disabled {
+    background: #6AFF97;
+    cursor: not-allowed;
+    color: black;
+  }
+  &:disabled::before {
+    background: #d6ffe0;
+  }
+`;
 const AiModel = () => {
   const [selectedModelId, setSelectedModelId] = useState("");
   const [currentModelId, setCurrentModelId] = useState("");
@@ -54,13 +88,45 @@ const AiModel = () => {
   const currentModel = MODEL_PRESETS.find((m) => m.id === currentModelId);
 
   return (
-    <div className="p-2 lg:p-8 w-full">
-      <h2 className="text-xl lg:text-2xl font-bold mb-2">AI Model</h2>
-      <p className="text-sm lg:text-base text-gray-600 mb-6">
-        Every AI model has its unique DNA — balancing depth, speed, and cost.
-        Your selection directly shapes AI performance, impacting insight,
-        efficiency, and value. Align the model with your mission.
-      </p>
+    <div className="py-6 px-4 lg:p-8 w-full">
+      <div className="upper p-3 flex flex-col md:flex-row md:gap-4">
+        <span className="content">
+         <h2 className="main-font font-bold text-lg sm:text-xl md:text-2xl text-[#000000] mb-2">
+            Ai Model
+          </h2>
+     <p className="para-font text-xs md:sm text-[#0D0D0D] mb-4 font-[500]">
+            Every AI model has its unique DNA — balancing depth, speed, and cost.
+            Your selection directly shapes AI performance, impacting insight,
+            efficiency, and value. Align the model with your mission.
+          </p>
+        </span>
+
+           {/* Current Model */}
+        <div className="lg:pl-6 w-full">
+            <span className="para-font text-[#000000] block text-sm sm:text-lg font-medium">
+              Current Model
+            </span>
+          <div className="flex items-center gap-2 mt-4">
+              <div className="flex items-center gap-2 px-2 py-[1vh] border w-[80%] lg:w-[90%] bg-[#CEFFDC] border-2 border-[#6AFF97] focus:outline-none">
+              <img
+                src={currentModel?.image}
+                alt={currentModel?.name}
+                className="w-6 h-6 rounded-full object-cover"
+              />
+              <span className="font-medium text-sm lg:text-base truncate">
+                {currentModel?.name}
+              </span>
+              </div>
+              <div  style={{ zIndex: "4" }} className="flex justify-end relative">
+                <Link to="/admin/account/usage">
+                  <Button className="transition wordspace-nowrap">
+                    VIEW USAGE
+                  </Button>
+                </Link>
+              </div>
+          </div>
+        </div>
+      </div>
       <div className="flex flex-col gap-4 w-full">
         {/* Model Selection Dropdown */}
         <div className="relative w-full">
@@ -158,31 +224,7 @@ const AiModel = () => {
           </div>
         )}
 
-        {/* Current Model */}
-        <div className="bg-white border border-gray-200 rounded-lg p-3 w-full">
-          <div className="flex items-center gap-2 mb-2">
-            <img
-              src={currentModel?.image}
-              alt={currentModel?.name}
-              className="w-6 h-6 rounded-full object-cover"
-            />
-            <span className="font-semibold text-green-700 text-sm lg:text-base">
-              Current Model
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-sm lg:text-base">
-              {currentModel?.name}
-            </span>
-            <div className="ml-auto ">
-              <Link to="/admin/account/usage">
-                <button className="ml-auto bg-green-200 text-green-900 px-2 py-1 rounded text-xs font-semibold hover:bg-green-300 transition">
-                  VIEW USAGE
-                </button>
-              </Link>
-            </div>
-          </div>
-        </div>
+     
       </div>
     </div>
   );

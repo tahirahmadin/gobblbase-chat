@@ -6,6 +6,7 @@ export default {
     extend: {
       screens: {
         xs: "450px", // ✅ Custom breakpoint for small devices
+        xlg: "1100px"
       },
       colors: {
         primary: {

@@ -15,8 +15,75 @@ import { useAdminStore } from "../../../../store/useAdminStore";
 import { useBotConfig } from "../../../../store/useBotConfig";
 import { updateAgentBrain } from "../../../../lib/serverActions";
 import { calculateSmartnessLevel } from "../../../../utils/helperFn";
+import styled from "styled-components";
 import { backendApiUrl } from "../../../../utils/constants";
+const Icon = styled.button`
+  position: relative;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #aeb8ff;
+  border: 2px solid black;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: clamp(8px, 4vw, 16px);
+  &:hover {
+    background: #aeb8ff;
+  }
 
+  @media (max-width: 600px) {
+    width: 30px;
+    height: 30px;
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 5px;
+    right: -5px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #000000;
+    z-index: -1; // place it behind the button
+    background: #aeb8ff;
+  }
+`;
+const Button = styled.button`
+  position: relative;
+  background: #4d65ff;
+  padding: 1vh 2vw;
+  border: 2px solid black;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: clamp(8px, 4vw, 16px);
+  color: white;
+  @media (max-width: 600px) {
+    min-width: 120px;
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: -6px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #000000;
+    z-index: -1; // place it behind the button
+    background: #6aff97;
+  }
+
+  &:disabled {
+    background: #6aff97;
+    cursor: not-allowed;
+    color: black;
+  }
+  &:disabled::before {
+    background: #d6ffe0;
+  }
+`;
 pdfjsLib.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
 
 interface UploadedFile {
@@ -1000,14 +1067,14 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   };
 
   return (
-    <div className="container grid grid-cols-2 gap-6 p-6 h-full overflow-y-auto">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 h-full overflow-y-auto">
       {/* Left Section - Power Your Agent's Intelligence */}
       <div className="space-y-6 ">
         <div>
-          <h2 className="text-lg font-semibold mb-2">
+          <h2 className="main-font font-bold text-lg sm:text-xl md:text-2xl text-[#000000] mb-2">
             Power Your Agent's Intelligence
           </h2>
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="para-font text-xs md:sm text-[#0D0D0D] mb-4 font-[500]">
             The more you share, the smarter your agent becomes. Each detail you
             provide enhances its ability to deliver precise, knowledgeable
             responses. Complete all sections to unlock your agent's full
@@ -1031,15 +1098,21 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           )}
 
           {/* Agent Smartness */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">
+          <div className="pb-6 pt-4 border-b-2 border-[#CDCDCD] w-full flex flex-col xs:flex-row xs:gap-4">
+            <h1
+              style={{ lineHeight: "20px" }}
+              className="para-font text-[#000000] block text-sm sm:text-lg font-medium"
+            >
               Agent Smartness
-            </label>
-            <div className="relative pt-1">
-              <div className="overflow-hidden h-2 text-xs flex rounded bg-blue-200">
+            </h1>
+            <div className="xs:flex-1 relative pt-2">
+              <div
+                style={{ outline: "3px solid #CDCDCD" }}
+                className="w-full overflow-hidden h-2 text-xs flex rounded bg-[#FFFFFF] shadow-[inset_0_3px_3px_0_rgba(0,0,0,0.25)]"
+              >
                 <div
                   style={{ width: `${smartnessLevel}%` }}
-                  className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-600"
+                  className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#4D65FF] border border-[#135220] rounded-lg"
                 />
               </div>
               <div className="text-right">
@@ -1051,91 +1124,140 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           </div>
 
           {/* Agent Language */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">
-              Agent Language
-            </label>
-            <select
-              value={selectedLanguage}
-              onChange={(e) => setSelectedLanguage(e.target.value)}
-              className="w-40 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+
+          <div className="py-8 sm:py-6 flex items-center gap-5">
+            <h1
+              style={{ lineHeight: "20px", whiteSpace: "nowrap" }}
+              className="para-font text-[#000000] block text-sm sm:text-lg font-medium"
             >
-              <option value="English">English</option>
-              <option value="Spanish">Spanish</option>
-              <option value="French">French</option>
-            </select>
+              Agent Language
+            </h1>
+            <div className="relative w-60">
+              <select
+                value={selectedLanguage}
+                onChange={(e) => setSelectedLanguage(e.target.value)}
+                className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm"
+              >
+                <option value="English">English</option>
+                <option value="Spanish">Spanish</option>
+                <option value="French">French</option>
+              </select>
+              {/* Custom arrow box */}
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 bg-[#AEB8FF] border border-[#7D7D7D] ">
+                <svg
+                  className="w-4 h-4 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
           </div>
 
           {/* Add Links */}
-          <div className="mb-6">
-            {/* <label className="block text-sm font-medium mb-2">Add Links</label>
-            <p className="text-xs text-gray-500 mb-2">
-              Paste direct links to your website and online files
-            </p> */}
+          <div className="my-6">
+            <div className="content flex justify-between items-center gap-4 pr-6">
+              <span className="texts">
+                <h3 className="main-font block text-md sm:text-xl font-bold text-[#000000]">
+                  Add Social Links to your Profile
+                </h3>
+                <p className="text-xs text-gray-500 mb-2">
+                  Paste direct links to your website and online files
+                </p>
+              </span>
+              <span className="para-font border border-[#7D7D7D] text-[#7D7D7D] px-2 py-0.5 xs:px-4 rounded-xl -mr-6">
+                Remove
+              </span>
+            </div>
 
             {/* Existing Links */}
             {/* <div className="space-y-2 mb-3">
               {links.map((link, index) => (
                 <div
                   key={index}
-                  className="flex items-center bg-green-50 border border-green-100 rounded-md"
+                  className="flex flex-row items-center justify-between space-x-2 pr-8"
                 >
-                  <input
-                    type="text"
-                    value={link}
-                    readOnly
-                    className="flex-1 px-3 py-2 bg-transparent text-sm overflow-x-auto"
-                  />
-                  <button
-                    onClick={() => handleRemoveLink(link)}
-                    className="p-2 hover:text-red-600"
-                    aria-label="Remove link"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                    <input
+                      type="text"
+                      value={link}
+                      readOnly
+                      className="px-2 py-1 border w-[80%] lg:w-[90%] bg-[#CEFFDC] border-2 border-[#6AFF97] focus:outline-none"
+                    />
+                  <div style={{ zIndex: "4" }} className="icon relative">
+                    <Icon
+                      onClick={() => handleRemoveLink(link)}
+                      className=""
+                      aria-label="Remove link"
+                    >
+                      <X className="w-4 h-4" />
+                    </Icon>
+                  </div>
                 </div>
               ))}
             </div> */}
 
             {/* New Link Input */}
-            {/* <div className="flex space-x-2">
+
+            <div className="flex flex-col items-end p-4 bg-[#CDCDCD] rounded-lg space-y-2">
               <input
                 type="text"
                 value={newLink}
                 onChange={(e) => setNewLink(e.target.value)}
                 placeholder="Paste your link..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
-              <button
-                onClick={handleAddLink}
-                className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700"
-              >
-                ADD LINK
-              </button>
-            </div> */}
+              <div className="flex justify-end relative z-10 mt-4">
+                <Button
+                  style={{ background: "#6AFF97", color: "black" }}
+                  onClick={handleAddLink}
+                  className=""
+                >
+                  ADD LINK
+                </Button>
+              </div>
+            </div>
           </div>
 
           {/* Upload Files */}
           <div>
-            <label className="block text-sm font-medium mb-2">
-              Upload Files
-            </label>
+            <div className="content flex justify-between items-center gap-4 pr-6">
+              <span className="texts">
+                <h3 className="main-font block text-md sm:text-xl font-bold text-[#000000]">
+                  Upload Files
+                </h3>
+                <p className="text-xs text-gray-500 mb-2">
+                  Upload PDF, DOCX and TXT files
+                </p>
+              </span>
+              <span className="para-font border border-[#7D7D7D] text-[#7D7D7D] px-2 py-0.5 xs:px-4 rounded-xl -mr-6">
+                Remove
+              </span>
+            </div>
             <div className="space-y-2 mb-3">
               {uploadedFiles.map((file) => (
                 <div
                   key={file.name + (file.documentId || "")}
-                  className="flex items-center justify-between bg-green-50 border border-green-100 rounded-md px-3 py-2"
+                  className="flex flex-row items-center justify-between space-x-2"
                 >
-                  <div className="flex items-center space-x-2">
-                    <FileText className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">{file.name}</span>
-                    <span className="text-xs text-gray-500">{file.size}</span>
+                  <div className="flex justify-between items-center px-2 py-1 border w-[80%] bg-[#CEFFDC] border-2 border-[#6AFF97]">
+                    <span className="text-sm truncate">{file.name}</span>
+                    <span className="text-xs text-gray-500 whitespace-nowrap">
+                      {file.size}
+                    </span>
                   </div>
-                  <div className="flex items-center space-x-2">
+
+                  <div style={{ zIndex: "4" }} className="icon relative pr-8">
                     {processingFile === file.name ? (
                       <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
                     ) : (
-                      <button
+                      <Icon
                         onClick={() =>
                           handleRemoveFile(file.name, file.documentId)
                         }
@@ -1144,7 +1266,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                         aria-label="Remove file"
                       >
                         <X className="w-4 h-4" />
-                      </button>
+                      </Icon>
                     )}
                   </div>
                 </div>
@@ -1262,17 +1384,19 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       </div>
 
       {/* Right Section - SMARTEN UP */}
-      <div className="p-6 rounded-lg" style={{ backgroundColor: "#eaefff" }}>
+      <div className="p-6 rounded-lg" style={{ backgroundColor: "#D4DEFF" }}>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold">SMARTEN UP</h2>
-          <p className="text-sm text-gray-600">
+          <h2 className="main-font text-[#000000] text-lg font-[1000]">
+            SMARTEN UP
+          </h2>
+          <p className="para-font text-sm text-[#000000] font-[500]">
             Share Your Insights to Unlock Your Agent's Full Potential
           </p>
         </div>
 
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-sm sm:text-[16px] font-medium mb-2">
               1. What makes you/your brand unique? The main USP:
             </label>
             <textarea
@@ -1285,7 +1409,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-sm sm:text-[16px] font-medium mb-2">
               2. How would your most loyal follower/customer describe you or
               your brand's personality?
             </label>
@@ -1301,7 +1425,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-sm sm:text-[16px] font-medium mb-2">
               3. What specific language, terms, or phrases should your AI agent
               use (or avoid) to authentically represent your brand voice?
             </label>
@@ -1317,7 +1441,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-sm sm:text-[16px] font-medium mb-2">
               4. What questions do your customers most frequently ask?
             </label>
             <textarea
@@ -1354,13 +1478,13 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             return null;
           })()}
 
-          <div className="flex justify-end">
-            <button
+          <div className="flex justify-end relative z-10 mt-4">
+            <Button
               onClick={handleSave}
               disabled={isSaving || !validateInsightsData().isValid}
-              className={`px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold transition-colors ${
+              className={`${
                 isSaving || !validateInsightsData().isValid
-                  ? "opacity-50 cursor-not-allowed"
+                  ? "cursor-not-allowed"
                   : ""
               }`}
             >
@@ -1372,7 +1496,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
               ) : (
                 "SAVE"
               )}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

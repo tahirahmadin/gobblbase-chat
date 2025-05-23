@@ -334,7 +334,7 @@ const Profile = () => {
       style={{ height: "calc(100vh - 64px)" }}
     >
       <div className="col-span-1 lg:col-span-3 h-full sm:px-6 lg:overflow-auto">
-        <div className="max-w-3xl mx-auto p-4 lg:p-6 space-y-6">
+        <div className="max-w-3xl mx-auto p-4 lg:p-0 space-y-6">
           <div className="shadow-sm flex flex-col sm:flex-row sm:gap-8 lg:flex-col lg:gap-4">
             {/* Profile Image Upload */}
             <div className="flex items-start mb-6">
@@ -406,7 +406,7 @@ const Profile = () => {
                       onClick={handleSaveName}
                       disabled={isSavingName}
                       className={`${
-                        isSavingName ? "opacity-50 cursor-not-allowed" : ""
+                        isSavingName ? " cursor-not-allowed" : ""
                       }`}
                     >
                       {isSavingName ? (
@@ -503,7 +503,7 @@ const Profile = () => {
                         className={`
                             ${
                               isCheckingUrl
-                                ? "opacity-50 cursor-not-allowed"
+                                ? " cursor-not-allowed"
                                 : ""
                             }`}
                       >
@@ -553,7 +553,7 @@ const Profile = () => {
                     onClick={handleSaveBio}
                     disabled={isSavingBio}
                     className={` ${
-                      isSavingBio ? "opacity-50 cursor-not-allowed" : ""
+                      isSavingBio ? " cursor-not-allowed" : ""
                     }`}
                   >
                     {isSavingBio ? (
@@ -640,7 +640,7 @@ const Profile = () => {
                   onClick={handleSavePromoBanner}
                   disabled={isSavingPromoBanner}
                   className={` ${
-                    isSavingPromoBanner ? "opacity-50 cursor-not-allowed" : ""
+                    isSavingPromoBanner ? " cursor-not-allowed" : ""
                   }`}
                 >
                   {isSavingPromoBanner ? (
@@ -672,7 +672,7 @@ const Profile = () => {
         className="col-span-1 lg:col-span-2 hidden lg:block"
       >
         <div
-          className="mx-auto"
+          className="mx-auto pt-10 pb-16"
           style={{
             maxWidth: 400,
             width: "80%",
