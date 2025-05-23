@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   Calendar,
   Clock,
@@ -34,8 +34,10 @@ import {
 } from "../../utils/phoneUtils";
 import { Theme } from "../../types";
 import { useUserStore } from "../../store/useUserStore"; 
+import { useBotConfig } from "../../store/useBotConfig";
 import { LoginCard } from "../chatbotComponents/otherComponents/LoginCard"; 
 import { BookingPaymentComponent } from "./BookingPaymentComponent";
+import toast from "react-hot-toast";
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -103,6 +105,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
 }) => {
   // Get user information from the user store
   const { isLoggedIn, userEmail } = useUserStore();
+  const { activeBotData } = useBotConfig();
   
   const businessId = propId || "";
   const [step, setStep] = useState<"date" | "time" | "details" | "payment" | "confirmation">("date");
@@ -143,6 +146,21 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   
   // Add debug state to track availability issues
   const [availabilityDebug, setAvailabilityDebug] = useState<string>("");
+
+  // Check if any payment method is enabled
+  const availablePaymentMethods = useMemo(() => {
+    if (!activeBotData?.paymentMethods) return [];
+    
+    const methods = [];
+    if (activeBotData.paymentMethods.stripe?.enabled) methods.push('stripe');
+    if (activeBotData.paymentMethods.razorpay?.enabled) methods.push('razorpay');
+    if (activeBotData.paymentMethods.usdt?.enabled) methods.push('usdt');
+    if (activeBotData.paymentMethods.usdc?.enabled) methods.push('usdc');
+    
+    return methods;
+  }, [activeBotData?.paymentMethods]);
+
+  const hasEnabledPaymentMethods = availablePaymentMethods.length > 0;
 
   const validateForm = () => {
     const isNameValid = name.trim().length >= 2;
@@ -800,8 +818,22 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     if (!isValid) {
       return;
     }
+
+    // Check if it's a paid booking and payment methods are not enabled
+    const isPaidBooking = !settings?.price?.isFree && !dynamicPrice.isFree;
+    if (isPaidBooking && !hasEnabledPaymentMethods) {
+      toast.error("Payment methods are not enabled. Please contact the admin.", {
+        duration: 4000,
+        style: {
+          background: theme.isDark ? '#2d1b1b' : '#fef2f2',
+          color: theme.isDark ? '#fca5a5' : '#dc2626',
+          border: '1px solid #ef4444',
+        },
+      });
+      return;
+    }
   
-    if (settings?.price?.isFree) {
+    if (settings?.price?.isFree || dynamicPrice.isFree) {
       setSubmitting(true);
       try {
         const businessStartTime = convertTimeToBusinessTZ(
@@ -1077,6 +1109,9 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       }
       
       if (step === "details" && selectedSlot && selectedDate) {
+        const isPaidBooking = !settings?.price?.isFree && !dynamicPrice.isFree;
+        const isBookingDisabled = isPaidBooking && !hasEnabledPaymentMethods;
+        
         return (
           <div>
             <div className="flex justify-between items-center mb-4">
@@ -1250,15 +1285,35 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                   />
                 </div>
               </div>
+
+              {/* Payment Warning for Paid Bookings */}
+              {isPaidBooking && !hasEnabledPaymentMethods && (
+                <div 
+                  className="mb-3 p-2 rounded-lg border text-center text-xs"
+                  style={{ 
+                    backgroundColor: theme.isDark ? '#2d1b1b' : '#fef2f2',
+                    borderColor: '#ef4444',
+                    color: theme.isDark ? '#fca5a5' : '#dc2626'
+                  }}
+                >
+                  ⚠️ Payment methods not available. Contact admin to enable bookings.
+                </div>
+              )}
       
               <button
                 type="submit"
-                disabled={submitting}
-                className="w-full p-3 rounded font-medium mt-4"
+                disabled={submitting || isBookingDisabled}
+                className={`w-full p-3 rounded font-medium mt-4 transition-all duration-200 ${
+                  isBookingDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
+                }`}
                 style={{
-                  backgroundColor: theme.highlightColor,
-                  color: theme.isDark ? "black" : "white",
-                  opacity: submitting ? 0.7 : 1
+                  backgroundColor: isBookingDisabled 
+                    ? (theme.isDark ? '#444' : '#ccc') 
+                    : theme.highlightColor,
+                  color: isBookingDisabled 
+                    ? (theme.isDark ? '#888' : '#666')
+                    : (theme.isDark ? "black" : "white"),
+                  opacity: (submitting || isBookingDisabled) ? 0.7 : 1
                 }}
               >
                 {submitting ? (
@@ -1267,7 +1322,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                     Booking...
                   </div>
                 ) : (
-                  settings?.price?.isFree ? "BOOK NOW" : `PAY TO BOOK ${servicePrice}`
+                  (settings?.price?.isFree || dynamicPrice.isFree) ? "BOOK NOW" : `PAY TO BOOK ${servicePrice}`
                 )}
               </button>
             </form>

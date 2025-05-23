@@ -19,6 +19,7 @@ interface PlanData {
   description: string;
   features: string[];
   isCurrentPlan: boolean;
+  type: string;
 }
 
 const Plans = () => {
@@ -85,17 +86,12 @@ const Plans = () => {
 
   // Find the current plan (any recurrence)
   const currentPlan = plans.find((p) => p.isCurrentPlan);
-  const getPlanDisplayName = (name: string): string => {
-    return name.replace("(YEARLY)", "").trim();
-  };
 
   // Helper: is this plan the current plan, regardless of recurrence?
   const isCurrentPlanAnyRecurrence = (plan: PlanData): boolean => {
     if (!currentPlan) return false;
-    return (
-      getPlanDisplayName(plan.name).toLowerCase() ===
-      getPlanDisplayName(currentPlan.name).toLowerCase()
-    );
+
+    return currentPlan.id === plan.id;
   };
 
   const filteredPlans = plans.filter(
@@ -110,7 +106,6 @@ const Plans = () => {
 
       // Get Stripe session URL
       const stripeUrl = await subscribeToPlan(adminId, planId);
-      console.log(stripeUrl);
 
       // Start polling for plan updates
       if (pollingIntervalRef.current) {
@@ -125,7 +120,7 @@ const Plans = () => {
       window.open(stripeUrl, "_blank", "noopener,noreferrer");
     } catch (error) {
       console.error("Error changing plan:", error);
-      toast.error(error?.response?.data?.result);
+      toast.error(error?.response?.data?.result || "Failed to change plan");
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
       }
@@ -134,69 +129,19 @@ const Plans = () => {
     }
   };
 
-  // Stop polling when billing type changes
-  useEffect(() => {
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current);
-      pollingIntervalRef.current = null;
-    }
-  }, [billing]);
-
   const isUpgrading = (planId: string): boolean => {
     return upgradingPlanId === planId;
   };
 
   const isLowerTierPlan = (plan: PlanData): boolean => {
     const currentPlan = plans.find((p) => p.isCurrentPlan);
-    if (!currentPlan) {
-      console.log("No current plan found");
-      return false;
-    }
+    if (!currentPlan) return false;
 
-    // Updated plan tiers to include BUSINESS
-    const planTiers = [
-      { name: "STARTER", price: 0 },
-      { name: "SOLO", price: 29 },
-      { name: "PRO", price: 99 },
-      { name: "BUSINESS", price: 499 },
-      { name: "ENTERPRISE", price: 299 }, // keep for legacy
-    ];
+    const planHierarchy = ["STARTER", "SOLO", "PRO", "BUSINESS"];
+    const currentPlanIndex = planHierarchy.indexOf(currentPlan.type);
+    const planIndex = planHierarchy.indexOf(plan.type);
 
-    const currentPlanName = currentPlan.name.toUpperCase();
-    const planName = plan.name.toUpperCase();
-
-    // Try to find tier by name first
-    let currentPlanTier = planTiers.findIndex((tier) =>
-      currentPlanName.includes(tier.name)
-    );
-    let planTier = planTiers.findIndex((tier) => planName.includes(tier.name));
-
-    // Fallback to price if name not found
-    if (currentPlanTier === -1)
-      currentPlanTier = planTiers.findIndex(
-        (tier) => currentPlan.price === tier.price
-      );
-    if (planTier === -1)
-      planTier = planTiers.findIndex((tier) => plan.price === tier.price);
-
-    // Fallback to array order if still not found
-    if (currentPlanTier === -1)
-      currentPlanTier = plans.findIndex((p) => p.id === currentPlan.id);
-    if (planTier === -1) planTier = plans.findIndex((p) => p.id === plan.id);
-
-    console.log("Current Plan Details:", {
-      name: currentPlanName,
-      price: currentPlan.price,
-      tier: currentPlanTier,
-    });
-    console.log("Comparing Plan Details:", {
-      name: planName,
-      price: plan.price,
-      tier: planTier,
-    });
-    console.log("Is Lower Tier:", planTier < currentPlanTier);
-
-    return planTier < currentPlanTier;
+    return planIndex <= currentPlanIndex;
   };
 
   return (
@@ -260,9 +205,6 @@ const Plans = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pb-8">
           {filteredPlans.map((plan) => {
-            const isCurrent = plan.isCurrentPlan;
-            const displayName = getPlanDisplayName(plan.name);
-
             // Extract "Everything in ..." pill and features
             const pillFeature = plan.features.find((f) =>
               f.startsWith("Everything in")
@@ -279,7 +221,7 @@ const Plans = () => {
                 {/* Header */}
                 <div className="w-full flex flex-col items-center rounded-[32px] bg-[#cfd7fa] mt-2 py-2 mb-2">
                   <span className="text-lg font-bold tracking-wide uppercase">
-                    {displayName}
+                    {plan.type}
                   </span>
                 </div>
 

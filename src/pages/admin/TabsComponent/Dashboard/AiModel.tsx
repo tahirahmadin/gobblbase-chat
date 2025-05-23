@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { MODEL_PRESETS } from "../../../../utils/constants";
 import { useBotConfig } from "../../../../store/useBotConfig";
 import { updateAgentModel } from "../../../../lib/serverActions";
@@ -41,11 +41,23 @@ const Button = styled.button`
   }
 `;
 const AiModel = () => {
-  const [selectedModelId, setSelectedModelId] = useState(MODEL_PRESETS[0]?.id);
-  const [currentModelId, setCurrentModelId] = useState(MODEL_PRESETS[0]?.id);
+  const [selectedModelId, setSelectedModelId] = useState("");
+  const [currentModelId, setCurrentModelId] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { activeBotId, setRefetchBotData } = useBotConfig();
+  const { activeBotId, setRefetchBotData, activeBotData } = useBotConfig();
+
+  useEffect(() => {
+    if (activeBotData?.model) {
+      const modelFromPresets = MODEL_PRESETS.find(
+        (m) => m.name === activeBotData.model
+      );
+      if (modelFromPresets) {
+        setCurrentModelId(modelFromPresets.id);
+        setSelectedModelId(modelFromPresets.id);
+      }
+    }
+  }, [activeBotData?.model]);
 
   const handleSelect = (id: string) => {
     setSelectedModelId(id);

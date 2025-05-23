@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { useBotConfig } from "../../../store/useBotConfig";
-import { useAdminStore } from "../../../store/useAdminStore";
-import TemplateEditor from "./Emails/TemplateEditor";
+import { useBotConfig } from "../../../../store/useBotConfig";
+import { useAdminStore } from "../../../../store/useAdminStore";
+import TemplateEditor from "../Emails/TemplateEditor";
 import { toast } from "react-hot-toast";
 
 interface EmailTemplate {

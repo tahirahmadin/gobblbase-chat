@@ -9,10 +9,6 @@ export const useServerHook = ({ initHook = false }: { initHook: boolean }) => {
 
   //Fetch all agents when adminId is available
   useEffect(() => {
-    console.log("adminId");
-    console.log(adminId);
-    console.log(initHook);
-    console.log(isAgentsLoaded);
     if (adminId && initHook && !isAgentsLoaded) {
       console.log("1. Fetching all agents while not loaded");
       fetchAllAgents();
@@ -20,26 +16,21 @@ export const useServerHook = ({ initHook = false }: { initHook: boolean }) => {
   }, [adminId, fetchAllAgents, initHook, isAgentsLoaded, activeBotId]);
 
   useEffect(() => {
-    if (agents.length > 0 && activeBotId === null && initHook) {
-      console.log("2. Setting active bot id");
-      setActiveBotId(agents[0].agentId);
+    // On reload, check localStorage for agentId and set if valid
+    if (agents.length > 0 && initHook) {
+      let storedAgentId: string | null = null;
+      if (typeof window !== "undefined") {
+        storedAgentId = localStorage.getItem("activeBotId");
+      }
+      const found =
+        storedAgentId && agents.find((a) => a.agentId === storedAgentId);
+      if (found) {
+        setActiveBotId(found.agentId);
+      } else if (activeBotId === null) {
+        setActiveBotId(agents[0].agentId);
+      }
     }
   }, [agents, setActiveBotId, initHook]);
-
-  // useEffect(() => {
-  //   if (
-  //     isAgentsLoaded &&
-  //     agents.length > 0 &&
-  //     activeBotId !== null &&
-  //     initHook
-  //   ) {
-  //     const index = agents.findIndex((agent) => agent.agentId === activeBotId);
-  //     if (index === -1) {
-  //       console.log("2. Setting active bot id");
-  //       setActiveBotId(agents[0].agentId);
-  //     }
-  //   }
-  // }, [agents, setActiveBotId, initHook, isAgentsLoaded]);
 
   useEffect(() => {
     if (activeBotId && initHook) {

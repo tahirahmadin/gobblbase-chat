@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Theme } from "../../types";
 import { useCartStore } from "../../store/useCartStore";
 import { useBotConfig } from "../../store/useBotConfig";
 import { useUserStore } from "../../store/useUserStore";
+import toast from "react-hot-toast";
 
 interface ProductDetailPageProps {
   theme: Theme;
@@ -26,7 +27,43 @@ export default function ProductDetailPage({
   const [eventTime, setEventTime] = useState("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
+  // Check if any payment method is enabled
+  const availablePaymentMethods = useMemo(() => {
+    if (!activeBotData?.paymentMethods) return [];
+    
+    const methods = [];
+    if (activeBotData.paymentMethods.stripe?.enabled) methods.push('stripe');
+    if (activeBotData.paymentMethods.razorpay?.enabled) methods.push('razorpay');
+    if (activeBotData.paymentMethods.usdt?.enabled) methods.push('usdt');
+    if (activeBotData.paymentMethods.usdc?.enabled) methods.push('usdc');
+    
+    return methods;
+  }, [activeBotData?.paymentMethods]);
+
+  const hasEnabledPaymentMethods = availablePaymentMethods.length > 0;
+  const isFreeProduct = selectedProduct?.priceType === "free" || selectedProduct?.price === 0;
+
   const handleBuyNow = () => {
+    // Allow free products to proceed regardless of payment methods
+    if (isFreeProduct) {
+      onAddToCart(quantity);
+      setCartView(true);
+      return;
+    }
+
+    // Check if payment methods are enabled for paid products
+    if (!hasEnabledPaymentMethods) {
+      toast.error("Payment methods are not enabled. Please contact the admin.", {
+        duration: 4000,
+        style: {
+          background: theme.isDark ? '#2d1b1b' : '#fef2f2',
+          color: theme.isDark ? '#fca5a5' : '#dc2626',
+          border: '1px solid #ef4444',
+        },
+      });
+      return;
+    }
+
     onAddToCart(quantity);
     setCartView(true);
   };
@@ -54,6 +91,9 @@ export default function ProductDetailPage({
   const sectionPadding = inChatMode ? "px-4" : "px-6";
 
   const contentMaxWidth = inChatMode ? "max-w-full" : "max-w-full";
+
+  // Determine if Buy Now button should be disabled
+  const isBuyNowDisabled = !isFreeProduct && !hasEnabledPaymentMethods;
 
   // UI blocks
   let extraFields = null;
@@ -385,6 +425,21 @@ export default function ProductDetailPage({
             {selectedProduct?.description || "Product Bio "}
           </div>
           {extraFields}
+          
+          {/* Payment Warning for Paid Products */}
+          {!isFreeProduct && !hasEnabledPaymentMethods && (
+            <div 
+              className="mb-3 p-2 rounded-lg border text-center text-xs"
+              style={{ 
+                backgroundColor: theme.isDark ? '#2d1b1b' : '#fef2f2',
+                borderColor: '#ef4444',
+                color: theme.isDark ? '#fca5a5' : '#dc2626'
+              }}
+            >
+              ⚠️ Payment methods not available. Contact admin to enable purchases.
+            </div>
+          )}
+
           <div
             className={`flex flex-row justify-between items-center ${
               inChatMode ? "py-1" : "py-2"
@@ -409,12 +464,20 @@ export default function ProductDetailPage({
               </div>
             </div>
             <button
-              className={`w-fit ${buttonSize} rounded-full font-bold`}
+              className={`w-fit ${buttonSize} rounded-full font-bold transition-all duration-200 ${
+                isBuyNowDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
+              }`}
               style={{
-                backgroundColor: theme.highlightColor,
-                color: !theme.isDark ? "#fff" : "#000",
+                backgroundColor: isBuyNowDisabled 
+                  ? (theme.isDark ? '#444' : '#ccc') 
+                  : theme.highlightColor,
+                color: isBuyNowDisabled 
+                  ? (theme.isDark ? '#888' : '#666')
+                  : (!theme.isDark ? "#fff" : "#000"),
+                opacity: isBuyNowDisabled ? 0.6 : 1,
               }}
               onClick={handleBuyNow}
+              disabled={isBuyNowDisabled}
             >
               Buy Now
             </button>

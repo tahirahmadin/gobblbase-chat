@@ -38,6 +38,8 @@ const Header = () => {
   const handleAgentSelect = (agentId: string) => {
     setActiveBotId(agentId);
     setIsDropdownOpen(false);
+    //To remove localStorage data of product in edit mode
+    localStorage.removeItem("editingProduct");
     navigate("/admin/dashboard/profile");
   };
 
@@ -166,7 +168,7 @@ const Header = () => {
                   target="_blank"
                 >
                   <div className="text-sm text-blue-500">
-                    {">> "}Access chatbot
+                    {">> "} Agent Link
                   </div>
                 </a>
               </div>

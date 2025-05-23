@@ -1,6 +1,6 @@
 import { useLocation } from "react-router-dom";
 import Payments from "./Payments";
-import Integrations from "./Integrations";
+import Integrations from "../Integrations";
 import Embed from "./Embed";
 import Orders from "./Orders";
 import EmailTemplates from "./EmailTemplates";

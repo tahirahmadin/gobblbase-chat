@@ -1154,7 +1154,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
           {/* Add Links */}
           <div className="my-6">
-            <div className="content flex justify-between items-center gap-4 pr-6">
+            {/* <div className="content flex justify-between items-center gap-4 pr-6">
               <span className="texts">
                 <h3 className="main-font block text-md sm:text-xl font-bold text-[#000000]">
                   Add Social Links to your Profile
@@ -1166,10 +1166,10 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
               <span className="para-font border border-[#7D7D7D] text-[#7D7D7D] px-2 py-0.5 xs:px-4 rounded-xl -mr-6">
                 Remove
               </span>
-            </div>
+            </div> */}
 
             {/* Existing Links */}
-            <div className="space-y-2 mb-3">
+            {/* <div className="space-y-2 mb-3">
               {links.map((link, index) => (
                 <div
                   key={index}
@@ -1192,11 +1192,11 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                   </div>
                 </div>
               ))}
-            </div>
+            </div> */}
 
             {/* New Link Input */}
 
-            <div className="flex flex-col items-end p-4 bg-[#CDCDCD] rounded-lg space-y-2">
+            {/* <div className="flex flex-col items-end p-4 bg-[#CDCDCD] rounded-lg space-y-2">
 
               <input
                 type="text"
@@ -1213,7 +1213,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                   ADD LINK
                 </Button>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Upload Files */}

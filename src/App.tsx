@@ -34,7 +34,7 @@ import Billing from "./pages/admin/Billing";
 import Usage from "./pages/admin/Usage";
 import RescheduleBookingWrapper from "./components/chatbotComponents/RescheduleBookingWrapper";
 import Commerce from "./pages/admin/TabsComponent/Commerce/Commerce";
-import Operations from "./pages/admin/TabsComponent/Operations";
+import Operations from "./pages/admin/TabsComponent/Operations/Operations";
 import Home from "./pages/landing/Home";
 import AllAgents from "./pages/admin/AllAgents";
 import Pricing from "./pages/landing/Pricing";

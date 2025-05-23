@@ -9,6 +9,8 @@ import {
   Users,
   Check,
   DollarSign,
+  ArrowLeft,
+  ArrowRight,
 } from "lucide-react";
 import { useBotConfig } from "../../../store/useBotConfig";
 import {
@@ -235,6 +237,10 @@ const Booking: React.FC<BookingProps> = ({
   // Navigation functions
   const goToNextStep = () => {
     setCurrentStep((prev) => Math.min(prev + 1, 5));
+  };
+
+  const goToPreviousStep = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
   // Fetch existing settings if in edit mode
@@ -722,6 +728,66 @@ const Booking: React.FC<BookingProps> = ({
       setIsLoading(false);
     }
   };
+
+  // Render navigation buttons
+  const renderNavigationButtons = () => (
+    <div className="flex justify-end items-center gap-4 mt-6">
+      {currentStep > 1 && (
+        <button
+          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors flex items-center"
+          onClick={goToPreviousStep}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          BACK
+        </button>
+      )}
+      
+      {currentStep < 5 ? (
+        <button
+          className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors flex items-center"
+          onClick={goToNextStep}
+        >
+          NEXT
+          <ArrowRight className="h-4 w-4 ml-2" />
+        </button>
+      ) : (
+        <button
+          className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+          onClick={saveSettings}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <span className="flex items-center">
+              <svg
+                className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Saving...
+            </span>
+          ) : (
+            "FINISH"
+          )}
+        </button>
+      )}
+    </div>
+  );
+
   // Header component
   const renderHeader = () => (
     <div>
@@ -821,15 +887,7 @@ const Booking: React.FC<BookingProps> = ({
             )}
           </div>
         </div>
-
-        <div className="flex justify-end mt-6">
-          <button
-            className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-            onClick={goToNextStep}
-          >
-            NEXT
-          </button>
-        </div>
+        {renderNavigationButtons()}
       </div>
 
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
@@ -974,10 +1032,19 @@ const Booking: React.FC<BookingProps> = ({
               </label>
               <select
                 value={newBreakStart}
-                onChange={(e) => setNewBreakStart(e.target.value)}
+                onChange={(e) => {
+                  setNewBreakStart(e.target.value);
+                  // If end time is not greater than new start time, adjust it
+                  const startHour = parseInt(e.target.value.split(':')[0]);
+                  const endHour = parseInt(newBreakEnd.split(':')[0]);
+                  if (endHour <= startHour) {
+                    const newEndHour = Math.min(startHour + 1, 23);
+                    setNewBreakEnd(`${newEndHour.toString().padStart(2, "0")}:00`);
+                  }
+                }}
                 className="p-1 border border-gray-300 rounded"
               >
-                {Array.from({ length: 24 }).map((_, hour) => (
+                {Array.from({ length: 23 }).map((_, hour) => (
                   <option
                     key={hour}
                     value={`${hour.toString().padStart(2, "0")}:00`}
@@ -997,25 +1064,41 @@ const Booking: React.FC<BookingProps> = ({
                 onChange={(e) => setNewBreakEnd(e.target.value)}
                 className="p-1 border border-gray-300 rounded"
               >
-                {Array.from({ length: 24 }).map((_, hour) => (
-                  <option
-                    key={hour}
-                    value={`${hour.toString().padStart(2, "0")}:00`}
-                  >
-                    {`${hour.toString().padStart(2, "0")}:00`}
-                  </option>
-                ))}
+                {(() => {
+                  const startHour = parseInt(newBreakStart.split(':')[0]);
+                  const availableEndTimes = [];
+                  
+                  // Generate end times that are after the start time
+                  for (let hour = startHour + 1; hour <= 24; hour++) {
+                    availableEndTimes.push(`${hour.toString().padStart(2, "0")}:00`);
+                  }
+                  
+                  return availableEndTimes.map((time) => (
+                    <option key={time} value={time}>
+                      {time}
+                    </option>
+                  ));
+                })()}
               </select>
             </div>
 
             <button
               className="mt-5 flex items-center justify-center w-8 h-8 bg-green-500 text-white rounded-full"
-              onClick={() =>
-                setBreaks((prev) => [
-                  ...prev,
-                  { startTime: newBreakStart, endTime: newBreakEnd },
-                ])
-              }
+              onClick={() => {
+                // Validate that end time is after start time before adding
+                const startHour = parseInt(newBreakStart.split(':')[0]);
+                const endHour = parseInt(newBreakEnd.split(':')[0]);
+                
+                if (endHour > startHour) {
+                  setBreaks((prev) => [
+                    ...prev,
+                    { startTime: newBreakStart, endTime: newBreakEnd },
+                  ]);
+                } else {
+                  // This shouldn't happen with the new validation, but just in case
+                  alert("End time must be after start time");
+                }
+              }}
             >
               <Plus className="h-4 w-4" />
             </button>
@@ -1043,15 +1126,7 @@ const Booking: React.FC<BookingProps> = ({
             ))}
           </div>
         </div>
-
-        <div className="flex justify-end mt-6">
-          <button
-            className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-            onClick={goToNextStep}
-          >
-            NEXT
-          </button>
-        </div>
+        {renderNavigationButtons()}
       </div>
 
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
@@ -1275,15 +1350,7 @@ const renderStep3 = () => {
             </div>
           </div>
         )}
-  
-        <div className="flex justify-end mt-6">
-          <button
-            className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors font-medium"
-            onClick={goToNextStep}
-          >
-            NEXT
-          </button>
-        </div>
+      {renderNavigationButtons()} 
       </div>
   
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
@@ -1387,15 +1454,7 @@ const renderStep3 = () => {
             </div>
           ))}
         </div>
-
-        <div className="flex justify-end mt-6">
-          <button
-            className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-            onClick={goToNextStep}
-          >
-            NEXT
-          </button>
-        </div>
+        {renderNavigationButtons()}
       </div>
 
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
@@ -1545,42 +1604,7 @@ const renderStep3 = () => {
             </div>
           )}
         </div>
-  
-        <div className="flex justify-end mt-6">
-          <button
-            className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-            onClick={saveSettings}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <span className="flex items-center">
-                <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Saving...
-              </span>
-            ) : (
-              "FINISH"
-            )}
-          </button>
-        </div>
+        {renderNavigationButtons()}
       </div>
     </div>
   );

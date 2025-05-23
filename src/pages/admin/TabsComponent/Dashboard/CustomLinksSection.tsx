@@ -76,8 +76,13 @@ const CustomLinksSection = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (activeBotData?.customHandles) {
+    if (
+      activeBotData?.customHandles &&
+      activeBotData.customHandles.length > 0
+    ) {
       setCustomHandles(activeBotData.customHandles);
+    } else {
+      setCustomHandles([]);
     }
   }, [activeBotData]);
 

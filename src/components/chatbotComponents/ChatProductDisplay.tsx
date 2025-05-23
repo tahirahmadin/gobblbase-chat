@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useCartStore } from "../../store/useCartStore";
+import { useBotConfig } from "../../store/useBotConfig";
 import { Product, Theme } from "../../types";
 import { ChevronRight, ChevronLeft, CreditCard, Wallet } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface ChatProductDisplayProps {
   theme: Theme;
@@ -25,6 +27,7 @@ export default function ChatProductDisplay({
   // Get products from cart store
   const { products, getProductsInventory, setCartView, setSelectedProduct } =
     useCartStore();
+  const { activeBotData } = useBotConfig();
 
   // Local state - completely independent from the global state
   const [localSelectedProduct, setLocalSelectedProduct] =
@@ -33,6 +36,21 @@ export default function ChatProductDisplay({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [view, setView] = useState<"grid" | "detail" | "checkout">("grid");
   const [viewMore, setViewMore] = useState(false);
+
+  // Check if any payment method is enabled
+  const availablePaymentMethods = useMemo(() => {
+    if (!activeBotData?.paymentMethods) return [];
+    
+    const methods = [];
+    if (activeBotData.paymentMethods.stripe?.enabled) methods.push('stripe');
+    if (activeBotData.paymentMethods.razorpay?.enabled) methods.push('razorpay');
+    if (activeBotData.paymentMethods.usdt?.enabled) methods.push('usdt');
+    if (activeBotData.paymentMethods.usdc?.enabled) methods.push('usdc');
+    
+    return methods;
+  }, [activeBotData?.paymentMethods]);
+
+  const hasEnabledPaymentMethods = availablePaymentMethods.length > 0;
 
   // Fetch products when the component mounts
   useEffect(() => {
@@ -58,38 +76,77 @@ export default function ChatProductDisplay({
     }
   };
 
-  // Modified Buy Now handler - will update cart store and directly navigate to checkout
+  // Modified Buy Now handler with payment method check
   const handleBuyNow = () => {
     if (localSelectedProduct) {
+      const isFreeProduct = localSelectedProduct.priceType === "free" || localSelectedProduct.price === 0;
+      
+      // Allow free products to proceed regardless of payment methods
+      if (isFreeProduct) {
+        try {
+          if (typeof setSelectedProduct === "function") {
+            setSelectedProduct({
+              ...localSelectedProduct,
+              quantity,
+            });
+
+            if (typeof setCartView === "function") {
+              setCartView(true);
+            }
+
+            if (typeof setActiveScreen === "function") {
+              setActiveScreen("browse");
+            }
+          } else {
+            console.error("setSelectedProduct is not a function");
+            if (typeof setActiveScreen === "function") {
+              setActiveScreen("browse");
+            }
+          }
+        } catch (error) {
+          console.error("Error in handleBuyNow:", error);
+          if (typeof setActiveScreen === "function") {
+            setActiveScreen("browse");
+          }
+        }
+        return;
+      }
+
+      // Check if payment methods are enabled for paid products
+      if (!hasEnabledPaymentMethods) {
+        toast.error("Payment methods are not enabled. Please contact the admin.", {
+          duration: 4000,
+          style: {
+            background: theme.isDark ? '#2d1b1b' : '#fef2f2',
+            color: theme.isDark ? '#fca5a5' : '#dc2626',
+            border: '1px solid #ef4444',
+          },
+        });
+        return;
+      }
+
       try {
-        // Try to use the store's functions if available
         if (typeof setSelectedProduct === "function") {
-          // Set the product in the global state with the correct quantity
           setSelectedProduct({
             ...localSelectedProduct,
             quantity,
           });
 
-          // Switch to checkout directly in the cart view
           if (typeof setCartView === "function") {
             setCartView(true);
           }
 
-          // If setActiveScreen is available, switch directly to browse screen
           if (typeof setActiveScreen === "function") {
             setActiveScreen("browse");
           }
         } else {
           console.error("setSelectedProduct is not a function");
-          // If no global state functions are available,
-          // still try to navigate to browse if possible
           if (typeof setActiveScreen === "function") {
             setActiveScreen("browse");
           }
         }
       } catch (error) {
         console.error("Error in handleBuyNow:", error);
-        // On error, still try to navigate to browse if possible
         if (typeof setActiveScreen === "function") {
           setActiveScreen("browse");
         }
@@ -127,6 +184,9 @@ export default function ChatProductDisplay({
   // Rendering functions for each view
   const renderProductDetails = () => {
     if (!localSelectedProduct) return null;
+
+    const isFreeProduct = localSelectedProduct.priceType === "free" || localSelectedProduct.price === 0;
+    const isBuyNowDisabled = !isFreeProduct && !hasEnabledPaymentMethods;
 
     // Sizes for the chat mode
     const imageSize = "w-36 h-36";
@@ -340,7 +400,7 @@ export default function ChatProductDisplay({
         <div
           className="rounded-xl w-full relative mt-1"
           style={{
-            color: theme.isDark ? "#fff" : "#000", // Updated to match ProductDetailPage
+            color: theme.isDark ? "#fff" : "#000",
           }}
         >
           <div className="flex items-center justify-between pt-2">
@@ -380,7 +440,7 @@ export default function ChatProductDisplay({
             <img
               src={
                 localSelectedProduct?.images?.[currentImageIndex] ||
-                "https://i.imgur.com/EJLFNOwg.jpg" // Updated placeholder to match ProductDetailPage
+                "https://i.imgur.com/EJLFNOwg.jpg"
               }
               alt={localSelectedProduct?.title || "Product"}
               className={`${imageSize} object-contain mx-auto rounded-xl`}
@@ -421,35 +481,57 @@ export default function ChatProductDisplay({
           </div>
           {/* Product Info */}
           <div className={`${sectionPadding} pt-3 pb-2 text-center`}>
-            <div className={`${titleSize} font-bold mb-1`}> {/* Updated to font-bold */}
+            <div className={`${titleSize} font-bold mb-1`}>
               {localSelectedProduct?.title || "Product Name"}
             </div>
             <div
               className={`${borderWidth} mx-auto border-b-4 mb-2 opacity-90`}
-              style={{ borderColor: theme.isDark ? "#fff" : "#000" }} // Updated border color logic
+              style={{ borderColor: theme.isDark ? "#fff" : "#000" }}
             />
             <div className={`${descriptionSize} mb-2 text-left opacity-90`}>
-              {localSelectedProduct?.description || "Product Bio "} {/* Updated fallback text */}
+              {localSelectedProduct?.description || "Product Bio "}
             </div>
 
             {extraFields}
+
+            {/* Payment Warning for Paid Products */}
+            {!isFreeProduct && !hasEnabledPaymentMethods && (
+              <div 
+                className="mb-3 p-2 rounded-lg border text-center text-xs"
+                style={{ 
+                  backgroundColor: theme.isDark ? '#2d1b1b' : '#fef2f2',
+                  borderColor: '#ef4444',
+                  color: theme.isDark ? '#fca5a5' : '#dc2626'
+                }}
+              >
+                ⚠️ Payment methods not available. Contact admin to enable purchases.
+              </div>
+            )}
 
             <div className="flex flex-row justify-between items-center py-1">
               <div className="flex flex-col justify-between items-start mt-2 mb-1">
                 <div className="text-xs opacity-70 text-left">TOTAL COST</div>
                 <div className="text-sm font-bold">
                   {localSelectedProduct?.priceType === "paid"
-                    ? `$${localSelectedProduct?.price ?? 0}`
+                    ? `${localSelectedProduct?.price ?? 0}`
                     : "FREE"}
                 </div>
               </div>
               <button
-                className={`w-fit ${buttonSize} rounded-full font-bold`}
+                className={`w-fit ${buttonSize} rounded-full font-bold transition-all duration-200 ${
+                  isBuyNowDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
+                }`}
                 style={{
-                  backgroundColor: theme.highlightColor,
-                  color: !theme.isDark ? "#fff" : "#000", // Updated color logic to match ProductDetailPage
+                  backgroundColor: isBuyNowDisabled 
+                    ? (theme.isDark ? '#444' : '#ccc') 
+                    : theme.highlightColor,
+                  color: isBuyNowDisabled 
+                    ? (theme.isDark ? '#888' : '#666')
+                    : (!theme.isDark ? "#fff" : "#000"),
+                  opacity: isBuyNowDisabled ? 0.6 : 1,
                 }}
                 onClick={handleBuyNow}
+                disabled={isBuyNowDisabled}
               >
                 Buy Now
               </button>
@@ -509,7 +591,7 @@ export default function ChatProductDisplay({
                     className="text-sm font-medium"
                     style={{ color: theme.highlightColor }}
                   >
-                    ${product.price}
+                    {product.priceType === "paid" ? `${product.price}` : "FREE"}
                   </span>
                   <div
                     className="flex items-center text-xs"

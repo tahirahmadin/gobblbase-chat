@@ -79,7 +79,8 @@ export type MessageType =
   | "products-display"
   | "contact-intro"
   | "contact-loading"
-  | "contact-form";
+  | "contact-form"
+  | "welcome";
 
 export interface Theme {
   id: string;
@@ -138,6 +139,7 @@ export interface BotConfig {
   promotionalBanner: string | null;
   isPromoBannerEnabled: boolean;
   isQueryable: boolean;
+  isActive: boolean;
   logo: string;
   sessionName: string;
 
