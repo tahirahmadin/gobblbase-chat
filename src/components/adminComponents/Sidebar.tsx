@@ -43,31 +43,21 @@ const navItems: NavItem[] = [
       { name: "Prompts", path: "/admin/dashboard/prompts" },
     ],
   },
+
   {
-    name: "Operations",
-    icon: <Briefcase className="w-5 h-5" />,
-    path: "/admin/operations",
-    expandable: true,
-    subItems: [
-      { name: "Orders", path: "/admin/operations/orders" },
-      { name: "Payments", path: "/admin/operations/payments" },
-      { name: "Email", path: "/admin/operations/email" },
-      { name: "Integrations", path: "/admin/operations/integrations" },
-      { name: "Embed", path: "/admin/operations/embed" },
-    ],
-  },
-  {
-    name: "Commerce",
+    name: "Products",
     icon: <Package className="w-5 h-5" />,
-    path: "/admin/commerce",
+    path: "/admin/products",
     expandable: true,
     subItems: [
       { name: "Add Product", path: "/admin/commerce/add" },
       { name: "Manage", path: "/admin/commerce/manage" },
-      { name: "Calendar", path: "/admin/commerce/calendar" },
+      { name: "Orders", path: "/admin/operations/orders" },
+      { name: "Bookings", path: "/admin/commerce/calendar" },
       { name: "Policies", path: "/admin/commerce/policies" },
     ],
   },
+
   {
     name: "CRM",
     icon: <Users className="w-5 h-5" />,
@@ -76,6 +66,18 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Customer Leads", path: "/admin/crm/leads" },
       { name: "Chat Logs", path: "/admin/crm/chat-logs" },
+    ],
+  },
+  {
+    name: "Settings",
+    icon: <Briefcase className="w-5 h-5" />,
+    path: "/admin/operations",
+    expandable: true,
+    subItems: [
+      { name: "Payments", path: "/admin/operations/payments" },
+      { name: "Email", path: "/admin/operations/email" },
+      { name: "Integrations", path: "/admin/operations/integrations" },
+      { name: "Embed", path: "/admin/operations/embed" },
     ],
   },
   {
