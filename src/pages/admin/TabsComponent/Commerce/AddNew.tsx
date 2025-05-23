@@ -42,11 +42,8 @@ const AddNew = () => {
       const { product, type } = JSON.parse(storedEditData);
       setEditData(product);
       setSelectedType(type);
-    } else if (!selectedType) {
-      // Only redirect if we're not in edit mode and no type is selected
-      navigate("/admin/commerce/manage");
     }
-  }, [selectedType, navigate]);
+  }, []);
 
   const handleBack = () => {
     if (editData) {
