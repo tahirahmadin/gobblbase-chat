@@ -829,9 +829,42 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     else return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   };
 
+  // Validation function for insights data
+  const validateInsightsData = (): { isValid: boolean; missingFields: string[] } => {
+    const fields = [
+      { key: 'usp', label: 'Brand USP' },
+      { key: 'brandPersonality', label: 'Brand Personality' },
+      { key: 'languageTerms', label: 'Brand Language Terms' },
+      { key: 'frequentQuestions', label: 'Frequent Questions' }
+    ];
+
+    const missingFields: string[] = [];
+
+    fields.forEach(field => {
+      const value = insightsData[field.key as keyof typeof insightsData];
+      const wordCount = value.trim().split(/\s+/).filter(word => word.length > 0).length;
+      
+      if (wordCount < 5) {
+        missingFields.push(field.label);
+      }
+    });
+
+    return {
+      isValid: missingFields.length === 0,
+      missingFields
+    };
+  };
+
   const handleSave = async () => {
     if (!activeBotData) {
       toast.error("No agent selected");
+      return;
+    }
+
+    // Validate insights data
+    const validation = validateInsightsData();
+    if (!validation.isValid) {
+      toast.error("Please complete all insights fields with at least 5 words each before saving");
       return;
     }
   
@@ -1258,12 +1291,29 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             />
           </div>
 
+          {/* Validation Message */}
+          {(() => {
+            const validation = validateInsightsData();
+            if (!validation.isValid) {
+              return (
+                <div className="flex items-start space-x-2 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                  <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-amber-700">
+                    <p className="font-medium mb-1">Complete all insights to save your progress</p>
+                    <p>Please provide at least 5 words for each field to help your agent deliver more personalized and effective responses.</p>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
+
           <div className="flex justify-end">
             <button
               onClick={handleSave}
-              disabled={isSaving}
+              disabled={isSaving || !validateInsightsData().isValid}
               className={`px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold transition-colors ${
-                isSaving ? "opacity-50 cursor-not-allowed" : ""
+                isSaving || !validateInsightsData().isValid ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
               {isSaving ? (

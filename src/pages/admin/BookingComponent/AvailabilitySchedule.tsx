@@ -297,8 +297,9 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
     const firstDow = new Date(year, mo, 1).getDay();
     const daysInCurrentMonth = new Date(year, mo + 1, 0).getDate();
     
-    // Add empty cells for days before the 1st of the month
-    for (let i = 0; i < firstDow; i++) {
+    const mondayFirstDow = firstDow === 0 ? 6 : firstDow - 1;
+    
+    for (let i = 0; i < mondayFirstDow; i++) {
       cells.push({ empty: true });
     }
     

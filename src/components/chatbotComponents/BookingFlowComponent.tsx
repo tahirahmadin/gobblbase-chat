@@ -671,13 +671,10 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           if (raw && raw.length > 0) {
             const userSlots = raw.map((slot) => ({
               ...slot,
-              startTime: convertTimeToUserTZ(slot.startTime, d),
-              endTime: convertTimeToUserTZ(slot.endTime, d),
               available: true,
             }));
             setSlots(userSlots);
           } else {
-            // No client-side slot generation - simply set empty slots
             if (dayWiseAvailability[dateStr] !== false) {
               setDayWiseAvailability(prev => ({
                 ...prev,
@@ -1279,12 +1276,11 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       }
       
       if (step === "payment" && selectedSlot && selectedDate) {
-        // Create the booking details object
         const bookingDetails = {
           businessId: businessId,
           date: fmtApiDate(selectedDate),
-          startTime: convertTimeToBusinessTZ(selectedSlot.startTime, selectedDate),
-          endTime: convertTimeToBusinessTZ(selectedSlot.endTime, selectedDate),
+          startTime: selectedSlot.startTime,  
+          endTime: selectedSlot.endTime,     
           location: selectedLocation,
           name: name,
           email: email,
@@ -1307,7 +1303,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
             price={priceDetails}
             onBack={() => setStep("details")}
             onSuccess={() => {
-              // When payment is successful, move to confirmation step
               setStep("confirmation");
             }}
           />
@@ -1369,7 +1364,21 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
             )}
             
             <button
-                onClick={() => onClose()}
+                onClick={() => {
+                  setStep("date");
+                  setSelectedDate(null);
+                  setSelectedSlot(null);
+                  setSlots([]);
+                  setName("");
+                  setEmail(isLoggedIn && userEmail ? userEmail : "");
+                  setPhone("");
+                  setNotes("");
+                  setEmailError("");
+                  setPhoneError("");
+                  setNameError("");
+                  setPaymentError(null);
+                  setIsFormValid(false);
+                }}
                 className="px-6 py-2 rounded-2xl font-medium border"
                 style={{
                     backgroundColor: "transparent",
