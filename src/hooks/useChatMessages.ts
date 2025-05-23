@@ -1,9 +1,16 @@
-import { useState, useEffect, useRef, Dispatch, SetStateAction, RefObject } from 'react';
-import { useChatLogs } from './useChatLogs';
-import { ChatMessage, BotConfig } from '../types';
-import { shouldUseContext } from '../utils/MessageUtils';
-import { queryDocument } from '../lib/serverActions';
-import OpenAI from 'openai';
+import {
+  useState,
+  useEffect,
+  useRef,
+  Dispatch,
+  SetStateAction,
+  RefObject,
+} from "react";
+import { useChatLogs } from "./useChatLogs";
+import { ChatMessage, BotConfig } from "../types";
+import { shouldUseContext } from "../utils/MessageUtils";
+import { queryDocument } from "../lib/serverActions";
+import OpenAI from "openai";
 
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_PUBLIC_OPENAI_API_KEY,
@@ -20,7 +27,7 @@ export interface UseChatMessagesReturn {
 }
 
 export function useChatMessages(
-  initialMessage: string | undefined, 
+  initialMessage: string | undefined,
   currentConfig: BotConfig | null
 ): UseChatMessagesReturn {
   const { addMessages } = useChatLogs();
@@ -56,7 +63,7 @@ export function useChatMessages(
     // Only update if the initialMessage has actually changed
     if (initialMessage && initialMessage !== welcomeMessageRef.current) {
       welcomeMessageRef.current = initialMessage;
-      
+
       // Reset message state with new welcome message
       setMessages([
         {
@@ -67,11 +74,14 @@ export function useChatMessages(
           type: "welcome", // Mark as welcome message
         },
       ]);
-      
+
       // Clear any welcome message animation flags from localStorage
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && (key.startsWith('animated_1') || key.startsWith('animated_welcome'))) {
+        if (
+          key &&
+          (key.startsWith("animated_1") || key.startsWith("animated_welcome"))
+        ) {
           localStorage.removeItem(key);
         }
       }
@@ -80,13 +90,28 @@ export function useChatMessages(
 
   const handleAIResponse = async (msgToSend: string): Promise<boolean> => {
     if (!currentConfig?.agentId) return false;
-    
+
+    // Check if the bot is active
+    if (currentConfig.isActive === false) {
+      setMessages((m) => [
+        ...m,
+        {
+          id: (Date.now() + 3).toString(),
+          content:
+            "Credits exhausted. Kindly ask administrator to refill credits/upgrade plan.",
+          timestamp: new Date(),
+          sender: "agent",
+        },
+      ]);
+      return false;
+    }
+
     setIsLoading(true);
     try {
       const recentMessages = messages.slice(-1);
       const useContext = shouldUseContext(msgToSend, recentMessages);
       let enhancedQuery: string;
-      
+
       if (useContext && recentMessages.length > 0) {
         const conversationContext = recentMessages
           .map(
@@ -105,7 +130,8 @@ export function useChatMessages(
         enhancedQuery
       );
 
-      let voiceTone = currentConfig?.personalityType?.value?.toString() || "friendly";
+      let voiceTone =
+        currentConfig?.personalityType?.value?.toString() || "friendly";
       let systemPrompt = `You are a conversational AI assistant creating engaging, personalized responses. When context is available: ${JSON.stringify(
         queryContext
       )}, use it for relevant answers. For conversational queries or insufficient context, build rapport.
@@ -201,6 +227,6 @@ export function useChatMessages(
     isLoading,
     messagesEndRef,
     scrollToBottom,
-    handleAIResponse
+    handleAIResponse,
   };
 }

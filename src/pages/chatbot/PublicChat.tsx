@@ -63,6 +63,7 @@ export default function PublicChat({
     hasProducts: null as boolean | null,
     customerLeadFlag: null as boolean | null,
     isQueryable: null as boolean | null,
+    isActive: null as boolean | null,
   });
 
   useEffect(() => {
@@ -132,6 +133,7 @@ export default function PublicChat({
       hasProducts: null,
       customerLeadFlag: null,
       isQueryable: null,
+      isActive: null,
     };
   }, [resetFeatures, currentConfig?.agentId]);
 
@@ -153,6 +155,7 @@ export default function PublicChat({
     const currProducts = checkFeature(hasProducts);
     const currContact = checkFeature(currentConfig?.customerLeadFlag);
     const currQueryable = checkFeature(currentConfig?.isQueryable);
+    const currActive = checkFeature(currentConfig?.isActive);
 
     const bookingChanged =
       prevFeaturesRef.current.isBookingConfigured !== null &&
@@ -166,12 +169,16 @@ export default function PublicChat({
     const queryableChanged =
       prevFeaturesRef.current.isQueryable !== null &&
       prevFeaturesRef.current.isQueryable !== currQueryable;
+    const activeChanged =
+      prevFeaturesRef.current.isActive !== null &&
+      prevFeaturesRef.current.isActive !== currActive;
 
     if (
       bookingChanged ||
       productsChanged ||
       contactChanged ||
-      queryableChanged
+      queryableChanged ||
+      activeChanged
     ) {
       console.log("Features changed:", {
         bookingBefore: prevFeaturesRef.current.isBookingConfigured,
@@ -182,6 +189,8 @@ export default function PublicChat({
         contactNow: currContact,
         queryableBefore: prevFeaturesRef.current.isQueryable,
         queryableNow: currQueryable,
+        activeBefore: prevFeaturesRef.current.isActive,
+        activeNow: currActive,
       });
 
       updateFeatures();
@@ -196,6 +205,7 @@ export default function PublicChat({
       hasProducts: currProducts,
       customerLeadFlag: currContact,
       isQueryable: currQueryable,
+      isActive: currActive,
     };
   }, [
     currentIsLoading,
@@ -204,6 +214,7 @@ export default function PublicChat({
     hasProducts,
     currentConfig?.customerLeadFlag,
     currentConfig?.isQueryable,
+    currentConfig?.isActive,
     updateFeatures,
     showFeatureNotification,
     messages.length,
