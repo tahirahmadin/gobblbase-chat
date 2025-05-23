@@ -203,9 +203,9 @@ const SocialMediaSection = () => {
 
   return (
     <div className="space-y-4">
-      <label className="block text-sm font-medium text-gray-700">
-        Social Media Handles
-      </label>
+      <h1 className="main-font block text-sm font-medium text-gray-700">
+        Social Media(URL)
+      </h1>
 
       {Object.entries(socialMedia).map(([platform, handle]) => {
         const baseUrl =
@@ -226,11 +226,11 @@ const SocialMediaSection = () => {
                 />
               </div>
               <div
-                className={`flex-1 flex items-center border rounded-md overflow-hidden ${
-                  hasError ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`flex-1 flex flex-col xs:flex-row items-center border rounded-md overflow-hidden 
+                  ${hasError ? "border-red-500" : "border-gray-300"} 
+                  ${handle ? "border-[#78FFC5]" : "border-gray-300"}`}
               >
-                <span className="px-3 py-2 bg-gray-100 text-gray-500 text-sm whitespace-nowrap border-r border-gray-300 w-[220px] flex items-center">
+                <span className="px-3 py-2 bg-gray-100 text-gray-500 text-sm whitespace-nowrap border-r border-gray-300 w-full xs:w-[220px] flex items-center">
                   {baseUrl}
                 </span>
                 <input
@@ -245,9 +245,9 @@ const SocialMediaSection = () => {
                     handleSocialMediaChange(platform, pastedText);
                   }}
                   placeholder={`Enter ${platform} handle`}
-                  className={`flex-1 px-3 py-2 focus:outline-none text-sm ${
-                    hasError ? "bg-red-50" : ""
-                  }`}
+                  className={`flex-1 px-3 py-2 focus:outline-none text-sm w-full xs:w-[280px]
+                    ${hasError ? "bg-red-50" : ""} 
+                    ${handle ? "border-[#78FFC5]" : "border-gray-300"}`}
                 />
                 {handle && (
                   <div className="pr-2 flex items-center justify-center">
