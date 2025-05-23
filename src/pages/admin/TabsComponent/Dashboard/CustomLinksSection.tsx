@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { useBotConfig } from "../../../../store/useBotConfig";
 import { updateCustomHandles } from "../../../../lib/serverActions";
+import { Plus, Trash2 } from "lucide-react";
 
 const CustomLinksSection = () => {
   const { activeBotId, activeBotData, setRefetchBotData } = useBotConfig();
@@ -9,8 +10,13 @@ const CustomLinksSection = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (activeBotData?.customHandles) {
+    if (
+      activeBotData?.customHandles &&
+      activeBotData.customHandles.length > 0
+    ) {
       setCustomHandles(activeBotData.customHandles);
+    } else {
+      setCustomHandles([]);
     }
   }, [activeBotData]);
 
@@ -51,46 +57,58 @@ const CustomLinksSection = () => {
 
   return (
     <div>
-      <h3 className="text-lg font-semibold mb-2">Custom Links</h3>
+      <h3 className="text-lg font-semibold mb-4">Custom Links</h3>
       <div className="space-y-4">
+        {customHandles.length === 0 && (
+          <div className="text-gray-400 text-sm mb-2">
+            No custom links added yet.
+          </div>
+        )}
         {customHandles.map((item, idx) => (
-          <div key={idx} className="flex items-center space-x-2">
+          <div
+            key={idx}
+            className="flex flex-col md:flex-row items-stretch md:items-center bg-gray-50 border border-gray-200 rounded-lg p-4 gap-2 md:gap-4 shadow-sm relative"
+          >
             <input
               type="text"
               placeholder="Label"
               value={item.label}
               onChange={(e) => handleChange(idx, "label", e.target.value)}
-              className="px-2 py-1 border rounded w-1/3"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm mb-2 md:mb-0"
             />
             <input
               type="text"
               placeholder="URL"
               value={item.url}
               onChange={(e) => handleChange(idx, "url", e.target.value)}
-              className="px-2 py-1 border rounded w-2/3"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm mb-2 md:mb-0"
             />
             <button
               onClick={() => handleRemove(idx)}
-              className="text-red-500 hover:text-red-700"
-              disabled={customHandles.length === 1}
+              className="flex items-center justify-center text-red-500 hover:text-red-700 p-2 rounded transition-colors border border-transparent hover:border-red-200 bg-white"
+              title="Remove link"
+              type="button"
             >
-              Remove
+              <Trash2 className="w-4 h-4" />
             </button>
           </div>
         ))}
         <button
           onClick={handleAdd}
-          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors mt-2"
+          type="button"
         >
-          Add Link
+          <Plus className="w-4 h-4" /> Add Link
         </button>
       </div>
-      <div className="flex justify-end mt-4">
+      <div className="flex justify-end mt-6">
         <button
           onClick={handleSave}
-          disabled={isSaving}
-          className={`px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 ${
-            isSaving ? "opacity-50 cursor-not-allowed" : ""
+          disabled={isSaving || customHandles.length === 0}
+          className={`px-5 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm transition-colors font-medium ${
+            isSaving || customHandles.length === 0
+              ? "opacity-50 cursor-not-allowed"
+              : ""
           }`}
         >
           {isSaving ? "Saving..." : "Save"}

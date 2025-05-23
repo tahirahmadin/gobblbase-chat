@@ -53,11 +53,9 @@ const Profile = () => {
       );
 
       if (logoObj) {
-        setAgentPicture(logoObj?.image);
+        setAgentPicture(logoObj.image);
       } else {
-        setAgentPicture(
-          "https://t4.ftcdn.net/jpg/08/04/36/29/360_F_804362990_0n7bGLz9clMBi5ajG52k8OAUQTneMbj4.jpg"
-        );
+        setAgentPicture("/assets/voice/friend.png");
       }
     }
   }, [activeBotData?.logo, activeBotData?.personalityType?.name]);
@@ -256,8 +254,8 @@ const Profile = () => {
                     />
                   ) : (
                     <img
-                      src={agentPicture || ""}
-                      alt="Default Agent"
+                      src={agentPicture || "/assets/voice/friend.png"}
+                      alt="Agent"
                       className="w-full h-full object-cover"
                     />
                   )}

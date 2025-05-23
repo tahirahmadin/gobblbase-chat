@@ -20,9 +20,19 @@ export const useServerHook = ({ initHook = false }: { initHook: boolean }) => {
   }, [adminId, fetchAllAgents, initHook, isAgentsLoaded, activeBotId]);
 
   useEffect(() => {
-    if (agents.length > 0 && activeBotId === null && initHook) {
-      console.log("2. Setting active bot id");
-      setActiveBotId(agents[0].agentId);
+    // On reload, check localStorage for agentId and set if valid
+    if (agents.length > 0 && initHook) {
+      let storedAgentId: string | null = null;
+      if (typeof window !== "undefined") {
+        storedAgentId = localStorage.getItem("activeBotId");
+      }
+      const found =
+        storedAgentId && agents.find((a) => a.agentId === storedAgentId);
+      if (found) {
+        setActiveBotId(found.agentId);
+      } else if (activeBotId === null) {
+        setActiveBotId(agents[0].agentId);
+      }
     }
   }, [agents, setActiveBotId, initHook]);
 
