@@ -51,7 +51,9 @@ type FormErrors = {
   description?: string;
   price?: string;
   quantity?: string;
-  variedQuantities?: Record<string, string>;
+  variedQuantities?: {
+    [key: string]: string;
+  };
 };
 
 type UnifiedProductFormProps = {
@@ -877,13 +879,16 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                                 },
                               }));
                               if (errors.variedQuantities?.[size]) {
-                                setErrors((prev) => ({
-                                  ...prev,
-                                  variedQuantities: {
+                                setErrors((prev) => {
+                                  const newVariedQuantities = {
                                     ...prev.variedQuantities,
-                                    [size]: undefined,
-                                  },
-                                }));
+                                  };
+                                  delete newVariedQuantities[size];
+                                  return {
+                                    ...prev,
+                                    variedQuantities: newVariedQuantities,
+                                  };
+                                });
                               }
                             }}
                             onKeyDown={(e) => {

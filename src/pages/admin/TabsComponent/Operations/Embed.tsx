@@ -1,17 +1,6 @@
 import React from "react";
-import {
-  Copy,
-  ExternalLink,
-  Share2,
-  Globe,
-  Code,
-  Twitter,
-  Linkedin,
-  Facebook,
-  MessageSquare,
-  Check,
-} from "lucide-react";
-import { useBotConfig } from "../../../store/useBotConfig";
+import { Copy, ExternalLink, Globe, Check } from "lucide-react";
+import { useBotConfig } from "../../../../store/useBotConfig";
 
 export default function Embed() {
   const { activeBotData } = useBotConfig();

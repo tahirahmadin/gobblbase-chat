@@ -6,11 +6,11 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { useBotConfig } from "../../../store/useBotConfig";
+import { useBotConfig } from "../../../../store/useBotConfig";
 import {
   updateAgentPaymentSettings,
   getTransactions,
-} from "../../../lib/serverActions";
+} from "../../../../lib/serverActions";
 import { toast } from "react-hot-toast";
 
 interface Transaction {
@@ -36,7 +36,13 @@ interface Transaction {
   updatedAt: string;
   user: string;
   userEmail: string;
-  __v: number;
+  shipping: {
+    name: string;
+    email: string;
+    phone: string;
+    country: string;
+    address1: string;
+  };
 }
 
 const Payments = () => {
@@ -108,7 +114,7 @@ const Payments = () => {
         updatedAt: t.updatedAt,
         user: t.user,
         userEmail: t.userEmail,
-        __v: t.__v,
+        shipping: t.shipping,
       }));
       setTransactions(mapped);
     } catch (error: any) {
@@ -285,13 +291,6 @@ const Payments = () => {
                 />
               </div>
               <div className="absolute right-2 top-2 flex space-x-1">
-                <button
-                  onClick={() => handleCopy(stripeId)}
-                  className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
-                  disabled={!stripeEnabled}
-                >
-                  <Copy className="w-3 h-3" />
-                </button>
                 <button
                   onClick={() => setStripeId("")}
                   className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
@@ -522,13 +521,16 @@ const Payments = () => {
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-semibold text-base text-gray-900 mb-1">
-                          {transaction.userEmail || "Customer Name"}
+                          {transaction.shipping.name || "Customer Name"}
                         </p>
                         <p className="text-xs text-gray-600">
                           {transaction.userEmail}
                         </p>
                         <p className="text-xs text-gray-600">
-                          Ph : <span className="font-mono">-</span>
+                          Ph :{" "}
+                          <span className="font-mono">
+                            {transaction.shipping?.phone}
+                          </span>
                         </p>
                       </div>
                       <div className="text-right">
@@ -541,7 +543,7 @@ const Payments = () => {
                           )}
                         </p>
                         <a className="text-blue-500 text-sm font-semibold cursor-pointer">
-                          {transaction.currency} {transaction.totalAmount}
+                          {transaction.totalAmount / 100} {transaction.currency}
                         </a>
                         <p className="text-xs text-gray-500 mt-1">
                           Paid via{" "}
