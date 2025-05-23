@@ -3,7 +3,40 @@ import { useBotConfig } from "../../../../store/useBotConfig";
 import { updateAgentWelcomeMessage } from "../../../../lib/serverActions";
 import PublicChat from "../../../chatbot/PublicChat";
 import { toast } from "react-hot-toast";
+import styled from "styled-components";
+const Button = styled.button`
+  position: relative;
+  background: #4d65ff;
+  padding: 1vh 2vw;
+  border: 2px solid black;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: clamp(8px, 4vw, 16px);
+  background: #6aff97;
+  @media (max-width: 600px) {
+    min-width: 120px;
+  }
 
+  &::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: -6px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #000000;
+    z-index: -1; // place it behind the button
+    background: #6aff97;
+  }
+
+  &:disabled {
+    background: #d6ffe0;
+    cursor: not-allowed;
+  }
+  &:disabled::before {
+    background: #d6ffe0;
+  }
+`;
 const welcomeTemplates = [
   "Hi there! How can I help you?",
   "Thank you for reaching out. How can I support you right now?",
@@ -19,6 +52,7 @@ const WelcomeText = () => {
     welcomeTemplates[0]
   );
   const [customMessage, setCustomMessage] = useState("");
+  const [isCustomMessageSaved, setIsCustomMessageSaved] = useState(false);
   const [previewConfig, setPreviewConfig] = useState<any>(null);
   const [previewKey, setPreviewKey] = useState<number>(Date.now());
 
@@ -29,17 +63,17 @@ const WelcomeText = () => {
   }, [activeBotData]);
 
   const clearMessageAnimationStates = () => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       (window as any).welcomeMessageAnimated = false;
       (window as any).featureMessageAnimated = false;
       (window as any).featuresMessageShown = false;
       (window as any).featuresMessageContent = "";
       (window as any).featuresMessageId = "";
-      
-      if (window.hasOwnProperty('shouldShowFeaturesAfterWelcome')) {
+
+      if (window.hasOwnProperty("shouldShowFeaturesAfterWelcome")) {
         (window as any).shouldShowFeaturesAfterWelcome = false;
       }
-      
+
       if ((window as any).allAnimatedMessages) {
         (window as any).allAnimatedMessages.clear();
       }
@@ -50,22 +84,22 @@ const WelcomeText = () => {
     if (templateText === selectedTemplate) {
       return;
     }
-    
     setSelectedTemplate(templateText);
+    setIsCustomMessageSaved(false);
 
     if (templateText && activeBotData) {
       try {
         await updateAgentWelcomeMessage(activeBotData.agentId, templateText);
 
         clearMessageAnimationStates();
-        
+
         setPreviewKey(Date.now());
-        
+
         const refreshedConfig = {
           ...activeBotData,
           welcomeMessage: templateText,
         };
-        
+
         setPreviewConfig(refreshedConfig);
         setRefetchBotData();
         toast.success("Welcome message updated successfully");
@@ -89,19 +123,21 @@ const WelcomeText = () => {
     if (activeBotData) {
       try {
         await updateAgentWelcomeMessage(activeBotData.agentId, customMessage);
-        
+
         clearMessageAnimationStates();
-        
+
         setPreviewKey(Date.now());
-        
+
         const refreshedConfig = {
           ...activeBotData,
           welcomeMessage: customMessage,
         };
-        
+
         setPreviewConfig(refreshedConfig);
         setRefetchBotData();
         toast.success("Custom welcome message updated successfully");
+
+        setIsCustomMessageSaved(true); // ✅ Set saved status
       } catch (error) {
         toast.error("Failed to update welcome message");
         console.error("Error updating welcome message:", error);
@@ -110,78 +146,96 @@ const WelcomeText = () => {
   };
 
   return (
-    <div
-      className="grid grid-cols-1 lg:grid-cols-5 w-full bg-white"
-      style={{ height: "calc(100vh - 64px)" }}
-    >
-      <div className="col-span-1 lg:col-span-3 p-4 lg:p-6 overflow-y-auto h-full">
-        <div className="mb-8">
-          <h2 className="text-xl font-bold text-black">Welcome Text</h2>
-          <p className="text-sm font-[500] text-black mt-1">
+    <div className="w-full h-full flex flex-col lg:flex-row gap-0 overflow-y-auto lg:overflow-hidden">
+      {/* side content */}
+      <div className="w-full lg:w-3/5 rounded-lg flex flex-col gap-2 lg:gap-4 lg:overflow-y-auto">
+        <div className="px-4 mt-8">
+          <h2 className="main-font font-bold text-lg sm:text-xl md:text-2xl text-[#000000] mb-1">
+            Welcome Text
+          </h2>
+          <p className="para-font text-xs md:text-sm text-[#0D0D0D] mb-2 font-[500]">
             Custom design your opening message to your audience
           </p>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">Templates</h3>
+        <div className="px-4">
+          <h3 className="para-font text-[#000000] block text-[16px] sm:text-lg font-medium mb-4">
+            Templates
+          </h3>
           <div className="space-y-2">
             {welcomeTemplates.map((template) => (
-              <button
-                key={template}
-                onClick={() => handleTemplateSelect(template)}
-                className={`w-full text-left px-4 py-3 rounded-lg border transition-all
+              <div key={template} className="flex gap-4 items-center">
+                {selectedTemplate === template ? (
+                  <>
+                    <div className="relative w-[25px] h-[25px] bg-[#CEFFDC] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3">
+                      <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]"></div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"></div>
+                )}
+                <button
+                  onClick={() => handleTemplateSelect(template)}
+                  className={`px-2 py-1 border w-[100%] transition-all text-start
                   ${
                     selectedTemplate === template
-                      ? "border-green-500 bg-green-50"
+                      ? "bg-[#CEFFDC] border-2 border-[#6AFF97] focus:outline-none"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
-              >
-                <div className="flex items-center">
-                  <div
-                    className={`w-4 h-4 rounded-full mr-3 flex-shrink-0
-                    ${
-                      selectedTemplate === template
-                        ? "bg-green-500"
-                        : "bg-gray-200"
-                    }`}
-                  />
-                  <span className="text-sm text-gray-900">{template}</span>
-                </div>
-              </button>
+                >
+                  {template}
+                </button>
+              </div>
             ))}
           </div>
         </div>
 
-        <div>
-          <h3 className="text-sm font-medium text-gray-700 mb-3">
-            Custom Message
-          </h3>
-          <div className="bg-gray-100 p-4 rounded-lg">
+        <div className="px-4 my-8">
+          <div className="custom-msg flex items-center gap-5 mb-4">
+            {isCustomMessageSaved ? (
+              <>
+                <div className="relative w-[25px] h-[25px] bg-[#CEFFDC] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3">
+                  <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]"></div>
+                </div>
+              </>
+            ) : (
+              <div className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"></div>
+            )}
+
+            <h3 className="para-font text-md md:text-lg text-[#0D0D0D] font-[500]">
+              Custom Message
+            </h3>
+          </div>
+          <div
+            className={`p-4 rounded-lg ${
+              isCustomMessageSaved ? "bg-[#CEFFDC]" : "bg-[#CDCDCD]"
+            }`}
+          >
             <textarea
               value={customMessage}
               onChange={(e) => setCustomMessage(e.target.value)}
               placeholder="Type your message..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               rows={4}
             />
-            <button
-              onClick={handleCustomMessageSave}
-              className="mt-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              Save Custom Message
-            </button>
+            <div className="flex justify-end relative z-10">
+              <Button onClick={handleCustomMessageSave} className="">
+                Save Custom Message
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Right: PublicChat Preview */}
       <div
-        className="hidden lg:block col-span-2 h-full sticky top-0 flex items-center justify-center"
+        className="w-full lg:w-2/5 py-2 lg:py-8 flex flex-col items-center justify-center bg-[#d4deff]"
         style={{ backgroundColor: "#eaefff" }}
       >
         <div
-          className="mx-auto"
+          className="w-[300px] xs:w-[320px] py-6 lg:py-4 lg:px-6 lg:w-[350px] xlg:w-[380px] xl:w-[410px]"
           style={{
-            maxWidth: 400,
+            maxWidth: 600,
             height: "100%",
             display: "flex",
             justifyContent: "center",

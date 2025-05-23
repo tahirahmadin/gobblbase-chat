@@ -4,7 +4,41 @@ import { updateSocialHandles } from "../../../../lib/serverActions";
 import { useBotConfig } from "../../../../store/useBotConfig";
 import toast from "react-hot-toast";
 import { SocialMediaLinks } from "../../../../types";
+import styled from "styled-components";
 
+const Button = styled.button`
+  position: relative;
+  background: #4d65ff;
+  padding: 1vh 2vw;
+  border: 2px solid black;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: clamp(8px, 4vw, 16px);
+  color: white;
+  @media (max-width: 600px) {
+    min-width: 120px;
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: -6px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #000000;
+    z-index: -1; // place it behind the button
+    background: #6aff97;
+  }
+
+  &:disabled {
+    background: #d6ffe0;
+    cursor: not-allowed;
+  }
+  &:disabled::before {
+    background: #d6ffe0;
+  }
+`;
 const socialMediaIcons = {
   instagram: "https://cdn-icons-png.flaticon.com/512/174/174855.png",
   twitter: "https://cdn-icons-png.flaticon.com/512/733/733579.png",
@@ -202,8 +236,8 @@ const SocialMediaSection = () => {
   };
 
   return (
-    <div className="space-y-4">
-      <h1 className="main-font block text-sm font-medium text-gray-700">
+    <div className="space-y-4 pt-8">
+      <h1 className="main-font block text-md sm:text-xl font-bold text-[#000000]">
         Social Media(URL)
       </h1>
 
@@ -214,7 +248,10 @@ const SocialMediaSection = () => {
           socialMediaErrors[platform as keyof typeof socialMediaErrors];
 
         return (
-          <div key={platform} className="space-y-1">
+          <div
+            key={platform}
+            className="space-y-1 w-[100%]"
+          >
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden shadow-sm">
                 <img
@@ -227,10 +264,12 @@ const SocialMediaSection = () => {
               </div>
               <div
                 className={`flex-1 flex flex-col xs:flex-row items-center border rounded-md overflow-hidden 
-                  ${hasError ? "border-red-500" : "border-gray-300"} 
-                  ${handle ? "border-[#78FFC5]" : "border-gray-300"}`}
+                  ${hasError ? "border-red-500" : ""} 
+                  ${handle ? "border-2 border-[#78FFC5]" : "border-gray-300"}
+                 
+                  `}
               >
-                <span className="px-3 py-2 bg-gray-100 text-gray-500 text-sm whitespace-nowrap border-r border-gray-300 w-full xs:w-[220px] flex items-center">
+                <span className="truncate px-3 py-2 bg-gray-100 text-gray-500 text-sm whitespace-nowrap border-r border-gray-300 w-[100%] xs:w-[220px] flex items-center">
                   {baseUrl}
                 </span>
                 <input
@@ -245,24 +284,41 @@ const SocialMediaSection = () => {
                     handleSocialMediaChange(platform, pastedText);
                   }}
                   placeholder={`Enter ${platform} handle`}
-                  className={`flex-1 px-3 py-2 focus:outline-none text-sm w-full xs:w-[280px]
-                    ${hasError ? "bg-red-50" : ""} 
-                    ${handle ? "border-[#78FFC5]" : "border-gray-300"}`}
+                  className={`flex-1 px-3 py-2 focus:outline-none text-sm w-full xs:w-[280px] 
+                    ${hasError ? "bg-red-50" : "border-[#78FFC5] bg-[#CEFFDC]"} 
+                    ${
+                      handle
+                        ? "border-[#78FFC5] bg-[#CEFFDC]"
+                        : "border-[] bg-[#FFFFFF]"
+                    }`}
                 />
-                {handle && (
-                  <div className="pr-2 flex items-center justify-center">
-                    {hasError ? (
-                      <div className="w-5 h-5 flex items-center justify-center rounded-full bg-red-100">
-                        <X className="w-3 h-3 text-red-500" />
-                      </div>
-                    ) : (
-                      <div className="w-5 h-5 flex items-center justify-center rounded-full bg-green-100">
-                        <Check className="w-3 h-3 text-green-500" />
-                      </div>
-                    )}
-                  </div>
-                )}
+                <div className="w-[30px] hidden sm:block">
+
+                  
+                  {handle && (
+                    <div className={`icon w-[30px] h-full py-2 flex items-center justify-center
+                      ${hasError ? "bg-red-50" : "border-[#78FFC5] bg-[#CEFFDC]"} 
+                      ${
+                      handle
+                        ? "border-[#78FFC5] bg-[#CEFFDC]"
+                        : "border-[] bg-[#FFFFFF]"
+                    }
+                    `}>
+                      {hasError ? (
+                        <div className="w-5 h-5 flex items-center justify-center rounded-full bg-black">
+                          <X className="w-4 h-4 text-red-500 stroke-[4px]" />
+                        </div>
+                      ) : (
+                        <div className="w-5 h-5 flex items-center justify-center rounded-full bg-black">
+                          <Check className="w-4 h-4 text-[#4DFFB2] stroke-[4px]" />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                </div>
               </div>
+        
             </div>
             {hasError && (
               <p className="text-xs text-red-500 mt-1">
@@ -277,11 +333,15 @@ const SocialMediaSection = () => {
         );
       })}
 
-      <div className="flex justify-end mt-4">
-        <button
+      <div className="flex justify-end relative z-10 mt-4">
+        <Button style={{
+          background: "#6AFF97",
+          color: "#000000"
+
+        }}
           onClick={handleSaveSocials}
           disabled={isSavingSocials}
-          className={`px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm transition-colors ${
+          className={`transition-colors ${
             isSavingSocials ? "opacity-50 cursor-not-allowed" : ""
           }`}
         >
@@ -293,7 +353,7 @@ const SocialMediaSection = () => {
           ) : (
             "Save"
           )}
-        </button>
+        </Button>
       </div>
     </div>
   );
