@@ -128,8 +128,8 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     try {
       setIsFetchingPlan(true);
       const plans = await getPlans(adminId);
-      const userPlan = plans.find(plan => plan.isCurrentPlan);
-      
+      const userPlan = plans.find((plan) => plan.isCurrentPlan);
+
       if (userPlan) {
         setCurrentPlan(userPlan);
       }
@@ -143,27 +143,27 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
   const fetchAgentDocuments = async () => {
     if (!activeBotId) return;
-  
+
     try {
       const response = await listAgentDocuments(activeBotId);
-  
+
       if (!response.error && typeof response.result !== "string") {
         const allDocs = response.result.documents as Document[];
-        
+
         const totalSize = allDocs.reduce((total, doc) => total + doc.size, 0);
         setTotalDocumentsSize(totalSize);
-        
+
         const filteredDocs = allDocs.filter(
           (doc) => doc.title !== "Brand Insights"
         );
-    
+
         const docs = filteredDocs.map((doc) => ({
           name: truncateFileName(doc.title, 30),
           size: formatFileSize(doc.size),
           sizeInBytes: doc.size,
           documentId: doc.documentId,
         }));
-    
+
         setUploadedFiles(docs);
       }
     } catch (error) {
@@ -234,25 +234,32 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       setSelectedFiles(selectedFiles.filter((file) => file.name !== fileName));
       return;
     }
-  
+
     try {
       setProcessingFile(fileName);
-  
-      const removeResponse = await removeDocumentFromAgent(activeBotId, documentId);
-  
+
+      const removeResponse = await removeDocumentFromAgent(
+        activeBotId,
+        documentId
+      );
+
       if (!removeResponse.error) {
-        const removedFile = uploadedFiles.find(file => file.documentId === documentId);
+        const removedFile = uploadedFiles.find(
+          (file) => file.documentId === documentId
+        );
         const removedSize = removedFile?.sizeInBytes || 0;
-        
+
         const updatedFiles = uploadedFiles.filter(
           (file) => file.documentId !== documentId
         );
         setUploadedFiles(updatedFiles);
-        
-        setTotalDocumentsSize(prevSize => prevSize - removedSize);
-  
+
+        setTotalDocumentsSize((prevSize) => prevSize - removedSize);
+
         if (updatedFiles.length === 0) {
-          toast.success("All documents removed. Please add at least one document for the agent to be queryable.");
+          toast.success(
+            "All documents removed. Please add at least one document for the agent to be queryable."
+          );
         } else {
           toast.success("Document removed successfully");
         }
@@ -261,7 +268,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           typeof removeResponse.result === "string"
             ? removeResponse.result
             : "Failed to remove document";
-  
+
         toast.error(errorMsg);
       }
     } catch (error) {
@@ -319,18 +326,20 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   // Check if adding new files would exceed the plan's document size limit
   const checkSizeLimits = (newFiles: File[]): boolean => {
     if (!currentPlan) return true; // Allow if we don't have plan info yet
-    
+
     const newFilesSize = newFiles.reduce((total, file) => total + file.size, 0);
     const projectedTotalSize = totalDocumentsSize + newFilesSize;
-    
+
     if (projectedTotalSize > currentPlan.totalDocSize) {
       const overageInBytes = projectedTotalSize - currentPlan.totalDocSize;
       const formattedOverage = formatFileSize(overageInBytes);
-      
-      toast.error(`Upload exceeds your plan's storage limit by ${formattedOverage}. Please upgrade your plan or remove some documents.`);
+
+      toast.error(
+        `Upload exceeds your plan's storage limit by ${formattedOverage}. Please upgrade your plan or remove some documents.`
+      );
       return false;
     }
-    
+
     return true;
   };
 
@@ -532,7 +541,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                 documentId: newAgentId, // Use agentId as documentId for now
               },
             ]);
-            
+
             // Update total documents size
             setTotalDocumentsSize(filesToUpload[0].size);
 
@@ -719,9 +728,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           documentId,
         },
       ]);
-      
+
       // Update total size
-      setTotalDocumentsSize(prev => prev + file.size);
+      setTotalDocumentsSize((prev) => prev + file.size);
 
       return true;
     } catch (error) {
@@ -764,12 +773,18 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       const contentSize = new TextEncoder().encode(
         extractionData.content
       ).length;
-      
+
       // Check if adding this content would exceed the plan's document size limit
-      if (currentPlan && totalDocumentsSize + contentSize > currentPlan.totalDocSize) {
-        const overageInBytes = (totalDocumentsSize + contentSize) - currentPlan.totalDocSize;
+      if (
+        currentPlan &&
+        totalDocumentsSize + contentSize > currentPlan.totalDocSize
+      ) {
+        const overageInBytes =
+          totalDocumentsSize + contentSize - currentPlan.totalDocSize;
         const formattedOverage = formatFileSize(overageInBytes);
-        toast.error(`Extract from ${link} exceeds your plan's storage limit by ${formattedOverage}. Please upgrade your plan or remove some documents.`);
+        toast.error(
+          `Extract from ${link} exceeds your plan's storage limit by ${formattedOverage}. Please upgrade your plan or remove some documents.`
+        );
         throw new Error("Content size exceeds plan limit");
       }
 
@@ -810,9 +825,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           documentId,
         },
       ]);
-      
+
       // Update total size
-      setTotalDocumentsSize(prev => prev + contentSize);
+      setTotalDocumentsSize((prev) => prev + contentSize);
 
       return documentId;
     } catch (error) {
@@ -830,20 +845,26 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   };
 
   // Validation function for insights data
-  const validateInsightsData = (): { isValid: boolean; missingFields: string[] } => {
+  const validateInsightsData = (): {
+    isValid: boolean;
+    missingFields: string[];
+  } => {
     const fields = [
-      { key: 'usp', label: 'Brand USP' },
-      { key: 'brandPersonality', label: 'Brand Personality' },
-      { key: 'languageTerms', label: 'Brand Language Terms' },
-      { key: 'frequentQuestions', label: 'Frequent Questions' }
+      { key: "usp", label: "Brand USP" },
+      { key: "brandPersonality", label: "Brand Personality" },
+      { key: "languageTerms", label: "Brand Language Terms" },
+      { key: "frequentQuestions", label: "Frequent Questions" },
     ];
 
     const missingFields: string[] = [];
 
-    fields.forEach(field => {
+    fields.forEach((field) => {
       const value = insightsData[field.key as keyof typeof insightsData];
-      const wordCount = value.trim().split(/\s+/).filter(word => word.length > 0).length;
-      
+      const wordCount = value
+        .trim()
+        .split(/\s+/)
+        .filter((word) => word.length > 0).length;
+
       if (wordCount < 5) {
         missingFields.push(field.label);
       }
@@ -851,7 +872,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
     return {
       isValid: missingFields.length === 0,
-      missingFields
+      missingFields,
     };
   };
 
@@ -864,26 +885,28 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     // Validate insights data
     const validation = validateInsightsData();
     if (!validation.isValid) {
-      toast.error("Please complete all insights fields with at least 5 words each before saving");
+      toast.error(
+        "Please complete all insights fields with at least 5 words each before saving"
+      );
       return;
     }
-  
+
     try {
       setIsSaving(true);
-  
+
       const updatedAnswers = [
         insightsData.usp || "",
         insightsData.brandPersonality || "",
         insightsData.languageTerms || "",
         insightsData.frequentQuestions || "",
       ];
-  
+
       await updateAgentBrain(
         activeBotData.agentId,
         selectedLanguage,
         updatedAnswers
       );
-  
+
       const formattedInsights = `
   BRAND INSIGHTS:
   
@@ -899,45 +922,54 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   4. What questions do your customers most frequently ask?
   ${insightsData.frequentQuestions}
   `.trim();
-  
+
       if (formattedInsights.trim().length > 0) {
         const docSize = new TextEncoder().encode(formattedInsights).length;
-        
+
         try {
-          const existingDocuments = await listAgentDocuments(activeBotData.agentId);
+          const existingDocuments = await listAgentDocuments(
+            activeBotData.agentId
+          );
           let existingInsightsDoc = null;
-          
-          if (!existingDocuments.error && typeof existingDocuments.result !== "string") {
+
+          if (
+            !existingDocuments.error &&
+            typeof existingDocuments.result !== "string"
+          ) {
             const documents = existingDocuments.result.documents;
-            existingInsightsDoc = documents.find(doc => doc.title === "Brand Insights");
+            existingInsightsDoc = documents.find(
+              (doc) => doc.title === "Brand Insights"
+            );
           }
-          
+
           if (existingInsightsDoc) {
             const removeResponse = await removeDocumentFromAgent(
-              activeBotData.agentId, 
+              activeBotData.agentId,
               existingInsightsDoc.documentId
             );
-            
+
             if (removeResponse.error) {
-              console.warn("Could not remove existing Brand Insights document:", 
-                typeof removeResponse.result === "string" 
-                  ? removeResponse.result 
+              console.warn(
+                "Could not remove existing Brand Insights document:",
+                typeof removeResponse.result === "string"
+                  ? removeResponse.result
                   : "Unknown error"
               );
             }
           }
-          
+
           const addResponse = await addDocumentToAgent(
             activeBotData.agentId,
             formattedInsights,
             "Brand Insights",
             docSize
           );
-          
+
           if (addResponse.error) {
-            console.error("Failed to add Brand Insights document:", 
-              typeof addResponse.result === "string" 
-                ? addResponse.result 
+            console.error(
+              "Failed to add Brand Insights document:",
+              typeof addResponse.result === "string"
+                ? addResponse.result
                 : "Unknown error"
             );
           }
@@ -945,7 +977,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           console.error("Error managing Brand Insights document:", docError);
         }
       }
-  
+
       setRefetchBotData();
       toast.success("Agent brain updated successfully");
     } catch (error: any) {
@@ -958,8 +990,11 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
   const getRemainingStorage = (): string => {
     if (!currentPlan) return "Calculating...";
-    
-    const remainingBytes = Math.max(0, currentPlan.totalDocSize - totalDocumentsSize);
+
+    const remainingBytes = Math.max(
+      0,
+      currentPlan.totalDocSize - totalDocumentsSize
+    );
     return formatFileSize(remainingBytes);
   };
 
@@ -1032,13 +1067,13 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
           {/* Add Links */}
           <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">Add Links</label>
+            {/* <label className="block text-sm font-medium mb-2">Add Links</label>
             <p className="text-xs text-gray-500 mb-2">
               Paste direct links to your website and online files
-            </p>
+            </p> */}
 
             {/* Existing Links */}
-            <div className="space-y-2 mb-3">
+            {/* <div className="space-y-2 mb-3">
               {links.map((link, index) => (
                 <div
                   key={index}
@@ -1059,10 +1094,10 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                   </button>
                 </div>
               ))}
-            </div>
+            </div> */}
 
             {/* New Link Input */}
-            <div className="flex space-x-2">
+            {/* <div className="flex space-x-2">
               <input
                 type="text"
                 value={newLink}
@@ -1076,7 +1111,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
               >
                 ADD LINK
               </button>
-            </div>
+            </div> */}
           </div>
 
           {/* Upload Files */}
@@ -1183,7 +1218,11 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-500">
                 {!isFetchingPlan && currentPlan ? (
-                  <>Max total size: {formatFileSize(currentPlan.totalDocSize)} | Available: {getRemainingStorage()} | At least one document is required</>
+                  <>
+                    Max total size: {formatFileSize(currentPlan.totalDocSize)} |
+                    Available: {getRemainingStorage()} | At least one document
+                    is required
+                  </>
                 ) : (
                   <>Loading storage information...</>
                 )}
@@ -1299,8 +1338,14 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                 <div className="flex items-start space-x-2 p-3 bg-amber-50 border border-amber-200 rounded-md">
                   <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
                   <div className="text-sm text-amber-700">
-                    <p className="font-medium mb-1">Complete all insights to save your progress</p>
-                    <p>Please provide at least 5 words for each field to help your agent deliver more personalized and effective responses.</p>
+                    <p className="font-medium mb-1">
+                      Complete all insights to save your progress
+                    </p>
+                    <p>
+                      Please provide at least 5 words for each field to help
+                      your agent deliver more personalized and effective
+                      responses.
+                    </p>
                   </div>
                 </div>
               );
@@ -1313,7 +1358,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
               onClick={handleSave}
               disabled={isSaving || !validateInsightsData().isValid}
               className={`px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold transition-colors ${
-                isSaving || !validateInsightsData().isValid ? "opacity-50 cursor-not-allowed" : ""
+                isSaving || !validateInsightsData().isValid
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
               }`}
             >
               {isSaving ? (
