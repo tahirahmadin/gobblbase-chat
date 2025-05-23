@@ -132,6 +132,7 @@ export interface BotConfig {
     snapchat: string;
     link: string;
   };
+  customHandles: { label: string; url: string }[];
   prompts: string[];
   generatedPrompts: string[];
   promotionalBanner: string | null;
@@ -208,4 +209,36 @@ export interface Product {
   images: string[];
   category: string;
   priceType: "paid" | "free";
+}
+
+export interface SocialMediaLinks {
+  instagram: string;
+  twitter: string;
+  tiktok: string;
+  facebook: string;
+  youtube: string;
+  linkedin: string;
+  snapchat: string;
+  link: string;
+}
+
+export interface UserDetails {
+  _id: string;
+  email: string;
+  name?: string;
+  avatar?: string;
+  signUpVia: {
+    via: string;
+    handle: string;
+  };
+  shipping: {
+    name: string;
+    email: string;
+    phone: string;
+    country: string;
+    address1: string;
+    address2: string;
+    city: string;
+    zipcode: string;
+  };
 }

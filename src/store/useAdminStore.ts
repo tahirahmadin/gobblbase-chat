@@ -19,8 +19,6 @@ interface AdminState {
   error: string | null;
   totalAgents: number;
   emailTemplates: EmailTemplatesResponse | null;
-  emailTemplatesLoading?: boolean;
-  emailTemplatesError?: string | null;
   setError: (error: string | null) => void;
   // Admin operations
   fetchAllAgents: () => Promise<void>;
@@ -106,8 +104,21 @@ export const useAdminStore = create<AdminState>()((set, get) => {
 
         if (response.error) {
           console.error("Session restoration failed:", response.result);
-          localStorage.removeItem("adminEmail");
-          set({ isAdminLoggedIn: false, isLoading: false });
+          // Only clear session if it's an authentication error
+          const errorMessage =
+            typeof response.result === "string"
+              ? response.result
+              : JSON.stringify(response.result);
+          if (
+            errorMessage.includes("unauthorized") ||
+            errorMessage.includes("invalid")
+          ) {
+            localStorage.removeItem("adminEmail");
+            set({ isAdminLoggedIn: false, isLoading: false });
+          } else {
+            // For other errors, keep the session but show error
+            set({ error: errorMessage, isLoading: false });
+          }
           return false;
         }
 
@@ -127,14 +138,25 @@ export const useAdminStore = create<AdminState>()((set, get) => {
             totalAgents: tempAgents.length,
             agents: tempAgents,
             isLoading: false,
+            error: null, // Clear any previous errors
           });
           return true;
         }
         return false;
       } catch (error) {
         console.error("Error restoring session:", error);
-        localStorage.removeItem("adminEmail");
-        set({ isAdminLoggedIn: false, isLoading: false });
+        // Only clear session for authentication errors
+        if (
+          error instanceof Error &&
+          (error.message.includes("unauthorized") ||
+            error.message.includes("invalid"))
+        ) {
+          localStorage.removeItem("adminEmail");
+          set({ isAdminLoggedIn: false, isLoading: false });
+        } else {
+          // For other errors, keep the session but show error
+          set({ error: (error as Error).message, isLoading: false });
+        }
         return false;
       }
     },
@@ -182,14 +204,28 @@ export const useAdminStore = create<AdminState>()((set, get) => {
           let tempAgents = await fetchClientAgents(adminId);
           console.log("Fetched agents:", tempAgents);
 
+          // First set the basic auth state
           set({
             adminId,
             adminEmail: result.signUpVia.handle,
             isAdminLoggedIn: true,
+            error: null,
+          });
+
+          // Then set the agents data
+          set({
             totalAgents: tempAgents.length,
             agents: tempAgents,
             isLoading: false,
           });
+
+          console.log("State updated with:", {
+            adminId,
+            adminEmail: result.signUpVia.handle,
+            isAdminLoggedIn: true,
+            agentsCount: tempAgents.length,
+          });
+
           toast.success(`Successfully signed in!`);
         } else {
           console.error("Invalid response format:", response.result);
@@ -254,8 +290,6 @@ export const useAdminStore = create<AdminState>()((set, get) => {
         error: null,
         totalAgents: 0,
         emailTemplates: null,
-        emailTemplatesLoading: false,
-        emailTemplatesError: null,
       });
 
       // Clear the stored email
@@ -264,26 +298,19 @@ export const useAdminStore = create<AdminState>()((set, get) => {
 
     // Email template actions
     fetchEmailTemplates: async (agentId: string) => {
-      set({ emailTemplatesLoading: true, emailTemplatesError: null });
       try {
         const response = await getEmailTemplates(agentId);
         if (response) {
           set({
             emailTemplates: response,
-            emailTemplatesLoading: false,
           });
         } else {
           set({
             emailTemplates: null,
-            emailTemplatesLoading: false,
           });
         }
       } catch (err: any) {
         console.error("Error fetching email templates:", err);
-        set({
-          emailTemplatesError: "Failed to load email templates",
-          emailTemplatesLoading: false,
-        });
       }
     },
 
@@ -292,20 +319,18 @@ export const useAdminStore = create<AdminState>()((set, get) => {
       updatedData: any,
       emailTemplateId: string
     ) => {
-      set({ emailTemplatesLoading: true, emailTemplatesError: null });
       try {
-        await updateEmailTemplates(agentId, updatedData, emailTemplateId);
+        let response = await updateEmailTemplates(
+          agentId,
+          updatedData,
+          emailTemplateId
+        );
         // Optionally, you can refetch templates after update
-        await get().fetchEmailTemplates(agentId);
-        toast.success("Email template updated successfully");
+        if (response) {
+          set({ emailTemplates: response });
+        }
       } catch (err: any) {
-        set({
-          emailTemplatesError: "Failed to update email template",
-          emailTemplatesLoading: false,
-        });
-        toast.error("Failed to update email template");
       } finally {
-        set({ emailTemplatesLoading: false });
       }
     },
 

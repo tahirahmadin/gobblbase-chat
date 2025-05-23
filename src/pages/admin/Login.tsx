@@ -41,14 +41,20 @@ const Login: React.FC = () => {
   const initialized = useRef(false);
 
   useEffect(() => {
-    adminLogout();
-  }, []);
-
-  useEffect(() => {
-    if (isAdminLoggedIn && agents.length > 0) {
-      navigate("/admin/dashboard/profile");
+    console.log("Login state:", {
+      isAdminLoggedIn,
+      agentsLength: agents.length,
+    });
+    if (isAdminLoggedIn) {
+      if (agents.length > 0) {
+        console.log("Redirecting to profile...");
+        navigate("/admin/dashboard/profile", { replace: true });
+      } else {
+        console.log("No agents found, showing CreateNewBot");
+        return;
+      }
     }
-  }, [isAdminLoggedIn, agents]);
+  }, [isAdminLoggedIn, agents, navigate]);
 
   // Load Google OAuth2 script and initialize
   useEffect(() => {

@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Theme } from "../../types";
 import { useCartStore } from "../../store/useCartStore";
+import { useBotConfig } from "../../store/useBotConfig";
+import { useUserStore } from "../../store/useUserStore";
 
 interface ProductDetailPageProps {
   theme: Theme;
@@ -17,6 +19,8 @@ export default function ProductDetailPage({
   inChatMode = false,
 }: ProductDetailPageProps) {
   const { selectedProduct, setCartView } = useCartStore();
+  const { activeBotData } = useBotConfig();
+
   const [quantity, setQuantity] = useState(1);
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
@@ -46,10 +50,9 @@ export default function ProductDetailPage({
   // Adjust sizes based on inChatMode
   const imageSize = inChatMode ? "w-36 h-36" : "w-48 h-48";
   const titleSize = inChatMode ? "text-md" : "text-lg";
-  const descriptionSize = inChatMode ? "text-xs leading-tight" : "text-xs";
   const buttonSize = inChatMode ? "text-xs py-1.5 px-4" : "text-sm py-2 px-5";
   const sectionPadding = inChatMode ? "px-4" : "px-6";
-  const borderWidth = inChatMode ? "w-10" : "w-12";
+
   const contentMaxWidth = inChatMode ? "max-w-full" : "max-w-full";
 
   // UI blocks
@@ -81,7 +84,7 @@ export default function ProductDetailPage({
           <div className="flex items-center gap-2">
             <button
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              className="px-2 py-1 rounded-full text-lg font-bold bg-[#232323]"
+              className="px-3 py-1 rounded-full text-lg font-bold bg-[#232323]"
               style={{
                 backgroundColor: theme.highlightColor,
                 color: !theme.isDark ? "#fff" : "#000000",
@@ -90,7 +93,7 @@ export default function ProductDetailPage({
               -
             </button>
             <span
-              className="px-3 py-3 rounded-full  text-sm font-semibold"
+              className="px-3 py-1 rounded-full  text-sm font-semibold"
               style={{
                 backgroundColor: theme.mainLightColor,
                 color: !theme.isDark ? "#ffffff" : "#000000",
@@ -100,7 +103,7 @@ export default function ProductDetailPage({
             </span>
             <button
               onClick={() => setQuantity((q) => q + 1)}
-              className="px-2 py-1 rounded-full text-lg font-bold "
+              className="px-3 py-1 rounded-full text-lg font-bold"
               style={{
                 backgroundColor: theme.highlightColor,
                 color: !theme.isDark ? "#fff" : "#000000",
@@ -399,7 +402,9 @@ export default function ProductDetailPage({
                 }
               >
                 {selectedProduct?.priceType === "paid"
-                  ? `$${selectedProduct?.price ?? 0}`
+                  ? `${selectedProduct?.price ?? 0} ${
+                      activeBotData?.currency || "USD"
+                    }`
                   : "FREE"}
               </div>
             </div>

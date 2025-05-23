@@ -25,8 +25,6 @@ const EmailTemplates = () => {
 
   const {
     emailTemplates,
-    emailTemplatesLoading,
-    emailTemplatesError,
     fetchEmailTemplates,
     updateEmailTemplate,
     setEmailTemplates,
@@ -106,13 +104,6 @@ const EmailTemplates = () => {
       isActive: !template.isActive,
     };
 
-    const updatedTemplates: EmailTemplatesResponse = {
-      ...emailTemplates,
-      [templateKey]: updatedTemplate,
-    };
-
-    setEmailTemplates(updatedTemplates);
-
     // Save the changes to the backend
     setSaving(true);
     try {
@@ -126,14 +117,6 @@ const EmailTemplates = () => {
       setSaving(false);
     }
   };
-
-  if (emailTemplatesLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (emailTemplatesError) {
-    return <div>Error: {emailTemplatesError}</div>;
-  }
 
   if (!emailTemplates) {
     return <div>No templates found</div>;
