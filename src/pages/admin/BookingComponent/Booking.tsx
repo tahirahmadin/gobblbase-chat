@@ -1032,10 +1032,19 @@ const Booking: React.FC<BookingProps> = ({
               </label>
               <select
                 value={newBreakStart}
-                onChange={(e) => setNewBreakStart(e.target.value)}
+                onChange={(e) => {
+                  setNewBreakStart(e.target.value);
+                  // If end time is not greater than new start time, adjust it
+                  const startHour = parseInt(e.target.value.split(':')[0]);
+                  const endHour = parseInt(newBreakEnd.split(':')[0]);
+                  if (endHour <= startHour) {
+                    const newEndHour = Math.min(startHour + 1, 23);
+                    setNewBreakEnd(`${newEndHour.toString().padStart(2, "0")}:00`);
+                  }
+                }}
                 className="p-1 border border-gray-300 rounded"
               >
-                {Array.from({ length: 24 }).map((_, hour) => (
+                {Array.from({ length: 23 }).map((_, hour) => (
                   <option
                     key={hour}
                     value={`${hour.toString().padStart(2, "0")}:00`}
@@ -1055,25 +1064,41 @@ const Booking: React.FC<BookingProps> = ({
                 onChange={(e) => setNewBreakEnd(e.target.value)}
                 className="p-1 border border-gray-300 rounded"
               >
-                {Array.from({ length: 24 }).map((_, hour) => (
-                  <option
-                    key={hour}
-                    value={`${hour.toString().padStart(2, "0")}:00`}
-                  >
-                    {`${hour.toString().padStart(2, "0")}:00`}
-                  </option>
-                ))}
+                {(() => {
+                  const startHour = parseInt(newBreakStart.split(':')[0]);
+                  const availableEndTimes = [];
+                  
+                  // Generate end times that are after the start time
+                  for (let hour = startHour + 1; hour <= 24; hour++) {
+                    availableEndTimes.push(`${hour.toString().padStart(2, "0")}:00`);
+                  }
+                  
+                  return availableEndTimes.map((time) => (
+                    <option key={time} value={time}>
+                      {time}
+                    </option>
+                  ));
+                })()}
               </select>
             </div>
 
             <button
               className="mt-5 flex items-center justify-center w-8 h-8 bg-green-500 text-white rounded-full"
-              onClick={() =>
-                setBreaks((prev) => [
-                  ...prev,
-                  { startTime: newBreakStart, endTime: newBreakEnd },
-                ])
-              }
+              onClick={() => {
+                // Validate that end time is after start time before adding
+                const startHour = parseInt(newBreakStart.split(':')[0]);
+                const endHour = parseInt(newBreakEnd.split(':')[0]);
+                
+                if (endHour > startHour) {
+                  setBreaks((prev) => [
+                    ...prev,
+                    { startTime: newBreakStart, endTime: newBreakEnd },
+                  ]);
+                } else {
+                  // This shouldn't happen with the new validation, but just in case
+                  alert("End time must be after start time");
+                }
+              }}
             >
               <Plus className="h-4 w-4" />
             </button>
