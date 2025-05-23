@@ -632,12 +632,25 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
                       <>
                         <select 
                           value={workingHours.start}
-                          onChange={(e) => setWorkingHours({...workingHours, start: e.target.value})}
+                          onChange={(e) => {
+                            const newStartTime = e.target.value;
+                            const startHour = parseInt(newStartTime.split(':')[0]);
+                            const endHour = parseInt(workingHours.end.split(':')[0]);
+                            if (endHour <= startHour) {
+                              const newEndHour = Math.min(startHour + 1, 24);
+                              setWorkingHours({
+                                start: newStartTime, 
+                                end: `${newEndHour.toString().padStart(2, '0')}:00`
+                              });
+                            } else {
+                              setWorkingHours({...workingHours, start: newStartTime});
+                            }
+                          }}
                           className="border border-gray-300 rounded-md p-1 text-sm"
                         >
-                          {Array.from({ length: 24 }).map((_, i) => (
+                          {Array.from({ length: 23 }).map((_, i) => (
                             <option key={i} value={`${i.toString().padStart(2, '0')}:00`}>
-                              {`${i.toString().padStart(2, '0')}:00`}
+                              {formatTime12(`${i.toString().padStart(2, '0')}:00`)}
                             </option>
                           ))}
                         </select>
@@ -649,18 +662,32 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
                           onChange={(e) => setWorkingHours({...workingHours, end: e.target.value})}
                           className="border border-gray-300 rounded-md p-1 text-sm"
                         >
-                          {Array.from({ length: 24 }).map((_, i) => (
-                            <option key={i} value={`${i.toString().padStart(2, '0')}:00`}>
-                              {`${i.toString().padStart(2, '0')}:00`}
-                            </option>
-                          ))}
+                          {(() => {
+                            const startHour = parseInt(workingHours.start.split(':')[0]);
+                            const availableEndTimes = [];
+                            
+                            for (let hour = startHour + 1; hour <= 24; hour++) {
+                              const timeValue = `${hour.toString().padStart(2, "0")}:00`;
+                              availableEndTimes.push(
+                                <option key={hour} value={timeValue}>
+                                  {formatTime12(timeValue)}
+                                </option>
+                              );
+                            }
+                            
+                            return availableEndTimes;
+                          })()}
                         </select>
                       </>
                     ) : (
                       <>
-                        <div className="border border-gray-300 rounded-md px-3 py-1">{workingHours.start}</div>
+                        <div className="border border-gray-300 rounded-md px-3 py-1">
+                          {formatTime12(workingHours.start)}
+                        </div>
                         <span>—</span>
-                        <div className="border border-gray-300 rounded-md px-3 py-1">{workingHours.end}</div>
+                        <div className="border border-gray-300 rounded-md px-3 py-1">
+                          {formatTime12(workingHours.end)}
+                        </div>
                       </>
                     )}
                   </div>
