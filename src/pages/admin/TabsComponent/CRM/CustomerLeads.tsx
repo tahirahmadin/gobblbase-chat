@@ -75,7 +75,7 @@ const CustomerLeads = () => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row lg:p-8 min-h-[500px]">
+    <div className="flex flex-col lg:flex-row lg:p-8 min-h-[500px] h-screen overflow-y-auto">
       {/* Left Panel */}
       <div className="w-full lg:w-80 lg:mr-8 flex flex-col mb-8 lg:mb-0 p-4">
         <h2 className="text-lg font-bold text-black mb-2">Customer Leads</h2>
