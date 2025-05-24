@@ -18,6 +18,7 @@ import {
   getAppointmentSettings,
 } from "../../../lib/serverActions";
 import { useNavigate, useLocation } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 interface TimeSlot {
   id?: string;
@@ -234,6 +235,42 @@ const Booking: React.FC<BookingProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingSettings, setIsFetchingSettings] = useState(isEditMode);
 
+  // Helper function to generate time options based on meeting duration
+  const generateTimeOptions = (startHour = 0, endHour = 24) => {
+    const times = [];
+    const increment = meetingDuration >= 60 ? 60 : meetingDuration; // Use meeting duration or 60 min max
+    
+    for (let hour = startHour; hour < endHour; hour++) {
+      for (let minute = 0; minute < 60; minute += increment) {
+        const timeString = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+        times.push(timeString);
+      }
+    }
+    
+    return times;
+  };
+
+  // Helper function to check if breaks overlap
+  const breaksOverlap = (break1: Break, break2: Break): boolean => {
+    const start1 = new Date(`2000-01-01T${break1.startTime}:00`);
+    const end1 = new Date(`2000-01-01T${break1.endTime}:00`);
+    const start2 = new Date(`2000-01-01T${break2.startTime}:00`);
+    const end2 = new Date(`2000-01-01T${break2.endTime}:00`);
+    
+    return (start1 < end2 && end1 > start2);
+  };
+
+  // Helper function to validate new break
+  const validateNewBreak = (newBreak: Break): string | null => {
+    // Check for overlaps with existing breaks
+    for (const existingBreak of breaks) {
+      if (breaksOverlap(newBreak, existingBreak)) {
+        return `This break overlaps with existing break: ${existingBreak.startTime} - ${existingBreak.endTime}`;
+      }
+    }
+    return null;
+  };
+
   // Navigation functions
   const goToNextStep = () => {
     setCurrentStep((prev) => Math.min(prev + 1, 5));
@@ -428,15 +465,15 @@ const Booking: React.FC<BookingProps> = ({
   
   const getAvailableStartTimes = (dayIndex, currentSlotIndex) => {
     const currentSlots = availability[dayIndex].timeSlots;
+    const allTimes = generateTimeOptions(0, 24);
     
     if (currentSlotIndex === 0) {
       const nextSlot = currentSlots[1];
       if (nextSlot) {
-        const nextStartHour = parseInt(nextSlot.startTime.split(':')[0]);
-        const maxHour = Math.min(nextStartHour - 1, 22); 
-        return Array.from({ length: maxHour + 1 }, (_, i) => `${i.toString().padStart(2, "0")}:00`);
+        const nextStartTime = nextSlot.startTime;
+        return allTimes.filter(time => time < nextStartTime);
       }
-      return Array.from({ length: 23 }, (_, i) => `${i.toString().padStart(2, "0")}:00`);
+      return allTimes.filter(time => time < "23:00");
     }
     
     const previousSlot = currentSlots[currentSlotIndex - 1];
@@ -444,45 +481,32 @@ const Booking: React.FC<BookingProps> = ({
       return [`09:00`]; 
     }
     
-    const previousEndHour = parseInt(previousSlot.endTime.split(':')[0]);
+    const previousEndTime = previousSlot.endTime;
     
-    let maxStartHour = 22;
+    let maxStartTime = "23:00";
     const nextSlot = currentSlots[currentSlotIndex + 1];
     if (nextSlot) {
-      const nextStartHour = parseInt(nextSlot.startTime.split(':')[0]);
-      maxStartHour = Math.min(nextStartHour - 1, 22); 
+      maxStartTime = nextSlot.startTime;
     }
     
-    const availableTimes = [];
-    for (let hour = previousEndHour; hour <= maxStartHour; hour++) {
-      availableTimes.push(`${hour.toString().padStart(2, '0')}:00`);
-    }
-    
-    return availableTimes.length > 0 ? availableTimes : [`${previousEndHour.toString().padStart(2, '0')}:00`];
+    return allTimes.filter(time => time >= previousEndTime && time < maxStartTime);
   };
   
   const getAvailableEndTimes = (dayIndex, currentSlotIndex, startTime) => {
     const currentSlots = availability[dayIndex].timeSlots;
-    const startHour = parseInt(startTime.split(':')[0]);
+    const allTimes = generateTimeOptions(0, 24);
     
-    let maxHour = 24;
+    // Add 24:00 as an option for end times
+    allTimes.push("24:00");
+    
+    let maxEndTime = "24:00";
     
     const nextSlot = currentSlots[currentSlotIndex + 1];
     if (nextSlot) {
-      const nextStartHour = parseInt(nextSlot.startTime.split(':')[0]);
-      maxHour = nextStartHour;
+      maxEndTime = nextSlot.startTime;
     }
     
-    const availableTimes = [];
-    for (let hour = startHour + 1; hour <= maxHour; hour++) {
-      availableTimes.push(`${hour.toString().padStart(2, '0')}:00`);
-    }
-    
-    if (availableTimes.length === 0 && startHour + 1 <= 24) {
-      availableTimes.push(`${(startHour + 1).toString().padStart(2, '0')}:00`);
-    }
-    
-    return availableTimes;
+    return allTimes.filter(time => time > startTime && time <= maxEndTime);
   };
   
   const addTimeSlot = (dayIndex) => {
@@ -503,24 +527,42 @@ const Booking: React.FC<BookingProps> = ({
         return updated;
       }
       
-      let latestEndHour = 0;
+      // Find the latest end time
+      let latestEndTime = "00:00";
       
       for (const slot of currentSlots) {
-        const endHour = parseInt(slot.endTime.split(':')[0]);
-        if (endHour > latestEndHour) {
-          latestEndHour = endHour;
+        if (slot.endTime > latestEndTime) {
+          latestEndTime = slot.endTime;
         }
       }
       
-      if (latestEndHour < 23) {
-        const newSlot = {
-          id: `slot_${Date.now()}`, 
-          startTime: `${latestEndHour.toString().padStart(2, '0')}:00`,
-          endTime: `${Math.min(latestEndHour + 1, 24).toString().padStart(2, '0')}:00`
-        };
-        currentDay.timeSlots = [...currentSlots, newSlot];
+      // Generate time options and find the next available slot
+      const allTimes = generateTimeOptions(0, 24);
+      const increment = meetingDuration >= 60 ? 60 : meetingDuration;
+      
+      // Calculate next available start time
+      const latestEndIndex = allTimes.indexOf(latestEndTime);
+      const nextStartIndex = latestEndIndex >= 0 ? latestEndIndex : 0;
+      
+      if (nextStartIndex < allTimes.length - 1) {
+        const newStartTime = allTimes[nextStartIndex] === latestEndTime ? allTimes[nextStartIndex] : latestEndTime;
         
-        console.log("After adding slot - all slots:", currentDay.timeSlots);
+        // Calculate end time based on meeting duration
+        const startIndex = allTimes.indexOf(newStartTime);
+        const slotsNeeded = Math.ceil(meetingDuration / increment);
+        const endIndex = Math.min(startIndex + slotsNeeded, allTimes.length);
+        const newEndTime = endIndex < allTimes.length ? allTimes[endIndex] : "24:00";
+        
+        if (newStartTime < "24:00" && newEndTime <= "24:00") {
+          const newSlot = {
+            id: `slot_${Date.now()}`, 
+            startTime: newStartTime,
+            endTime: newEndTime
+          };
+          currentDay.timeSlots = [...currentSlots, newSlot];
+          
+          console.log("After adding slot - all slots:", currentDay.timeSlots);
+        }
       }
       
       updated[dayIndex] = currentDay;
@@ -556,22 +598,20 @@ const Booking: React.FC<BookingProps> = ({
       
       if (!slots[slotIndex]) return updated;
       
-      const valueHour = parseInt(value.split(':')[0]);
-      
       if (field === 'startTime') {
+        // Validate start time against previous slot
         if (slotIndex > 0) {
           const previousSlot = slots[slotIndex - 1];
-          const previousEndHour = parseInt(previousSlot.endTime.split(':')[0]);
-          if (valueHour < previousEndHour) {
+          if (value < previousSlot.endTime) {
             console.warn(`Cannot set start time ${value} before previous slot ends at ${previousSlot.endTime}`);
             return updated; 
           }
         }
         
+        // Validate start time against next slot
         if (slotIndex < slots.length - 1) {
           const nextSlot = slots[slotIndex + 1];
-          const nextStartHour = parseInt(nextSlot.startTime.split(':')[0]);
-          if (valueHour >= nextStartHour) {
+          if (value >= nextSlot.startTime) {
             console.warn(`Cannot set start time ${value} at or after next slot starts at ${nextSlot.startTime}`);
             return updated; 
           }
@@ -582,37 +622,41 @@ const Booking: React.FC<BookingProps> = ({
           startTime: value
         };
         
-        const currentEndHour = parseInt(slots[slotIndex].endTime.split(':')[0]);
-        if (valueHour >= currentEndHour) {
-          let newEndHour = valueHour + 1;
+        // Auto-adjust end time if necessary
+        if (value >= slots[slotIndex].endTime) {
+          const allTimes = generateTimeOptions(0, 24);
+          allTimes.push("24:00");
+          const startIndex = allTimes.indexOf(value);
+          const increment = meetingDuration >= 60 ? 60 : meetingDuration;
+          const slotsNeeded = Math.ceil(meetingDuration / increment);
+          const endIndex = Math.min(startIndex + slotsNeeded, allTimes.length - 1);
+          let newEndTime = allTimes[endIndex] || "24:00";
           
+          // Check against next slot
           if (slotIndex < slots.length - 1) {
             const nextSlot = slots[slotIndex + 1];
-            const nextStartHour = parseInt(nextSlot.startTime.split(':')[0]);
-            newEndHour = Math.min(newEndHour, nextStartHour);
+            if (newEndTime > nextSlot.startTime) {
+              newEndTime = nextSlot.startTime;
+            }
           }
-          
-          newEndHour = Math.min(newEndHour, 24);
           
           slots[slotIndex] = {
             ...slots[slotIndex],
-            endTime: `${newEndHour.toString().padStart(2, '0')}:00`
+            endTime: newEndTime
           };
         }
         
       } else if (field === 'endTime') {
-        
-        const startHour = parseInt(slots[slotIndex].startTime.split(':')[0]);
-        
-        if (valueHour <= startHour) {
+        // Validate end time is after start time
+        if (value <= slots[slotIndex].startTime) {
           console.warn(`End time ${value} must be after start time ${slots[slotIndex].startTime}`);
           return updated; 
         }
         
+        // Validate end time against next slot
         if (slotIndex < slots.length - 1) {
           const nextSlot = slots[slotIndex + 1];
-          const nextStartHour = parseInt(nextSlot.startTime.split(':')[0]);
-          if (valueHour > nextStartHour) {
+          if (value > nextSlot.startTime) {
             console.warn(`Cannot set end time ${value} after next slot starts at ${nextSlot.startTime}`);
             return updated; 
           }
@@ -639,25 +683,19 @@ const Booking: React.FC<BookingProps> = ({
       
       // Sort slots by start time
       slots.sort((a, b) => {
-        const aStart = parseInt(a.startTime.split(':')[0]);
-        const bStart = parseInt(b.startTime.split(':')[0]);
-        return aStart - bStart;
+        const aStart = a.startTime;
+        const bStart = b.startTime;
+        return aStart.localeCompare(bStart);
       });
       
       // Remove overlaps
       const validSlots = [];
       for (let i = 0; i < slots.length; i++) {
         const currentSlot = slots[i];
-        const currentStart = parseInt(currentSlot.startTime.split(':')[0]);
-        const currentEnd = parseInt(currentSlot.endTime.split(':')[0]);
         
         // Check if this slot overlaps with any already valid slot
         const hasOverlap = validSlots.some(validSlot => {
-          const validStart = parseInt(validSlot.startTime.split(':')[0]);
-          const validEnd = parseInt(validSlot.endTime.split(':')[0]);
-          
-          // Check for any overlap
-          return (currentStart < validEnd && currentEnd > validStart);
+          return (currentSlot.startTime < validSlot.endTime && currentSlot.endTime > validSlot.startTime);
         });
         
         if (!hasOverlap) {
@@ -724,6 +762,7 @@ const Booking: React.FC<BookingProps> = ({
       }
     } catch (error) {
       console.error("Failed to save booking settings:", error);
+      toast.error("Failed to save settings. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -1040,21 +1079,18 @@ const Booking: React.FC<BookingProps> = ({
                 onChange={(e) => {
                   setNewBreakStart(e.target.value);
                   // If end time is not greater than new start time, adjust it
-                  const startHour = parseInt(e.target.value.split(':')[0]);
-                  const endHour = parseInt(newBreakEnd.split(':')[0]);
-                  if (endHour <= startHour) {
-                    const newEndHour = Math.min(startHour + 1, 23);
-                    setNewBreakEnd(`${newEndHour.toString().padStart(2, "0")}:00`);
+                  if (newBreakEnd <= e.target.value) {
+                    const allTimes = generateTimeOptions(0, 24);
+                    const startIndex = allTimes.indexOf(e.target.value);
+                    const nextTimeIndex = Math.min(startIndex + 1, allTimes.length - 1);
+                    setNewBreakEnd(allTimes[nextTimeIndex] || "24:00");
                   }
                 }}
                 className="p-1 border border-gray-300 rounded"
               >
-                {Array.from({ length: 23 }).map((_, hour) => (
-                  <option
-                    key={hour}
-                    value={`${hour.toString().padStart(2, "0")}:00`}
-                  >
-                    {`${hour.toString().padStart(2, "0")}:00`}
+                {generateTimeOptions(0, 23).map((time) => (
+                  <option key={time} value={time}>
+                    {time}
                   </option>
                 ))}
               </select>
@@ -1070,15 +1106,9 @@ const Booking: React.FC<BookingProps> = ({
                 className="p-1 border border-gray-300 rounded"
               >
                 {(() => {
-                  const startHour = parseInt(newBreakStart.split(':')[0]);
-                  const availableEndTimes = [];
-                  
-                  // Generate end times that are after the start time
-                  for (let hour = startHour + 1; hour <= 24; hour++) {
-                    availableEndTimes.push(`${hour.toString().padStart(2, "0")}:00`);
-                  }
-                  
-                  return availableEndTimes.map((time) => (
+                  const allTimes = generateTimeOptions(0, 24);
+                  allTimes.push("24:00");
+                  return allTimes.filter(time => time > newBreakStart).map((time) => (
                     <option key={time} value={time}>
                       {time}
                     </option>
@@ -1090,18 +1120,19 @@ const Booking: React.FC<BookingProps> = ({
             <button
               className="mt-5 flex items-center justify-center w-8 h-8 bg-green-500 text-white rounded-full"
               onClick={() => {
-                // Validate that end time is after start time before adding
-                const startHour = parseInt(newBreakStart.split(':')[0]);
-                const endHour = parseInt(newBreakEnd.split(':')[0]);
+                const newBreak = { startTime: newBreakStart, endTime: newBreakEnd };
+                const validationError = validateNewBreak(newBreak);
                 
-                if (endHour > startHour) {
-                  setBreaks((prev) => [
-                    ...prev,
-                    { startTime: newBreakStart, endTime: newBreakEnd },
-                  ]);
+                if (validationError) {
+                  toast.error(validationError);  
+                  return;
+                }
+                
+                if (newBreakEnd > newBreakStart) {
+                  setBreaks((prev) => [...prev, newBreak]);
+                  toast.success('Break added successfully!');  
                 } else {
-                  // This shouldn't happen with the new validation, but just in case
-                  alert("End time must be after start time");
+                  toast.error('End time must be after start time'); 
                 }
               }}
             >
@@ -1250,13 +1281,6 @@ const renderStep3 = () => {
               {day.available && (
                 <div className="space-y-3">
                   {day.timeSlots.map((slot, slotIndex) => {
-                    // ADD THIS DEBUG LOG
-                    if (day.day === "Thursday") {
-                      console.log(`Rendering ${day.day} slot ${slotIndex}:`, slot);
-                      console.log(`Available start times:`, getAvailableStartTimes(dayIndex, slotIndex));
-                      console.log(`Available end times:`, getAvailableEndTimes(dayIndex, slotIndex, slot.startTime));
-                    }
-                    
                     return (
                       <div key={slot.id || `${dayIndex}-${slotIndex}`} className="space-y-2">
                         <div className="flex items-center gap-3">
@@ -1265,7 +1289,6 @@ const renderStep3 = () => {
                             <select
                               value={slot.startTime}
                               onChange={(e) => {
-                                console.log(`Changing start time for ${day.day} slot ${slotIndex} from ${slot.startTime} to ${e.target.value}`);
                                 updateSpecificTimeSlot(dayIndex, slotIndex, "startTime", e.target.value);
                               }}
                               className="p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -1282,7 +1305,6 @@ const renderStep3 = () => {
                             <select
                               value={slot.endTime}
                               onChange={(e) => {
-                                console.log(`Changing end time for ${day.day} slot ${slotIndex} from ${slot.endTime} to ${e.target.value}`);
                                 updateSpecificTimeSlot(dayIndex, slotIndex, "endTime", e.target.value);
                               }}
                               className="p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -1298,7 +1320,6 @@ const renderStep3 = () => {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => {
-                                console.log(`Adding time slot for ${day.day} (index ${dayIndex})`);
                                 addTimeSlot(dayIndex);
                               }}
                               className="flex items-center justify-center w-8 h-8 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors"
@@ -1310,7 +1331,6 @@ const renderStep3 = () => {
                             {day.timeSlots.length > 1 && (
                               <button
                                 onClick={() => {
-                                  console.log(`Removing time slot ${slotIndex} for ${day.day}`);
                                   removeTimeSlot(dayIndex, slotIndex);
                                 }}
                                 className="flex items-center justify-center w-8 h-8 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
