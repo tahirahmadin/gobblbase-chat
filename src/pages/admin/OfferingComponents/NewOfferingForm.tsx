@@ -126,23 +126,58 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
   };
 
   return (
-    <div className="h-screen flex flex-col overflow-x-hidden">
-      <div className="flex items-center gap-2 mb-2 px-4">
+    <div className="h-screen flex flex-col overflow-hidden">
+      <div className="flex items-center gap-2 mb-2 flex-shrink-0">
         <button
           onClick={onBack}
-          className="text-gray-600 hover:text-gray-800 text-lg font-semibold"
+          className="text-gray-600 hover:text-gray-800 text-md lg:text-lg font-medium"
         >
           ← Back
         </button>
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-lg lg:text-xl font-bold text-gray-900">
           {editMode
             ? `Edit ${productTypeMap[type]}`
             : `Add New ${productTypeMap[type]}`}
         </h1>
       </div>
-      <div className="flex-1 min-h-0 flex flex-row gap-1">
-        {/* Vertical Stepper Sidebar */}
-        <div className="w-42 flex-shrink-0 flex flex-col items-start pt-8 px-2">
+
+      {/* Horizontal Stepper for Mobile */}
+      <div className="w-full px-4 py-4 md:hidden flex-shrink-0">
+        <div className="flex justify-between items-center">
+          {steps.map((s, i) => (
+            <div key={s} className="flex flex-col items-center">
+              <div
+                className={`w-8 h-8 flex items-center justify-center rounded-full border-2 text-md font-bold transition-all duration-200
+                ${
+                  i === step
+                    ? "bg-[#4f46e5] border-[#4f46e5] text-white"
+                    : i < step
+                    ? "bg-green-400 border-green-400 text-white"
+                    : "bg-white border-gray-300 text-gray-500"
+                }
+              `}
+              >
+                {i + 1}
+              </div>
+              <span
+                className={`mt-1 text-xs font-semibold text-center ${
+                  i === step
+                    ? "text-[#4f46e5]"
+                    : i < step
+                    ? "text-green-600"
+                    : "text-gray-500"
+                }`}
+              >
+                {s}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col md:flex-row gap-1 overflow-hidden">
+        {/* Vertical Stepper Sidebar - Hidden on Mobile */}
+        <div className="hidden md:flex w-42 flex-shrink-0 flex-col items-start pt-8 px-2">
           {steps.map((s, i) => (
             <div key={s} className="flex items-center mb-8">
               <div
@@ -172,9 +207,10 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
             </div>
           ))}
         </div>
+
         {/* Card-like Step Content */}
-        <div className="flex-1 min-h-0 h-full bg-[#e7eafe] rounded-xl shadow-md overflow-y-auto overflow-x-hidden">
-          <div className="p-2 pb-32 max-w-[1200px] mx-auto">
+        <div className="flex-1 bg-[#e7eafe] rounded-xl shadow-md overflow-y-auto">
+          <div className="p-4 md:p-2 pb-32 max-w-[1200px] mx-auto">
             {renderStepContent()}
           </div>
         </div>

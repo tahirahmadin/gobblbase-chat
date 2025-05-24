@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { X, Upload, Loader2, FileText, AlertCircle } from "lucide-react";
+import { X, Upload, Loader2, FileText, AlertCircle, ChevronDown } from "lucide-react";
 import { toast } from "react-hot-toast";
 import * as pdfjsLib from "pdfjs-dist";
 import mammoth from "mammoth";
@@ -16,6 +16,7 @@ import { useBotConfig } from "../../../../store/useBotConfig";
 import { updateAgentBrain } from "../../../../lib/serverActions";
 import { calculateSmartnessLevel } from "../../../../utils/helperFn";
 import styled from "styled-components";
+import { backendApiUrl } from "../../../../utils/constants";
 const Icon = styled.button`
   position: relative;
   width: 30px;
@@ -146,7 +147,8 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   const [currentPlan, setCurrentPlan] = useState<PlanData | null>(null);
   const [totalDocumentsSize, setTotalDocumentsSize] = useState(0);
   const [isFetchingPlan, setIsFetchingPlan] = useState(false);
-
+  const languages = ["English", "Spanish", "French"];
+  const [isOpen, setIsOpen] = useState(false);
   useEffect(() => {
     if (activeBotData) {
       setSelectedLanguage(activeBotData.language || "English");
@@ -818,7 +820,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       // You need to implement this function in your serverActions.js
       // It should call your backend API that handles content extraction from URLs
       const extractionResponse = await fetch(
-        "https://rag.gobbl.ai/content/extract",
+        `${backendApiUrl}/content/extract`,
         {
           method: "POST",
           headers: {
@@ -1123,33 +1125,41 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             <h1  style={{lineHeight: "20px", whiteSpace: "nowrap"}} className="para-font text-[#000000] block text-sm sm:text-lg font-medium">
               Agent Language
             </h1>
-            <div className="relative w-60">
-              <select
-                value={selectedLanguage}
-                onChange={(e) => setSelectedLanguage(e.target.value)}
-                className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm"
-              >
-                <option value="English">English</option>
-                <option value="Spanish">Spanish</option>
-                <option value="French">French</option>
-              </select>
-              {/* Custom arrow box */}
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 bg-[#AEB8FF] border border-[#7D7D7D] ">
-                <svg
-                  className="w-4 h-4 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
-            </div>
+     <div className="relative w-60 flex  ">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
+      >
+        {selectedLanguage}
+        
+      </button>
+        <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
+          <ChevronDown size={20}
+          className={`text-[#000000] stroke-[3px] transition-transform  ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+        </div>
+
+      {isOpen && (
+        <div className="absolute z-10 mt-1 top-8 w-full bg-white border border-[#7D7D7D] shadow-sm rounded-sm">
+          {languages.map((lang) => (
+            <button
+              key={lang}
+              onClick={() => {
+                setSelectedLanguage(lang);
+                setIsOpen(false);
+              }}
+              className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                selectedLanguage === lang ? "bg-[#AEB8FF]" : ""
+              }`}
+            >
+              {lang}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
           </div>
 
           {/* Add Links */}

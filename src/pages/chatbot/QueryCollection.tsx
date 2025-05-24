@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { toast } from "react-hot-toast";
 import { ArrowLeft, Plus } from "lucide-react";
+import { backendApiUrl } from "../../utils/constants";
 
 interface FormField {
   id: string;
@@ -117,7 +118,7 @@ const QueryCollection: React.FC<QueryCollectionProps> = ({
     setIsSubmitting(true);
     try {
       const response = await fetch(
-        `https://rag.gobbl.ai/form/submit-lead/${agentId}`,
+        `${backendApiUrl}/form/submit-lead/${agentId}`,
         {
           method: "POST",
           headers: {

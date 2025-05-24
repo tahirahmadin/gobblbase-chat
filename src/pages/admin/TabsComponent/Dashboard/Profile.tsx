@@ -522,7 +522,7 @@ const Profile = () => {
           </div>
 
           {/* Agent Bio */}
-          <div className="">
+          <div className="pr-4">
             <div>
               <div className="flex justify-between mb-1 pt-4">
                 <h3 className="main-font block text-md md:text-lg font-medium text-[#000000]">
@@ -562,97 +562,101 @@ const Profile = () => {
           </div>
 
           {/* Agent Smartness */}
-          <div className="bg-[#D4DEFF] p-4 rounded-lg flex flex-col sm:flex-row w-full gap-5">
-            <div className="smartness-details w-full">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">
-                  AGENT SMARTNESS
-                </span>
-                <span className="text-sm text-[#0D0D0D]">
-                  {smartnessLevel}% COMPLETE
-                </span>
-              </div>
-              <div className="relative pt-1">
-                <div className="overflow-hidden h-[10px] text-xs flex rounded-lg bg-[#FFFFFF] shadow-[inset_0_3px_3px_0_rgba(0,0,0,0.25)]">
-                  <div
-                    style={{ width: `${smartnessLevel}%` }}
-                    className="shadow-none h-[10px] flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#4D65FF] border-2 border-[#135220] rounded-lg"
-                  />
+          <div className="pr-4">
+            <div className="bg-[#D4DEFF] p-4 rounded-lg flex flex-col sm:flex-row w-full gap-5 pr-4">
+              <div className="smartness-details w-full">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium text-gray-700">
+                    AGENT SMARTNESS
+                  </span>
+                  <span className="text-sm text-[#0D0D0D]">
+                    {smartnessLevel}% COMPLETE
+                  </span>
+                </div>
+                <div className="relative pt-1">
+                  <div className="overflow-hidden h-[10px] text-xs flex rounded-lg bg-[#FFFFFF] shadow-[inset_0_3px_3px_0_rgba(0,0,0,0.25)]">
+                    <div
+                      style={{ width: `${smartnessLevel}%` }}
+                      className="shadow-none h-[10px] flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#4D65FF] border-2 border-[#135220] rounded-lg"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-            <div style={{ zIndex: 10 }} className="btn-container z-10 relative">
-              <Button
-                className=""
-                onClick={() => {
-                  navigate("/admin/dashboard/brain");
-                }}
-              >
-                SMARTEN
-              </Button>
-            </div>
-          </div>
-
-          {/* Promotional Banner */}
-          <div className="bg-[#CDCDCD] p-4 rounded-[10px]">
-            <div className="mb-2">
-              <div className="title flex w-full justify-between items-center">
-                <h1 className="main-font block text-md md:text-xl font-medium text-[#000000]">
-                  Promotional Banner
-                </h1>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="sr-only peer"
-                    checked={isPromoBannerEnabled}
-                    onChange={(e) => setIsPromoBannerEnabled(e.target.checked)}
-                  />
-                  <div className="w-11 h-6 bg-[#CDCDCD] peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-[#000000] rounded-full peer peer-checked:after:translate-x-full border-[#000000] peer-checked:after:border-[#000000] after:content-[''] after:absolute after:top-[2px] after:border-[#000000] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-              <div className="flex w-full justify-between items-center space-x-2 mt-4">
-                <span className="text-xs text-gray-500">
-                  Display banner under the main header
-                </span>
-                <span className="text-xs text-gray-500">MAX 50 CHARACTERS</span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <input
-                type="text"
-                value={promotionalBanner}
-                onChange={(e) => handlePromoBannerChange(e.target.value)}
-                placeholder="Type your promotional text..."
-                maxLength={50}
-                className="w-full px-3 py-2 border border-[#7D7D7D] focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <div className="flex justify-end relative z-10">
+              <div style={{ zIndex: 10 }} className="btn-container z-10 relative">
                 <Button
-                  onClick={handleSavePromoBanner}
-                  disabled={isSavingPromoBanner}
-                  className={` ${
-                    isSavingPromoBanner ? " cursor-not-allowed" : ""
-                  }`}
+                  className=""
+                  onClick={() => {
+                    navigate("/admin/dashboard/brain");
+                  }}
                 >
-                  {isSavingPromoBanner ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                      <span>Saving...</span>
-                    </div>
-                  ) : (
-                    "Save"
-                  )}
+                  SMARTEN
                 </Button>
               </div>
             </div>
           </div>
 
+          {/* Promotional Banner */}
+          <div className="pr-4">
+            <div className="bg-[#CDCDCD] p-4 rounded-[10px]">
+              <div className="mb-2">
+                <div className="title flex w-full justify-between items-center">
+                  <h1 className="main-font block text-md md:text-xl font-medium text-[#000000]">
+                    Promotional Banner
+                  </h1>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={isPromoBannerEnabled}
+                      onChange={(e) => setIsPromoBannerEnabled(e.target.checked)}
+                    />
+                    <div className="w-11 h-6 bg-[#CDCDCD] border border-[#000000] peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-[#000000] rounded-full peer peer-checked:after:translate-x-[80%] peer-checked:after:border-[#000000] after:content-[''] after:absolute after:top-[0px] after:border-[#000000] after:left-[0px] after:bg-white after:border after:border-[#000000] after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+                <div className="flex w-full justify-between items-center space-x-2 mt-4">
+                  <span className="text-xs text-gray-500">
+                    Display banner under the main header
+                  </span>
+                  <span className="text-xs text-gray-500">MAX 50 CHARACTERS</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={promotionalBanner}
+                  onChange={(e) => handlePromoBannerChange(e.target.value)}
+                  placeholder="Type your promotional text..."
+                  maxLength={50}
+                  className="w-full px-3 py-2 border border-[#7D7D7D] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <div className="flex justify-end relative z-10">
+                  <Button
+                    onClick={handleSavePromoBanner}
+                    disabled={isSavingPromoBanner}
+                    className={` ${
+                      isSavingPromoBanner ? " cursor-not-allowed" : ""
+                    }`}
+                  >
+                    {isSavingPromoBanner ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                        <span>Saving...</span>
+                      </div>
+                    ) : (
+                      "Save"
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Social Media Section */}
-          <div className="">
+          <div className="pr-4">
             <SocialMediaSection />
           </div>
           {/* Custom Links Section */}
-          <div className="p-3">
+          <div className="pr-4">
             <CustomLinksSection />
           </div>
         </div>
@@ -660,7 +664,7 @@ const Profile = () => {
 
       <div
         style={{ backgroundColor: "#eaefff" }}
-        className="col-span-1 lg:col-span-2"
+        className="col-span-1 lg:col-span-2 hidden lg:block"
       >
         <div
           className="mx-auto pt-10 pb-16"

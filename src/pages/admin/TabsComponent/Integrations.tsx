@@ -3,6 +3,7 @@ import { CheckCircle2, Check, ExternalLink, Database } from "lucide-react";
 import { useBotConfig } from "../../../store/useBotConfig";
 import { toast } from "react-hot-toast";
 import { getAgentDetails } from "../../../lib/serverActions";
+import { backendApiUrl } from "../../../utils/constants";
 
 interface ZohoConfig {
   clientId: string;
@@ -64,7 +65,7 @@ const Integrations: React.FC = () => {
     }
 
     try {
-      const response = await fetch("https://rag.gobbl.ai/zoho/config", {
+      const response = await fetch(`${backendApiUrl}/zoho/config`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

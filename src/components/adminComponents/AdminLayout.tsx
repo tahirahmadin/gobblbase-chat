@@ -16,13 +16,23 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Mobile Menu Button */}
-      <button
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-black text-white"
-        onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-      >
-        {isMobileSidebarOpen ? <X size={24} /> : <Menu size={24} />}
-      </button>
+      {isMobileSidebarOpen && (
+        <button
+          className="lg:hidden fixed top-3 left-[200px] z-50 p-2 rounded-md bg-black text-white"
+          onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+        >
+          <X size={24} />
+        </button>
+      )}
 
+      {!isMobileSidebarOpen && (
+        <button
+          className="lg:hidden fixed top-3 left-4 z-50 p-2 rounded-md bg-black text-white"
+          onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+        >
+          {isMobileSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      )}
       {/* Mobile Sidebar Drawer */}
       <div
         className={`fixed inset-0 z-40 lg:hidden ${

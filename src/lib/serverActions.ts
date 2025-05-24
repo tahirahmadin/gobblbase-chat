@@ -5,7 +5,9 @@ import {
   Theme,
   UserDetails,
 } from "../types";
+import { backendApiUrl } from "../utils/constants";
 
+let apiUrl = backendApiUrl;
 interface QueryDocumentResponse {
   context: any; // You might want to define a more specific type based on the actual response
   calendlyUrl?: string;
@@ -39,11 +41,6 @@ interface SignUpResult {
 interface SignUpClientResponse {
   error: boolean;
   result: string | SignUpResult;
-}
-
-interface Agent {
-  name: string;
-  agentId: string;
 }
 
 interface UserLog {
@@ -113,11 +110,6 @@ export interface RemoveDocumentResponse {
     | string;
 }
 
-interface DirectoryLink {
-  label: string;
-  url: string;
-}
-
 interface PlanData {
   id: string;
   name: string;
@@ -129,28 +121,11 @@ interface PlanData {
   isCurrentPlan: boolean;
 }
 
-interface BillingDetails {
-  individualOrganizationName: string;
-  email: string;
-  country: string;
-  state: string;
-  addressLine1: string;
-  addressLine2: string;
-  zipCode: string;
-}
-
-interface CardDetails {
-  cardType: string;
-  cardNumber: string;
-  expiry: string;
-  default: boolean;
-}
-
 export async function extractContentFromURL(
   url: string
 ): Promise<ExtractContentResponse> {
   try {
-    const response = await axios.post("https://rag.gobbl.ai/content/extract", {
+    const response = await axios.post(`${apiUrl}/content/extract`, {
       url,
     });
 
@@ -176,15 +151,12 @@ export async function createNewAgentWithDocumentId(
   }
 ): Promise<CreateNewAgentResponse> {
   try {
-    const response = await axios.post(
-      "https://rag.gobbl.ai/milvus/create-new-agent",
-      {
-        clientId: clientId,
-        name: name,
-        personalityType: personalityType,
-        themeColors: themeColors,
-      }
-    );
+    const response = await axios.post(`${apiUrl}/milvus/create-new-agent`, {
+      clientId: clientId,
+      name: name,
+      personalityType: personalityType,
+      themeColors: themeColors,
+    });
 
     return response.data;
   } catch (error) {
@@ -205,15 +177,12 @@ export async function addDocumentToAgent(
   try {
     const calculatedSize =
       documentSize || new TextEncoder().encode(textContent).length;
-    const response = await axios.post(
-      "https://rag.gobbl.ai/milvus/add-document",
-      {
-        agentId,
-        textContent,
-        documentTitle: documentTitle || "Untitled Document",
-        documentSize: calculatedSize,
-      }
-    );
+    const response = await axios.post(`${apiUrl}/milvus/add-document`, {
+      agentId,
+      textContent,
+      documentTitle: documentTitle || "Untitled Document",
+      documentSize: calculatedSize,
+    });
 
     return response.data;
   } catch (error) {
@@ -230,13 +199,10 @@ export async function removeDocumentFromAgent(
   documentId: string
 ): Promise<RemoveDocumentResponse> {
   try {
-    const response = await axios.post(
-      "https://rag.gobbl.ai/milvus/remove-document",
-      {
-        agentId,
-        documentId,
-      }
-    );
+    const response = await axios.post(`${apiUrl}/milvus/remove-document`, {
+      agentId,
+      documentId,
+    });
 
     return response.data;
   } catch (error) {
@@ -256,15 +222,12 @@ export async function updateDocumentInAgent(
   documentTitle?: string
 ): Promise<DocumentResponse> {
   try {
-    const response = await axios.post(
-      "https://rag.gobbl.ai/milvus/update-document",
-      {
-        agentId,
-        documentId,
-        textContent,
-        documentTitle,
-      }
-    );
+    const response = await axios.post(`${apiUrl}/milvus/update-document`, {
+      agentId,
+      documentId,
+      textContent,
+      documentTitle,
+    });
 
     return response.data;
   } catch (error) {
@@ -282,7 +245,7 @@ export async function listAgentDocuments(
 ): Promise<DocumentListResponse> {
   try {
     const response = await axios.get(
-      `https://rag.gobbl.ai/milvus/list-documents/${agentId}`
+      `${apiUrl}/milvus/list-documents/${agentId}`
     );
 
     return response.data;
@@ -308,15 +271,12 @@ export async function createNewAgent(
   }
 ): Promise<CreateNewAgentResponse> {
   try {
-    const response = await axios.post(
-      "https://rag.gobbl.ai/milvus/create-new-agent",
-      {
-        clientId: clientId,
-        name: name,
-        personalityType: personalityType,
-        themeColors: themeColors,
-      }
-    );
+    const response = await axios.post(`${apiUrl}/milvus/create-new-agent`, {
+      clientId: clientId,
+      name: name,
+      personalityType: personalityType,
+      themeColors: themeColors,
+    });
 
     return response.data;
   } catch (error) {
@@ -330,13 +290,10 @@ export async function queryDocument(
   query: string
 ): Promise<QueryDocumentResponse> {
   try {
-    const response = await axios.post(
-      "https://rag.gobbl.ai/milvus/query-document",
-      {
-        agentId,
-        query,
-      }
-    );
+    const response = await axios.post(`${apiUrl}/milvus/query-document`, {
+      agentId,
+      query,
+    });
 
     return response.data.result;
   } catch (error) {
@@ -351,13 +308,10 @@ export async function signUpClient(
 ): Promise<SignUpClientResponse> {
   try {
     console.log("Making signUpClient request with:", { via, handle });
-    const response = await axios.post(
-      "https://rag.gobbl.ai/client/signupClient",
-      {
-        via,
-        handle,
-      }
-    );
+    const response = await axios.post(`${apiUrl}/client/signupClient`, {
+      via,
+      handle,
+    });
 
     console.log("SignUpClient raw response:", response);
 
@@ -411,7 +365,7 @@ export async function signUpUser(
   handle: string
 ): Promise<SignUpClientResponse> {
   try {
-    const response = await axios.post("https://rag.gobbl.ai/user/signupUser", {
+    const response = await axios.post(`${apiUrl}/user/signupUser`, {
       via,
       handle,
     });
@@ -427,9 +381,7 @@ export async function fetchClientAgents(
   clientId: string
 ): Promise<AdminAgent[]> {
   try {
-    const response = await axios.get(
-      `https://rag.gobbl.ai/client/agents/${clientId}`
-    );
+    const response = await axios.get(`${apiUrl}/client/agents/${clientId}`);
     if (response.data.error) {
       throw new Error("Failed to fetch client agents");
     }
@@ -451,7 +403,7 @@ export async function getAgentDetails(
     }
 
     const response = await axios.get(
-      `https://rag.gobbl.ai/client/getAgentDetails?inputParam=${inputParam}&isfetchByUsername=${isfetchByUsername}`
+      `${apiUrl}/client/getAgentDetails?inputParam=${inputParam}&isfetchByUsername=${isfetchByUsername}`
     );
 
     if (response.data.error) {
@@ -472,7 +424,7 @@ export async function updateBotTheme(agentId: string, inputTheme: Theme) {
     };
 
     const response = await axios.put(
-      `https://rag.gobbl.ai/client/updateAgentTheme/${agentId}`,
+      `${apiUrl}/client/updateAgentTheme/${agentId}`,
       body
     );
 
@@ -521,7 +473,7 @@ export async function updateAgentDetails(
     };
 
     const response = await axios.put(
-      `https://rag.gobbl.ai/client/updateAgent/${agentId}`,
+      `${apiUrl}/client/updateAgent/${agentId}`,
       body
     );
 
@@ -539,7 +491,7 @@ export async function deleteAgent(agentId: string): Promise<void> {
   try {
     // Use POST instead of DELETE to avoid CORS issues
     const response = await axios.post(
-      `https://rag.gobbl.ai/client/deleteAgentPost/${agentId}`
+      `${apiUrl}/client/deleteAgentPost/${agentId}`
     );
 
     if (response.data.error) {
@@ -557,7 +509,7 @@ export async function deleteAgent(agentId: string): Promise<void> {
 export async function updateUserLogs(params: UpdateUserLogsParams) {
   try {
     const response = await axios.post(
-      "https://rag.gobbl.ai/client/updateUserLogs",
+      `${apiUrl}/client/updateUserLogs`,
       params
     );
 
@@ -574,7 +526,7 @@ export async function updateUserLogs(params: UpdateUserLogsParams) {
 export async function getChatLogs(agentId: string) {
   try {
     const response = await axios.get(
-      `https://rag.gobbl.ai/client/getAgentChatLogs/${agentId}`
+      `${apiUrl}/client/getAgentChatLogs/${agentId}`
     );
 
     if (response.data.error) {
@@ -590,7 +542,7 @@ export async function getChatLogs(agentId: string) {
 export async function getIntegratedServices(agentId: string) {
   try {
     const response = await axios.get(
-      `https://rag.gobbl.ai/client/getServices?agentId=${agentId}`
+      `${apiUrl}/client/getServices?agentId=${agentId}`
     );
     if (response.data.error) {
       throw new Error("Failed to fetch integrated services");
@@ -604,13 +556,10 @@ export async function getIntegratedServices(agentId: string) {
 
 export async function updateAgentUsername(agentId: string, username: string) {
   try {
-    const response = await axios.post(
-      "https://rag.gobbl.ai/client/updateAgentUsername",
-      {
-        agentId,
-        agentName: username,
-      }
-    );
+    const response = await axios.post(`${apiUrl}/client/updateAgentUsername`, {
+      agentId,
+      agentName: username,
+    });
 
     if (response.data.error) {
       throw new Error(response.data.error);
@@ -632,7 +581,7 @@ export async function uploadProfilePicture(
     formData.append("file", profilePicture);
 
     const response = await axios.post(
-      "https://rag.gobbl.ai/client/uploadAgentLogo",
+      `${apiUrl}/client/uploadAgentLogo`,
       formData,
       {
         headers: {
@@ -653,13 +602,10 @@ export async function uploadProfilePicture(
 
 export async function updateCalendlyUrl(agentId: string, calendlyUrl: string) {
   try {
-    const response = await axios.post(
-      "https://rag.gobbl.ai/client/updateCalendlyUrl",
-      {
-        agentId,
-        calendlyUrl,
-      }
-    );
+    const response = await axios.post(`${apiUrl}/client/updateCalendlyUrl`, {
+      agentId,
+      calendlyUrl,
+    });
 
     if (response.data.error) {
       throw new Error(response.data.error);
@@ -689,7 +635,7 @@ export async function updateAppointmentSettings(payload: {
 }) {
   try {
     const response = await axios.post(
-      "https://rag.gobbl.ai/appointment/settings",
+      `${apiUrl}/appointment/settings`,
       payload
     );
     if (response.data.error) throw new Error(response.data.error);
@@ -703,7 +649,7 @@ export async function updateAppointmentSettings(payload: {
 export async function getAppointmentSettings(agentId: string) {
   try {
     const response = await axios.get(
-      `https://rag.gobbl.ai/appointment/settings?agentId=${agentId}`
+      `${apiUrl}/appointment/settings?agentId=${agentId}`
     );
     if (response.data.error) throw new Error(response.data.error);
     return response.data.result;
@@ -723,12 +669,9 @@ export async function getAvailableSlots(
   date: string,
   userTimezone?: string // Added userTimezone parameter
 ): Promise<TimeSlot[]> {
-  const response = await axios.get(
-    `https://rag.gobbl.ai/appointment/available-slots`,
-    {
-      params: { agentId, date, userTimezone }, // Add userTimezone to params
-    }
-  );
+  const response = await axios.get(`${apiUrl}/appointment/available-slots`, {
+    params: { agentId, date, userTimezone }, // Add userTimezone to params
+  });
   if (response.data.error) {
     throw new Error(response.data.result || "No slots found");
   }
@@ -751,10 +694,7 @@ export interface BookingPayload {
 }
 
 export async function bookAppointment(payload: BookingPayload): Promise<any> {
-  const response = await axios.post(
-    `https://rag.gobbl.ai/appointment/book`,
-    payload
-  );
+  const response = await axios.post(`${apiUrl}/appointment/book`, payload);
   if (response.data.error) throw new Error(response.data.error);
   return response.data.result;
 }
@@ -767,22 +707,45 @@ export async function updateUnavailableDates(
     endTime: string;
     allDay: boolean;
     timezone?: string;
+    timeSlots?: Array<{ start: string; end: string }>;
   }>,
   datesToMakeAvailable?: string[]
 ): Promise<any> {
   try {
+    console.log("updateUnavailableDates called with:", {
+      agentId,
+      unavailableDates,
+      datesToMakeAvailable,
+    });
+
     const response = await axios.post(
-      "https://rag.gobbl.ai/appointment/update-unavailable-dates",
+      `${apiUrl}/appointment/update-unavailable-dates`,
       {
         agentId,
         unavailableDates,
         datesToMakeAvailable,
       }
     );
-    if (response.data.error) throw new Error(response.data.error);
+
+    console.log("API response:", response.data);
+
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+
     return response.data.result;
   } catch (error) {
     console.error("Error updating unavailable dates:", error);
+
+    // Log more details about the error
+    if (axios.isAxiosError(error)) {
+      console.error("Axios error details:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+    }
+
     throw error;
   }
 }
@@ -793,7 +756,7 @@ export async function getDayWiseAvailability(
 ): Promise<Record<string, boolean>> {
   try {
     const response = await axios.get(
-      `https://rag.gobbl.ai/appointment/day-wise-availability`,
+      `${apiUrl}/appointment/day-wise-availability`,
       {
         params: { agentId, userTimezone },
       }
@@ -809,7 +772,7 @@ export async function getDayWiseAvailability(
 export async function getUnavailableDates(agentId: string): Promise<string[]> {
   try {
     const response = await axios.get(
-      `https://rag.gobbl.ai/appointment/unavailable-dates?agentId=${agentId}`
+      `${apiUrl}/appointment/unavailable-dates?agentId=${agentId}`
     );
     if (response.data.error) throw new Error(response.data.error);
     return response.data.result || [];
@@ -822,7 +785,7 @@ export async function getUnavailableDates(agentId: string): Promise<string[]> {
 export async function getBookings(agentId: string) {
   try {
     const response = await axios.get(
-      `https://rag.gobbl.ai/appointment/bookings?agentId=${agentId}`
+      `${apiUrl}/appointment/bookings?agentId=${agentId}`
     );
     if (response.data.error) throw new Error(response.data.error);
     return response.data.result;
@@ -834,10 +797,9 @@ export async function getBookings(agentId: string) {
 
 export async function cancelBooking(bookingId: string) {
   try {
-    const response = await axios.post(
-      "https://rag.gobbl.ai/appointment/cancel-booking",
-      { bookingId }
-    );
+    const response = await axios.post(`${apiUrl}/appointment/cancel-booking`, {
+      bookingId,
+    });
     if (response.data.error) throw new Error(response.data.error);
     return response.data.result;
   } catch (error) {
@@ -857,7 +819,7 @@ export const addProduct = async (data: AddProductData) => {
     formData.append("about", data.about);
     formData.append("agentId", data.agentId);
 
-    const response = await fetch("https://rag.gobbl.ai/product/addProduct", {
+    const response = await fetch(`${apiUrl}/product/addProduct`, {
       method: "POST",
       body: formData,
     });
@@ -876,15 +838,12 @@ export const addProduct = async (data: AddProductData) => {
 
 export const deleteProduct = async (id: string, agentId: string) => {
   try {
-    const response = await axios.delete(
-      `https://rag.gobbl.ai/product/deleteProduct`,
-      {
-        data: {
-          productId: id,
-          agentId,
-        },
-      }
-    );
+    const response = await axios.delete(`${apiUrl}/product/deleteProduct`, {
+      data: {
+        productId: id,
+        agentId,
+      },
+    });
 
     if (response.data.error) {
       throw new Error("Failed to delete product");
@@ -923,7 +882,7 @@ export const updateProductImage = async (data: {
     formData.append("productId", data.productId);
 
     const response = await axios.post(
-      "https://rag.gobbl.ai/product/updateProductImage",
+      `${apiUrl}/product/updateProductImage`,
       formData,
       {
         headers: {
@@ -950,7 +909,7 @@ export const updateStripeAccountIdCurrency = async (data: {
 }) => {
   try {
     const response = await axios.post(
-      "https://rag.gobbl.ai/client/updateStripeAccountIdCurrency",
+      `${apiUrl}/client/updateStripeAccountIdCurrency`,
       data
     );
 
@@ -968,7 +927,7 @@ export const updateStripeAccountIdCurrency = async (data: {
 export const getTransactions = async (agentId: string): Promise<any[]> => {
   try {
     const response = await axios.get(
-      `https://rag.gobbl.ai/client/getAgentOrders?agentId=${agentId}`
+      `${apiUrl}/client/getAgentOrders?agentId=${agentId}`
     );
     return response.data.result;
   } catch (error) {
@@ -980,7 +939,7 @@ export const getTransactions = async (agentId: string): Promise<any[]> => {
 export async function getUserDetails(userId: string): Promise<UserDetails> {
   try {
     const response = await axios.get(
-      `https://rag.gobbl.ai/user/getUserDetails?userId=${userId}`
+      `${apiUrl}/user/getUserDetails?userId=${userId}`
     );
 
     if (response.data.error) {
@@ -1008,7 +967,7 @@ export async function updateSocialHandles(
   socials: Record<string, string>
 ): Promise<boolean> {
   try {
-    await axios.post("https://rag.gobbl.ai/client/updateSocialHandles", {
+    await axios.post(`${apiUrl}/client/updateSocialHandles`, {
       agentId,
       socials,
     });
@@ -1026,7 +985,7 @@ export async function updateAgentNameAndBio(
 ) {
   try {
     const response = await axios.post(
-      "https://rag.gobbl.ai/client/updateAgentNameAndBio",
+      `${apiUrl}/client/updateAgentNameAndBio`,
       {
         agentId,
         name,
@@ -1050,7 +1009,7 @@ export async function updatePromotionalBanner(
   isPromoBannerEnabled?: boolean
 ): Promise<boolean> {
   try {
-    await axios.post("https://rag.gobbl.ai/client/updateAgentPromoBanner", {
+    await axios.post(`${apiUrl}/client/updateAgentPromoBanner`, {
       agentId,
       promotionalBanner,
       isPromoBannerEnabled,
@@ -1070,13 +1029,10 @@ export async function updateAgentVoicePersonality(
   }
 ): Promise<boolean> {
   try {
-    await axios.post(
-      "https://rag.gobbl.ai/client/updateAgentVoicePersonality",
-      {
-        agentId,
-        personalityType,
-      }
-    );
+    await axios.post(`${apiUrl}/client/updateAgentVoicePersonality`, {
+      agentId,
+      personalityType,
+    });
     return true;
   } catch (error) {
     console.error("Error updating voice personality:", error);
@@ -1089,7 +1045,7 @@ export async function updateAgentWelcomeMessage(
   welcomeMessage: string
 ): Promise<boolean> {
   try {
-    await axios.post("https://rag.gobbl.ai/client/updateAgentWelcomeMessage", {
+    await axios.post(`${apiUrl}/client/updateAgentWelcomeMessage`, {
       agentId,
       welcomeMessage,
     });
@@ -1105,7 +1061,7 @@ export async function updateAgentPrompts(
   prompts: string[]
 ): Promise<boolean> {
   try {
-    await axios.post("https://rag.gobbl.ai/client/updateAgentPrompts", {
+    await axios.post(`${apiUrl}/client/updateAgentPrompts`, {
       agentId,
       prompts,
     });
@@ -1122,7 +1078,7 @@ export async function updateAgentBrain(
   smartenUpAnswers?: string[] | Record<string, string>
 ): Promise<boolean> {
   try {
-    await axios.post("https://rag.gobbl.ai/client/updateAgentBrain", {
+    await axios.post(`${apiUrl}/client/updateAgentBrain`, {
       agentId,
       language,
       smartenUpAnswers,
@@ -1162,7 +1118,7 @@ export async function updateAgentPaymentSettings(
   }
 ): Promise<boolean> {
   try {
-    await axios.post("https://rag.gobbl.ai/client/updateAgentPaymentSettings", {
+    await axios.post(`${apiUrl}/client/updateAgentPaymentSettings`, {
       agentId,
       ...settings,
     });
@@ -1179,7 +1135,7 @@ export async function updateCustomerLeadFlag(
 ): Promise<boolean> {
   try {
     const response = await axios.post(
-      "https://rag.gobbl.ai/client/changeCustomerLeadFlag",
+      `${apiUrl}/client/changeCustomerLeadFlag`,
       {
         agentId,
         isEnabled,
@@ -1209,7 +1165,7 @@ export async function getCustomerLeads(
 ): Promise<CustomerLead[]> {
   try {
     const response = await axios.get(
-      `https://rag.gobbl.ai/client/getCustomerLeads/${agentId}`
+      `${apiUrl}/client/getCustomerLeads/${agentId}`
     );
 
     if (response.data.error) {
@@ -1243,7 +1199,7 @@ export async function getAgentPolicies(
 ): Promise<AgentPoliciesResponse> {
   try {
     const response = await axios.get(
-      `https://rag.gobbl.ai/client/getAgentPolicies/${agentId}`
+      `${apiUrl}/client/getAgentPolicies/${agentId}`
     );
     return response.data;
   } catch (error) {
@@ -1257,13 +1213,10 @@ export async function updateAgentModel(
   modelName: string
 ): Promise<any> {
   try {
-    const response = await axios.put(
-      "https://rag.gobbl.ai/client/updateAgentModel",
-      {
-        agentId,
-        model: modelName,
-      }
-    );
+    const response = await axios.put(`${apiUrl}/client/updateAgentModel`, {
+      agentId,
+      model: modelName,
+    });
     if (response.data.error) {
       throw new Error(response.data.result || "Failed to update model");
     }
@@ -1280,7 +1233,7 @@ export async function updateGeneratedPrompts(
 ): Promise<boolean> {
   try {
     const response = await axios.post(
-      "https://rag.gobbl.ai/client/updateAgentGeneratedPrompts",
+      `${apiUrl}/client/updateAgentGeneratedPrompts`,
       {
         agentId,
         prompts: generatedPrompts,
@@ -1304,13 +1257,10 @@ export async function saveCustomerLead(
   }
 ): Promise<{ error: boolean; result?: string }> {
   try {
-    const response = await axios.post(
-      "https://rag.gobbl.ai/client/saveCustomerLeads",
-      {
-        agentId,
-        newLead: lead,
-      }
-    );
+    const response = await axios.post(`${apiUrl}/client/saveCustomerLeads`, {
+      agentId,
+      newLead: lead,
+    });
 
     if (response.data.error) {
       throw new Error(response.data.error);
@@ -1329,9 +1279,7 @@ export async function saveCustomerLead(
 
 export async function getPlans(clientId: string): Promise<PlanData[]> {
   try {
-    const response = await axios.get(
-      `https://rag.gobbl.ai/client/getPlans/${clientId}`
-    );
+    const response = await axios.get(`${apiUrl}/client/getPlans/${clientId}`);
 
     if (response.data.error) {
       throw new Error("Failed to fetch plans");
@@ -1350,7 +1298,7 @@ export async function subscribeToPlan(
 ): Promise<any> {
   try {
     const response = await axios.post(
-      "https://rag.gobbl.ai/product/subscribeOrChangePlan",
+      `${apiUrl}/product/subscribeOrChangePlan`,
       {
         clientId,
         planId,
@@ -1370,9 +1318,7 @@ export async function subscribeToPlan(
 
 export async function getClient(clientId: string) {
   try {
-    const response = await axios.get(
-      `https://rag.gobbl.ai/client/getClient/${clientId}`
-    );
+    const response = await axios.get(`${apiUrl}/client/getClient/${clientId}`);
 
     if (response.data.error) {
       throw new Error(response.data.result || "Failed to fetch client data");
@@ -1399,7 +1345,7 @@ export async function updateClientBillingDetails(
 ): Promise<any> {
   try {
     const response = await axios.post(
-      "https://rag.gobbl.ai/client/updateClientBillingDetails",
+      `${apiUrl}/client/updateClientBillingDetails`,
       {
         clientId,
         billingDetails,
@@ -1428,7 +1374,7 @@ export async function updateClientBillingMethod(
 ): Promise<any> {
   try {
     const response = await axios.post(
-      "https://rag.gobbl.ai/client/updateClientBillingMethod",
+      `${apiUrl}/client/updateClientBillingMethod`,
       {
         clientId,
         billingMethod,
@@ -1456,10 +1402,7 @@ export const updateProduct = async (data: {
   stock: number;
 }) => {
   try {
-    const response = await axios.put(
-      "https://rag.gobbl.ai/product/updateProduct",
-      data
-    );
+    const response = await axios.put(`${apiUrl}/product/updateProduct`, data);
 
     if (response.data.error) {
       throw new Error("Failed to update product");
@@ -1474,9 +1417,7 @@ export const updateProduct = async (data: {
 
 export async function getClientUsage(clientId: string) {
   try {
-    const response = await fetch(
-      `https://rag.gobbl.ai/client/getClientUsage/${clientId}`
-    );
+    const response = await fetch(`${apiUrl}/client/getClientUsage/${clientId}`);
 
     if (!response.ok) {
       throw new Error("Failed to fetch client usage data");
@@ -1497,12 +1438,9 @@ export async function getClientUsage(clientId: string) {
 
 export async function getUserBookingHistory(userId: string, agentId: string) {
   try {
-    const response = await axios.get(
-      `https://rag.gobbl.ai/appointment/user-bookings`,
-      {
-        params: { userId, agentId },
-      }
-    );
+    const response = await axios.get(`${apiUrl}/appointment/user-bookings`, {
+      params: { userId, agentId },
+    });
 
     if (response.data.error) {
       console.error("API error:", response.data.result);
@@ -1528,7 +1466,7 @@ export async function userRescheduleBooking(payload: {
 }): Promise<any> {
   try {
     const response = await axios.post(
-      "https://rag.gobbl.ai/appointment/user-reschedule",
+      `${apiUrl}/appointment/user-reschedule`,
       payload
     );
 
@@ -1549,7 +1487,7 @@ export async function getBookingForReschedule(
 ): Promise<any> {
   try {
     const response = await axios.get(
-      `https://rag.gobbl.ai/appointment/booking-for-reschedule`,
+      `${apiUrl}/appointment/booking-for-reschedule`,
       {
         params: { bookingId, userId },
       }
@@ -1570,10 +1508,9 @@ export async function getBookingForReschedule(
 
 export async function cancelUserBooking(bookingId: string, userId: string) {
   try {
-    const response = await axios.post(
-      "https://rag.gobbl.ai/appointment/cancel-booking",
-      { bookingId }
-    );
+    const response = await axios.post(`${apiUrl}/appointment/cancel-booking`, {
+      bookingId,
+    });
 
     if (response.data.error) {
       throw new Error(response.data.result || "Failed to cancel booking");
@@ -1598,7 +1535,7 @@ export async function sendRescheduleRequestEmail(payload: {
 }): Promise<any> {
   try {
     const response = await axios.post(
-      "https://rag.gobbl.ai/appointment/send-reschedule-email",
+      `${apiUrl}/appointment/send-reschedule-email`,
       payload
     );
 
@@ -1618,7 +1555,7 @@ export async function sendRescheduleRequestEmail(payload: {
 export async function getMainProducts(agentId: string) {
   try {
     const response = await fetch(
-      `https://rag.gobbl.ai/product/getProducts?agentId=${agentId}`
+      `${apiUrl}/product/getProducts?agentId=${agentId}`
     );
     if (!response.ok) throw new Error("Failed to fetch products");
     const data = await response.json();
@@ -1632,12 +1569,9 @@ export async function getMainProducts(agentId: string) {
 // Delete main product by productId and agentId
 export async function deleteMainProduct(productId: string, agentId: string) {
   try {
-    const response = await axios.delete(
-      "https://rag.gobbl.ai/product/deleteProduct",
-      {
-        data: { productId, agentId },
-      }
-    );
+    const response = await axios.delete(`${apiUrl}/product/deleteProduct`, {
+      data: { productId, agentId },
+    });
     return response.data;
   } catch (err) {
     console.error("Error deleting product:", err);
@@ -1647,13 +1581,10 @@ export async function deleteMainProduct(productId: string, agentId: string) {
 
 export const pauseProduct = async (productId: string, isPaused: boolean) => {
   try {
-    const response = await axios.post(
-      "https://rag.gobbl.ai/product/pauseProduct",
-      {
-        productId,
-        isPaused,
-      }
-    );
+    const response = await axios.post(`${apiUrl}/product/pauseProduct`, {
+      productId,
+      isPaused,
+    });
 
     if (response.data.error) {
       throw new Error("Failed to update product status");
@@ -1670,7 +1601,7 @@ export const pauseProduct = async (productId: string, isPaused: boolean) => {
 export async function getMainProductsForUser(agentId: string) {
   try {
     const response = await fetch(
-      `https://rag.gobbl.ai/user/getAgentProducts?agentId=${agentId}`
+      `${apiUrl}/user/getAgentProducts?agentId=${agentId}`
     );
     if (!response.ok) throw new Error("Failed to fetch products");
     const data = await response.json();
@@ -1690,10 +1621,9 @@ export async function getMainProductsForUser(agentId: string) {
  */
 export async function getEmailTemplates(agentId: string): Promise<any> {
   try {
-    const response = await axios.get(
-      `https://rag.gobbl.ai/email/getEmailTemplates`,
-      { params: { agentId } }
-    );
+    const response = await axios.get(`${apiUrl}/email/getEmailTemplates`, {
+      params: { agentId },
+    });
     if (response.data.error) {
       throw new Error(
         response.data.result || "Failed to fetch email templates"
@@ -1718,14 +1648,11 @@ export async function updateEmailTemplates(
   emailTemplateId: string
 ): Promise<any> {
   try {
-    const response = await axios.post(
-      `https://rag.gobbl.ai/email/updateEmailTemplates`,
-      {
-        agentId,
-        updatedData,
-        emailTemplateId,
-      }
-    );
+    const response = await axios.post(`${apiUrl}/email/updateEmailTemplates`, {
+      agentId,
+      updatedData,
+      emailTemplateId,
+    });
     if (response.data.error) {
       throw new Error(
         response.data.result || "Failed to update email templates"
@@ -1776,13 +1703,10 @@ export async function savePhysicalProduct(
       JSON.stringify(form.customerDetails)
     );
   }
-  const response = await fetch(
-    "https://rag.gobbl.ai/product/addPhysicalProduct",
-    {
-      method: "POST",
-      body: formData,
-    }
-  );
+  const response = await fetch(`${apiUrl}/product/addPhysicalProduct`, {
+    method: "POST",
+    body: formData,
+  });
   return await response.json();
 }
 
@@ -1825,13 +1749,10 @@ export async function saveDigitalProduct(
       JSON.stringify(form.customerDetails)
     );
   }
-  const response = await fetch(
-    "https://rag.gobbl.ai/product/addDigitalProduct",
-    {
-      method: "POST",
-      body: formData,
-    }
-  );
+  const response = await fetch(`${apiUrl}/product/addDigitalProduct`, {
+    method: "POST",
+    body: formData,
+  });
   return await response.json();
 }
 
@@ -1872,7 +1793,7 @@ export async function saveServiceProduct(
       JSON.stringify(form.customerDetails)
     );
   }
-  const response = await fetch("https://rag.gobbl.ai/product/addService", {
+  const response = await fetch(`${apiUrl}/product/addService`, {
     method: "POST",
     body: formData,
   });
@@ -1918,7 +1839,7 @@ export async function saveEventProduct(
       JSON.stringify(form.customerDetails)
     );
   }
-  const response = await fetch("https://rag.gobbl.ai/product/addEvent", {
+  const response = await fetch(`${apiUrl}/product/addEvent`, {
     method: "POST",
     body: formData,
   });
@@ -1929,10 +1850,9 @@ export async function getStripeBillingSession(
   clientId: string
 ): Promise<string> {
   try {
-    const response = await axios.get(
-      `https://rag.gobbl.ai/product/createBillingSession`,
-      { params: { clientId } }
-    );
+    const response = await axios.get(`${apiUrl}/product/createBillingSession`, {
+      params: { clientId },
+    });
     if (response.data.error) {
       throw new Error(
         response.data.error || "Failed to create billing session"
@@ -1950,7 +1870,7 @@ export async function updateCustomHandles(
   customHandles: { label: string; url: string }[]
 ): Promise<boolean> {
   try {
-    await axios.post("https://rag.gobbl.ai/client/updateCustomHandles", {
+    await axios.post(`${apiUrl}/client/updateCustomHandles`, {
       agentId,
       customHandles,
     });

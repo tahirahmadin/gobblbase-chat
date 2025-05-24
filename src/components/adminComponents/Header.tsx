@@ -48,8 +48,8 @@ const Header = () => {
       className="bg-white border-b border-gray-200 shadow-lg z-10"
       style={{ backgroundColor: "#eaefff" }}
     >
-      <div className="flex justify-between items-center px-6 py-4 xs:pl-16">
-        <div className="flex items-center space-x-4">
+      <div className="flex justify-between items-center px-6 py-2">
+        <div className="flex items-center  pl-[40px] md:pl-0">
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -69,7 +69,7 @@ const Header = () => {
                   </span>
                 </div>
               )}
-              <span>{activeBotData?.name || "Select Agent"}</span>
+              <span className="hidden xs:block">{activeBotData?.name || "Select Agent"}</span>
               <ChevronDown className="w-4 h-4 text-gray-500" />
             </button>
             {isDropdownOpen && (
@@ -103,7 +103,7 @@ const Header = () => {
                           </span>
                         </div>
                       )}
-                      <span className="font-medium">{agent.name}</span>
+                      <span className="hidden font-medium">{agent.name}</span>
                       {agent.agentId === activeBotId && (
                         <span className="ml-auto text-xs text-green-200 font-semibold">
                           Selected
@@ -125,51 +125,31 @@ const Header = () => {
             )}
           </div>
         </div>
-        <div className="hidden lg:block">
-          <div className="flex items-center space-x-4">
+        <div className="">
+          <div className="flex items-center space-x-2">
             <div className="relative inline-block">
               <div className="absolute top-1 left-1 w-full h-full bg-[#6aff97] rounded"></div>
               <div className="relative inline-block">
                 {/* Bottom layer for shadow effect */}
                 <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
-
-                {/* Main button */}
-                {/* <button
-                  onClick={() => {
-                    navigate("/admin/account/plans");
-                  }}
-                  className="relative bg-[#6aff97] text-black font-semibold px-4 py-2 border border-black"
-                >
-                  Upgrade Plan
-                </button> */}
               </div>
             </div>
-            <div className="flex items-center space-x-2">
+            <div
+              className="truncate w-full flex items-center space-x-1 px-2 py-1 rounded-lg"
+              style={{
+                border: "1px solid #bdbdbd",
+                backgroundColor: "#effdf4",
+              }}
+            >
               <div>
-                {activeBotData?.logo ? (
-                  <img
-                    key={`${activeBotData.logo}?t=${Date.now()}`}
-                    src={`${activeBotData.logo}?t=${Date.now()}`}
-                    alt="Agent avatar"
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-xs text-gray-500">
-                      {activeBotData?.name?.charAt(0) || "A"}
-                    </span>
-                  </div>
-                )}
-              </div>
-              <div>
-                <div className="text-sm text-black">{adminEmail}</div>{" "}
+                <div className="truncate w-[80%] text-xs text-black font-semibold">
+                  {adminEmail}
+                </div>
                 <a
                   href={`https://kifor.ai/${activeBotData?.username}`}
                   target="_blank"
                 >
-                  <div className="text-sm text-blue-500">
-                    {">> "} Agent Link
-                  </div>
+                  <div className="text-sm text-[#1C4ED8]">Visit chatbot</div>
                 </a>
               </div>
             </div>

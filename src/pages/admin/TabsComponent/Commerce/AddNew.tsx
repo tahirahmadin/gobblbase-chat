@@ -77,11 +77,11 @@ const AddNew = () => {
             <div className="text-sm text-gray-500 mb-6">
               Choose the perfect format to showcase and sell your offering
             </div>
-            <div className="flex flex-wrap gap-6 justify-start">
+            <div className="grid grid-cols-2 md:flex md:flex-wrap gap-4 md:gap-6 justify-start">
               {cardData.map((card) => (
                 <button
                   key={card.label}
-                  className="flex flex-col items-center justify-center w-44 h-44 bg-[#e7eafe] border border-[#bfc6e0] rounded-lg shadow hover:shadow-lg transition-shadow duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  className="flex flex-col items-center justify-center w-full md:w-44 h-44 bg-[#e7eafe] border border-[#bfc6e0] rounded-lg shadow hover:shadow-lg transition-shadow duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-400"
                   onClick={() => setSelectedType(card.type)}
                   type="button"
                 >

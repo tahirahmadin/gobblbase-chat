@@ -61,7 +61,7 @@ const Orders = () => {
   };
 
   return (
-    <div className="p-2 lg:p-8 w-full">
+    <div className="p-2 lg:p-6 w-screen lg:w-full">
       <h2 className="text-xl lg:text-2xl font-semibold mb-4 lg:mb-6">
         Orders Dashboard
       </h2>

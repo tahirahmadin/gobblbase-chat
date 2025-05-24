@@ -45,24 +45,10 @@ export default function Embed() {
     window.open(chatbotUrl, "_blank");
   };
 
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "Chat with my AI Assistant",
-          text: "Check out my AI assistant powered by Kifor.ai",
-          url: chatbotUrl,
-        });
-      } catch (error) {
-        console.error("Error sharing:", error);
-      }
-    }
-  };
-
   return (
-    <div className="h-screen overflow-hidden">
+    <div className="h-screen  overflow-x-hidden">
       <div
-        className="space-y-6 p-4 h-full overflow-y-auto"
+        className="space-y-6 p-4 h-full overflow-y-auto "
         style={{ paddingBottom: 200 }}
       >
         <div className="mb-8">
@@ -82,9 +68,6 @@ export default function Embed() {
           <div className="p-4">
             <div className="space-y-4">
               <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-2">
-                  On the website - www.kifor.ai
-                </h3>
                 <div className="relative">
                   <pre className="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm font-mono border border-gray-200">
                     {embedType === "bubble" ? bubbleCode : iframeCode}

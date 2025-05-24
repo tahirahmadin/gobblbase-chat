@@ -89,7 +89,7 @@ const AiModel = () => {
 
   return (
     <div className="py-6 px-4 lg:p-8 w-full">
-      <div className="upper p-3 flex flex-col md:flex-row md:gap-4">
+      <div className="upper flex flex-col md:flex-row md:gap-4">
         <span className="content">
           <h2 className="main-font font-bold text-lg sm:text-xl md:text-2xl text-[#000000] mb-2">
             Ai Model

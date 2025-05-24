@@ -472,30 +472,24 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
             </div>
           </div>
 
+          {bookingSettings.breaks && bookingSettings.breaks.length > 0 && (
           <div>
             <div className="text-sm font-medium mb-1">
               Break
-              {bookingSettings.breaks && bookingSettings.breaks.length > 1
-                ? "s"
-                : ""}
+              {bookingSettings.breaks.length > 1 ? "s" : ""}
             </div>
-            {bookingSettings.breaks && bookingSettings.breaks.length > 0 ? (
-              <div className="space-y-1">
-                {bookingSettings.breaks.map((breakItem, index) => (
-                  <div
-                    key={index}
-                    className="bg-gray-100 rounded-md p-2 text-sm"
-                  >
-                    {formatTime12(breakItem.startTime)} - {formatTime12(breakItem.endTime)}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-gray-100 rounded-md p-2 text-sm">
-                1:00 PM - 2:00 PM
-              </div>
-            )}
+            <div className="space-y-1">
+              {bookingSettings.breaks.map((breakItem, index) => (
+                <div
+                  key={index}
+                  className="bg-gray-100 rounded-md p-2 text-sm"
+                >
+                  {formatTime12(breakItem.startTime)} - {formatTime12(breakItem.endTime)}
+                </div>
+              ))}
+            </div>
           </div>
+        )}
 
           {bookingSettings.price && (
             <div>

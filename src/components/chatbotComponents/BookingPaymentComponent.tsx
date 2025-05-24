@@ -12,6 +12,7 @@ import toast from "react-hot-toast";
 import { CreditCard, Wallet } from "lucide-react";
 import { Theme } from "../../types";
 import { bookAppointment } from "../../lib/serverActions";
+import { backendApiUrl } from "../../utils/constants";
 
 interface BookingPaymentProps {
   theme: Theme;
@@ -282,7 +283,8 @@ function CryptoBookingForm({
           className="text-center mb-2"
           style={{ color: activeBotData?.themeColors.isDark ? "#fff" : "#000" }}
         >
-          Send {price.displayPrice} {type.toUpperCase()} to the following address
+          Send {price.displayPrice} {type.toUpperCase()} to the following
+          address
         </p>
         <div className="mt-2 text-center">
           <p
@@ -422,7 +424,7 @@ export function BookingPaymentComponent({
         };
 
         const response = await fetch(
-          "https://rag.gobbl.ai/product/create-payment-intent",
+          `${backendApiUrl}/product/create-payment-intent`,
           {
             method: "POST",
             headers: {
@@ -572,7 +574,7 @@ export function BookingPaymentComponent({
         <h3 className="mb-4" style={{ color: theme.isDark ? "#fff" : "#000" }}>
           This is a free booking
         </h3>
-        
+
         {/* Booking Summary for free booking */}
         <div
           className="p-3 rounded-md mb-4"
@@ -626,7 +628,9 @@ export function BookingPaymentComponent({
           )}
         </button>
         {freeBookingError && (
-          <div className="mt-2 text-red-500 text-center">{freeBookingError}</div>
+          <div className="mt-2 text-red-500 text-center">
+            {freeBookingError}
+          </div>
         )}
       </div>
     );
