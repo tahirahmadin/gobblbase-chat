@@ -209,7 +209,7 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
         </div>
 
         {/* Card-like Step Content */}
-        <div className="flex-1 bg-[#e7eafe] rounded-xl shadow-md overflow-y-auto">
+        <div className="flex-1 bg-[#e7eafe] rounded-xl ">
           <div className="p-4 md:p-2 pb-32 max-w-[1200px] mx-auto">
             {renderStepContent()}
           </div>
