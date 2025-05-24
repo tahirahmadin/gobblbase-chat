@@ -259,7 +259,7 @@ const Booking: React.FC<BookingProps> = ({
           setBookingType(settings.bookingType || "individual");
           setBookingsPerSlot(settings.bookingsPerSlot || 1);
           setMeetingDuration(settings.meetingDuration || 30);
-          setBufferTime(settings.bufferTime || 10);
+          setBufferTime(settings.bufferTime !== undefined ? settings.bufferTime : 10);
 
           setBreaks(settings.breaks || []);
 
@@ -791,9 +791,14 @@ const Booking: React.FC<BookingProps> = ({
   // Header component
   const renderHeader = () => (
     <div>
-      <h1 className="text-2xl font-semibold">Set up Calendar</h1>
+      <h1 className="text-2xl font-semibold">
+        {isEditMode ? "Edit Calendar Settings" : "Set up Calendar"}
+      </h1>
       <p className="text-gray-600 text-sm mt-1">
-        Configure your calendar for appointments & 1:1 meetings
+        {isEditMode 
+          ? "Update your calendar configuration for appointments & 1:1 meetings"
+          : "Configure your calendar for appointments & 1:1 meetings"
+        }
       </p>
     </div>
   );
