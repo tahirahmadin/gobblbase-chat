@@ -7,7 +7,7 @@ import styled from "styled-components";
 const Button = styled.button`
   position: relative;
   background: #4d65ff;
-  padding: 1vh 2vw;
+  padding: 0.6vh 3vw;
   border: 2px solid black;
   cursor: pointer;
   transition: background 0.3s;
@@ -220,7 +220,7 @@ const WelcomeText = () => {
             />
             <div className="flex justify-end relative z-10">
               <Button onClick={handleCustomMessageSave} className="">
-                Save Custom Message
+                ENTER
               </Button>
             </div>
           </div>

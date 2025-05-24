@@ -43,21 +43,19 @@ const Button = styled.button`
   max-width: 400px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: start;
   background: #7fffa1;
-  padding: 0.75rem 1rem;
+  padding: 0.6rem 3rem 0.6rem 1rem;
   border: 2px solid black;
   margin-bottom: 1rem;
   cursor: pointer;
   transition: background 0.3s;
   font-size: clamp(8px, 4vw, 16px);
+  white-space: nowrap;
   &:hover {
     background: #6ee7b7;
   }
 
-  @media (max-width: 600px) {
-    max-width: 200px;
-  }
 
   &::before {
     content: "";
@@ -279,7 +277,7 @@ const Login: React.FC = () => {
               />
             </svg>
           </span>
-          LOGIN WITH EMAIL(coming soon)
+          LOGIN WITH EMAIL 
         </Button>
       </div>
     </Card>

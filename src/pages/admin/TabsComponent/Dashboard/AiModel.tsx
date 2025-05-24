@@ -8,8 +8,8 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 const Button = styled.button`
   position: relative;
-  background: #6AFF97;
-  padding: 1vh 2vw;
+  background: #6aff97;
+  padding: 0.6vh 3vw;
   border: 2px solid black;
   cursor: pointer;
   transition: background 0.3s;
@@ -32,7 +32,7 @@ const Button = styled.button`
   }
 
   &:disabled {
-    background: #6AFF97;
+     background: #d6ffe0;
     cursor: not-allowed;
     color: black;
   }
@@ -91,23 +91,23 @@ const AiModel = () => {
     <div className="py-6 px-4 lg:p-8 w-full">
       <div className="upper p-3 flex flex-col md:flex-row md:gap-4">
         <span className="content">
-         <h2 className="main-font font-bold text-lg sm:text-xl md:text-2xl text-[#000000] mb-2">
+          <h2 className="main-font font-bold text-lg sm:text-xl md:text-2xl text-[#000000] mb-2">
             Ai Model
           </h2>
-     <p className="para-font text-xs md:sm text-[#0D0D0D] mb-4 font-[500]">
-            Every AI model has its unique DNA — balancing depth, speed, and cost.
-            Your selection directly shapes AI performance, impacting insight,
-            efficiency, and value. Align the model with your mission.
+          <p className="para-font text-xs md:sm text-[#0D0D0D] mb-4 font-[500]">
+            Every AI model has its unique DNA — balancing depth, speed, and
+            cost. Your selection directly shapes AI performance, impacting
+            insight, efficiency, and value. Align the model with your mission.
           </p>
         </span>
 
-           {/* Current Model */}
+        {/* Current Model */}
         <div className="lg:pl-6 w-full">
-            <span className="para-font text-[#000000] block text-sm sm:text-lg font-medium">
-              Current Model
-            </span>
+          <span className="para-font text-[#000000] block text-sm sm:text-lg font-medium">
+            Current Model
+          </span>
           <div className="flex items-center gap-2 mt-4">
-              <div className="flex items-center gap-2 px-2 py-[1vh] border w-[80%] lg:w-[90%] bg-[#CEFFDC] border-2 border-[#6AFF97] focus:outline-none">
+            <div className="flex items-center gap-2 px-2 py-[1vh] border w-[80%] lg:w-[90%] bg-[#CEFFDC] border-2 border-[#6AFF97] focus:outline-none">
               <img
                 src={currentModel?.image}
                 alt={currentModel?.name}
@@ -116,23 +116,23 @@ const AiModel = () => {
               <span className="font-medium text-sm lg:text-base truncate">
                 {currentModel?.name}
               </span>
-              </div>
-              <div  style={{ zIndex: "4" }} className="flex justify-end relative">
-                <Link to="/admin/account/usage">
-                  <Button className="transition wordspace-nowrap">
-                    VIEW USAGE
-                  </Button>
-                </Link>
-              </div>
+            </div>
+            <div style={{ zIndex: "4" }} className="flex justify-end relative">
+              <Link to="/admin/account/usage">
+                <Button className="transition wordspace-nowrap">
+                  VIEW USAGE
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-4 w-full">
+      <div className="mt-8 flex flex-col sm:flex-row gap-4 w-full">
         {/* Model Selection Dropdown */}
-        <div className="relative w-full">
+        <div className="relative w-full flex h-fit">
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="w-full flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            className="w-full flex items-center justify-between p-3 border bg-[#CEFFDC] border-2 border-[#6AFF97] focus:outline-none w-full transition-colors"
           >
             <div className="flex items-center gap-2">
               <img
@@ -157,13 +157,13 @@ const AiModel = () => {
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+            <div className="absolute top-16 z-10 w-full mt-1 bg-white border-2 border-[#6AFF97] shadow-lg max-h-100 overflow-y-auto">
               {MODEL_PRESETS.map((model) => (
                 <button
                   key={model.id}
                   onClick={() => handleSelect(model.id)}
                   className={`w-full flex items-center gap-2 p-2 hover:bg-gray-50 transition-colors ${
-                    selectedModelId === model.id ? "bg-green-50" : ""
+                    selectedModelId === model.id ? "border bg-[#CEFFDC] focus:outline-none" : ""
                   }`}
                 >
                   <img
@@ -187,7 +187,7 @@ const AiModel = () => {
 
         {/* Model Details */}
         {selectedModel && (
-          <div className="bg-white rounded-lg p-3 border border-gray-200 w-full">
+          <div className="p-3 border bg-[#CEFFDC] border-2 border-[#6AFF97] focus:outline-none w-full">
             <div>
               <h4 className="text-base lg:text-lg font-semibold mb-2">
                 {selectedModel.name}
@@ -212,19 +212,19 @@ const AiModel = () => {
                 <span className="inline-block bg-black text-white text-xs px-2 py-1 rounded">
                   Credits Cost: {selectedModel.creditsCost}
                 </span>
-                <button
-                  className="bg-green-500 hover:bg-green-600 text-white font-semibold px-3 py-1.5 rounded-lg transition disabled:opacity-60 text-sm"
-                  onClick={handleSave}
-                  disabled={selectedModelId === currentModelId || isSaving}
-                >
-                  {isSaving ? "Saving..." : "SAVE"}
-                </button>
+                 <div style={{ zIndex: "4" }} className="flex justify-end relative">
+                  <Button
+                    className=""
+                    onClick={handleSave}
+                    disabled={selectedModelId === currentModelId || isSaving}
+                  >
+                    {isSaving ? "Saving..." : "SAVE"}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
         )}
-
-     
       </div>
     </div>
   );

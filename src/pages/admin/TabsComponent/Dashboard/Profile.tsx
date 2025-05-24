@@ -17,8 +17,8 @@ import CustomLinksSection from "./CustomLinksSection";
 import styled from "styled-components";
 const Lable = styled.label`
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: 35px;
+  height: 35px;
   border: 2px solid black;
   display: grid;
   place-items: center;
@@ -31,8 +31,8 @@ const Lable = styled.label`
   &::before {
     content: "";
     position: absolute;
-    top: 6px;
-    right: -6px;
+    top: 5px;
+    right: -5px;
     width: 100%;
     height: 100%;
     border: 2px solid #000000;
@@ -46,8 +46,8 @@ const Lable = styled.label`
 `;
 const Icon = styled.button`
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: 35px;
+  height: 35px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -68,8 +68,8 @@ const Icon = styled.button`
   &::before {
     content: "";
     position: absolute;
-    top: 6px;
-    right: -6px;
+    top: 5px;
+    right: -5px;
     width: 100%;
     height: 100%;
     border: 2px solid #000000;
@@ -81,16 +81,12 @@ const Icon = styled.button`
 const Button = styled.button`
   position: relative;
   background: #4d65ff;
-  padding: 1vh 2vw;
+  padding: 0.6vh 3vw;
   border: 2px solid black;
   cursor: pointer;
   transition: background 0.3s;
   font-size: clamp(8px, 4vw, 16px);
   color: white;
-  @media (max-width: 600px) {
-    min-width: 120px;
-  }
-
   &::before {
     content: "";
     position: absolute;
@@ -102,7 +98,9 @@ const Button = styled.button`
     z-index: -1; // place it behind the button
     background: #6aff97;
   }
-
+  @media (max-width: 600px) {
+    min-width: 100px;
+  }
   &:disabled {
     background: #d6ffe0;
     cursor: not-allowed;
@@ -334,19 +332,19 @@ const Profile = () => {
       style={{ height: "calc(100vh - 64px)" }}
     >
       <div className="col-span-1 lg:col-span-3 h-full sm:px-6 lg:overflow-auto">
-        <div className="max-w-3xl mx-auto p-4 lg:p-0 space-y-6">
-          <div className="shadow-sm flex flex-col sm:flex-row sm:gap-8 lg:flex-col lg:gap-4">
+        <div className="max-w-3xl mx-auto p-4 lg:p-0 space-y-6 ">
+          <div className="w-full flex flex-col sm:flex-row sm:items-end sm:gap-8">
             {/* Profile Image Upload */}
-            <div className="flex items-start mb-6">
+            <div className="flex items-start mt-16 pb-4">
               <div className="relative flex flex-col items-center gap-2">
-                <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center overflow-hidden border-2 border-gray-200">
+                <div className="w-20 h-20 lg:h-24 lg:w-24 shadow-[1px_1px_4px_0_#0C0C0D0D] outline outline-[1px] outline-offset-4 rounded-full bg-white flex items-center justify-center overflow-hidden">
                   {isUploading ? (
                     <div className="animate-pulse bg-gray-200 w-full h-full" />
                   ) : profileImage ? (
                     <img
                       src={profileImage}
                       alt="Agent"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-coverc"
                     />
                   ) : (
                     <img
@@ -356,7 +354,7 @@ const Profile = () => {
                     />
                   )}
                 </div>
-                <div className="relative flex gap-2">
+                <div className="relative flex gap-2 mt-3  pb-4 ">
                   <div style={{ zIndex: "2" }}>
                     <Lable
                       className={`${
@@ -370,7 +368,10 @@ const Profile = () => {
                         accept="image/*"
                         disabled={isUploading}
                       />
-                      <Upload className="w-4 h-4" />
+                      <Upload
+                        style={{ strokeWidth: "4px" }}
+                        className="w-4 h-4"
+                      />
                     </Lable>
                   </div>
                   {profileImage && (
@@ -380,7 +381,7 @@ const Profile = () => {
                         onClick={handleRemoveImage}
                         disabled={isUploading}
                       >
-                        <X className="w-4 h-4" />
+                        <X style={{ strokeWidth: "4px" }} className="w-4 h-4" />
                       </Icon>
                     </div>
                   )}
@@ -388,26 +389,24 @@ const Profile = () => {
               </div>
             </div>
             {/* Agent Name */} {/* Agent URL */}
-            <div className="name-and-url">
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+            <div className="overflow-hidden w-full name-and-url lg:mt-8 ">
+              <div className="mb-4 pr-4">
+                <h3 className="main-font block text-md md:text-lg font-medium text-[#000000]">
                   Agent Name
-                </label>
-                <div className="flex flex-col space-y-2 xs:flex-row xs:items-center  xs:space-x-2 xs:space-y-0">
+                </h3>
+                <div className="flex flex-col space-y-2 xs:flex-row xs:items-center xs:space-x-2 xs:space-y-0 lg:items-end lg:flex-col lg:space-y-2 xl:flex-row">
                   <input
                     type="text"
                     value={agentName}
                     onChange={(e) => setAgentName(e.target.value)}
                     placeholder="Type your name or brand"
-                    className="flex-1 px-3 py-2 border border-[#7D7D7D] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    className="truncate w-full flex-1 px-3 py-2 border border-[#7D7D7D] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
                   />
                   <div className="flex justify-end relative z-10">
                     <Button
                       onClick={handleSaveName}
                       disabled={isSavingName}
-                      className={`${
-                        isSavingName ? " cursor-not-allowed" : ""
-                      }`}
+                      className={`${isSavingName ? " cursor-not-allowed" : ""}`}
                     >
                       {isSavingName ? (
                         <div className="flex items-center space-x-2">
@@ -421,62 +420,60 @@ const Profile = () => {
                   </div>
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+              <div className="truncate pr-4">
+                <h3 className="main-font block text-md md:text-lg font-medium text-[#000000]">
                   Agent URL
-                </label>
+                </h3>
                 {!isEditingUrl ? (
-                  <div className="flex flex-col space-y-2 xs:flex-row xs:items-center  xs:space-x-2 xs:space-y-0">
-                    <div className="flex-1 relative">
-                      <div className="truncate max-w-[100%] w-full px-3 py-2 border border-[#7D7D7D] text-sm bg-gray-50 overflow-x-scroll-auto">
-                        <span className="truncate max-w-[2%] text-gray-500">
-                          {baseUrl}
-                        </span>
-                        <span className="truncate max-w-[2%]">
-                          {agentUsername}
-                        </span>
+                  <div className="space-y-2 pb-4">
+                    <div className="flex flex-col space-y-2 xs:flex-row xs:items-center xs:space-x-2 xs:space-y-0 lg:items-end lg:flex-col lg:space-y-2 xl:flex-row">
+                      <div className="flex-1 w-full sm:w-fit lg:w-full relative">
+                        <div className="flex items-center border border-[#7D7D7D] w-[100%] overflow-hidden">
+                          <span className=" pr-1 py-2 bg-gray-100 text-gray-500 text-sm border-r">
+                            <h2 className="pl-3 truncate max:w-[80%]">{baseUrl}</h2>
+                          </span>
+                            <h2 className="truncate w-[8z`0%] flex-1 px-3 py-2 focus:outline-none text-sm">
+                              {agentUsername} 
+                            </h2>
+                        </div>
+                        <div className="absolute right-1 top-1/2 -translate-y-1/2 flex space-x-1">
+                          <button
+                            onClick={handleCopyUrl}
+                            className="w-5 h-5 bg-gray-100 flex items-center justify-center hover:bg-gray-200 rounded-sm transition-colors"
+                            title="Copy URL"
+                          >
+                            <Copy className="w-3 h-3 text-gray-600" />
+                          </button>
+                          <button
+                            onClick={handleVisitUrl}
+                            className="w-5 h-5 bg-gray-100 flex items-center justify-center hover:bg-gray-200 rounded-sm transition-colors"
+                            title="Visit URL"
+                          >
+                            <Link2 className="w-3 h-3 text-gray-600" />
+                          </button>
+                        </div>
                       </div>
-                      <div className="absolute right-1 top-1/2 -translate-y-1/2 flex space-x-1">
-                        <button
-                          onClick={handleCopyUrl}
-                          className="w-5 h-5 bg-gray-100 flex items-center justify-center hover:bg-gray-200 rounded-sm transition-colors"
-                          title="Copy URL"
-                        >
-                          <Copy className="w-3 h-3 text-gray-600" />
-                        </button>
-                        <button
-                          onClick={handleVisitUrl}
-                          className="w-5 h-5 bg-gray-100 flex items-center justify-center hover:bg-gray-200 rounded-sm transition-colors"
-                          title="Visit URL"
-                        >
-                          <Link2 className="w-3 h-3 text-gray-600" />
-                        </button>
+                      <div className="flex justify-end relative z-10">
+                        <Button onClick={handleUrlEdit} className="">
+                          Edit
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex justify-end relative z-10">
-                        <Button
-                        onClick={handleUrlEdit}
-                        className=""
-                      >
-                        Edit
-                      </Button>
-                    </div>
-                 
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <div className="flex flex-col space-y-2 xs:flex-row xs:items-center  xs:space-x-2 xs:space-y-0">
-                      <div className="flex-1 relative">
+                    <div className="flex flex-col space-y-2 xs:flex-row xs:items-center xs:space-x-2 xs:space-y-0 lg:items-end lg:flex-col lg:space-y-2 xl:flex-row">
+                      <div className="flex-1 w-full sm:w-fit lg:w-full relative">
                         <div className="flex items-center border border-[#7D7D7D] overflow-hidden">
-                          <span className="px-3 py-2 bg-gray-100 text-gray-500 text-sm border-r">
-                            {baseUrl}
+                          <span className="pl-3 pr-1 py-2 bg-gray-100 text-gray-500 text-sm border-r">
+                            <h2 className="truncate max-[80%]">{baseUrl}</h2>
                           </span>
                           <input
                             type="text"
                             value={agentUsername}
                             onChange={handleUsernameChange}
                             placeholder="your-username"
-                            className="flex-1 px-3 py-2 focus:outline-none text-sm"
+                            className="truncate w-[80%] flex-1 px-3 py-2 focus:outline-none text-sm"
                             disabled={isCheckingUrl}
                           />
                         </div>
@@ -496,29 +493,25 @@ const Profile = () => {
                           </div>
                         )}
                       </div>
-                        <div className="flex justify-end relative z-10">
-                      <Button
-                        onClick={handleUrlSave}
-                        disabled={isCheckingUrl}
-                        className={`
-                            ${
-                              isCheckingUrl
-                                ? " cursor-not-allowed"
-                                : ""
-                            }`}
-                      >
-                        {isCheckingUrl ? (
-                          <div className="flex items-center space-x-2">
-                            <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                            <span>Checking...</span>
-                          </div>
-                        ) : (
-                          "Save"
-                        )}
-                      </Button>
+                      <div className="flex justify-end relative z-10">
+                        <Button
+                          onClick={handleUrlSave}
+                          disabled={isCheckingUrl}
+                          className={`
+                            ${isCheckingUrl ? " cursor-not-allowed" : ""}`}
+                        >
+                          {isCheckingUrl ? (
+                            <div className="flex items-center space-x-2">
+                              <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                              <span>Checking...</span>
+                            </div>
+                          ) : (
+                            "Save"
+                          )}
+                        </Button>
                       </div>
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="truncate w-[100%] text-xs text-gray-500">
                       Username must be 3-30 characters and can only contain
                       letters, numbers, underscores, and hyphens
                     </div>
@@ -532,9 +525,9 @@ const Profile = () => {
           <div className="">
             <div>
               <div className="flex justify-between mb-1 pt-4">
-                <label className="block text-sm font-medium text-gray-700">
+                <h3 className="main-font block text-md md:text-lg font-medium text-[#000000]">
                   Agent Bio
-                </label>
+                </h3>
                 <span className="text-xs text-gray-500">
                   MAX 150 CHARACTERS
                 </span>
@@ -548,13 +541,11 @@ const Profile = () => {
                   rows={4}
                   className="w-full px-3 py-2 border border-[#7D7D7D] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
                 />
-               <div className="flex justify-end relative z-10">
+                <div className="flex justify-end relative z-10">
                   <Button
                     onClick={handleSaveBio}
                     disabled={isSavingBio}
-                    className={` ${
-                      isSavingBio ? " cursor-not-allowed" : ""
-                    }`}
+                    className={` ${isSavingBio ? " cursor-not-allowed" : ""}`}
                   >
                     {isSavingBio ? (
                       <div className="flex items-center space-x-2">
@@ -661,7 +652,7 @@ const Profile = () => {
             <SocialMediaSection />
           </div>
           {/* Custom Links Section */}
-          <div className="p-6 shadow-sm">
+          <div className="p-3">
             <CustomLinksSection />
           </div>
         </div>

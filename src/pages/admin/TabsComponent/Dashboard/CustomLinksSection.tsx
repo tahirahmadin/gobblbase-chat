@@ -39,13 +39,13 @@ const Icon = styled.button`
 `;
 const Button = styled.button`
   position: relative;
-  background: #4d65ff;
-  padding: 1vh 2vw;
+  background: #6AFF97;
+  padding: 0.6vh 3vw;
   border: 2px solid black;
   cursor: pointer;
   transition: background 0.3s;
   font-size: clamp(8px, 4vw, 16px);
-  color: white;
+  
   @media (max-width: 600px) {
     min-width: 120px;
   }
@@ -121,7 +121,7 @@ const CustomLinksSection = () => {
     }
   };
   return (
-    <div>
+    <div className="pb-10">
       <div className="content flex justify-between items-center">
         <h3 className="main-font block text-md sm:text-xl font-bold text-[#000000]">
           Add Social Links to your Profile
