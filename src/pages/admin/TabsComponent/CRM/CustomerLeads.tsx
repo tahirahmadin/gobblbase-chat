@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import {
   updateCustomerLeadFlag,
   getCustomerLeads,
-} from "../../../lib/serverActions";
-import { useBotConfig } from "../../../store/useBotConfig";
+} from "../../../../lib/serverActions";
+import { useBotConfig } from "../../../../store/useBotConfig";
 import toast from "react-hot-toast";
 
 const PAGE_SIZE = 8;
@@ -75,9 +75,9 @@ const CustomerLeads = () => {
   };
 
   return (
-    <div className="flex p-8 min-h-[500px]">
+    <div className="flex flex-col lg:flex-row lg:p-8 min-h-[500px]">
       {/* Left Panel */}
-      <div className="w-80 mr-8 flex flex-col">
+      <div className="w-full lg:w-80 lg:mr-8 flex flex-col mb-8 lg:mb-0 p-4">
         <h2 className="text-lg font-bold text-black mb-2">Customer Leads</h2>
         <p className="text-sm text-black font-medium mb-6">
           Set up your contact form and collect inbound leads from visitors
@@ -196,12 +196,13 @@ const CustomerLeads = () => {
         </div>
       </div>
       {/* Right Panel */}
-      <div className="flex-1">
+      <div className="flex-1 w-screen lg:w-full px-4 sm:px-0 p-4">
         <h2 className="text-lg font-semibold mb-4">Form Responses</h2>
-        <div className="bg-white rounded-xl shadow p-0 overflow-hidden">
+
+        <div className="bg-white rounded-xl shadow overflow-hidden w-full">
           {isLoading ? (
             <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
             </div>
           ) : leads.length === 0 ? (
             <div className="flex justify-center items-center h-64 text-gray-500">
@@ -209,37 +210,48 @@ const CustomerLeads = () => {
             </div>
           ) : (
             <>
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-black text-white text-base">
-                    <th className="py-3 px-6 font-medium text-left rounded-tl-xl">
-                      NAME
-                    </th>
-                    <th className="py-3 px-6 font-medium text-left">
-                      EMAIL ADDRESS
-                    </th>
-                    <th className="py-3 px-6 font-medium text-left">
-                      PHONE NUMBER
-                    </th>
-                    <th className="py-3 px-6 font-medium text-left rounded-tr-xl">
-                      QUERY MESSAGE
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedLeads.map((lead, idx) => (
-                    <tr
-                      key={idx}
-                      className="bg-blue-50 text-base border-b border-blue-100 last:border-b-0"
-                    >
-                      <td className="py-3 px-6">{lead.name}</td>
-                      <td className="py-3 px-6">{lead.email}</td>
-                      <td className="py-3 px-6">{lead.phone}</td>
-                      <td className="py-3 px-6">{lead.queryMessage}</td>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead>
+                    <tr className="bg-black text-white text-sm lg:text-base">
+                      <th className="py-2 px-4 lg:py-3 lg:px-6 text-left font-medium rounded-tl-xl">
+                        NAME
+                      </th>
+                      <th className="py-2 px-4 lg:py-3 lg:px-6 text-left font-medium">
+                        EMAIL ADDRESS
+                      </th>
+                      <th className="py-2 px-4 lg:py-3 lg:px-6 text-left font-medium">
+                        PHONE NUMBER
+                      </th>
+                      <th className="py-2 px-4 lg:py-3 lg:px-6 text-left font-medium rounded-tr-xl">
+                        QUERY MESSAGE
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {paginatedLeads.map((lead, idx) => (
+                      <tr
+                        key={idx}
+                        className="bg-blue-50 text-sm lg:text-base border-b border-blue-100 last:border-b-0"
+                      >
+                        <td className="py-2 px-4 lg:py-3 lg:px-6">
+                          {lead.name}
+                        </td>
+                        <td className="py-2 px-4 lg:py-3 lg:px-6">
+                          {lead.email}
+                        </td>
+                        <td className="py-2 px-4 lg:py-3 lg:px-6">
+                          {lead.phone}
+                        </td>
+                        <td className="py-2 px-4 lg:py-3 lg:px-6">
+                          {lead.queryMessage}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
               {/* Pagination */}
               <div className="flex justify-center items-center py-4 bg-white border-t border-gray-200">
                 <button

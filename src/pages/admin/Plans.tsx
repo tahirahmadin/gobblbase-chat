@@ -146,8 +146,8 @@ const Plans = () => {
 
   return (
     <div className="p-6 overflow-auto h-full w-full">
-      <div className="flex flex-row justify-between items-center gap-4 mb-8">
-        <h2 className="text-2xl font-bold">Plans & Pricing</h2>
+      <div className="flex flex-row justify-between items-center gap-4 mb-8 flex-col lg:flex-row">
+        <h2 className="text-2xl font-bold text-left">Plans & Pricing</h2>
         <div className="flex items-center gap-2">
           <button
             className="px-4 py-2 rounded-2xl border border-purple-600 font-semibold bg-black text-white hover:bg-purple-700 transition-colors duration-200 focus:outline-none"
@@ -173,28 +173,30 @@ const Plans = () => {
               "Billing History"
             )}
           </button>
-          <button
-            className={`px-4 py-2 rounded-l-full border border-blue-600 font-semibold focus:outline-none transition-colors duration-200 ${
-              billing === "monthly"
-                ? "bg-blue-600 text-white"
-                : "bg-white text-blue-600"
-            }`}
-            onClick={() => setBilling("monthly")}
-            disabled={upgradingPlanId !== null}
-          >
-            Monthly
-          </button>
-          <button
-            className={`px-4 py-2 rounded-r-full border border-blue-600 font-semibold focus:outline-none transition-colors duration-200 ${
-              billing === "yearly"
-                ? "bg-blue-600 text-white"
-                : "bg-white text-blue-600"
-            }`}
-            onClick={() => setBilling("yearly")}
-            disabled={upgradingPlanId !== null}
-          >
-            Yearly
-          </button>
+          <div className="flex items-center">
+            <button
+              className={`px-4 py-2 rounded-l-full border border-blue-600 font-semibold focus:outline-none transition-colors duration-200 ${
+                billing === "monthly"
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-blue-600"
+              }`}
+              onClick={() => setBilling("monthly")}
+              disabled={upgradingPlanId !== null}
+            >
+              Monthly
+            </button>
+            <button
+              className={`px-4 py-2 rounded-r-full border border-blue-600 font-semibold focus:outline-none transition-colors duration-200 ${
+                billing === "yearly"
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-blue-600"
+              }`}
+              onClick={() => setBilling("yearly")}
+              disabled={upgradingPlanId !== null}
+            >
+              Yearly
+            </button>
+          </div>
         </div>
       </div>
 

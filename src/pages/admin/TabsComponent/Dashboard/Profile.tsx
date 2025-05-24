@@ -550,7 +550,7 @@ const Profile = () => {
 
       <div
         style={{ backgroundColor: "#eaefff" }}
-        className="col-span-1 lg:col-span-2"
+        className="col-span-1 lg:col-span-2 hidden lg:block"
       >
         <div
           className="mx-auto"

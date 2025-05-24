@@ -208,16 +208,16 @@ const Payments = () => {
   const currentTransactions = transactions.slice(startIndex, endIndex);
 
   return (
-    <div className="container flex h-full w-full bg-white">
+    <div className="container flex flex-col lg:flex-row min-h-screen w-full bg-white">
       {/* Payment Methods Configuration */}
-      <div className="w-1/2 p-6 overflow-y-auto h-screen overflow-y-auto">
-        <div className=" bg-white pb-4 z-10">
+      <div className="w-full lg:w-1/2 p-4 lg:p-6 overflow-y-auto lg:h-screen min-h-[50vh]">
+        <div className="bg-white pb-4 z-10">
           <h2 className="text-xl font-bold text-black">Payment Methods</h2>
         </div>
 
         <div className="space-y-6 mt-4 pb-20">
           {/* Currency and Preferred Method Selection */}
-          <div className="flex space-x-4 ">
+          <div className="flex flex-col lg:flex-row lg:space-x-4 space-y-4 lg:space-y-0">
             <div>
               <label className="block text-sm text-gray-600 mb-1">
                 Currency
@@ -225,7 +225,7 @@ const Payments = () => {
               <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className="border border-gray-300 rounded px-3 py-2 w-32 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="border border-gray-300 rounded px-3 py-2 w-full lg:w-32 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="USD">USD</option>
                 <option value="AED">AED</option>
@@ -240,7 +240,7 @@ const Payments = () => {
               <select
                 value={preferredMethod}
                 onChange={(e) => setPreferredMethod(e.target.value)}
-                className="border border-gray-300 rounded px-3 py-2 w-32 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="border border-gray-300 rounded px-3 py-2 w-full lg:w-32 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="Stripe" disabled={!stripeEnabled}>
                   Stripe
@@ -482,8 +482,8 @@ const Payments = () => {
       </div>
 
       {/* Payments Log */}
-      <div className="w-1/2 bg-blue-500 p-6 overflow-y-auto h-screen">
-        <div className=" z-10 bg-blue-500 pb-4 ">
+      <div className="w-full lg:w-1/2 bg-blue-500 p-4 lg:p-6 overflow-y-auto lg:h-screen min-h-[50vh] hidden lg:block">
+        <div className="z-10 bg-blue-500 pb-4">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-white">Payments Log</h2>
             <button

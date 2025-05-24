@@ -1,7 +1,7 @@
 import React, { useState, ChangeEvent, useEffect } from "react";
-import { useBotConfig } from "../../../store/useBotConfig";
+import { useBotConfig } from "../../../../store/useBotConfig";
 import toast from "react-hot-toast";
-import { getAgentPolicies } from "../../../lib/serverActions";
+import { getAgentPolicies } from "../../../../lib/serverActions";
 
 interface Policy {
   id: string;
@@ -149,12 +149,12 @@ const Policies = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full">
         {/* Sidebar */}
-        <div className="col-span-4 space-y-3">
+        <div className="md:col-span-4 space-y-3">
           {isLoading ? (
-            <div className="col-span-8 flex items-center justify-center h-64">
-              <span className="text-gray-500">Loading policies...</span>
+            <div className="flex items-center justify-center h-64 text-gray-500">
+              Loading policies...
             </div>
           ) : (
             policies.map((policy) => (
@@ -181,9 +181,7 @@ const Policies = () => {
                     className="sr-only peer"
                     onClick={(e) => e.stopPropagation()}
                   />
-                  <div
-                    className={`w-11 h-6 bg-gray-200 rounded-full relative transition-colors duration-200 peer-focus:outline-none peer-checked:bg-green-400`}
-                  >
+                  <div className="w-11 h-6 bg-gray-200 rounded-full relative transition-colors duration-200 peer-checked:bg-green-400">
                     <div
                       className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
                         policy.enabled ? "translate-x-5" : ""
@@ -197,30 +195,9 @@ const Policies = () => {
         </div>
 
         {/* Main Panel */}
-        <div className="col-span-8">
+        <div className="md:col-span-8">
           <div className="bg-blue-50 rounded-lg p-6">
             <div className="space-y-4">
-              {/* File Upload */}
-              {/* <div className="flex items-center space-x-2">
-                <div className="flex-1">
-                  <input
-                    type="file"
-                    onChange={handleFileChange}
-                    className="hidden"
-                    id="policy-file"
-                  />
-                  <label
-                    htmlFor="policy-file"
-                    className="inline-block px-4 py-2 bg-white border border-gray-200 rounded-l-lg text-sm cursor-pointer hover:bg-gray-50"
-                  >
-                    Upload File
-                  </label>
-                  <button className="px-4 py-2 bg-green-500 text-white rounded-r-lg text-sm hover:bg-green-600 transition-colors">
-                    UPLOAD
-                  </button>
-                </div>
-              </div> */}
-
               {/* Text Input */}
               <div>
                 <div className="text-sm text-gray-600 mb-2">

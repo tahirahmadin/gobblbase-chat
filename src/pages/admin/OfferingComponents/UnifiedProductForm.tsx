@@ -149,24 +149,24 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
   const getTitle = () => {
     switch (type) {
       case "digitalProduct":
-        return "Product Name *";
+        return "Product";
       case "physicalProduct":
-        return "Product Name *";
+        return "Product";
       case "Service":
-        return "Service Name *";
+        return "Service";
       case "Event":
-        return "Event Name *";
+        return "Event";
       default:
-        return "Name *";
+        return "Name";
     }
   };
 
   return (
-    <div className="bg-[#e7eafe] rounded-2xl p-4 mx-auto w-full">
+    <div className="bg-[#e7eafe] rounded-2xl p-4 mx-auto w-full ">
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Left Side */}
-        <div className="flex-1 flex flex-col gap-2 min-w-0">
-          <label className="font-semibold">{getTitle()}</label>
+        <div className="flex-1 flex flex-col gap-2 min-w-0 ">
+          <label className="font-semibold">{getTitle()} Name*</label>
           <input
             maxLength={50}
             value={form.title || ""}
@@ -179,7 +179,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
             className={`w-full border ${
               errors.title ? "border-red-500" : "border-gray-300"
             } rounded p-2 mt-1 mb-1 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white`}
-            placeholder={`Type title...`}
+            placeholder={`Type ${getTitle()} title...`}
           />
           <div className="flex justify-between">
             <div className="text-xs text-red-500">{errors.title}</div>
@@ -423,7 +423,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
         </div>
 
         {/* Right Side */}
-        <div className="flex-1 flex flex-col gap-4 min-w-0">
+        <div className="flex-1 flex flex-col gap-4 min-w-0 ">
           {/* Digital Product Specific */}
           {type === "digitalProduct" && (
             <div className="p-4 rounded-lg border border-indigo-200 bg-white mb-2">
@@ -502,7 +502,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
 
           {/* Event Specific */}
           {type === "Event" && (
-            <div className="mb-2 p-4 rounded-xl border border-indigo-300 bg-[#dbeafe]">
+            <div className="p-4 rounded-xl border border-indigo-200 bg-[#ffffff]">
               <label className="font-semibold block mb-2">Set Slots</label>
 
               {(form.slots || []).map((slot, index) => (
@@ -679,7 +679,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
 
           {/* Service Specific */}
           {type === "Service" && (
-            <div className="mb-2 p-4 rounded-lg border border-indigo-200 bg-white">
+            <div className=" p-4 rounded-lg border border-indigo-200 bg-white">
               <label className="font-semibold block mb-2">Location</label>
               <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-2">
@@ -724,7 +724,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           {/* Physical Product Specific Quantity Section */}
           {type !== "Event" &&
             (type === "physicalProduct" ? (
-              <div className="bg-white border border-indigo-300 rounded-xl p-4 mb-4">
+              <div className="bg-white border border-indigo-200 rounded-xl p-4">
                 <label className="block font-semibold mb-2">Quantity</label>
                 <div className="flex flex-col gap-3">
                   <label className="flex items-center gap-2">
@@ -820,12 +820,12 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       className="accent-gray-500 w-5 h-5 mt-1"
                     />
                     <span className="font-medium mt-1">Varied Sizes</span>
-                    <div className="grid grid-cols-2 gap-2 ml-2">
+                    <div className="grid grid-cols-1 gap-2 ml-2">
                       {sizeOptions.map((size) => (
                         <div key={size} className="flex flex-row items-center">
                           <button
                             type="button"
-                            className={`border rounded px-4 py-1 text-xs font-semibold mb-1 w-16 ${
+                            className={`border rounded px-4 py-1 text-xs font-semibold w-16 ${
                               form.variedSizes?.includes(size)
                                 ? "bg-indigo-200 border-indigo-500 font-bold"
                                 : "bg-white border-gray-300"
@@ -915,7 +915,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
               </div>
             ) : (
               // Default/Common Quantity Section for other types
-              <div className="mb-2 p-4 rounded-lg border bg-white">
+              <div className="p-4 rounded-lg border bg-white">
                 <label className="font-semibold block mb-2">Quantity</label>
                 <div className="flex flex-col gap-2">
                   <label className="flex items-center gap-2">
@@ -999,7 +999,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
               </div>
             ))}
 
-          <div className="mb-2 p-4 rounded-lg border border-indigo-200 bg-white">
+          <div className="p-4 rounded-lg border border-indigo-200 bg-white">
             <label className="font-semibold block mb-2">Set Price *</label>
             <div className="flex flex-col items-start gap-4">
               <label className="flex items-center gap-2">
@@ -1060,7 +1060,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
             </div>
           </div>
 
-          <div className="mb-2 p-4 rounded-lg border border-indigo-200 bg-white">
+          <div className="p-4 rounded-lg border border-indigo-200 bg-white">
             <label className="font-semibold block mb-2">CTA Button*</label>
             <input
               className="border border-gray-300 rounded p-2 w-full"
