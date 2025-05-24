@@ -125,15 +125,17 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
   };
 
   return (
-    <div className="rounded-2xl p-4 mt-2 mx-auto">
-      <div className="flex flex-col justify-start items-start mb-6">
+    <div className="rounded-2xl p-2 lg:p-4 mx-auto">
+      <div className="flex flex-col justify-start items-start mb-2">
         <button
           onClick={onBack}
           className="text-gray-600 hover:text-gray-800 flex items-center gap-2"
         >
           ← Back to Form
         </button>
-        <h2 className="text-2xl font-semibold text-gray-900">Checkout</h2>
+        <h2 className="text-xl lg:text-2xl font-semibold text-gray-900">
+          Checkout
+        </h2>
       </div>
       <div className="flex flex-col md:flex-row gap-4">
         {/* <div className="flex-1">
@@ -153,7 +155,7 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
           </div>
         </div> */}
         <div className="flex-1">
-          <div className="font-semibold mb-2">Confirmation Email</div>
+          <div className="font-semibold mb-1">Confirmation Email</div>
           {emailTemplatesLoading && (
             <div className="p-2">Loading template...</div>
           )}
@@ -178,22 +180,22 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
                   type="text"
                   value={localTemplate.subject}
                   onChange={(e) => handleInputChange("subject", e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+                  className="w-full border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-xs lg:text-sm"
                 />
               </div>
               <div className="mb-2">
                 <label className="block text-sm font-medium mb-1">Body</label>
 
                 <div className="border border-blue-300 rounded-md bg-white">
-                  <div className="p-4">
+                  <div className="p-3">
                     <div className="mb-4">
-                      <div className="whitespace-pre-line text-gray-700 mb-2">
+                      <div className="whitespace-pre-line text-gray-700 mb-2 text-xs lg:text-sm">
                         {localTemplate.body1}
                       </div>
                     </div>
 
                     <div className="mb-4">
-                      <label className="block text-sm font-medium mb-1">
+                      <label className="block text-xs lg:text-sm font-medium mb-1">
                         Custom Message
                       </label>
                       <textarea
@@ -201,13 +203,13 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
                         onChange={(e) =>
                           handleInputChange("body2", e.target.value)
                         }
-                        className="w-full min-h-[120px] border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+                        className="w-full min-h-[80px] border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-xs lg:text-sm"
                         placeholder="Type your message..."
                       />
                     </div>
 
                     <div className="mb-4">
-                      <div className="whitespace-pre-line text-gray-700">
+                      <div className="whitespace-pre-line text-gray-700 text-xs lg:text-sm">
                         {localTemplate.body3}
                       </div>
                     </div>
