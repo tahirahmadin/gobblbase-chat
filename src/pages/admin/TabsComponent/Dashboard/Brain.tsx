@@ -52,7 +52,7 @@ const Icon = styled.button`
 const Button = styled.button`
   position: relative;
   background: #4d65ff;
-  padding: 1vh 2vw;
+  padding: 0.6vh 3vw;
   border: 2px solid black;
   cursor: pointer;
   transition: background 0.3s;
