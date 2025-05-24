@@ -10,6 +10,7 @@ import { useBotConfig } from "../../../store/useBotConfig";
 import { useUserStore } from "../../../store/useUserStore";
 import toast from "react-hot-toast";
 import { CreditCard, Wallet } from "lucide-react";
+import { backendApiUrl } from "../../../utils/constants";
 
 interface PaymentSectionProps {
   theme: {
@@ -266,13 +267,14 @@ export function PaymentSection({
   // Check if any payment method is enabled
   const availablePaymentMethods = useMemo(() => {
     if (!activeBotData?.paymentMethods) return [];
-    
+
     const methods = [];
-    if (activeBotData.paymentMethods.stripe?.enabled) methods.push('stripe');
-    if (activeBotData.paymentMethods.razorpay?.enabled) methods.push('razorpay');
-    if (activeBotData.paymentMethods.usdt?.enabled) methods.push('usdt');
-    if (activeBotData.paymentMethods.usdc?.enabled) methods.push('usdc');
-    
+    if (activeBotData.paymentMethods.stripe?.enabled) methods.push("stripe");
+    if (activeBotData.paymentMethods.razorpay?.enabled)
+      methods.push("razorpay");
+    if (activeBotData.paymentMethods.usdt?.enabled) methods.push("usdt");
+    if (activeBotData.paymentMethods.usdc?.enabled) methods.push("usdc");
+
     return methods;
   }, [activeBotData?.paymentMethods]);
 
@@ -280,7 +282,10 @@ export function PaymentSection({
 
   // Auto-select first available payment method
   useEffect(() => {
-    if (availablePaymentMethods.length > 0 && !availablePaymentMethods.includes(selectedMethod)) {
+    if (
+      availablePaymentMethods.length > 0 &&
+      !availablePaymentMethods.includes(selectedMethod)
+    ) {
       setSelectedMethod(availablePaymentMethods[0] as PaymentMethod);
     }
   }, [availablePaymentMethods, selectedMethod]);
@@ -293,7 +298,7 @@ export function PaymentSection({
     setFreeOrderError(null);
     try {
       const response = await fetch(
-        "https://rag.gobbl.ai/product/createFreeProductOrder",
+        `${backendApiUrl}/product/createFreeProductOrder`,
         {
           method: "POST",
           headers: {
@@ -370,7 +375,7 @@ export function PaymentSection({
       try {
         console.log("Creating payment intent for product:", product);
         const response = await fetch(
-          "https://rag.gobbl.ai/product/create-payment-intent",
+          `${backendApiUrl}/product/create-payment-intent`,
           {
             method: "POST",
             headers: {
@@ -531,12 +536,12 @@ export function PaymentSection({
   if (!hasEnabledPaymentMethods) {
     return (
       <div className="p-4" style={{ paddingBottom: "100px" }}>
-        <div 
+        <div
           className="p-4 rounded-lg border border-red-300 bg-red-50 text-center"
-          style={{ 
-            backgroundColor: theme.isDark ? '#2d1b1b' : '#fef2f2',
-            borderColor: '#ef4444',
-            color: theme.isDark ? '#fca5a5' : '#dc2626'
+          style={{
+            backgroundColor: theme.isDark ? "#2d1b1b" : "#fef2f2",
+            borderColor: "#ef4444",
+            color: theme.isDark ? "#fca5a5" : "#dc2626",
           }}
         >
           <div className="mb-2">
@@ -544,8 +549,8 @@ export function PaymentSection({
           </div>
           <h3 className="font-semibold mb-2">Payment Methods Not Available</h3>
           <p className="text-sm">
-            No payment methods are currently enabled for this store. 
-            Please contact the store administrator to enable payment options.
+            No payment methods are currently enabled for this store. Please
+            contact the store administrator to enable payment options.
           </p>
         </div>
       </div>
@@ -560,7 +565,7 @@ export function PaymentSection({
 
       {/* Payment Method Selection - Only show enabled methods */}
       <div className="flex gap-2 mb-4 pb-10">
-        {availablePaymentMethods.includes('stripe') && (
+        {availablePaymentMethods.includes("stripe") && (
           <button
             onClick={() => setSelectedMethod("stripe")}
             className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${
@@ -573,8 +578,8 @@ export function PaymentSection({
             <span>Credit Card</span>
           </button>
         )}
-        
-        {availablePaymentMethods.includes('razorpay') && (
+
+        {availablePaymentMethods.includes("razorpay") && (
           <button
             onClick={() => setSelectedMethod("razorpay")}
             className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${
@@ -587,8 +592,8 @@ export function PaymentSection({
             <span>Razorpay</span>
           </button>
         )}
-        
-        {availablePaymentMethods.includes('usdt') && (
+
+        {availablePaymentMethods.includes("usdt") && (
           <button
             onClick={() => setSelectedMethod("usdt")}
             className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${
@@ -601,8 +606,8 @@ export function PaymentSection({
             <span>USDT</span>
           </button>
         )}
-        
-        {availablePaymentMethods.includes('usdc') && (
+
+        {availablePaymentMethods.includes("usdc") && (
           <button
             onClick={() => setSelectedMethod("usdc")}
             className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${
@@ -619,11 +624,13 @@ export function PaymentSection({
 
       {/* Show info about available payment methods */}
       {hasEnabledPaymentMethods && (
-        <div className="mb-4 text-sm" style={{ color: theme.isDark ? "#ccc" : "#666" }}>
-          {availablePaymentMethods.length === 1 
+        <div
+          className="mb-4 text-sm"
+          style={{ color: theme.isDark ? "#ccc" : "#666" }}
+        >
+          {availablePaymentMethods.length === 1
             ? `Only ${availablePaymentMethods[0].toUpperCase()} payment is available.`
-            : `${availablePaymentMethods.length} payment methods available.`
-          }
+            : `${availablePaymentMethods.length} payment methods available.`}
         </div>
       )}
 

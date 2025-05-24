@@ -15,6 +15,7 @@ import { useAdminStore } from "../../../../store/useAdminStore";
 import { useBotConfig } from "../../../../store/useBotConfig";
 import { updateAgentBrain } from "../../../../lib/serverActions";
 import { calculateSmartnessLevel } from "../../../../utils/helperFn";
+import { backendApiUrl } from "../../../../utils/constants";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
 
@@ -751,7 +752,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       // You need to implement this function in your serverActions.js
       // It should call your backend API that handles content extraction from URLs
       const extractionResponse = await fetch(
-        "https://rag.gobbl.ai/content/extract",
+        `${backendApiUrl}/content/extract`,
         {
           method: "POST",
           headers: {

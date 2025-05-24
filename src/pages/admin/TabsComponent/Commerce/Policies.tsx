@@ -2,6 +2,7 @@ import React, { useState, ChangeEvent, useEffect } from "react";
 import { useBotConfig } from "../../../../store/useBotConfig";
 import toast from "react-hot-toast";
 import { getAgentPolicies } from "../../../../lib/serverActions";
+import { backendApiUrl } from "../../../../utils/constants";
 
 interface Policy {
   id: string;
@@ -111,7 +112,7 @@ const Policies = () => {
     const selected = policies.find((p) => p.id === activePolicy);
     const enabled = selected ? selected.enabled : false;
     try {
-      const res = await fetch("https://rag.gobbl.ai/client/updateAgentPolicy", {
+      const res = await fetch(`${backendApiUrl}/client/updateAgentPolicy`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useBotConfig } from "../../store/useBotConfig";
 import { toast } from "react-hot-toast";
 import { Download, RefreshCw } from "lucide-react";
+import { backendApiUrl } from "../../utils/constants";
 
 interface Lead {
   id: string;
@@ -29,7 +30,7 @@ const LeadsList: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `https://rag.gobbl.ai/form/get-leads/${activeBotId}`
+        `${backendApiUrl}/form/get-leads/${activeBotId}`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch leads");
@@ -55,7 +56,7 @@ const LeadsList: React.FC = () => {
     }
     try {
       const response = await fetch(
-        `https://rag.gobbl.ai/form/export-leads/${activeBotId}`,
+        `${backendApiUrl}/form/export-leads/${activeBotId}`,
         {
           method: "GET",
         }

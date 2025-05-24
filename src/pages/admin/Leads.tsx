@@ -3,6 +3,7 @@ import { useBotConfig } from "../../store/useBotConfig";
 import { toast } from "react-hot-toast";
 import { Plus, Trash2, User, Mail, Phone, MessageSquare } from "lucide-react";
 import LeadsList from "./LeadsList";
+import { backendApiUrl } from "../../utils/constants";
 
 interface FormField {
   id: string;
@@ -112,7 +113,7 @@ const Leads: React.FC = () => {
       return;
     }
     try {
-      const response = await fetch("https://rag.gobbl.ai/form/create-form", {
+      const response = await fetch(`${backendApiUrl}/form/create-form`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

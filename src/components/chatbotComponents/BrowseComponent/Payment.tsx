@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import { useCartStore } from "../../../store/useCartStore";
 import { useBotConfig } from "../../../store/useBotConfig";
 import { useUserStore } from "../../../store/useUserStore";
+import { backendApiUrl } from "../../../utils/constants";
 
 interface PaymentProps {
   onBack: () => void;
@@ -147,7 +148,7 @@ const Payment: React.FC<PaymentProps> = ({
       setIsLoading(true);
       try {
         const response = await fetch(
-          "https://rag.gobbl.ai/product/create-payment-intent",
+          `${backendApiUrl}/product/create-payment-intent`,
           {
             method: "POST",
             headers: {

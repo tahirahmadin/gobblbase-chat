@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { extractContentFromURL } from "../../lib/serverActions";
+import { backendApiUrl } from "../../utils/constants";
 
 interface PersonalityAnalysis {
   dominantTrait: string;
@@ -274,7 +275,7 @@ const PersonalityAnalyzer: React.FC<PersonalityAnalyzerProps> = ({
   useEffect(() => {
     const check = async () => {
       try {
-        const res = await fetch("https://rag.gobbl.ai/content/health");
+        const res = await fetch(`${backendApiUrl}/content/health`);
         setBackendStatus(res.ok ? "online" : "offline");
       } catch (error) {
         console.error("Error checking backend status:", error);
