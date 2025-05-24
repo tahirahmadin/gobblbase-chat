@@ -767,10 +767,17 @@ export async function updateUnavailableDates(
     endTime: string;
     allDay: boolean;
     timezone?: string;
+    timeSlots?: Array<{start: string, end: string}>; 
   }>,
   datesToMakeAvailable?: string[]
 ): Promise<any> {
   try {
+    console.log("updateUnavailableDates called with:", {
+      agentId,
+      unavailableDates,
+      datesToMakeAvailable
+    });
+
     const response = await axios.post(
       "https://rag.gobbl.ai/appointment/update-unavailable-dates",
       {
@@ -779,10 +786,26 @@ export async function updateUnavailableDates(
         datesToMakeAvailable,
       }
     );
-    if (response.data.error) throw new Error(response.data.error);
+    
+    console.log("API response:", response.data);
+    
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+    
     return response.data.result;
   } catch (error) {
     console.error("Error updating unavailable dates:", error);
+    
+    // Log more details about the error
+    if (axios.isAxiosError(error)) {
+      console.error("Axios error details:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+    }
+    
     throw error;
   }
 }

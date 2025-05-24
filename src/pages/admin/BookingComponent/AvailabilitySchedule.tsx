@@ -20,7 +20,8 @@ import {
   Check,
   X,
   Globe,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Plus
 } from "lucide-react";
 import { useBotConfig } from "../../../store/useBotConfig";
 import {
@@ -68,12 +69,17 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
   const [userTimezone, setUserTimezone] = useState(
     Intl.DateTimeFormat().resolvedOptions().timeZone
   );
-  const [workingHours, setWorkingHours] = useState({ start: "09:00", end: "17:00" });
+  const [workingHours, setWorkingHours] = useState([{ start: "09:00", end: "17:00" }]);
   const [isEditingHours, setIsEditingHours] = useState(false);
   const [scheduledSlots, setScheduledSlots] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState(null);
+  const [weeklyAvailability, setWeeklyAvailability] = useState([]);
+  
+  // FIXED: Add meeting duration state
+  const [meetingDuration, setMeetingDuration] = useState(30);
+  const [bufferTime, setBufferTime] = useState(10);
 
   const formatDateForApi = (d) => {
     const day = d.getDate().toString().padStart(2, "0");
@@ -109,6 +115,43 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
     }).format(selectedDay.dateObj);
   };
 
+  // FIXED: Helper function to generate time options based on meeting duration
+  const generateTimeOptions = (startHour = 0, endHour = 24) => {
+    const times = [];
+    const increment = meetingDuration >= 60 ? 60 : meetingDuration;
+    
+    for (let hour = startHour; hour < endHour; hour++) {
+      for (let minute = 0; minute < 60; minute += increment) {
+        const timeString = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+        times.push(timeString);
+      }
+    }
+    
+    return times;
+  };
+
+  // Helper function to get time slots for a specific day
+  const getTimeSlotsForDay = (dayName, weeklyRules) => {
+    const rule = weeklyRules.find((w) => w.day === dayName);
+    if (rule && rule.available && rule.timeSlots && rule.timeSlots.length > 0) {
+      return rule.timeSlots.map(slot => ({
+        start: slot.startTime,
+        end: slot.endTime
+      }));
+    }
+    return [{ start: "09:00", end: "17:00" }]; // Default fallback
+  };
+
+  // Helper function to format multiple time slots for display
+  const formatTimeSlots = (timeSlots) => {
+    if (!timeSlots || timeSlots.length === 0) {
+      return "9:00am - 5:00pm";
+    }
+    return timeSlots.map(slot => 
+      `${formatTime12(slot.start)} - ${formatTime12(slot.end)}`
+    ).join(", ");
+  };
+
   const loadScheduleData = async () => {
     if (!activeAgentId) return;
     setIsLoading(true);
@@ -116,13 +159,26 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
       // Get appointment settings
       const settings = await getAppointmentSettings(activeAgentId);
       const unavailableDatesData = settings.unavailableDates || [];
-      const weekly = settings.availability;
-
-      // If settings has a timezone, use it as the business timezone
+      const weekly = settings.availability || [];
+  
+      console.log("📥 Loaded settings with unavailable dates:", unavailableDatesData);
+      console.log("📥 Settings object:", settings);
+  
+      // FIXED: Load meeting duration and buffer time
+      if (settings.meetingDuration) {
+        setMeetingDuration(settings.meetingDuration);
+      }
+      if (settings.bufferTime !== undefined) {
+        setBufferTime(settings.bufferTime);
+      }
+  
+      // Store weekly availability for reference
+      setWeeklyAvailability(weekly);
+  
       if (settings.timezone) {
         setUserTimezone(settings.timezone);
       }
-
+  
       // Fetch bookings for the current month
       const bookings = await getBookings(activeAgentId);
       
@@ -130,7 +186,6 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
       const bookingsByDate = {};
       if (bookings && bookings.length > 0) {
         bookings.forEach(booking => {
-          // Format date to match our date format
           if (booking.status === 'cancelled') return;
           
           const bookingDate = new Date(booking.date);
@@ -147,72 +202,96 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
           });
         });
       }
-
+  
       const days = [];
       const startOfCalendar = new Date(
         currentMonth.getFullYear(),
         currentMonth.getMonth(),
         1
       );
-      const totalCells = 35; // 5 rows x 7 days
+      const totalCells = 35;
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-
+  
       for (let i = 0; i < totalCells; i++) {
         const dateObj = new Date(startOfCalendar);
         dateObj.setDate(startOfCalendar.getDate() + i);
         const apiDate = formatDateForApi(dateObj);
-
-        // Use the business timezone for determining day of week
+  
         const dayName = new Intl.DateTimeFormat("en-US", {
           weekday: "long",
           timeZone: settings.timezone || userTimezone,
         }).format(dateObj);
-
+  
         const rule = weekly.find((w) => w.day === dayName);
-
+  
         let available = true;
-        let timeSlot = "9:00am - 5:00pm";
-        let startTime = "09:00";
-        let endTime = "17:00";
+        let timeSlots = [];
         let isApiUnavailable = false;
         let allDay = false;
-
+  
         // Apply weekly rule if exists
         if (rule) {
           if (rule.available && rule.timeSlots && rule.timeSlots.length > 0) {
-            const slot = rule.timeSlots[0];
-            startTime = slot.startTime;
-            endTime = slot.endTime;
-            timeSlot = `${formatTime12(startTime)} - ${formatTime12(endTime)}`;
+            timeSlots = rule.timeSlots.map(slot => ({
+              start: slot.startTime,
+              end: slot.endTime
+            }));
           } else {
             available = false;
             isApiUnavailable = true;
           }
+        } else {
+          timeSlots = [{ start: "09:00", end: "17:00" }];
         }
-
+  
         // Override with date-specific unavailability if exists
         const unavailableData = unavailableDatesData.find(
           (item) => item.date === apiDate
         );
-
+  
         if (unavailableData) {
+          console.log(`🔍 Found unavailable data for ${apiDate}:`, unavailableData);
+          
           allDay = !!unavailableData.allDay;
           available = !allDay;
-
-          if (unavailableData.startTime && unavailableData.endTime) {
-            startTime = unavailableData.startTime;
-            endTime = unavailableData.endTime;
-            timeSlot = `${formatTime12(startTime)} - ${formatTime12(endTime)}`;
+  
+          if (!allDay) {
+            // FIXED: Handle multiple time slots from API response with better data processing
+            if (unavailableData.timeSlots && Array.isArray(unavailableData.timeSlots) && unavailableData.timeSlots.length > 0) {
+              // Handle both old and new format
+              timeSlots = unavailableData.timeSlots.map(slot => {
+                // Handle different formats:
+                // New format: { startTime: "09:00", endTime: "18:00" }
+                // Old format: { start: "09:00", end: "18:00" }
+                // Mixed format: { _id: "...", start: "09:00", end: "18:00" }
+                
+                const startTime = slot.startTime || slot.start;
+                const endTime = slot.endTime || slot.end;
+                
+                return {
+                  start: startTime,
+                  end: endTime
+                };
+              }).filter(slot => slot.start && slot.end); // Filter out invalid slots
+              
+              console.log(`✅ Loaded ${timeSlots.length} time slots for ${apiDate}:`, 
+                timeSlots.map(slot => `${slot.start}-${slot.end}`).join(', '));
+            } else if (unavailableData.startTime && unavailableData.endTime) {
+              // Fallback to single slot
+              timeSlots = [{
+                start: unavailableData.startTime,
+                end: unavailableData.endTime
+              }];
+              console.log(`📍 Loaded single time slot for ${apiDate}:`, timeSlots[0]);
+            }
           }
         }
-
+  
         const isPast = dateObj < today;
         const isToday = dateObj.toDateString() === today.toDateString();
-        
-        // Check if this date has bookings
         const hasBookings = bookingsByDate[apiDate] && bookingsByDate[apiDate].length > 0;
-
+  
         days.push({
           apiDate,
           dateObj,
@@ -222,36 +301,39 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
             day: "numeric",
           }).format(dateObj),
           available,
-          timeSlot,
+          timeSlots,
+          timeSlot: formatTimeSlots(timeSlots),
           isApiUnavailable,
           isDisabled: isPast || isApiUnavailable,
           hasCustomHours: (unavailableData && !allDay) || false,
-          isModified: false,
-          originalTimeSlot: timeSlot,
+          isModified: false, // Reset modification flag after loading
+          originalTimeSlots: JSON.parse(JSON.stringify(timeSlots)), // Deep copy
           originalAvailable: available,
           allDay: allDay,
-          startTime,
-          endTime,
+          dayName,
           isToday,
           hasBookings,
           bookings: bookingsByDate[apiDate] || []
         });
       }
-
+  
+      console.log("📊 Generated schedule days:", days.length);
       setScheduleDays(days);
       
-      // If a day is already selected, update its data
+      // FIXED: If a day is already selected, update its data properly and exit editing mode
       if (selectedDay) {
         const updatedSelectedDay = days.find(
           (day) => day.apiDate === selectedDay.apiDate
         );
         if (updatedSelectedDay) {
+          console.log(`🔄 Updating selected day ${selectedDay.apiDate} with new data:`, updatedSelectedDay.timeSlots);
+          
           setSelectedDay(updatedSelectedDay);
-          setWorkingHours({
-            start: updatedSelectedDay.startTime,
-            end: updatedSelectedDay.endTime
-          });
+          setWorkingHours(JSON.parse(JSON.stringify(updatedSelectedDay.timeSlots)) || [{ start: "09:00", end: "17:00" }]);
           setScheduledSlots(updatedSelectedDay.bookings || []);
+          
+          // Force exit editing mode to show updated data
+          setIsEditingHours(false);
         }
       }
     } catch (e) {
@@ -269,10 +351,7 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
     // Update scheduled slots when a day is selected
     if (selectedDay) {
       setScheduledSlots(selectedDay.bookings || []);
-      setWorkingHours({
-        start: selectedDay.startTime,
-        end: selectedDay.endTime
-      });
+      setWorkingHours(JSON.parse(JSON.stringify(selectedDay.timeSlots)) || [{ start: "09:00", end: "17:00" }]);
     }
   }, [selectedDay]);
 
@@ -333,11 +412,9 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
     if (day.isDisabled) return;
     setSelectedDay(day);
     setSelectedDate(day.dateObj);
-    setWorkingHours({
-      start: day.startTime,
-      end: day.endTime
-    });
+    setWorkingHours(JSON.parse(JSON.stringify(day.timeSlots)) || [{ start: "09:00", end: "17:00" }]);
     setScheduledSlots(day.bookings || []);
+    setIsEditingHours(false); // Reset editing state when selecting a new day
   };
 
   const handleEditHours = () => {
@@ -345,56 +422,197 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
   };
 
   const handleSaveHours = () => {
+    console.log("handleSaveHours called");
+    console.log("Current working hours:", workingHours);
+    console.log("Selected day:", selectedDay);
+    
     setIsEditingHours(false);
     
     // Update the working hours for the selected day
     if (selectedDay) {
-      setScheduleDays(prev => 
-        prev.map(day => {
+      console.log("Updating schedule days...");
+      
+      setScheduleDays(prev => {
+        const updated = prev.map(day => {
           if (day.apiDate === selectedDay.apiDate) {
-            return {
+            const updatedDay = {
               ...day,
-              startTime: workingHours.start,
-              endTime: workingHours.end,
-              timeSlot: `${formatTime12(workingHours.start)} - ${formatTime12(workingHours.end)}`,
+              timeSlots: JSON.parse(JSON.stringify(workingHours)), // Deep copy
+              timeSlot: formatTimeSlots(workingHours),
               isModified: true,
               hasCustomHours: true
             };
+            
+            console.log(`Updated day ${day.apiDate}:`, updatedDay);
+            return updatedDay;
           }
           return day;
-        })
-      );
+        });
+        
+        console.log("All schedule days after update:", updated);
+        return updated;
+      });
       
       // Update the selected day
       setSelectedDay(prev => {
         if (prev) {
-          return {
+          const updatedSelectedDay = {
             ...prev,
-            startTime: workingHours.start,
-            endTime: workingHours.end,
-            timeSlot: `${formatTime12(workingHours.start)} - ${formatTime12(workingHours.end)}`,
+            timeSlots: JSON.parse(JSON.stringify(workingHours)), // Deep copy
+            timeSlot: formatTimeSlots(workingHours),
             isModified: true,
             hasCustomHours: true
           };
+          
+          console.log("Updated selected day:", updatedSelectedDay);
+          return updatedSelectedDay;
         }
         return prev;
       });
+      
+      console.log("Hours saved successfully");
+    } else {
+      console.log("No selected day to update");
     }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingHours(false);
+    // FIXED: Reset working hours to original values (deep copy)
+    if (selectedDay) {
+      setWorkingHours(JSON.parse(JSON.stringify(selectedDay.timeSlots)) || [{ start: "09:00", end: "17:00" }]);
+    }
+  };
+
+  // FIXED: Add new time slot with proper meeting duration consideration
+  const addTimeSlot = () => {
+    const lastSlot = workingHours[workingHours.length - 1];
+    const lastEndTime = lastSlot.end;
+    
+    // Calculate next start time based on buffer
+    const allTimes = generateTimeOptions(0, 24);
+    const lastEndIndex = allTimes.indexOf(lastEndTime);
+    
+    if (lastEndIndex >= 0 && lastEndIndex < allTimes.length - 1) {
+      const newStartTime = lastEndTime; // Start immediately after the last slot
+      
+      // Calculate end time based on meeting duration
+      const increment = meetingDuration >= 60 ? 60 : meetingDuration;
+      const startIndex = allTimes.indexOf(newStartTime);
+      const slotsNeeded = Math.ceil(meetingDuration / increment);
+      const endIndex = Math.min(startIndex + slotsNeeded, allTimes.length);
+      const newEndTime = endIndex < allTimes.length ? allTimes[endIndex] : "24:00";
+      
+      if (newStartTime < "24:00" && newEndTime <= "24:00") {
+        setWorkingHours(prev => [
+          ...prev,
+          {
+            start: newStartTime,
+            end: newEndTime
+          }
+        ]);
+      }
+    }
+  };
+
+  // Remove time slot
+  const removeTimeSlot = (index) => {
+    if (workingHours.length > 1) {
+      setWorkingHours(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  // FIXED: Update specific time slot with proper meeting duration consideration
+  const updateTimeSlot = (index, field, value) => {
+    setWorkingHours(prev => 
+      prev.map((slot, i) => {
+        if (i === index) {
+          const updatedSlot = { ...slot, [field]: value };
+          
+          // Ensure end time is after start time
+          if (field === 'start') {
+            const allTimes = generateTimeOptions(0, 24);
+            allTimes.push("24:00");
+            const startIndex = allTimes.indexOf(value);
+            const currentEndIndex = allTimes.indexOf(slot.end);
+            
+            if (currentEndIndex <= startIndex) {
+              // Auto-calculate end time based on meeting duration
+              const increment = meetingDuration >= 60 ? 60 : meetingDuration;
+              const slotsNeeded = Math.ceil(meetingDuration / increment);
+              const endIndex = Math.min(startIndex + slotsNeeded, allTimes.length - 1);
+              updatedSlot.end = allTimes[endIndex] || "24:00";
+            }
+          }
+          
+          return updatedSlot;
+        }
+        return slot;
+      })
+    );
+  };
+
+  // FIXED: Get available start times based on meeting duration
+  const getAvailableStartTimes = (currentSlotIndex) => {
+    const allTimes = generateTimeOptions(0, 24);
+    
+    if (currentSlotIndex === 0) {
+      const nextSlot = workingHours[1];
+      if (nextSlot) {
+        return allTimes.filter(time => time < nextSlot.start);
+      }
+      return allTimes.filter(time => time < "23:00");
+    }
+    
+    const previousSlot = workingHours[currentSlotIndex - 1];
+    if (!previousSlot) {
+      return ["09:00"];
+    }
+    
+    const previousEndTime = previousSlot.end;
+    let maxStartTime = "23:00";
+    
+    const nextSlot = workingHours[currentSlotIndex + 1];
+    if (nextSlot) {
+      maxStartTime = nextSlot.start;
+    }
+    
+    return allTimes.filter(time => time >= previousEndTime && time < maxStartTime);
+  };
+
+  // FIXED: Get available end times based on meeting duration
+  const getAvailableEndTimes = (currentSlotIndex, startTime) => {
+    const allTimes = generateTimeOptions(0, 24);
+    allTimes.push("24:00");
+    
+    let maxEndTime = "24:00";
+    
+    const nextSlot = workingHours[currentSlotIndex + 1];
+    if (nextSlot) {
+      maxEndTime = nextSlot.start;
+    }
+    
+    return allTimes.filter(time => time > startTime && time <= maxEndTime);
   };
   
   const toggleDayAvailability = () => {
     if (!selectedDay) return;
     
+    console.log("Toggling day availability for:", selectedDay.apiDate);
+    
     setScheduleDays(prev => 
       prev.map(day => {
         if (day.apiDate === selectedDay.apiDate) {
           const newAvailable = !day.available;
-          return {
+          const updatedDay = {
             ...day,
             available: newAvailable,
             allDay: !newAvailable,
-            isModified: true
+            isModified: true // Ensure this is set
           };
+          
+          console.log(`Toggled ${day.apiDate} availability:`, updatedDay);
+          return updatedDay;
         }
         return day;
       })
@@ -404,12 +622,15 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
     setSelectedDay(prev => {
       if (prev) {
         const newAvailable = !prev.available;
-        return {
+        const updatedSelectedDay = {
           ...prev,
           available: newAvailable,
           allDay: !newAvailable,
-          isModified: true
+          isModified: true // Ensure this is set
         };
+        
+        console.log("Updated selected day after toggle:", updatedSelectedDay);
+        return updatedSelectedDay;
       }
       return prev;
     });
@@ -419,41 +640,124 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
     if (!activeAgentId) return;
     setIsSaving(true);
     setSaveError(null);
+    
     try {
-      // Separate dates into two categories
+      console.log("Starting to save changes...");
+      
+      const modifiedDays = scheduleDays.filter((d) => d.isModified);
+      console.log("Modified days:", modifiedDays);
+      
+      if (modifiedDays.length === 0) {
+        console.log("No changes to save");
+        setIsSaving(false);
+        return;
+      }
+  
       const unavailableDatesToUpdate = [];
       const datesToMakeAvailable = [];
       
-      scheduleDays
-        .filter((d) => d.isModified)
-        .forEach((d) => {
-          if (d.available) {
-            // If the day is being made available, add to datesToMakeAvailable
-            datesToMakeAvailable.push(d.apiDate);
-          } else {
-            // If the day is being made unavailable or has custom hours
-            unavailableDatesToUpdate.push({
-              date: d.apiDate,
-              startTime: d.startTime,
-              endTime: d.endTime,
-              allDay: !d.available || d.allDay,
-              timezone: userTimezone,
-            });
-          }
+      modifiedDays.forEach((d) => {
+        console.log(`Processing day ${d.apiDate}:`, {
+          available: d.available,
+          timeSlots: d.timeSlots,
+          allDay: d.allDay
         });
   
-      // Call the updated API with both parameters
-      await updateUnavailableDates(
-        activeAgentId, 
-        unavailableDatesToUpdate,
-        datesToMakeAvailable
-      );
+        if (!d.available || d.allDay) {
+          unavailableDatesToUpdate.push({
+            date: d.apiDate,
+            startTime: "09:00",
+            endTime: "17:00", 
+            allDay: true,
+            timezone: userTimezone,
+          });
+          console.log(`Added ${d.apiDate} as unavailable (all day)`);
+        } else if (d.available && d.timeSlots && d.timeSlots.length > 0) {
+          const weeklyRule = weeklyAvailability.find(w => w.day === d.dayName);
+          
+          let hasCustomHours = false;
+          
+          if (!weeklyRule || !weeklyRule.timeSlots || weeklyRule.timeSlots.length === 0) {
+            hasCustomHours = true;
+          } else {
+            const weeklySlots = weeklyRule.timeSlots.map(slot => ({
+              start: slot.startTime,
+              end: slot.endTime
+            }));
+            
+            const currentSlots = [...d.timeSlots].sort((a, b) => a.start.localeCompare(b.start));
+            const defaultSlots = [...weeklySlots].sort((a, b) => a.start.localeCompare(b.start));
+            
+            if (currentSlots.length !== defaultSlots.length) {
+              hasCustomHours = true;
+            } else {
+              hasCustomHours = currentSlots.some((slot, index) => 
+                slot.start !== defaultSlots[index].start || 
+                slot.end !== defaultSlots[index].end
+              );
+            }
+          }
+          
+          console.log(`Day ${d.apiDate} has custom hours:`, hasCustomHours);
+          
+          if (hasCustomHours) {
+            unavailableDatesToUpdate.push({
+              date: d.apiDate,
+              startTime: d.timeSlots[0].start,
+              endTime: d.timeSlots[0].end,
+              allDay: false,
+              timezone: userTimezone,
+              timeSlots: d.timeSlots.map(slot => ({
+                startTime: slot.start,
+                endTime: slot.end
+              })),
+              isMultipleSlots: d.timeSlots.length > 1,
+            });
+            
+            console.log(`Added ${d.apiDate} with ${d.timeSlots.length} time slots:`, 
+              d.timeSlots.map(slot => `${slot.start}-${slot.end}`).join(', '));
+          } else {
+            datesToMakeAvailable.push(d.apiDate);
+            console.log(`Added ${d.apiDate} to make available (use weekly default)`);
+          }
+        }
+      });
+  
+      console.log("Payload to send:");
+      console.log("- unavailableDatesToUpdate:", unavailableDatesToUpdate);
+      console.log("- datesToMakeAvailable:", datesToMakeAvailable);
+  
+      if (unavailableDatesToUpdate.length > 0 || datesToMakeAvailable.length > 0) {
+        console.log("Making API call to update unavailable dates...");
+        
+        const result = await updateUnavailableDates(
+          activeAgentId, 
+          unavailableDatesToUpdate,
+          datesToMakeAvailable
+        );
+        
+        console.log("API call successful:", result);
+        
+        setSaveSuccess(true);
+        
+        // FIXED: Wait longer for backend to process, then reload
+        console.log("🔄 Reloading schedule data...");
+        
+        // Small delay to ensure backend has processed the change
+        setTimeout(async () => {
+          await loadScheduleData();
+          console.log("✅ Schedule data reloaded");
+        }, 500);
+        
+        setTimeout(() => setSaveSuccess(false), 3000);
+      } else {
+        console.log("No changes to send to API");
+        setIsSaving(false);
+      }
       
-      setSaveSuccess(true);
-      await loadScheduleData();
-      setTimeout(() => setSaveSuccess(false), 3000);
-    } catch {
-      setSaveError("Failed to update your schedule. Please try again.");
+    } catch (error) {
+      console.error("Error saving changes:", error);
+      setSaveError(`Failed to update your schedule: ${error.message}`);
     } finally {
       setIsSaving(false);
     }
@@ -611,12 +915,20 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium">Working Hours</span>
                     {isEditingHours ? (
-                      <button 
-                        onClick={handleSaveHours}
-                        className="text-xs bg-green-500 text-white px-3 py-1 rounded-md"
-                      >
-                        Save
-                      </button>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={handleCancelEdit}
+                          className="text-xs bg-gray-500 text-white px-3 py-1 rounded-md"
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          onClick={handleSaveHours}
+                          className="text-xs bg-green-500 text-white px-3 py-1 rounded-md"
+                        >
+                          Done
+                        </button>
+                      </div>
                     ) : (
                       <button 
                         onClick={handleEditHours}
@@ -627,69 +939,81 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
                     )}
                   </div>
                   
-                  <div className="flex items-center space-x-2">
-                    {isEditingHours ? (
-                      <>
-                        <select 
-                          value={workingHours.start}
-                          onChange={(e) => {
-                            const newStartTime = e.target.value;
-                            const startHour = parseInt(newStartTime.split(':')[0]);
-                            const endHour = parseInt(workingHours.end.split(':')[0]);
-                            if (endHour <= startHour) {
-                              const newEndHour = Math.min(startHour + 1, 24);
-                              setWorkingHours({
-                                start: newStartTime, 
-                                end: `${newEndHour.toString().padStart(2, '0')}:00`
-                              });
-                            } else {
-                              setWorkingHours({...workingHours, start: newStartTime});
-                            }
-                          }}
-                          className="border border-gray-300 rounded-md p-1 text-sm"
-                        >
-                          {Array.from({ length: 23 }).map((_, i) => (
-                            <option key={i} value={`${i.toString().padStart(2, '0')}:00`}>
-                              {formatTime12(`${i.toString().padStart(2, '0')}:00`)}
-                            </option>
-                          ))}
-                        </select>
-                        
-                        <span>—</span>
-                        
-                        <select 
-                          value={workingHours.end}
-                          onChange={(e) => setWorkingHours({...workingHours, end: e.target.value})}
-                          className="border border-gray-300 rounded-md p-1 text-sm"
-                        >
-                          {(() => {
-                            const startHour = parseInt(workingHours.start.split(':')[0]);
-                            const availableEndTimes = [];
-                            
-                            for (let hour = startHour + 1; hour <= 24; hour++) {
-                              const timeValue = `${hour.toString().padStart(2, "0")}:00`;
-                              availableEndTimes.push(
-                                <option key={hour} value={timeValue}>
-                                  {formatTime12(timeValue)}
-                                </option>
-                              );
-                            }
-                            
-                            return availableEndTimes;
-                          })()}
-                        </select>
-                      </>
-                    ) : (
-                      <>
-                        <div className="border border-gray-300 rounded-md px-3 py-1">
-                          {formatTime12(workingHours.start)}
+                  {isEditingHours ? (
+                    <div className="space-y-3">
+                      {workingHours.map((slot, index) => (
+                        <div key={index} className="flex items-center space-x-2">
+                          <Clock className="h-4 w-4 text-gray-400" />
+                          <select 
+                            value={slot.start}
+                            onChange={(e) => updateTimeSlot(index, 'start', e.target.value)}
+                            className="border border-gray-300 rounded-md p-1 text-sm"
+                          >
+                            {getAvailableStartTimes(index).map((time) => (
+                              <option key={time} value={time}>
+                                {formatTime12(time)}
+                              </option>
+                            ))}
+                          </select>
+                          
+                          <span>—</span>
+                          
+                          <select 
+                            value={slot.end}
+                            onChange={(e) => updateTimeSlot(index, 'end', e.target.value)}
+                            className="border border-gray-300 rounded-md p-1 text-sm"
+                          >
+                            {getAvailableEndTimes(index, slot.start).map((time) => (
+                              <option key={time} value={time}>
+                                {formatTime12(time)}
+                              </option>
+                            ))}
+                          </select>
+
+                          <button
+                            onClick={addTimeSlot}
+                            className="flex items-center justify-center w-8 h-8 bg-green-500 text-white rounded-full hover:bg-green-600"
+                            title="Add time slot"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </button>
+
+                          {workingHours.length > 1 && (
+                            <button
+                              onClick={() => removeTimeSlot(index)}
+                              className="flex items-center justify-center w-8 h-8 bg-red-500 text-white rounded-full hover:bg-red-600"
+                              title="Remove time slot"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          )}
                         </div>
-                        <span>—</span>
-                        <div className="border border-gray-300 rounded-md px-3 py-1">
-                          {formatTime12(workingHours.end)}
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {workingHours.map((slot, index) => (
+                        <div key={index} className="flex items-center space-x-2">
+                          <div className="border border-gray-300 rounded-md px-3 py-1">
+                            {formatTime12(slot.start)}
+                          </div>
+                          <span>—</span>
+                          <div className="border border-gray-300 rounded-md px-3 py-1">
+                            {formatTime12(slot.end)}
+                          </div>
                         </div>
-                      </>
-                    )}
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Display meeting duration info */}
+              {selectedDay.available && (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <div className="text-sm text-blue-700">
+                    <div className="font-medium mb-1">Meeting Settings</div>
+                    <div>Duration: {meetingDuration} minutes{bufferTime > 0 && ` + ${bufferTime} min buffer`}</div>
                   </div>
                 </div>
               )}

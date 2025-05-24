@@ -17,7 +17,7 @@ import {
   AlertCircle,
   ChevronDown,
   X,
-  CreditCard
+  CreditCard,
 } from "lucide-react";
 import {
   getAvailableSlots,
@@ -26,12 +26,16 @@ import {
   getDayWiseAvailability,
 } from "../../lib/serverActions";
 import {
-  COUNTRY_CODES,
-  detectCountryCode,
-  formatPhoneNumber,
-  validatePhone,
-  createInternationalPhone,
-} from "../../utils/phoneUtils";
+  SmartPhoneFormatter,
+  validatePhoneNumber,
+  formatPhoneForStorage,
+  detectCountryFromPhone,
+  getCallingCode,
+  getExamplePhoneNumber,
+  MAJOR_COUNTRIES,
+  parsePhoneNumber,
+  autoDetectCountry
+} from "../../utils/advphoneUtils";
 import { Theme } from "../../types";
 import { useUserStore } from "../../store/useUserStore"; 
 import { useBotConfig } from "../../store/useBotConfig";
@@ -96,6 +100,66 @@ interface AppointmentSettings {
   locations: Array<"google_meet" | "zoom" | "teams" | "in_person">;
 }
 
+// Helper function to detect user's country based on timezone
+const getUserCountry = (): string => {
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  
+  // Map common timezones to countries
+  const timezoneToCountry: Record<string, string> = {
+    'Asia/Kolkata': 'IN',
+    'Asia/Mumbai': 'IN',
+    'Asia/Delhi': 'IN',
+    'Asia/Calcutta': 'IN',
+    'America/New_York': 'US',
+    'America/Los_Angeles': 'US',
+    'America/Chicago': 'US',
+    'America/Denver': 'US',
+    'America/Phoenix': 'US',
+    'America/Toronto': 'CA',
+    'America/Vancouver': 'CA',
+    'Europe/London': 'GB',
+    'Europe/Berlin': 'DE',
+    'Europe/Paris': 'FR',
+    'Europe/Rome': 'IT',
+    'Europe/Madrid': 'ES',
+    'Australia/Sydney': 'AU',
+    'Australia/Melbourne': 'AU',
+    'Asia/Tokyo': 'JP',
+    'Asia/Shanghai': 'CN',
+    'Asia/Singapore': 'SG',
+    'Asia/Hong_Kong': 'HK',
+    'Asia/Dubai': 'AE',
+    'Asia/Seoul': 'KR',
+    'Europe/Amsterdam': 'NL',
+    'Europe/Zurich': 'CH',
+    'Europe/Stockholm': 'SE',
+    'Europe/Oslo': 'NO',
+    'Europe/Copenhagen': 'DK',
+    'Europe/Helsinki': 'FI',
+    'Europe/Vienna': 'AT',
+    'Europe/Brussels': 'BE',
+    'Europe/Warsaw': 'PL',
+    'Asia/Bangkok': 'TH',
+    'Asia/Jakarta': 'ID',
+    'Asia/Kuala_Lumpur': 'MY',
+    'Asia/Manila': 'PH',
+    'America/Sao_Paulo': 'BR',
+    'America/Mexico_City': 'MX',
+    'America/Buenos_Aires': 'AR',
+    'Europe/Moscow': 'RU',
+    'Asia/Istanbul': 'TR',
+    'Asia/Tel_Aviv': 'IL',
+    'Africa/Cairo': 'EG',
+    'Africa/Lagos': 'NG',
+    'Africa/Nairobi': 'KE',
+    'Africa/Johannesburg': 'ZA',
+    'Asia/Riyadh': 'SA',
+    'Asia/Ho_Chi_Minh': 'VN',
+  };
+  
+  return timezoneToCountry[timezone] || 'US'; // Default to US if not found
+};
+
 const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   businessId: propId,
   serviceName = "Session Description",
@@ -121,8 +185,14 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const [emailError, setEmailError] = useState("");
   const [phone, setPhone] = useState("");
   const [phoneError, setPhoneError] = useState("");
-  const [selectedCountryCode, setSelectedCountryCode] = useState("+1");
+  
+  // Auto-detect user's country and initialize phone formatter
+  const userCountry = getUserCountry();
+  const [selectedCountryCode, setSelectedCountryCode] = useState(() => getCallingCode(userCountry));
+  const [phoneFormatter] = useState(() => new SmartPhoneFormatter(userCountry));
+  const [selectedCountry, setSelectedCountry] = useState(userCountry);
   const [showCountryCodes, setShowCountryCodes] = useState(false);
+  
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const phoneInputRef = useRef<HTMLInputElement>(null);
@@ -170,8 +240,12 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       setNameError("");
     }
     
-    const validation = validatePhone(phone, selectedCountryCode);
-    const isPhoneValid = validation.isValid;
+    let isPhoneValid = true;
+    if (phone && phone.trim()) {
+      const phoneValidation = validatePhoneNumber(phone.trim(), selectedCountry);
+      isPhoneValid = phoneValidation.isValid;
+    }
+    
     const isEmailValid = EMAIL_REGEX.test(email);
     
     return isNameValid && isEmailValid && isPhoneValid;
@@ -239,43 +313,45 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   };
   
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value;
-    if (rawValue) {
-      const detectedCode = detectCountryCode(rawValue, selectedCountryCode);
-      if (detectedCode !== selectedCountryCode) {
-        setSelectedCountryCode(detectedCode);
-      }
-    }
-  
-    if (rawValue.length < phone.length) {
-      setPhone(rawValue);
-    } else {
-      const formattedValue = formatPhoneNumber(rawValue, selectedCountryCode);
-      setPhone(formattedValue);
-    }
-  
-    const validation = validatePhone(phone, selectedCountryCode);
-    setPhoneError(validation.errorMessage);
+    const input = e.target.value;
     
-    // Update form validity
+    // Handle backspace/deletion
+    if (input.length < phone.length) {
+      setPhone(input);
+      if (phoneError) {
+        setPhoneError("");
+      }
+      setTimeout(() => {
+        setIsFormValid(validateForm());
+      }, 0);
+      return;
+    }
+    
+    // Auto-detect country using optimized function
+    const detectedCountry = autoDetectCountry(input, selectedCountry);
+    
+    // Update country if different (with console log for debugging)
+    if (detectedCountry !== selectedCountry) {
+      console.log(`🌍 Country detected: ${selectedCountry} → ${detectedCountry}`);
+      setSelectedCountry(detectedCountry);
+      setSelectedCountryCode(getCallingCode(detectedCountry));
+      phoneFormatter.setCountry(detectedCountry);
+    }
+    
+    // Format the number with the detected country
+    const result = phoneFormatter.formatAsYouType(input);
+    setPhone(result.formatted);
+    
+    // Validate with detected country
     setTimeout(() => {
+      if (input.trim()) {
+        const validation = validatePhoneNumber(input.trim(), detectedCountry);
+        setPhoneError(validation.errorMessage);
+      } else {
+        setPhoneError("");
+      }
       setIsFormValid(validateForm());
     }, 0);
-  };
-
-  const selectCountryCode = (code: string) => {
-    setSelectedCountryCode(code);
-    setShowCountryCodes(false);
-
-    if (phone) {
-      const digitsOnly = phone.replace(/\D/g, "");
-      const reformatted = formatPhoneNumber(digitsOnly, code);
-      setPhone(reformatted);
-    }
-
-    if (phoneInputRef.current) {
-      phoneInputRef.current.focus();
-    }
   };
 
   useEffect(() => {
@@ -725,91 +801,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     setStep("details");
   };
 
-  const handleStripePayment = () => {
-    setPaymentError(null);
-    setStripeProcessing(true);
-    
-    setTimeout(async () => {
-      try {
-        const businessStartTime = convertTimeToBusinessTZ(
-          selectedSlot!.startTime,
-          selectedDate!
-        );
-        const businessEndTime = convertTimeToBusinessTZ(
-          selectedSlot!.endTime,
-          selectedDate!
-        );
-        const formattedPhone = phone
-          ? createInternationalPhone(phone, selectedCountryCode)
-          : "";
-
-        // Send both the form email (contact email) and the login email (userId)
-        await bookAppointment({
-          agentId: businessId,
-          userId: isLoggedIn && userEmail ? userEmail : email, // Use logged-in email for userId if available
-          email: email, // Always use form email for contact information
-          date: fmtApiDate(selectedDate!),
-          startTime: businessStartTime,
-          endTime: businessEndTime,
-          location: selectedLocation,
-          name: name,
-          phone: formattedPhone,
-          notes: notes,
-          userTimezone: userTimezone,
-        });
-        
-        setStep("confirmation");
-      } catch (e) {
-        console.error("Payment or booking error:", e);
-        setPaymentError("PAYMENT FAILED. TRY AGAIN.");
-      } finally {
-        setStripeProcessing(false);
-      }
-    }, 1000);
-  };
-  
-  const handleStablecoinPayment = () => {
-    setPaymentError(null);
-    setStablecoinProcessing(true);
-    setTimeout(async () => {
-      try {
-        const businessStartTime = convertTimeToBusinessTZ(
-          selectedSlot!.startTime,
-          selectedDate!
-        );
-        const businessEndTime = convertTimeToBusinessTZ(
-          selectedSlot!.endTime,
-          selectedDate!
-        );
-        const formattedPhone = phone
-          ? createInternationalPhone(phone, selectedCountryCode)
-          : "";
-
-        // Send both the form email (contact email) and the login email (userId)
-        await bookAppointment({
-          agentId: businessId,
-          userId: isLoggedIn && userEmail ? userEmail : email, // Use logged-in email for userId if available
-          email: email, // Always use form email for contact information
-          date: fmtApiDate(selectedDate!),
-          startTime: businessStartTime,
-          endTime: businessEndTime,
-          location: selectedLocation,
-          name: name,
-          phone: formattedPhone,
-          notes: notes,
-          userTimezone: userTimezone,
-        });
-        
-        setStep("confirmation");
-      } catch (e) {
-        console.error("Payment or booking error:", e);
-        setPaymentError("PAYMENT FAILED. TRY AGAIN.");
-      } finally {
-        setStablecoinProcessing(false);
-      }
-    }, 1000); 
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedDate || !selectedSlot) return;
@@ -845,7 +836,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           selectedDate
         );
         const formattedPhone = phone
-          ? createInternationalPhone(phone, selectedCountryCode)
+          ? formatPhoneForStorage(phone, selectedCountry)
           : "";
     
         await bookAppointment({
@@ -1209,65 +1200,80 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
               </div>
       
               <div>
-                <div className="flex">
-                  <div className="relative country-code-dropdown">
-                    <button
-                      type="button"
-                      onClick={() => setShowCountryCodes(!showCountryCodes)}
-                      className={`flex items-center justify-between h-full px-2 rounded-l ${
-                        theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
-                      }`}
-                      style={{ 
-                        backgroundColor: theme.mainLightColor,
-                        color: theme.isDark ? "black" : "white"
-                      }}
-                    >
-                      <span>{selectedCountryCode}</span>
-                      <ChevronDown className="h-4 w-4 ml-1" />
-                    </button>
-      
-                    {showCountryCodes && (
-                      <div className="absolute z-10 mt-1 bg-white border rounded-lg shadow-lg w-48 max-h-60 overflow-y-auto" style={{ 
-                        backgroundColor: theme.isDark ? "#222" : "#fff",
-                        color: theme.isDark ? "#fff" : "#000"
-                      }}>
-                        {COUNTRY_CODES.map((country) => (
-                          <button
-                            key={country.code}
-                            type="button"
-                            onClick={() => selectCountryCode(country.code)}
-                            className="w-full text-left px-3 py-2 hover:bg-opacity-10 hover:bg-gray-500 text-sm flex items-center"
-                          >
-                            <span className="font-medium mr-2">{country.code}</span>
-                            <span>{country.country}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-      
-                  <input
-                    type="tel"
-                    value={phone}
-                    placeholder="PHONE"
-                    onChange={handlePhoneChange}
-                    ref={phoneInputRef}
-                    className={`w-full p-2 rounded ${
-                        theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
-                      }`}
-                    style={{ 
-                      backgroundColor: theme.mainLightColor,
-                      color: theme.isDark ? "black" : "white",
-                      borderColor: phoneError ? "red" : "transparent"
-                    }}
-                  />
-                </div>
-                {phoneError && (
-                  <div className="mt-1 text-red-500 text-xs">
-                    {phoneError}
-                  </div>
-                )}
+  <div className="flex">
+    <div className="relative country-code-dropdown">
+      <button
+        type="button"
+        onClick={() => setShowCountryCodes(!showCountryCodes)}
+        className={`flex items-center justify-between h-full px-3 rounded-l border-r ${
+          theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
+        }`}
+        style={{ 
+          backgroundColor: theme.mainLightColor,
+          color: theme.isDark ? "black" : "white",
+          borderColor: theme.isDark ? "#444" : "#ddd"
+        }}
+      >
+        <span className="flex items-center">
+          {MAJOR_COUNTRIES.find(c => c.code === selectedCountry)?.flag || "🌍"}
+          <span className="ml-1 text-sm">{selectedCountryCode}</span>
+        </span>
+        <ChevronDown className="h-4 w-4 ml-1" />
+      </button>
+
+      {showCountryCodes && (
+        <div className="absolute z-10 mt-1 bg-white border rounded-lg shadow-lg w-80 max-h-60 overflow-y-auto" style={{ 
+          backgroundColor: theme.isDark ? "#222" : "#fff",
+          color: theme.isDark ? "#fff" : "#000"
+        }}>
+          {MAJOR_COUNTRIES.map((country) => (
+            <button
+              key={country.code}
+              type="button"
+              onClick={() => {
+                setSelectedCountry(country.code);
+                setSelectedCountryCode(country.callingCode);
+                phoneFormatter.setCountry(country.code);
+                setShowCountryCodes(false);
+                if (phoneInputRef.current) {
+                  phoneInputRef.current.focus();
+                }
+              }}
+              className="w-full text-left px-3 py-2 hover:bg-opacity-10 hover:bg-gray-500 text-sm flex items-center justify-between"
+            >
+              <div className="flex items-center">
+                <span className="mr-2">{country.flag}</span>
+                <span>{country.name}</span>
               </div>
+              <span className="text-xs opacity-75">{country.callingCode}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+
+    <input
+      type="tel"
+      value={phone}
+      placeholder={getExamplePhoneNumber(selectedCountry) || "PHONE"}
+      onChange={handlePhoneChange}
+      ref={phoneInputRef}
+      className={`w-full p-2 rounded-r ${
+          theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
+        }`}
+      style={{ 
+        backgroundColor: theme.mainLightColor,
+        color: theme.isDark ? "black" : "white",
+        borderColor: phoneError ? "red" : "transparent"
+      }}
+    />
+  </div>
+  {phoneError && (
+    <div className="mt-1 text-red-500 text-xs">
+      {phoneError}
+    </div>
+  )}
+</div>
       
               <div>
                 <div className="relative">
@@ -1339,7 +1345,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           location: selectedLocation,
           name: name,
           email: email,
-          phone: phone ? createInternationalPhone(phone, selectedCountryCode) : "",
+          phone: phone ? formatPhoneForStorage(phone, selectedCountry) : "",
           notes: notes,
           userTimezone: userTimezone,
         };
