@@ -432,7 +432,7 @@ const Prompts = () => {
             </div>
 
 
-            <div className="px-4 pt-8 pb-4">
+            <div className="pt-8 pb-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="para-font text-[#000000] block text-[16px] sm:text-lg font-medium">
                   CUSTOM PROMPTS
@@ -457,7 +457,7 @@ const Prompts = () => {
                     )}
                      <button
                       onClick={() => handlePromptSelect(prompt)}
-                      className={`w-full text-left px-4 py-3 rounded-lg border transition-all relative
+                      className={`w-full text-left px-4 py-2 border transition-all relative
                       ${
                         activeBotData?.prompts?.includes(prompt)
                           ? "bg-[#CEFFDC] border-2 border-[#6AFF97] focus:outline-none"
