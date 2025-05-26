@@ -152,7 +152,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
     console.log(type);
   }
   return (
-    <div className="bg-[#e7eaff] rounded-xl p-6 max-w-6xl mx-auto">
+    <div className="h-[600px] overflow-y-auto">
       <div className="flex flex-col justify-start items-start mb-6">
         <button
           onClick={onBack}
@@ -162,9 +162,9 @@ const PreviewStep: FC<PreviewStepProps> = ({
         </button>
         <h2 className="text-2xl font-semibold text-gray-900">Preview</h2>
       </div>
-      <div className="flex flex-row gap-8 items-start">
+      <div className="flex flex-col md:flex-row gap-2 items-star">
         {/* Stepper & Card View */}
-        <div className="flex flex-col items-start min-w-[180px]">
+        <div className="flex flex-1 flex-col items-center justify-start min-w-[180px]">
           <div className="font-semibold mb-2">Card View</div>
           <div className="border rounded-lg w-36 h-48 flex flex-col items-center justify-between bg-white shadow p-2 relative">
             {thumbnailUrl ? (
@@ -192,7 +192,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
           </div>
         </div>
         {/* Expanded View */}
-        <div className="flex-1 flex flex-col items-center">
+        <div className="flex-1 flex flex-col items-center justify-start">
           <div className="font-semibold mb-2">Expanded View</div>
           <div className="border-4 border-black rounded-2xl w-80 h-[30rem] flex flex-col items-center bg-black text-white shadow relative p-0 overflow-hidden">
             {/* Category and Close */}
@@ -407,7 +407,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
           </div>
         </div>
         {/* Approve the listing */}
-        <div className="flex flex-col items-end flex-1 min-w-[180px]">
+        <div className="flex flex-col items-center justify-start flex-1 min-w-[180px]">
           <div className="font-semibold mb-2 text-right">
             Approve the listing
           </div>

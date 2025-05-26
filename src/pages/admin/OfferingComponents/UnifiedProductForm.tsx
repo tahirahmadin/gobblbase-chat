@@ -162,7 +162,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
   };
 
   return (
-    <div className="bg-[#e7eafe] rounded-2xl p-4 mx-auto w-full ">
+    <div className="mx-auto w-full overflow-y-auto h-full ">
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Left Side */}
         <div className="flex-1 flex flex-col gap-2 min-w-0 ">
