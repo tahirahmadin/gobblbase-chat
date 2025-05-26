@@ -6,7 +6,7 @@ import {
 } from "./../types";
 
 // export const backendApiUrl = "https://kifortestapi.gobbl.ai";
-export const backendApiUrl = "https://kiforapi.gobbl.ai";
+export const backendApiUrl = "https://kifortestapi.gobbl.ai";
 
 export const AVAILABLE_THEMES: Theme[] = [
   {
