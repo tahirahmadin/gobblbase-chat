@@ -48,6 +48,7 @@ export default function ProductDetailPage({
 
   // Get max quantity based on selected size
   const maxQuantity = useMemo(() => {
+    console.log(selectedProduct);
     if (selectedProduct?.quantityType === "variedSizes" && selectedSize) {
       return selectedProduct.variedQuantities?.[selectedSize] || 0;
     }

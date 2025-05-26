@@ -295,9 +295,7 @@ export default function ChatProductDisplay({
             </button>
           </div>
           <div>
-            <div className="text-xs font-semibold mb-1 text-left">
-              SELECT QUANTITY
-            </div>
+            <div className="text-xs font-semibold mb-1 text-left">d</div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
