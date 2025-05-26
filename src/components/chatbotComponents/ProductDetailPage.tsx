@@ -1,18 +1,14 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { Theme } from "../../types";
 import { useCartStore } from "../../store/useCartStore";
 import { useBotConfig } from "../../store/useBotConfig";
-import { useUserStore } from "../../store/useUserStore";
 import toast from "react-hot-toast";
 
 interface ProductDetailPageProps {
   theme: Theme;
   onBack: () => void;
-  onAddToCart: (
-    quantity: number,
-    sizeQuantity?: Record<string, number>
-  ) => void;
+  onAddToCart: (quantity: number, checkType: string) => void;
   inChatMode?: boolean;
 }
 
@@ -30,6 +26,25 @@ export default function ProductDetailPage({
   const [eventTime, setEventTime] = useState("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<any>(null);
+  const [isSlotDropdownOpen, setIsSlotDropdownOpen] = useState(false);
+
+  // Format date and time for display
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return {
+      date: date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }),
+      time: date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      }),
+    };
+  };
 
   // Get max quantity based on selected size
   const maxQuantity = useMemo(() => {
@@ -67,12 +82,19 @@ export default function ProductDetailPage({
   const handleBuyNow = () => {
     // Allow free products to proceed regardless of payment methods
     if (isFreeProduct) {
-      if (selectedProduct?.quantityType === "variedSizes" && selectedSize) {
+      if (selectedProduct?.type === "Event" && selectedSlot) {
+        // For events, include the selected slot's start time
+        const checkType = selectedSlot.start;
+        onAddToCart(quantity, checkType);
+      } else if (
+        selectedProduct?.quantityType === "variedSizes" &&
+        selectedSize
+      ) {
         // Only send the selected size's quantity
-        const sizeQuantity = { [selectedSize]: quantity };
-        onAddToCart(quantity, sizeQuantity);
+        const checkType = selectedSize;
+        onAddToCart(quantity, checkType);
       } else {
-        onAddToCart(quantity);
+        onAddToCart(quantity, "");
       }
       setCartView(true);
       return;
@@ -94,12 +116,19 @@ export default function ProductDetailPage({
       return;
     }
 
-    if (selectedProduct?.quantityType === "variedSizes" && selectedSize) {
+    if (selectedProduct?.type === "Event" && selectedSlot) {
+      // For events, include the selected slot's start time
+      const checkType = selectedSlot.start;
+      onAddToCart(quantity, checkType);
+    } else if (
+      selectedProduct?.quantityType === "variedSizes" &&
+      selectedSize
+    ) {
       // Only send the selected size's quantity
-      const sizeQuantity = { [selectedSize]: quantity };
-      onAddToCart(quantity, sizeQuantity);
+      const checkType = selectedSize;
+      onAddToCart(quantity, checkType);
     } else {
-      onAddToCart(quantity);
+      onAddToCart(quantity, "");
     }
     setCartView(true);
   };
@@ -316,73 +345,134 @@ export default function ProductDetailPage({
           inChatMode ? "2" : "3"
         }`}
       >
-        <div className="flex flex-row gap-4">
-          <div>
-            <div className="text-xs font-semibold mb-1 text-left">DATE</div>
-            <input
-              type="text"
-              placeholder="ddmmyyyy"
-              value={eventDate}
-              onChange={(e) => setEventDate(e.target.value)}
-              className="px-3 py-1 rounded-full border border-[#fff] text-xs font-semibold bg-[#232323] w-24"
-            />
-          </div>
-          <div>
-            <div className="text-xs font-semibold mb-1 text-left">TIMINGS</div>
-            <input
-              type="text"
-              placeholder="HH:MM TO HH:MM"
-              value={eventTime}
-              onChange={(e) => setEventTime(e.target.value)}
-              className="px-3 py-1 rounded-full border border-[#fff] text-xs font-semibold bg-[#232323] w-32"
-            />
-          </div>
-        </div>
-        <div className="flex flex-row justify-between gap-2">
+        <div className="flex flex-col gap-2">
           <div>
             <div className="text-xs font-semibold mb-1 text-left">
-              SLOTS AVAILABLE
+              SELECT SLOT
             </div>
-            <button className="px-3 py-1 rounded-full border border-[#fff] text-xs font-semibold bg-[#232323]">
-              XXXX
-            </button>
-          </div>
-          <div>
-            <div className="text-xs font-semibold mb-1 text-left">
-              SELECT QUANTITY
-            </div>
-            <div className="flex items-center gap-2">
+            <div className="relative">
               <button
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                className="px-2 py-1 rounded-full   text-lg font-bold"
+                onClick={() => setIsSlotDropdownOpen(!isSlotDropdownOpen)}
+                className="w-full px-3 py-2 rounded-lg border text-left text-sm font-medium flex justify-between items-center"
                 style={{
-                  backgroundColor: theme.highlightColor,
-                  color: !theme.isDark ? "#fff" : "#000000",
+                  borderColor: theme.isDark ? "#fff" : "#000",
+                  backgroundColor: theme.isDark ? "#232323" : "#fff",
+                  color: theme.isDark ? "#fff" : "#000",
                 }}
               >
-                -
+                {selectedSlot ? (
+                  <span>
+                    {formatDateTime(selectedSlot.start).date} -{" "}
+                    {formatDateTime(selectedSlot.start).time} to{" "}
+                    {formatDateTime(selectedSlot.end).time}
+                  </span>
+                ) : (
+                  <span className="opacity-70">Select a slot</span>
+                )}
+                <ChevronDown className="w-4 h-4" />
               </button>
-              <span
-                className="px-3 py-1 rounded-full  text-xs font-semibold"
-                style={{
-                  backgroundColor: theme.mainLightColor,
-                  color: !theme.isDark ? "#ffffff" : "#000000",
-                }}
-              >
-                {quantity}
-              </span>
-              <button
-                onClick={() => setQuantity((q) => q + 1)}
-                className="px-2 py-1 rounded-full  text-lg font-bold"
-                style={{
-                  backgroundColor: theme.highlightColor,
-                  color: !theme.isDark ? "#fff" : "#000000",
-                }}
-              >
-                +
-              </button>
+
+              {isSlotDropdownOpen && (
+                <div
+                  className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto"
+                  style={{
+                    backgroundColor: theme.isDark ? "#232323" : "#fff",
+                    border: `1px solid ${theme.isDark ? "#fff" : "#000"}`,
+                  }}
+                >
+                  {selectedProduct.slots?.map((slot: any, index: number) => {
+                    const start = formatDateTime(slot.start);
+                    const end = formatDateTime(slot.end);
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setSelectedSlot(slot);
+                          setIsSlotDropdownOpen(false);
+                        }}
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100"
+                        style={{
+                          color: theme.isDark ? "#fff" : "#000",
+                          backgroundColor:
+                            selectedSlot === slot
+                              ? theme.highlightColor
+                              : "transparent",
+                        }}
+                      >
+                        <div className="font-medium">{start.date}</div>
+                        <div className="text-xs opacity-70">
+                          {start.time} - {end.time}
+                        </div>
+                        <div className="text-xs opacity-70">
+                          Available Seats: {slot.seats}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
+
+          {selectedSlot && (
+            <div className="flex flex-row justify-between gap-2">
+              <div>
+                <div className="text-xs font-semibold mb-1 text-left">
+                  SLOTS AVAILABLE
+                </div>
+                <div
+                  className="px-3 py-1 rounded-full border text-xs font-semibold"
+                  style={{
+                    borderColor: theme.isDark ? "#fff" : "#000",
+                    backgroundColor: theme.isDark ? "#232323" : "#fff",
+                    color: theme.isDark ? "#fff" : "#000",
+                  }}
+                >
+                  {selectedSlot.seats} seats
+                </div>
+              </div>
+              <div>
+                <div className="text-xs font-semibold mb-1 text-left">
+                  SELECT QUANTITY
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    className="px-2 py-1 rounded-full text-lg font-bold"
+                    style={{
+                      backgroundColor: theme.highlightColor,
+                      color: !theme.isDark ? "#fff" : "#000000",
+                    }}
+                    disabled={quantity <= 1}
+                  >
+                    -
+                  </button>
+                  <span
+                    className="px-3 py-1 rounded-full text-xs font-semibold"
+                    style={{
+                      backgroundColor: theme.mainLightColor,
+                      color: !theme.isDark ? "#ffffff" : "#000000",
+                    }}
+                  >
+                    {quantity}
+                  </span>
+                  <button
+                    onClick={() =>
+                      setQuantity((q) => Math.min(selectedSlot.seats, q + 1))
+                    }
+                    className="px-2 py-1 rounded-full text-lg font-bold"
+                    style={{
+                      backgroundColor: theme.highlightColor,
+                      color: !theme.isDark ? "#fff" : "#000000",
+                    }}
+                    disabled={quantity >= selectedSlot.seats}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -533,7 +623,7 @@ export default function ProductDetailPage({
                 }
               >
                 {selectedProduct?.priceType === "paid"
-                  ? `${selectedProduct?.price ?? 0} ${
+                  ? `${(selectedProduct?.price ?? 0) * quantity} ${
                       activeBotData?.currency || "USD"
                     }`
                   : "FREE"}

@@ -121,23 +121,24 @@ const Orders = () => {
                             <div className="text-xs text-gray-500">{time}</div>
                           </td>
                           <td className="py-2 px-2 lg:py-4 lg:px-4 align-top whitespace-nowrap">
-                            <div className="font-medium">{order.user}</div>
-                            <div className="text-xs text-gray-500">
-                              {order.userEmail}
-                            </div>
+                            <div className="font-medium">{order.userEmail}</div>
                           </td>
                           <td className="py-2 px-2 lg:py-4 lg:px-4 align-top">
                             {order.items.map((item, i) => (
-                              <div
-                                key={i}
-                                className="flex items-center text-xs lg:text-sm"
-                              >
-                                <span className="mr-1 truncate max-w-[100px] lg:max-w-[200px]">
-                                  {item.title}
-                                </span>
-                                <span className="whitespace-nowrap">
-                                  {item.price} {order.currency}
-                                </span>
+                              <div>
+                                <div
+                                  key={i}
+                                  className="flex items-center text-xs lg:text-sm"
+                                >
+                                  <span className="mr-1 truncate max-w-[100px] lg:max-w-[200px]">
+                                    {item.title}{" "}
+                                    {item.quantityType === "variedSizes" &&
+                                      `- ${item.checkType}`}
+                                  </span>
+                                </div>
+                                <div className="whitespace-nowrap text-xs">
+                                  Price: {item.price} {order.currency}
+                                </div>
                               </div>
                             ))}
                           </td>

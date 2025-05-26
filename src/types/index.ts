@@ -213,6 +213,16 @@ export interface Product {
   priceType: "paid" | "free";
   quantityType?: "variedSizes" | "unlimited" | "limited";
   variedQuantities?: Record<string, number>;
+  checkType?: string;
+  quantity?: number;
+
+  slots?: Array<{
+    date: string;
+    start: string;
+    end: string;
+    seatType: "unlimited" | "limited";
+    seats: number;
+  }>;
 }
 
 export interface SocialMediaLinks {

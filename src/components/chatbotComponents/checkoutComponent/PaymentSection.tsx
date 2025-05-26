@@ -34,6 +34,7 @@ interface PaymentSectionProps {
     priceType?: string;
     selectedSize?: string;
     quantity: number;
+    sizeQuantity?: Record<string, number>;
     [key: string]: any;
   };
   shipping: {
@@ -315,6 +316,8 @@ export function PaymentSection({
             currency: "USD",
             cart: [product],
             shipping: shipping,
+            checkType: product.checkType,
+            checkQuantity: product.quantity,
             stripeAccountId:
               activeBotData?.paymentMethods?.stripe?.accountId || "",
           }),
@@ -389,13 +392,11 @@ export function PaymentSection({
               userId: userId,
               userEmail: userEmail,
               stripeAccountId: activeBotData.paymentMethods.stripe.accountId,
-              amount: Math.round(product.price * 100),
+              amount: Math.round(product.price * 100) * product.quantity,
               currency: activeBotData.currency || "USD",
               shipping: shipping,
-              checks: {
-                type: product.selectedSize,
-                val: product.quantity,
-              },
+              checkType: product.checkType,
+              checkQuantity: product.quantity,
             }),
           }
         );
