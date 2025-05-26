@@ -8,7 +8,7 @@ import styled from "styled-components";
 const Button = styled.button`
   position: relative;
   background: #6aff97;
-  padding: 0.6vh 3vw;
+  padding: 0.6vh 1vw;
   border: 2px solid black;
   cursor: pointer;
   transition: background 0.3s;
@@ -21,8 +21,8 @@ const Button = styled.button`
   &::before {
     content: "";
     position: absolute;
-    top: 6px;
-    right: -6px;
+    top: 5px;
+    right: -5px;
     width: 100%;
     height: 100%;
     border: 2px solid #000000;

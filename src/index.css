@@ -58,5 +58,8 @@
     font-family: "DM Sans", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
-  
+}
+.third-font {
+  font-family: "Itim", cursive;
+  font-style: normal;
 }

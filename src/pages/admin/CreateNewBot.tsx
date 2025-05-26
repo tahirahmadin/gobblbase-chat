@@ -45,12 +45,12 @@ const Card = styled.div`
 `;
 const Button = styled.button`
   position: relative;
-  max-width: 400px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #6aff97;
-  padding: 0.75rem 1rem;
+  padding: 0.6rem 1rem;
+  max-width: 400px;
   border: 2px solid black;
   margin-bottom: 1rem;
   cursor: pointer;
@@ -59,7 +59,6 @@ const Button = styled.button`
   &:hover {
     background: #6ee7b7;
   }
-
   @media (max-width: 600px) {
     max-width: 200px;
   }
@@ -67,8 +66,8 @@ const Button = styled.button`
   &::before {
     content: "";
     position: absolute;
-    top: 6px;
-    right: -6px;
+    top: 5px;
+    right: -5px;
     width: 100%;
     height: 100%;
     border: 2px solid #000000;
@@ -162,7 +161,7 @@ const CreateNewBot: React.FC = () => {
             </div>
             <div className="w-[240px] md:w-[380px] btn-container  flex justify-end">
               <Button
-                className="items-end w-[120px] py-2 bg-[#aaffc6] text-black font-bold"
+                className="font-bold flex gap-2 items-center"
                 disabled={!agentName.trim()}
                 onClick={() => setStep(2)}
               >
@@ -277,7 +276,7 @@ const CreateNewBot: React.FC = () => {
               </div>
               <div className="btn-container flex justify-end gap-4 p-4">
                 <Button
-                  className="px-8 py-2 bg-gray-200 rounded font-bold flex gap-4 items-center bg-[#EAEFFF]!important"
+                  className="font-bold flex gap-2 items-center"
                   onClick={() => setStep(1)}
                 >
                   <span className="-rotate-180">
@@ -305,7 +304,7 @@ const CreateNewBot: React.FC = () => {
                   BACK
                 </Button>
                 <Button
-                  className="px-8 py-2 bg-gray-200 rounded font-bold flex gap-4 items-center"
+                  className="font-bold flex gap-2 items-center"
                   onClick={() => setStep(3)}
                 >
                   NEXT
@@ -531,7 +530,7 @@ const CreateNewBot: React.FC = () => {
               </div>
               <div className="btn-container flex justify-end gap-4 p-4 mt-4">
                 <Button
-                  className="px-8 py-2 bg-gray-200 rounded font-bold flex gap-4 items-center"
+                  className="font-bold flex gap-2 items-center"
                   onClick={() => setStep(2)}
                 >
                   <span className="-rotate-180">
@@ -559,7 +558,7 @@ const CreateNewBot: React.FC = () => {
                   BACK
                 </Button>
                 <Button
-                  className="px-8 py-2 bg-gray-200 rounded font-bold flex gap-4 items-center"
+                  className="font-bold flex gap-2 items-center"
                   onClick={handleFinish}
                   disabled={loading}
                 >
