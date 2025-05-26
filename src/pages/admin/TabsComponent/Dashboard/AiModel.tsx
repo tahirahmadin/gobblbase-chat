@@ -9,7 +9,7 @@ import styled from "styled-components";
 const Button = styled.button`
   position: relative;
   background: #6aff97;
-  padding: 0.6vh 3vw;
+  padding: 0.6vh 1vw;
   border: 2px solid black;
   cursor: pointer;
   transition: background 0.3s;
@@ -22,8 +22,8 @@ const Button = styled.button`
   &::before {
     content: "";
     position: absolute;
-    top: 6px;
-    right: -6px;
+    top: 5px;
+    right: -5px;
     width: 100%;
     height: 100%;
     border: 2px solid #000000;
@@ -132,7 +132,7 @@ const AiModel = () => {
         <div className="relative w-full flex h-fit">
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="w-full flex items-center justify-between p-3 border bg-[#CEFFDC] border-2 border-[#6AFF97] focus:outline-none w-full transition-colors"
+            className="w-full flex items-center justify-between p-3 border bg-[#D4DEFF] border-1 border-[#000000] focus:outline-none w-full transition-colors"
           >
             <div className="flex items-center gap-2">
               <img
@@ -157,7 +157,7 @@ const AiModel = () => {
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute top-16 z-10 w-full mt-1 bg-white border-2 border-[#6AFF97] shadow-lg max-h-100 overflow-y-auto">
+            <div className="absolute top-16 z-10 w-full mt-1 bg-white border border-[#000000] shadow-lg max-h-100 overflow-y-auto">
               {MODEL_PRESETS.map((model) => (
                 <button
                   key={model.id}
@@ -187,7 +187,7 @@ const AiModel = () => {
 
         {/* Model Details */}
         {selectedModel && (
-          <div className="p-3 border bg-[#CEFFDC] border-2 border-[#6AFF97] focus:outline-none w-full">
+          <div className="p-3 border bg-[#EAEFFF] border-1 border-[#000000] focus:outline-none w-full">
             <div>
               <h4 className="text-base lg:text-lg font-semibold mb-2">
                 {selectedModel.name}

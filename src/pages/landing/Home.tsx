@@ -117,10 +117,7 @@ const Subheadline = styled.p`
   margin-bottom: 24px;
   width: 40%;
   margin: 0 auto;
-  @media (max-width: 1200px) {
-    width: 50%;
-    font-size: 0.98rem;
-  }
+
   @media (max-width: 900px) {
     width: 70%;
     font-size: 0.95rem;
@@ -132,31 +129,42 @@ const Subheadline = styled.p`
 `;
 
 const CTAButton = styled.button`
-  background: #a3ffb3;
-  color: #222;
-  border: none;
-  border-radius: 6px;
-  padding: 12px 32px;
-  font-size: 1.1rem;
-  font-weight: 600;
+  position: relative;
+  background: #6AFF97;
+  padding: 0.6vh 1vw;
+  border: 2px solid black;
   cursor: pointer;
-  margin-top: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
-  transition: background 0.2s;
-  &:hover {
-    background: #7be88e;
+  transition: background 0.3s;
+  font-size: clamp(8px, 4vw, 16px);
+  color: black;
+  &::before {
+    content: "";
+    position: absolute;
+    top: 5px;
+    right: -5px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #000000;
+    z-index: -1; // place it behind the button
+    background: #6aff97;
   }
   @media (max-width: 600px) {
-    padding: 10px 18px;
-    font-size: 1rem;
+    min-width: 100px;
+  }
+  &:disabled {
+    background: #d6ffe0;
+    cursor: not-allowed;
+  }
+  &:disabled::before {
+    background: #d6ffe0;
   }
 `;
-
 type SpeechBubbleProps = {
   top: string;
   left?: string;
   right?: string;
   color?: string;
+  bgurl?: string;
 };
 
 const SpeechBubble = styled.div<SpeechBubbleProps>`
@@ -164,27 +172,25 @@ const SpeechBubble = styled.div<SpeechBubbleProps>`
   top: ${({ top }: { top: string }) => top};
   left: ${({ left }: { left?: string }) => left || "auto"};
   right: ${({ right }: { right?: string }) => right || "auto"};
-  background: ${({ color }: { color?: string }) => color || "#fff"};
+  // background: ${({ bgurl }: { bgurl?: string }) =>
+    bgurl ? `url(${bgurl})` : "#fff"};
+  background-repeat: no-repeat;
+  background-size: contain;
   color: #222;
   border-radius: 18px;
-  padding: 10px 18px;
-  font-size: 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 2px solid #222;
-  min-width: 120px;
-  max-width: 220px;
+  font-size: clamp(10px, 4vw, 14px);
+  // box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  // border: 2px solid #222;
+  width: fit-cotnent;
   z-index: 2;
+  display: grid;
+  place-items: center;
+  font-family: itim;
+  fonmt-weight: 1000;
   @media (max-width: 1200px) {
     font-size: 0.95rem;
-    min-width: 110px;
-    max-width: 200px;
-    padding: 8px 15px;
   }
   @media (max-width: 900px) {
-    font-size: 0.92rem;
-    min-width: 90px;
-    max-width: 170px;
-    padding: 7px 10px;
     display: none;
   }
   @media (max-width: 600px) {
@@ -193,7 +199,7 @@ const SpeechBubble = styled.div<SpeechBubbleProps>`
     max-width: 120px;
     padding: 5px 7px;
     display: none;
-  }
+  }                                       
 `;
 
 const PracticalSection = styled.section`
@@ -1337,26 +1343,89 @@ const Home = () => {
         </Header>
 
         <HeroSection>
-          <SpeechBubble top="5%" left="5%">
-            Welcome to the salon, how can I help you?
+          <SpeechBubble top="10%" left="3%">
+            <div className="relative inline-block">
+              <img
+                src="/assets/landing-asset/speechBubbles/welcome-text.png"
+                alt="bubble"
+                className="block w-full h-auto"
+              />
+              <div className="absolute top-2 flex items-center justify-center text-center px-3 text-[16px] font-[1000]">
+                Welcome to the salon, how can I help you?
+              </div>
+            </div>
           </SpeechBubble>
-          <SpeechBubble top="25%" left="15%" color="#a1a9ff">
-            Book a 1:1 meeting with our senior dietitian
+          <SpeechBubble top="32%" left="10%">
+            <div className="relative inline-block">
+              <img
+                src="/assets/landing-asset/speechBubbles/our-summer-sale.png"
+                alt="bubble"
+                className="block w-full h-auto"
+              />
+              <div className="absolute top-4 flex items-center justify-center text-center px-3 text-[16px] font-[1000]">
+                Our Summer Sale is now live!
+              </div>
+            </div>
           </SpeechBubble>
-          <SpeechBubble top="45%" left="8%" color="#ceffaf">
-            Our Summer Sale is now live!
+          <SpeechBubble top="53%" left="2%">
+            <div className="relative inline-block">
+              <img
+                src="/assets/landing-asset/speechBubbles/meeting-with-our.png"
+                alt="bubble"
+                className="block w-full h-auto"
+              />
+              <div className="absolute -top-0 flex items-center justify-center text-center p-3 font-[1000]">
+                Book a 1:1 meeting with our senior dietitian
+              </div>
+            </div>
           </SpeechBubble>
-          <SpeechBubble top="70%" left="15%">
-            Your spin class is booked for 8am tomorrow.
+          <SpeechBubble top="75%" left="12%">
+            <div className="relative inline-block">
+              <img
+                src="/assets/landing-asset/speechBubbles/your-spin-class.png"
+                alt="bubble"
+                className="block w-full h-auto"
+              />
+              <div className="absolute top-1 flex items-center  justify-center text-center  py-3 px-8  text-[15px] font-[1000]">
+                Your spin class is booked for 8am tomorrow.
+              </div>
+            </div>
           </SpeechBubble>
-          <SpeechBubble top="10%" right="5%" color="#ceffaf">
-            Should I repeat your order?
+          <SpeechBubble top="10%" right="3%" color="#ceffaf">
+            <div className="relative inline-block">
+              <img
+                src="/assets/landing-asset/speechBubbles/should-i-repeat.png"
+                alt="bubble"
+                className="block w-full h-auto"
+              />
+              <div className="absolute top-0 flex items-center  justify-center text-center  py-3 px-8  text-sm font-[1000]">
+                Should I repeat your order?
+              </div>
+            </div>
           </SpeechBubble>
-          <SpeechBubble top="35%" right="15%">
-            How would you like to pay today?
+          <SpeechBubble top="40%" right="8%">
+            <div className="relative inline-block">
+              <img
+                src="/assets/landing-asset/speechBubbles/how-would-you.png"
+                alt="bubble"
+                className="block w-full h-auto"
+              />
+              <div className="absolute top-2 flex items-center  justify-center text-center  py-3 px-8  text-sm font-[1000]">
+                How would you like to pay today?
+              </div>
+            </div>
           </SpeechBubble>
-          <SpeechBubble top="65%" right="10%" color="#a1a9ff">
-            Drop us your contact details for more info.
+          <SpeechBubble top="65%" right="3%" color="#a1a9ff">
+            <div className="relative inline-block">
+              <img
+                src="/assets/landing-asset/speechBubbles/drop-us-your-contact.png"
+                alt="bubble"
+                className="block w-full h-auto"
+              />
+              <div className="absolute top-2 flex items-center  justify-center text-center  py-3 px-8  text-sm font-[1000]">
+                Drop us your contact details for more info.
+              </div>
+            </div>
           </SpeechBubble>
           <Headline>
             The first AI-in-1 Employee
@@ -1369,9 +1438,11 @@ const Home = () => {
             <br />
             No Coding Required.
           </Subheadline>
-          <CTAButton onClick={() => navigate("/admin")}>
-            LAUNCH YOUR FREE AGENT
-          </CTAButton>
+           <div className="flex justify-center relative z-10 mt-8">
+            <CTAButton onClick={() => navigate("/admin")}>
+              LAUNCH YOUR FREE AGENT
+            </CTAButton>
+          </div>
         </HeroSection>
         <PracticalSection>
           <PracticalTitle>Practical AI for your business</PracticalTitle>
