@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { BotConfig, ChatMessage } from "../../types";
 import { useBotConfig } from "../../store/useBotConfig";
 import { useUserStore } from "../../store/useUserStore";
+import { useChatLogs } from "../../hooks/useChatLogs"; 
 import HeaderSection from "../../components/chatbotComponents/HeaderSection";
 import ChatSection from "../../components/chatbotComponents/ChatSection";
 import InputSection from "../../components/chatbotComponents/InputSection";
@@ -37,6 +38,8 @@ export default function PublicChat({
     fetchBotData,
   } = useBotConfig();
   const { initializeSession } = useUserStore();
+
+  const { addMessages } = useChatLogs();
 
   const [viewportHeight, setViewportHeight] = useState<number>(
     window.innerHeight
@@ -261,6 +264,16 @@ export default function PublicChat({
     scrollToBottom,
   ]);
 
+  const logConversation = async (userMessage: string, agentResponse: string) => {
+    if (!isPreview) { 
+      try {
+        await addMessages(userMessage, agentResponse);
+      } catch (error) {
+        console.error("Failed to log conversation:", error);
+      }
+    }
+  };
+
   const handleSendMessage = async (inputMessage?: string): Promise<void> => {
     let msgToSend = typeof inputMessage === "string" ? inputMessage : message;
 
@@ -278,6 +291,8 @@ export default function PublicChat({
     setShowCues(false);
     scrollToBottom();
 
+    const messageCountBefore = messages.length + 1; 
+
     // Process contact requests first (including lead collection)
     const contactHandled = await handleContactRequest(
       msgToSend,
@@ -286,7 +301,23 @@ export default function PublicChat({
       currentConfig?.customerLeadFlag
     );
 
-    if (contactHandled) return;
+    if (contactHandled) {
+      setTimeout(() => {
+        setMessages(currentMessages => {
+          const newMessages = currentMessages.slice(messageCountBefore);
+          const latestBotMessage = newMessages.find(msg => msg.sender === "agent");
+          
+          if (latestBotMessage) {
+            logConversation(msgToSend, latestBotMessage.content);
+          } else {
+            logConversation(msgToSend, "Contact collection initiated");
+          }
+          
+          return currentMessages; 
+        });
+      }, 200);
+      return;
+    }
 
     // Process booking-related messages
     const bookingHandled = handleBookingRequest(
@@ -295,7 +326,10 @@ export default function PublicChat({
       scrollToBottom
     );
 
-    if (bookingHandled) return;
+    if (bookingHandled) {
+      logConversation(msgToSend, "Booking calendar displayed");
+      return;
+    }
 
     // Process product-related messages
     const productHandled = handleProductRequest(
@@ -304,9 +338,32 @@ export default function PublicChat({
       scrollToBottom
     );
 
-    if (productHandled) return;
+    if (productHandled) {
+      logConversation(msgToSend, "Product catalog displayed");
+      return;
+    }
 
-    await handleAIResponse(msgToSend);
+    try {
+      await handleAIResponse(msgToSend);
+      
+      setTimeout(() => {
+        setMessages(currentMessages => {
+          const latestAgentMessage = currentMessages
+            .slice(messageCountBefore)
+            .find(msg => msg.sender === "agent");
+          
+          if (latestAgentMessage) {
+            logConversation(msgToSend, latestAgentMessage.content);
+          }
+          
+          return currentMessages; 
+        });
+      }, 1000);
+      
+    } catch (error) {
+      console.error("Error handling AI response:", error);
+      logConversation(msgToSend, "Error occurred while processing request");
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent): void => {
