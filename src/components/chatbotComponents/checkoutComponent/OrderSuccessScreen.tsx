@@ -1,4 +1,5 @@
 import React from "react";
+import { useBotConfig } from "../../../store/useBotConfig";
 
 interface OrderSuccessScreenProps {
   theme: any;
@@ -21,6 +22,7 @@ export function OrderSuccessScreen({
   onContinueShopping,
   orderDetails,
 }: OrderSuccessScreenProps) {
+  const { activeBotData } = useBotConfig();
   return (
     <div
       className="flex flex-col items-center justify-center p-8 min-h-[60vh]"
@@ -90,7 +92,8 @@ export function OrderSuccessScreen({
             className="text-sm mb-2"
             style={{ color: theme.isDark ? "#e0e0e0" : "#666666" }}
           >
-            <strong>Total Amount:</strong> ${orderDetails.total}
+            <strong>Total Amount:</strong> {orderDetails.total}
+            {activeBotData?.currency}
           </p>
           <p
             className="text-sm mb-2"
