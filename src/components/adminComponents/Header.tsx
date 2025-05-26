@@ -126,23 +126,18 @@ const Header = () => {
           </div>
         </div>
         <div className="">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 ">
             <div className="relative inline-block">
               <div className="absolute top-1 left-1 w-full h-full bg-[#6aff97] rounded"></div>
-              <div className="relative inline-block">
-                {/* Bottom layer for shadow effect */}
-                <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
-              </div>
             </div>
             <div
-              className="truncate w-full flex items-center space-x-1 px-2 py-1 rounded-lg"
+              className="flex items-center space-y-1 px-2 py-1 rounded-lg ] truncate w-[120px] xs:w-[100%] text-sm font-medium text-gray-700 shadow-md"
               style={{
-                border: "1px solid #bdbdbd",
                 backgroundColor: "#effdf4",
               }}
             >
-              <div>
-                <div className="truncate w-[80%] text-xs text-black font-semibold">
+              <div className="truncate max:w-[100%] ">
+                <div className="truncate  text-xs text-black font-semibold hyphens-auto">
                   {adminEmail}
                 </div>
                 <a

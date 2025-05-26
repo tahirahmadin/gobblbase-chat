@@ -328,7 +328,7 @@ const Profile = () => {
 
   return (
     <div
-      className="grid grid-cols-1 lg:grid-cols-5 w-full bg-white overflow-scroll lg:overflow-hidden"
+      className="grid grid-cols-1 lg:grid-cols-5 w-[100%] bg-white overflow-scroll lg:overflow-hidden"
       style={{ height: "calc(100vh - 64px)" }}
     >
       <div className="col-span-1 lg:col-span-3 h-full sm:px-6 lg:overflow-auto">
