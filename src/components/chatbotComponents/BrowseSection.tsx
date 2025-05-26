@@ -63,16 +63,24 @@ export default function BrowseSection({
   }, [propIsBookingConfigured]);
 
   const handleProductClick = (inputProduct: Product) => {
-    setSelectedProduct(inputProduct);
+    setSelectedProduct({
+      ...inputProduct,
+      quantity: 1,
+      checkType: "",
+    });
   };
 
   const handleBackToGrid = () => {
     setSelectedProduct(null);
   };
 
-  const handleAddToCart = (quantity: number) => {
+  const handleAddToCart = (quantity: number, checkType: string) => {
     if (selectedProduct !== null) {
-      setSelectedProduct({ ...selectedProduct, quantity });
+      setSelectedProduct({
+        ...selectedProduct,
+        quantity,
+        checkType,
+      });
       setCartView(true);
     }
   };
