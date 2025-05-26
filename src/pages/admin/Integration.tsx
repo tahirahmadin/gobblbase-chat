@@ -18,13 +18,13 @@ export default function Integration() {
   const [urlCopied, setUrlCopied] = React.useState(false);
 
   const iframeCode = `<iframe
-  src="https://test.Kifor.ai/${activeBotData?.username}"
+  src="https://test.Sayy.ai/${activeBotData?.username}"
   width="100%"
   style="height: 100%; min-height: 600px"
   frameborder="0"
 ></iframe>`;
 
-  const chatbotUrl = `https://test.Kifor.ai/${activeBotData?.username}`;
+  const chatbotUrl = `https://test.Sayy.ai/${activeBotData?.username}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(iframeCode);
@@ -47,7 +47,7 @@ export default function Integration() {
       try {
         await navigator.share({
           title: "Chat with my AI Assistant",
-          text: "Check out my AI assistant powered by Kifor.ai",
+          text: "Check out my AI assistant powered by Sayy.ai",
           url: chatbotUrl,
         });
       } catch (error) {
@@ -230,7 +230,7 @@ export default function Integration() {
         <div className="p-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <a
-              href={`https://twitter.com/intent/tweet?text=Chat with my AI assistant powered by Kifor.ai&url=${encodeURIComponent(
+              href={`https://twitter.com/intent/tweet?text=Chat with my AI assistant powered by Sayy.ai&url=${encodeURIComponent(
                 chatbotUrl
               )}`}
               target="_blank"

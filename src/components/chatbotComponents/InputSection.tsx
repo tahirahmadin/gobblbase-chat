@@ -63,17 +63,17 @@ export default function InputSection({
         className="text-center text-xs"
         style={{ color: theme.highlightColor }}
       >
-        <a 
-          href="https://www.kifor.ai/" 
-          target="_blank" 
+        <a
+          href="https://www.Sayy.ai/"
+          target="_blank"
           rel="noopener noreferrer"
-          style={{ 
+          style={{
             color: theme.highlightColor,
-            textDecoration: "none"
+            textDecoration: "none",
           }}
           className="hover:underline"
         >
-          Powered by Kifor
+          Powered by Sayy
         </a>
       </div>
     </div>

@@ -148,10 +148,10 @@ const Header = () => {
                   {adminEmail}
                 </div>{" "}
                 <a
-                  href={`https://kifor.ai/${activeBotData?.username}`}
+                  href={`https://Sayy.ai/${activeBotData?.username}`}
                   target="_blank"
                 >
-                  <div className="text-sm text-[#1C4ED8]">Visit chatbot</div>
+                  <div className="text-sm text-[#1C4ED8]">Visit agent</div>
                 </a>
               </div>
             </div>

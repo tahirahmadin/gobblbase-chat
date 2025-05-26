@@ -118,7 +118,7 @@ const Card = styled.div`
     }
 `;
 const GENERIC_LLM_SYSTEM_PROMPT = (context: string) =>
-  `You are an AI assistant helping to engage users for a business or service. Based on the following context, generate 8 engaging, concise, and friendly opening prompts (cues) that encourage users to interact, ask questions, or explore the agent's capabilities. Make sure to never use kifor related text while genrating prompts. Return only array of strings of max 3-4 words each.\n Context:\n${context}. Output format should be a JSON array of strings as example: ["Return policy?","Best Products?","Summarise the business!","Need support?","Consltation fees?","Book live call","Explore our features!"]`;
+  `You are an AI assistant helping to engage users for a business or service. Based on the following context, generate 8 engaging, concise, and friendly opening prompts (cues) that encourage users to interact, ask questions, or explore the agent's capabilities. Make sure to never use Sayy related text while genrating prompts. Return only array of strings of max 3-4 words each.\n Context:\n${context}. Output format should be a JSON array of strings as example: ["Return policy?","Best Products?","Summarise the business!","Need support?","Consltation fees?","Book live call","Explore our features!"]`;
 
 const Prompts = () => {
   const { activeBotData, setRefetchBotData } = useBotConfig();
@@ -366,7 +366,7 @@ const Prompts = () => {
         )}
         {activeBotData?.isQueryable === true && (
           <div className="px-4 mt-8 lg:pl-14">
-          <div className="flex justify-end relative z-10 mb-4">
+            <div className="flex justify-end relative z-10 mb-4">
               <Button
                 onClick={handleGeneratePrompts}
                 className="disabled:cursor-not-allowed"
@@ -384,8 +384,8 @@ const Prompts = () => {
                 <button
                   onClick={() => setSelectedPrompts([])}
                   className="para-font border border-[#7D7D7D] text-[#7D7D7D] px-2 py-0.5 xs:px-4 rounded-xl "
-                >  
-                Remove
+                >
+                  Remove
                 </button>
               </div>
 
@@ -410,27 +410,25 @@ const Prompts = () => {
                           : "border-[#7D7D7D] hover:border-gray-300"
                       }`}
                     >
-                     
-                     {prompt}
+                      {prompt}
                     </button>
                     {activeBotData?.prompts?.includes(prompt) && (
-                        <div style={{ zIndex: "4" }} className="icon relative">
-                      <Icon
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemovePrompt(prompt, false);
-                        }}
-                        className=""
-                      >
-                        <X className="w-4 h-4 stroke-[4px]" />
-                      </Icon>
+                      <div style={{ zIndex: "4" }} className="icon relative">
+                        <Icon
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemovePrompt(prompt, false);
+                          }}
+                          className=""
+                        >
+                          <X className="w-4 h-4 stroke-[4px]" />
+                        </Icon>
                       </div>
                     )}
                   </div>
                 ))}
               </div>
             </div>
-
 
             <div className="pt-8 pb-4">
               <div className="flex items-center justify-between mb-3">
@@ -441,12 +439,8 @@ const Prompts = () => {
 
               <div className="space-y-2">
                 {customPrompts.map((prompt) => (
-
-                  <div
-                    key={prompt}
-                    className="flex gap-4 items-center"
-                  >
-                  {activeBotData?.prompts?.includes(prompt) ? (
+                  <div key={prompt} className="flex gap-4 items-center">
+                    {activeBotData?.prompts?.includes(prompt) ? (
                       <>
                         <div className="relative w-[25px] h-[25px] bg-[#CEFFDC] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3">
                           <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]"></div>
@@ -455,7 +449,7 @@ const Prompts = () => {
                     ) : (
                       <div className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"></div>
                     )}
-                     <button
+                    <button
                       onClick={() => handlePromptSelect(prompt)}
                       className={`w-full text-left px-4 py-2 border transition-all relative
                       ${
@@ -464,28 +458,27 @@ const Prompts = () => {
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
-                     
-                     {prompt}
+                      {prompt}
                     </button>
 
-                       {activeBotData?.prompts?.includes(prompt) && (
-                        <div style={{ zIndex: "4" }} className="icon relative">
+                    {activeBotData?.prompts?.includes(prompt) && (
+                      <div style={{ zIndex: "4" }} className="icon relative">
                         <Icon
                           onClick={() => handleRemovePrompt(prompt, true)}
                           className=""
                         >
                           <X className="w-4 h-4 stroke-[4px]" />
                         </Icon>
-                        </div>
-                      )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             </div>
             <div className="pb-12 pt-8">
               <h3 className="para-font text-[#000000] block text-[16px] sm:text-lg font-medium">
-                  ADD CUSTOM PROMPTS
-                </h3>
+                ADD CUSTOM PROMPTS
+              </h3>
               <div className="p-4 rounded-lg bg-[#CDCDCD]">
                 <div className="flex flex-col gap-2">
                   <input
@@ -495,15 +488,15 @@ const Prompts = () => {
                     placeholder="Type your custom prompt..."
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
-                   <div className="flex justify-end relative z-10 mt-2">
-                  <Button
-                    onClick={handleAddCustomPrompt}
-                    disabled={!canAddMore}
-                    className="disabled:cursor-not-allowed"
-                  >
-                    ENTER
-                  </Button>
-                   </div>
+                  <div className="flex justify-end relative z-10 mt-2">
+                    <Button
+                      onClick={handleAddCustomPrompt}
+                      disabled={!canAddMore}
+                      className="disabled:cursor-not-allowed"
+                    >
+                      ENTER
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

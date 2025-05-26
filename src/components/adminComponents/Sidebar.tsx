@@ -186,7 +186,7 @@ const Sidebar = () => {
     return (
       <div className="w-64 bg-black min-h-screen text-white p-4 flex flex-col">
         <div className="mb-8">
-          <h1 className="text-xl font-bold">kifor.ai</h1>
+          <h1 className="text-xl font-bold">Sayy.ai</h1>
         </div>
         <nav className="flex-1 space-y-2 overflow-y-auto">
           <div className="space-y-1">

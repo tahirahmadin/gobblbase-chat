@@ -134,7 +134,7 @@ const Profile = () => {
 
   const [agentPicture, setAgentPicture] = useState<string | null>(null);
 
-  const baseUrl = "http://www.kifor.ai/";
+  const baseUrl = "http://www.Sayy.ai/";
 
   useEffect(() => {
     if (activeBotData?.logo) {
@@ -430,11 +430,13 @@ const Profile = () => {
                       <div className="flex-1 w-full sm:w-fit lg:w-full relative">
                         <div className="flex items-center border border-[#7D7D7D] w-[100%] overflow-hidden">
                           <span className=" pr-1 py-2 bg-gray-100 text-gray-500 text-sm border-r">
-                            <h2 className="pl-3 truncate max:w-[80%]">{baseUrl}</h2>
-                          </span>
-                            <h2 className="truncate w-[8z`0%] flex-1 px-3 py-2 focus:outline-none text-sm">
-                              {agentUsername} 
+                            <h2 className="pl-3 truncate max:w-[80%]">
+                              {baseUrl}
                             </h2>
+                          </span>
+                          <h2 className="truncate w-[8z`0%] flex-1 px-3 py-2 focus:outline-none text-sm">
+                            {agentUsername}
+                          </h2>
                         </div>
                         <div className="absolute right-1 top-1/2 -translate-y-1/2 flex space-x-1">
                           <button
@@ -580,53 +582,10 @@ const Profile = () => {
                   />
                 </div>
               </div>
-            </div>
-            <div style={{ zIndex: 10 }} className="btn-container z-10 relative">
-              <Button
-                className=""
-                onClick={() => {
-                  navigate("/admin/dashboard/brain");
-                }}
+              <div
+                style={{ zIndex: 10 }}
+                className="btn-container z-10 relative"
               >
-                SMARTEN
-              </Button>
-            </div>
-          </div>
-
-          {/* Promotional Banner */}
-          <div className="bg-[#CDCDCD] p-4 rounded-[10px]">
-            <div className="mb-2">
-              <div className="title flex w-full justify-between items-center">
-                <h1 className="main-font block text-md md:text-xl font-medium text-[#000000]">
-                  Promotional Banner
-                </h1>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="sr-only peer"
-                    checked={isPromoBannerEnabled}
-                    onChange={(e) => setIsPromoBannerEnabled(e.target.checked)}
-                  />
-                  <div className="w-11 h-6 bg-[#CDCDCD] peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-[#000000] rounded-full peer peer-checked:after:translate-x-full border-[#000000] peer-checked:after:border-[#000000] after:content-[''] after:absolute after:top-[2px] after:border-[#000000] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-              <div className="flex w-full justify-between items-center space-x-2 mt-4">
-                <span className="text-xs text-gray-500">
-                  Display banner under the main header
-                </span>
-                <span className="text-xs text-gray-500">MAX 50 CHARACTERS</span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <input
-                type="text"
-                value={promotionalBanner}
-                onChange={(e) => handlePromoBannerChange(e.target.value)}
-                placeholder="Type your promotional text..."
-                maxLength={50}
-                className="w-full px-3 py-2 border border-[#7D7D7D] focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <div className="flex justify-end relative z-10">
                 <Button
                   onClick={handleSavePromoBanner}
                   disabled={isSavingPromoBanner}
@@ -643,6 +602,66 @@ const Profile = () => {
                     "Save"
                   )}
                 </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Promotional Banner */}
+          <div className="pr-4">
+            <div className="bg-[#CDCDCD] p-4 rounded-[10px]">
+              <div className="mb-2">
+                <div className="title flex w-full justify-between items-center">
+                  <h1 className="main-font block text-md md:text-xl font-medium text-[#000000]">
+                    Promotional Banner
+                  </h1>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={isPromoBannerEnabled}
+                      onChange={(e) =>
+                        setIsPromoBannerEnabled(e.target.checked)
+                      }
+                    />
+                    <div className="w-11 h-6 bg-[#CDCDCD] border border-[#000000] peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-[#000000] rounded-full peer peer-checked:after:translate-x-[80%] peer-checked:after:border-[#000000] after:content-[''] after:absolute after:top-[0px] after:border-[#000000] after:left-[0px] after:bg-white after:border after:border-[#000000] after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+                <div className="flex w-full justify-between items-center space-x-2 mt-4">
+                  <span className="text-xs text-gray-500">
+                    Display banner under the main header
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    MAX 50 CHARACTERS
+                  </span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={promotionalBanner}
+                  onChange={(e) => handlePromoBannerChange(e.target.value)}
+                  placeholder="Type your promotional text..."
+                  maxLength={50}
+                  className="w-full px-3 py-2 border border-[#7D7D7D] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <div className="flex justify-end relative z-10">
+                  <Button
+                    onClick={handleSavePromoBanner}
+                    disabled={isSavingPromoBanner}
+                    className={` ${
+                      isSavingPromoBanner ? " cursor-not-allowed" : ""
+                    }`}
+                  >
+                    {isSavingPromoBanner ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                        <span>Saving...</span>
+                      </div>
+                    ) : (
+                      "Save"
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

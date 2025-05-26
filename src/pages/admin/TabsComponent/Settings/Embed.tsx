@@ -11,7 +11,7 @@ export default function Embed() {
   );
 
   const iframeCode = `<iframe
-  src="https://kifor.ai/${activeBotData?.username}"
+  src="https://Sayy.ai/${activeBotData?.username}"
   width="100%"
   style="height: 100%; min-height: 600px"
   frameborder="0"
@@ -23,11 +23,11 @@ export default function Embed() {
   }
 </script>
 <script
-  src="https://kifor.ai/embed.min.js"
+  src="https://Sayy.ai/embed.min.js"
   async>
 </script>`;
 
-  const chatbotUrl = `https://kifor.ai/${activeBotData?.username}`;
+  const chatbotUrl = `https://Sayy.ai/${activeBotData?.username}`;
 
   const handleCopy = (code: string) => {
     navigator.clipboard.writeText(code);
