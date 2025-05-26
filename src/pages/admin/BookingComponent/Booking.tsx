@@ -235,10 +235,9 @@ const Booking: React.FC<BookingProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingSettings, setIsFetchingSettings] = useState(isEditMode);
 
-  // Helper function to generate time options based on meeting duration
   const generateTimeOptions = (startHour = 0, endHour = 24) => {
     const times = [];
-    const increment = meetingDuration >= 60 ? 60 : meetingDuration; // Use meeting duration or 60 min max
+    const increment = meetingDuration >= 60 ? 60 : meetingDuration; 
     
     for (let hour = startHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += increment) {
@@ -250,7 +249,20 @@ const Booking: React.FC<BookingProps> = ({
     return times;
   };
 
-  // Helper function to check if breaks overlap
+  const generateBreakTimeOptions = (startHour = 0, endHour = 24) => {
+    const times = [];
+    const increment = 30; 
+    
+    for (let hour = startHour; hour < endHour; hour++) {
+      for (let minute = 0; minute < 60; minute += increment) {
+        const timeString = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+        times.push(timeString);
+      }
+    }
+    
+    return times;
+  };
+
   const breaksOverlap = (break1: Break, break2: Break): boolean => {
     const start1 = new Date(`2000-01-01T${break1.startTime}:00`);
     const end1 = new Date(`2000-01-01T${break1.endTime}:00`);
@@ -260,9 +272,7 @@ const Booking: React.FC<BookingProps> = ({
     return (start1 < end2 && end1 > start2);
   };
 
-  // Helper function to validate new break
   const validateNewBreak = (newBreak: Break): string | null => {
-    // Check for overlaps with existing breaks
     for (const existingBreak of breaks) {
       if (breaksOverlap(newBreak, existingBreak)) {
         return `This break overlaps with existing break: ${existingBreak.startTime} - ${existingBreak.endTime}`;
@@ -1080,7 +1090,7 @@ const Booking: React.FC<BookingProps> = ({
                   setNewBreakStart(e.target.value);
                   // If end time is not greater than new start time, adjust it
                   if (newBreakEnd <= e.target.value) {
-                    const allTimes = generateTimeOptions(0, 24);
+                    const allTimes = generateBreakTimeOptions(0, 24);
                     const startIndex = allTimes.indexOf(e.target.value);
                     const nextTimeIndex = Math.min(startIndex + 1, allTimes.length - 1);
                     setNewBreakEnd(allTimes[nextTimeIndex] || "24:00");
@@ -1088,7 +1098,7 @@ const Booking: React.FC<BookingProps> = ({
                 }}
                 className="p-1 border border-gray-300 rounded"
               >
-                {generateTimeOptions(0, 23).map((time) => (
+                {generateBreakTimeOptions(0, 23).map((time) => (
                   <option key={time} value={time}>
                     {time}
                   </option>
@@ -1106,7 +1116,7 @@ const Booking: React.FC<BookingProps> = ({
                 className="p-1 border border-gray-300 rounded"
               >
                 {(() => {
-                  const allTimes = generateTimeOptions(0, 24);
+                  const allTimes = generateBreakTimeOptions(0, 24);
                   allTimes.push("24:00");
                   return allTimes.filter(time => time > newBreakStart).map((time) => (
                     <option key={time} value={time}>
