@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { getChatLogs } from "../../../../lib/serverActions";
 import { useBotConfig } from "../../../../store/useBotConfig";
 import { ChatLog } from "../../../../types";
+import ReactMarkdown from "react-markdown";
 
 const PAGE_SIZE = 3;
 
@@ -161,7 +162,7 @@ const ChatLogs = () => {
                   msg.role === "agent" ? (
                     <div key={idx} className="flex p-1">
                       <div className="bg-gray-300 text-gray-800 px-3 py-2 rounded-lg max-w-[85%] md:max-w-xs text-sm break-words whitespace-pre-wrap">
-                        {msg.content}
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>
                       </div>
                     </div>
                   ) : (
