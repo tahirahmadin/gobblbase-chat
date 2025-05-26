@@ -74,6 +74,9 @@ const CustomLinksSection = () => {
   const { activeBotId, activeBotData, setRefetchBotData } = useBotConfig();
   const [customHandles, setCustomHandles] = useState([{ label: "", url: "" }]);
   const [isSaving, setIsSaving] = useState(false);
+  const [errors, setErrors] = useState<{
+    [key: number]: { label?: string; url?: string };
+  }>({});
 
   useEffect(() => {
     if (
@@ -86,10 +89,29 @@ const CustomLinksSection = () => {
     }
   }, [activeBotData]);
 
+  const validateUrl = (url: string): boolean => {
+    if (!url) return false;
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const handleChange = (idx: number, field: "label" | "url", value: string) => {
     setCustomHandles((prev) =>
       prev.map((item, i) => (i === idx ? { ...item, [field]: value } : item))
     );
+
+    // Clear error when user starts typing
+    setErrors((prev) => ({
+      ...prev,
+      [idx]: {
+        ...prev[idx],
+        [field]: undefined,
+      },
+    }));
   };
 
   const handleAdd = () => {
@@ -107,9 +129,9 @@ const CustomLinksSection = () => {
       setCustomHandles(newHandles);
 
       // Update backend immediately when any link is removed
-      // await updateCustomHandles(activeBotId, newHandles);
-      // setRefetchBotData();
-      // toast.success("Custom link removed successfully");
+      await updateCustomHandles(activeBotId, newHandles);
+      setRefetchBotData();
+      toast.success("Custom link removed successfully");
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);
@@ -126,6 +148,38 @@ const CustomLinksSection = () => {
       toast.error("No agent selected");
       return;
     }
+
+    // Validate all links
+    const newErrors: { [key: number]: { label?: string; url?: string } } = {};
+    let hasErrors = false;
+
+    customHandles.forEach((handle, idx) => {
+      const errors: { label?: string; url?: string } = {};
+
+      if (!handle.label.trim()) {
+        errors.label = "Label is required";
+        hasErrors = true;
+      }
+
+      if (!handle.url.trim()) {
+        errors.url = "URL is required";
+        hasErrors = true;
+      } else if (!validateUrl(handle.url)) {
+        errors.url = "Please enter a valid URL (e.g., https://example.com)";
+        hasErrors = true;
+      }
+
+      if (Object.keys(errors).length > 0) {
+        newErrors[idx] = errors;
+      }
+    });
+
+    if (hasErrors) {
+      setErrors(newErrors);
+      toast.error("Please fill in all required fields with valid URLs");
+      return;
+    }
+
     setIsSaving(true);
     try {
       await updateCustomHandles(activeBotId, customHandles);
@@ -141,6 +195,7 @@ const CustomLinksSection = () => {
       setIsSaving(false);
     }
   };
+
   return (
     <div className="pb-10">
       <div className="content flex justify-between items-center">
@@ -159,26 +214,44 @@ const CustomLinksSection = () => {
                 <span className="w-[80px] text-[#636363] font-semibold">
                   BUTTON
                 </span>
-                <input
-                  type="text"
-                  placeholder="Label"
-                  value={item.label}
-                  onChange={(e) => handleChange(idx, "label", e.target.value)}
-                  className="px-2 py-1 border rounded w-[100%] border-2 border-[#6AFF97]"
-                />
+                <div className="flex-1 w-full">
+                  <input
+                    type="text"
+                    placeholder="Label"
+                    value={item.label}
+                    onChange={(e) => handleChange(idx, "label", e.target.value)}
+                    className={`px-2 py-1 border rounded w-[100%] border-2 ${
+                      errors[idx]?.label ? "border-red-500" : "border-[#6AFF97]"
+                    }`}
+                  />
+                  {errors[idx]?.label && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors[idx].label}
+                    </p>
+                  )}
+                </div>
               </label>
 
               <label className="flex flex-col items-start xs:flex-row xs:items-center sm:gap-2">
                 <span className="w-[80px] text-[#636363] font-semibold">
                   LINK
                 </span>
-                <input
-                  type="text"
-                  placeholder="URL"
-                  value={item.url}
-                  onChange={(e) => handleChange(idx, "url", e.target.value)}
-                  className="px-2 py-1 border rounded w-[100%] border-2 border-[#6AFF97]"
-                />
+                <div className="flex-1 w-full">
+                  <input
+                    type="text"
+                    placeholder="URL"
+                    value={item.url}
+                    onChange={(e) => handleChange(idx, "url", e.target.value)}
+                    className={`px-2 py-1 border rounded w-[100%] border-2 ${
+                      errors[idx]?.url ? "border-red-500" : "border-[#6AFF97]"
+                    }`}
+                  />
+                  {errors[idx]?.url && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors[idx].url}
+                    </p>
+                  )}
+                </div>
               </label>
             </div>
             <div style={{ zIndex: "4" }} className="icon mt-4 relative">
