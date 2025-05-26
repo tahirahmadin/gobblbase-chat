@@ -65,8 +65,6 @@ export default function BrowseSection({
   const handleProductClick = (inputProduct: Product) => {
     setSelectedProduct({
       ...inputProduct,
-      quantity: 1,
-      checkType: "",
     });
   };
 
