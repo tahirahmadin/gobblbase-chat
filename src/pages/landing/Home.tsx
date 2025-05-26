@@ -130,7 +130,7 @@ const Subheadline = styled.p`
 
 const CTAButton = styled.button`
   position: relative;
-  background: #6AFF97;
+  background: #6aff97;
   padding: 0.6vh 1vw;
   border: 2px solid black;
   cursor: pointer;
@@ -199,7 +199,7 @@ const SpeechBubble = styled.div<SpeechBubbleProps>`
     max-width: 120px;
     padding: 5px 7px;
     display: none;
-  }                                       
+  }
 `;
 
 const PracticalSection = styled.section`
@@ -1332,7 +1332,7 @@ const Home = () => {
       <Container>
         <Header>
           <Logo>
-            <span onClick={() => navigate("/")}>kifor</span>
+            <span onClick={() => navigate("/")}>Sayy</span>
             <NavLink onClick={() => navigate("/pricing")}>Pricing</NavLink>
           </Logo>
           <NavLinks>
@@ -1438,7 +1438,7 @@ const Home = () => {
             <br />
             No Coding Required.
           </Subheadline>
-           <div className="flex justify-center relative z-10 mt-8">
+          <div className="flex justify-center relative z-10 mt-8">
             <CTAButton onClick={() => navigate("/admin")}>
               LAUNCH YOUR FREE AGENT
             </CTAButton>
@@ -1605,7 +1605,7 @@ const Home = () => {
               Assemble Your Agent : Your AI, Your Way
             </AssembleTitle>
             <AssembleSubtitle>
-              Train Kifor to talk, think, and sell like you or anyone you want,
+              Train Sayy to talk, think, and sell like you or anyone you want,
               no coding needed.
             </AssembleSubtitle>
             <AssembleGrid>
@@ -1677,7 +1677,7 @@ const Home = () => {
         <AppOverloadSection>
           <AppOverloadTitle>Goodbye, App Overload</AppOverloadTitle>
           <AppOverloadSub>
-            Running a business shouldn't be a juggling act. Kifor's AI Agent
+            Running a business shouldn't be a juggling act. Sayy's AI Agent
             replaces your entire tech stack, delivering comprehensive business
             management in a single, intelligent interface.
           </AppOverloadSub>
@@ -1806,7 +1806,7 @@ const Home = () => {
               </FooterSocial>
             </FooterLeft>
             <FooterRight>
-              <FooterCopyright>© 2025 Kifor AI</FooterCopyright>
+              <FooterCopyright>© 2025 Sayy AI</FooterCopyright>
             </FooterRight>
             <div>
               <FooterMascot>

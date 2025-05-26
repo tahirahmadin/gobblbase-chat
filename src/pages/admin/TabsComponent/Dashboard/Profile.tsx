@@ -134,7 +134,7 @@ const Profile = () => {
 
   const [agentPicture, setAgentPicture] = useState<string | null>(null);
 
-  const baseUrl = "http://www.kifor.ai/";
+  const baseUrl = "http://www.Sayy.ai/";
 
   useEffect(() => {
     if (activeBotData?.logo) {
@@ -430,11 +430,13 @@ const Profile = () => {
                       <div className="flex-1 w-full sm:w-fit lg:w-full relative">
                         <div className="flex items-center border border-[#7D7D7D] w-[100%] overflow-hidden">
                           <span className=" pr-1 py-2 bg-gray-100 text-gray-500 text-sm border-r">
-                            <h2 className="pl-3 truncate max:w-[80%]">{baseUrl}</h2>
-                          </span>
-                            <h2 className="truncate w-[8z`0%] flex-1 px-3 py-2 focus:outline-none text-sm">
-                              {agentUsername} 
+                            <h2 className="pl-3 truncate max:w-[80%]">
+                              {baseUrl}
                             </h2>
+                          </span>
+                          <h2 className="truncate w-[8z`0%] flex-1 px-3 py-2 focus:outline-none text-sm">
+                            {agentUsername}
+                          </h2>
                         </div>
                         <div className="absolute right-1 top-1/2 -translate-y-1/2 flex space-x-1">
                           <button
@@ -582,7 +584,10 @@ const Profile = () => {
                   </div>
                 </div>
               </div>
-              <div style={{ zIndex: 10 }} className="btn-container z-10 relative">
+              <div
+                style={{ zIndex: 10 }}
+                className="btn-container z-10 relative"
+              >
                 <Button
                   className=""
                   onClick={() => {
@@ -608,7 +613,9 @@ const Profile = () => {
                       type="checkbox"
                       className="sr-only peer"
                       checked={isPromoBannerEnabled}
-                      onChange={(e) => setIsPromoBannerEnabled(e.target.checked)}
+                      onChange={(e) =>
+                        setIsPromoBannerEnabled(e.target.checked)
+                      }
                     />
                     <div className="w-11 h-6 bg-[#CDCDCD] border border-[#000000] peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-[#000000] rounded-full peer peer-checked:after:translate-x-[80%] peer-checked:after:border-[#000000] after:content-[''] after:absolute after:top-[0px] after:border-[#000000] after:left-[0px] after:bg-white after:border after:border-[#000000] after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
@@ -617,7 +624,9 @@ const Profile = () => {
                   <span className="text-xs text-gray-500">
                     Display banner under the main header
                   </span>
-                  <span className="text-xs text-gray-500">MAX 50 CHARACTERS</span>
+                  <span className="text-xs text-gray-500">
+                    MAX 50 CHARACTERS
+                  </span>
                 </div>
               </div>
               <div className="space-y-2">

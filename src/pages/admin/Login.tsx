@@ -9,7 +9,7 @@ const Card = styled.div`
   position: relative;
   width: calc(100% - 30vw);
   height: 500px;
-  background: #EAEFFF;
+  background: #eaefff;
   border: 2px solid black;
   // box-shadow: 4px 4px 0 0 #222b5f;
   display: flex;
@@ -30,7 +30,7 @@ const Card = styled.div`
     height: 100%;
     border: 8px solid #000000;
     z-index: -1;
-    background: #FFFFFF;
+    background: #ffffff;
   }
 
   .btn-container {
@@ -55,7 +55,6 @@ const Button = styled.button`
   &:hover {
     background: #6ee7b7;
   }
-
 
   &::before {
     content: "";
@@ -197,7 +196,9 @@ const Login: React.FC = () => {
 
   const renderSignUpCard = () => (
     <Card>
-      <h2 className="main-font text-xl font-bold mb-2 text-center ">Login or Sign Up</h2>
+      <h2 className="main-font text-xl font-bold mb-2 text-center ">
+        Login or Sign Up
+      </h2>
       <p className=" para-font text-sm text-center mb-8">
         Connect with your email credentials
       </p>
@@ -277,7 +278,7 @@ const Login: React.FC = () => {
               />
             </svg>
           </span>
-          LOGIN WITH EMAIL 
+          LOGIN WITH EMAIL
         </Button>
       </div>
     </Card>
@@ -300,7 +301,7 @@ const Login: React.FC = () => {
       {/* Black top strip */}
       <div className="w-full py-2 px-4 flex items-center">
         <span className="text-black text-lg font-bold tracking-tight">
-          kifor
+          Sayy
         </span>
       </div>
       {/* Centered content */}

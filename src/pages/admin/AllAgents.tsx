@@ -78,8 +78,8 @@ const AllAgents: React.FC = () => {
             <div className="font-semibold text-lg text-center">
               {agent.name || "Agent Name"}
             </div>
-            <a href={`https://kifor.ai/${agent.username}`} target="_blank">
-              <div className="text-sm text-blue-500 mb-2">Visit chatbot</div>
+            <a href={`https://Sayy.ai/${agent.username}`} target="_blank">
+              <div className="text-sm text-blue-500 mb-2">Visit agent</div>
             </a>
             <div className="flex gap-2 mt-2">
               <div className="relative inline-block">
