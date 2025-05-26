@@ -39,13 +39,13 @@ const Icon = styled.button`
 `;
 const Button = styled.button`
   position: relative;
-  background: #6AFF97;
+  background: #6aff97;
   padding: 0.6vh 1vw;
   border: 2px solid black;
   cursor: pointer;
   transition: background 0.3s;
   font-size: clamp(8px, 4vw, 16px);
-  
+
   @media (max-width: 600px) {
     min-width: 120px;
   }
@@ -96,8 +96,29 @@ const CustomLinksSection = () => {
     setCustomHandles((prev) => [...prev, { label: "", url: "" }]);
   };
 
-  const handleRemove = (idx: number) => {
-    setCustomHandles((prev) => prev.filter((_, i) => i !== idx));
+  const handleRemove = async (idx: number) => {
+    if (!activeBotId) {
+      toast.error("No agent selected");
+      return;
+    }
+
+    try {
+      const newHandles = customHandles.filter((_, i) => i !== idx);
+      setCustomHandles(newHandles);
+
+      // Update backend immediately when any link is removed
+      // await updateCustomHandles(activeBotId, newHandles);
+      // setRefetchBotData();
+      // toast.success("Custom link removed successfully");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Failed to remove custom link");
+      }
+      // Revert the state if the backend update fails
+      setCustomHandles(customHandles);
+    }
   };
 
   const handleSave = async () => {
@@ -126,9 +147,9 @@ const CustomLinksSection = () => {
         <h3 className="main-font block text-md sm:text-xl font-bold text-[#000000]">
           Add Social Links to your Profile
         </h3>
-        <span className="para-font border border-[#7D7D7D] text-[#7D7D7D] px-4 py-0.5 rounded-xl -mr-6">
+        {/* <span className="para-font border border-[#7D7D7D] text-[#7D7D7D] px-4 py-0.5 rounded-xl -mr-6">
           Remove
-        </span>
+        </span> */}
       </div>
       <div className="space-y-4 mt-4">
         {customHandles.map((item, idx) => (
@@ -164,7 +185,7 @@ const CustomLinksSection = () => {
               <Icon
                 onClick={() => handleRemove(idx)}
                 className=""
-                disabled={customHandles.length === 1}
+                disabled={customHandles.length === 0}
               >
                 <X className="w-4 h-4 text-black stroke-[4px]" />
               </Icon>

@@ -211,6 +211,8 @@ export interface Product {
   images: string[];
   category: string;
   priceType: "paid" | "free";
+  quantityType?: "variedSizes" | "unlimited" | "limited";
+  variedQuantities?: Record<string, number>;
 }
 
 export interface SocialMediaLinks {

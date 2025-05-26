@@ -69,7 +69,9 @@ const Header = () => {
                   </span>
                 </div>
               )}
-              <span className="hidden xs:block">{activeBotData?.name || "Select Agent"}</span>
+              <span className="hidden xs:block">
+                {activeBotData?.name || "Select Agent"}
+              </span>
               <ChevronDown className="w-4 h-4 text-gray-500" />
             </button>
             {isDropdownOpen && (
@@ -103,7 +105,7 @@ const Header = () => {
                           </span>
                         </div>
                       )}
-                      <span className="hidden font-medium">{agent.name}</span>
+                      <span className=" font-medium">{agent.name}</span>
                       {agent.agentId === activeBotId && (
                         <span className="ml-auto text-xs text-green-200 font-semibold">
                           Selected
