@@ -18,7 +18,7 @@ const TABS = [
 
 const Manage = () => {
   const navigate = useNavigate();
-  const { activeBotId } = useBotConfig();
+  const { activeBotId, activeBotData } = useBotConfig();
   const [tab, setTab] = useState("ALL");
   const [products, setProducts] = useState<any[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
@@ -236,7 +236,9 @@ const Manage = () => {
                     </div>
                   </td>
                   <td className="py-1.5 px-2 text-xs lg:text-sm">
-                    {p.priceType === "paid" ? `$${p.price}` : `Free`}
+                    {p.priceType === "paid"
+                      ? `${p.price} ${activeBotData?.currency}`
+                      : `Free`}
                   </td>
                   <td className="py-1.5 px-2 text-xs lg:text-sm">
                     {p.quantityUnlimited === "true" ||
