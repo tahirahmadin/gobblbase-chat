@@ -40,13 +40,14 @@ export default function ChatProductDisplay({
   // Check if any payment method is enabled
   const availablePaymentMethods = useMemo(() => {
     if (!activeBotData?.paymentMethods) return [];
-    
+
     const methods = [];
-    if (activeBotData.paymentMethods.stripe?.enabled) methods.push('stripe');
-    if (activeBotData.paymentMethods.razorpay?.enabled) methods.push('razorpay');
-    if (activeBotData.paymentMethods.usdt?.enabled) methods.push('usdt');
-    if (activeBotData.paymentMethods.usdc?.enabled) methods.push('usdc');
-    
+    if (activeBotData.paymentMethods.stripe?.enabled) methods.push("stripe");
+    if (activeBotData.paymentMethods.razorpay?.enabled)
+      methods.push("razorpay");
+    if (activeBotData.paymentMethods.usdt?.enabled) methods.push("usdt");
+    if (activeBotData.paymentMethods.usdc?.enabled) methods.push("usdc");
+
     return methods;
   }, [activeBotData?.paymentMethods]);
 
@@ -79,8 +80,10 @@ export default function ChatProductDisplay({
   // Modified Buy Now handler with payment method check
   const handleBuyNow = () => {
     if (localSelectedProduct) {
-      const isFreeProduct = localSelectedProduct.priceType === "free" || localSelectedProduct.price === 0;
-      
+      const isFreeProduct =
+        localSelectedProduct.priceType === "free" ||
+        localSelectedProduct.price === 0;
+
       // Allow free products to proceed regardless of payment methods
       if (isFreeProduct) {
         try {
@@ -114,14 +117,17 @@ export default function ChatProductDisplay({
 
       // Check if payment methods are enabled for paid products
       if (!hasEnabledPaymentMethods) {
-        toast.error("Payment methods are not enabled. Please contact the admin.", {
-          duration: 4000,
-          style: {
-            background: theme.isDark ? '#2d1b1b' : '#fef2f2',
-            color: theme.isDark ? '#fca5a5' : '#dc2626',
-            border: '1px solid #ef4444',
-          },
-        });
+        toast.error(
+          "Payment methods are not enabled. Please contact the admin.",
+          {
+            duration: 4000,
+            style: {
+              background: theme.isDark ? "#2d1b1b" : "#fef2f2",
+              color: theme.isDark ? "#fca5a5" : "#dc2626",
+              border: "1px solid #ef4444",
+            },
+          }
+        );
         return;
       }
 
@@ -185,7 +191,9 @@ export default function ChatProductDisplay({
   const renderProductDetails = () => {
     if (!localSelectedProduct) return null;
 
-    const isFreeProduct = localSelectedProduct.priceType === "free" || localSelectedProduct.price === 0;
+    const isFreeProduct =
+      localSelectedProduct.priceType === "free" ||
+      localSelectedProduct.price === 0;
     const isBuyNowDisabled = !isFreeProduct && !hasEnabledPaymentMethods;
 
     // Sizes for the chat mode
@@ -194,7 +202,7 @@ export default function ChatProductDisplay({
     const descriptionSize = "text-xs leading-tight";
     const buttonSize = "text-xs py-1.5 px-4";
     const sectionPadding = "px-4";
-    const borderWidth = "w-24"; 
+    const borderWidth = "w-24";
 
     let extraFields = null;
 
@@ -337,7 +345,9 @@ export default function ChatProductDisplay({
               />
             </div>
             <div>
-              <div className="text-xs font-semibold mb-1 text-left">TIMINGS</div>
+              <div className="text-xs font-semibold mb-1 text-left">
+                TIMINGS
+              </div>
               <input
                 type="text"
                 placeholder="HH:MM TO HH:MM"
@@ -496,15 +506,16 @@ export default function ChatProductDisplay({
 
             {/* Payment Warning for Paid Products */}
             {!isFreeProduct && !hasEnabledPaymentMethods && (
-              <div 
+              <div
                 className="mb-3 p-2 rounded-lg border text-center text-xs"
-                style={{ 
-                  backgroundColor: theme.isDark ? '#2d1b1b' : '#fef2f2',
-                  borderColor: '#ef4444',
-                  color: theme.isDark ? '#fca5a5' : '#dc2626'
+                style={{
+                  backgroundColor: theme.isDark ? "#2d1b1b" : "#fef2f2",
+                  borderColor: "#ef4444",
+                  color: theme.isDark ? "#fca5a5" : "#dc2626",
                 }}
               >
-                ⚠️ Payment methods not available. Contact admin to enable purchases.
+                ⚠️ Payment methods not available. Contact admin to enable
+                purchases.
               </div>
             )}
 
@@ -513,21 +524,29 @@ export default function ChatProductDisplay({
                 <div className="text-xs opacity-70 text-left">TOTAL COST</div>
                 <div className="text-sm font-bold">
                   {localSelectedProduct?.priceType === "paid"
-                    ? `${localSelectedProduct?.price ?? 0}`
+                    ? `${localSelectedProduct?.price ?? 0} ${
+                        activeBotData?.currency
+                      }`
                     : "FREE"}
                 </div>
               </div>
               <button
                 className={`w-fit ${buttonSize} rounded-full font-bold transition-all duration-200 ${
-                  isBuyNowDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
+                  isBuyNowDisabled ? "cursor-not-allowed" : "cursor-pointer"
                 }`}
                 style={{
-                  backgroundColor: isBuyNowDisabled 
-                    ? (theme.isDark ? '#444' : '#ccc') 
+                  backgroundColor: isBuyNowDisabled
+                    ? theme.isDark
+                      ? "#444"
+                      : "#ccc"
                     : theme.highlightColor,
-                  color: isBuyNowDisabled 
-                    ? (theme.isDark ? '#888' : '#666')
-                    : (!theme.isDark ? "#fff" : "#000"),
+                  color: isBuyNowDisabled
+                    ? theme.isDark
+                      ? "#888"
+                      : "#666"
+                    : !theme.isDark
+                    ? "#fff"
+                    : "#000",
                   opacity: isBuyNowDisabled ? 0.6 : 1,
                 }}
                 onClick={handleBuyNow}
@@ -560,7 +579,9 @@ export default function ChatProductDisplay({
             >
               <div className="relative">
                 <img
-                  src={product.images?.[0] || "https://i.imgur.com/EJLFNOwg.jpg"}
+                  src={
+                    product.images?.[0] || "https://i.imgur.com/EJLFNOwg.jpg"
+                  }
                   alt={product.title}
                   className="w-full h-32 object-cover"
                 />
