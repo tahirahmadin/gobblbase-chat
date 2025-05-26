@@ -55,10 +55,10 @@ const AddNew = () => {
   };
 
   return (
-    <div className="min-h-screen h-full w-full overflow-x-hidden">
-      <div className="mx-auto">
+    <div className="h-full w-full overflow-x-hidden">
+      <div className="mx-auto h-full">
         {selectedType ? (
-          <div>
+          <div className="h-full w-full overflow-x-hidden">
             <NewOfferingForm
               type={selectedType as ProductType}
               onBack={handleBack}

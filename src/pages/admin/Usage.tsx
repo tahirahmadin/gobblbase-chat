@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getClientUsage } from "../../lib/serverActions";
+import { getClientUsage, getClient } from "../../lib/serverActions";
 import { useAdminStore } from "../../store/useAdminStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -29,6 +29,12 @@ interface ClientUsageData {
   totalAgentCount: number;
 }
 
+interface ClientData {
+  availableCredits: number;
+  creditsPerMonth: number;
+  planId: string;
+}
+
 interface DailyUsage {
   day: number;
   month: string;
@@ -49,6 +55,7 @@ const Usage = () => {
   const [agentsUsed, setAgentsUsed] = useState(0);
   const [totalAgents, setTotalAgents] = useState(0);
   const [usageData, setUsageData] = useState<ClientUsageData | null>(null);
+  const [clientData, setClientData] = useState<ClientData | null>(null);
   const [loading, setLoading] = useState(true);
   const [agentLimit, setAgentLimit] = useState(0);
   const [agentsList, setAgentsList] = useState<{ id: string; name: string }[]>(
@@ -81,17 +88,15 @@ const Usage = () => {
 
       try {
         setLoading(true);
-        const usageData = await getClientUsage(adminId);
+        
+        const [usageData, clientData] = await Promise.all([
+          getClientUsage(adminId),
+          getClient(adminId)
+        ]);
 
         if (usageData) {
           setUsageData(usageData);
-
-          setTotalCredits(usageData.creditsInfo.totalCredits);
-          setCreditsUsed(usageData.usage.totalTokensUsedAllAgents);
-
-          setCurrentPlan(usageData.usage.planId);
           setAgentLimit(usageData.usage.agentLimit);
-
           setTotalAgents(usageData.totalAgentCount);
 
           const agents = usageData.usage.agentUsage.map((agent) => ({
@@ -99,7 +104,6 @@ const Usage = () => {
             name: agent.agentName,
           }));
           setAgentsList(agents);
-
           setAgentsUsed(usageData.totalAgentCount);
 
           const dailyUsageCollection: DailyUsage[] = [];
@@ -127,7 +131,18 @@ const Usage = () => {
           });
 
           setAllDailyUsage(dailyUsageCollection);
+        }
 
+        if (clientData) {
+          setClientData(clientData);
+          setCurrentPlan(clientData.planId);
+          setTotalCredits(clientData.creditsPerMonth);
+          
+          const calculatedCreditsUsed = clientData.creditsPerMonth - clientData.availableCredits;
+          setCreditsUsed(calculatedCreditsUsed);
+        }
+
+        if (usageData) {
           generateUsageHistory(usageData, "All Agents", timeFrame);
           setDataInitialized(true);
         }
@@ -205,7 +220,11 @@ const Usage = () => {
 
     if (agent === "All Agents") {
       agentDailyUsage = [...allDailyUsage];
-      setCreditsUsed(data.usage.totalTokensUsedAllAgents);
+      if (clientData) {
+        const calculatedCreditsUsed = clientData.creditsPerMonth - clientData.availableCredits;
+        setCreditsUsed(calculatedCreditsUsed);
+        setTotalCredits(clientData.creditsPerMonth);
+      }
       setAgentsUsed(data.totalAgentCount);
       setSelectedAgentTokens(data.usage.totalTokensUsedAllAgents);
     } else {
@@ -220,11 +239,13 @@ const Usage = () => {
         );
 
         setCreditsUsed(selectedAgentData.totalTokensUsed);
+        setTotalCredits(0);
         setAgentsUsed(1);
         setSelectedAgentTokens(selectedAgentData.totalTokensUsed);
       } else {
         agentDailyUsage = [];
         setCreditsUsed(0);
+        setTotalCredits(0);
         setAgentsUsed(0);
         setSelectedAgentTokens(0);
       }
@@ -470,19 +491,24 @@ const Usage = () => {
           <div className="flex items-center mb-2">
             <span className="text-2xl font-bold mr-2">{creditsUsed}</span>
             <span className="text-gray-700">
-              / {totalCredits.toLocaleString()} Credits used
+              {selectedAgent === "All Agents" && totalCredits > 0 
+                ? `/ ${totalCredits.toLocaleString()} Credits used`
+                : "Credits used"
+              }
             </span>
           </div>
-          <div className="w-full h-2 bg-white rounded-full">
-            <div
-              className="h-2 bg-blue-500 rounded-full"
-              style={{
-                width: `${
-                  totalCredits > 0 ? (creditsUsed / totalCredits) * 100 : 0
-                }%`,
-              }}
-            ></div>
-          </div>
+          {selectedAgent === "All Agents" && totalCredits > 0 && (
+            <div className="w-full h-2 bg-white rounded-full">
+              <div
+                className="h-2 bg-blue-500 rounded-full"
+                style={{
+                  width: `${
+                    totalCredits > 0 ? (creditsUsed / totalCredits) * 100 : 0
+                  }%`,
+                }}
+              ></div>
+            </div>
+          )}
         </div>
 
         {/* Agents Used */}
@@ -490,31 +516,27 @@ const Usage = () => {
           <div className="flex items-center mb-2">
             <span className="text-2xl font-bold mr-2">{agentsUsed}</span>
             <span className="text-gray-700">
-              / {formatAgentLimit(agentLimit)} Agents
+              {selectedAgent === "All Agents" 
+                ? `/ ${formatAgentLimit(agentLimit)} Agents`
+                : "Agent"
+              }
             </span>
           </div>
-          <div className="w-full h-2 bg-white rounded-full">
-            <div
-              className={`h-2 rounded-full ${
-                agentLimit === 9999 ? "bg-green-500" : "bg-blue-500"
-              }`}
-              style={{
-                width:
-                  agentLimit === 9999
-                    ? "100%" // For unlimited plans, show a full green bar
-                    : selectedAgent === "All Agents"
-                    ? `${Math.min((totalAgents / agentLimit) * 100, 100)}%`
-                    : `${
-                        usageData &&
-                        usageData.usage.totalTokensUsedAllAgents > 0
-                          ? (selectedAgentTokens /
-                              usageData.usage.totalTokensUsedAllAgents) *
-                            100
-                          : 0
-                      }%`,
-              }}
-            ></div>
-          </div>
+          {selectedAgent === "All Agents" && (
+            <div className="w-full h-2 bg-white rounded-full">
+              <div
+                className={`h-2 rounded-full ${
+                  agentLimit === 9999 ? "bg-green-500" : "bg-blue-500"
+                }`}
+                style={{
+                  width:
+                    agentLimit === 9999
+                      ? "100%" 
+                      : `${Math.min((totalAgents / agentLimit) * 100, 100)}%`,
+                }}
+              ></div>
+            </div>
+          )}
         </div>
       </div>
 

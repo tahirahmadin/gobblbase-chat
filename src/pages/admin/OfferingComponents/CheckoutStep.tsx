@@ -125,7 +125,7 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
   };
 
   return (
-    <div className="rounded-2xl p-2 lg:p-4 mx-auto">
+    <div className="rounded-2xl mx-auto">
       <div className="flex flex-col justify-start items-start mb-2">
         <button
           onClick={onBack}

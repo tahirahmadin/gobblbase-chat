@@ -126,7 +126,7 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
   };
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col">
       <div className="flex items-center gap-2 mb-2 flex-shrink-0">
         <button
           onClick={onBack}
@@ -175,7 +175,7 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col md:flex-row gap-1 overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row gap-1 h-full">
         {/* Vertical Stepper Sidebar - Hidden on Mobile */}
         <div className="hidden md:flex w-42 flex-shrink-0 flex-col items-start pt-8 px-2">
           {steps.map((s, i) => (
@@ -209,10 +209,11 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
         </div>
 
         {/* Card-like Step Content */}
-        <div className="flex-1 bg-[#e7eafe] rounded-xl ">
-          <div className="p-4 md:p-2 pb-32 max-w-[1200px] mx-auto">
-            {renderStepContent()}
-          </div>
+        <div
+          className="flex-1 bg-[#e7eafe] rounded-xl p-4 md:p-6 max-w-[1200px] mx-auto w-full "
+          style={{ height: "100%" }}
+        >
+          {renderStepContent()}
         </div>
       </div>
     </div>

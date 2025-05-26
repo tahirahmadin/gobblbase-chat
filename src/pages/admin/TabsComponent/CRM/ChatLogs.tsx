@@ -92,7 +92,7 @@ const ChatLogs = () => {
             </div>
           ) : (
             <div className="flex flex-col h-full">
-              <div className="flex-1 overflow-y-auto space-y-2 min-h-0 px-2">
+              <div className="flex-1  space-y-2 min-h-0 px-2">
                 {paginatedSessions.map((session) => (
                   <div
                     key={session._id}
@@ -153,10 +153,10 @@ const ChatLogs = () => {
           )}
         </div>
         {/* Right: Chat Conversation */}
-        <div className="w-full md:w-2/3 pl-0 md:pl-8 flex flex-col space-y-4 bg-blue-50 rounded-lg p-2 mt-4 md:mt-0 h-[50vh] md:h-full pb-[50px]">
+        <div className="w-full md:w-2/3 pl-0 md:pl-8 flex flex-col space-y-4 bg-blue-50 rounded-lg p-2 mt-4 md:mt-0 h-[50vh] md:h-full pb-[50px] overflow-y-auto">
           {selectedChat ? (
             selectedChat.userLogs.length > 0 ? (
-              <div className="flex-1 overflow-y-auto space-y-4 min-h-0 px-2">
+              <div className="flex-1  space-y-4 min-h-0 px-2">
                 {selectedChat.userLogs.map((msg, idx) =>
                   msg.role === "agent" ? (
                     <div key={idx} className="flex p-1">
