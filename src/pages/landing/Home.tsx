@@ -1332,7 +1332,8 @@ const Home = () => {
       <Container>
         <Header>
           <Logo>
-            <span onClick={() => navigate("/")}>Sayy</span>
+            <img src="/assets/branding/logo.png" alt="logo" className="h-10" />
+            {/* <span onClick={() => navigate("/")}>Sayy</span> */}
             <NavLink onClick={() => navigate("/pricing")}>Pricing</NavLink>
           </Logo>
           <NavLinks>
