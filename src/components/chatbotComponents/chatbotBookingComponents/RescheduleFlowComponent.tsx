@@ -15,7 +15,7 @@ import {
   getAvailableSlots,
   userRescheduleBooking,
   getBookingForReschedule
-} from "../../lib/serverActions";
+} from "../../../lib/serverActions";
 import { Theme } from "../../types";
 
 interface RescheduleFlowProps {

@@ -13,10 +13,10 @@ import {
 import { 
   getUserBookingHistory,
   cancelUserBooking 
-} from "../../lib/serverActions";
+} from "../../../lib/serverActions";
 import { Theme } from "../../types";
 import RescheduleFlowComponent from "./RescheduleFlowComponent";
-import { useUserStore } from "../../store/useUserStore";
+import { useUserStore } from "../../../store/useUserStore";
 
 interface Booking {
   _id: string;

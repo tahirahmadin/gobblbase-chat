@@ -24,7 +24,7 @@ import {
   bookAppointment,
   getAppointmentSettings,
   getDayWiseAvailability,
-} from "../../lib/serverActions";
+} from "../../../lib/serverActions";
 import {
   SmartPhoneFormatter,
   validatePhoneNumber,
@@ -35,11 +35,11 @@ import {
   MAJOR_COUNTRIES,
   parsePhoneNumber,
   autoDetectCountry
-} from "../../utils/advphoneUtils";
+} from "../../../utils/advphoneUtils";
 import { Theme } from "../../types";
-import { useUserStore } from "../../store/useUserStore"; 
-import { useBotConfig } from "../../store/useBotConfig";
-import { LoginCard } from "../chatbotComponents/otherComponents/LoginCard"; 
+import { useUserStore } from "../../../store/useUserStore"; 
+import { useBotConfig } from "../../../store/useBotConfig";
+import { LoginCard } from "../otherComponents/LoginCard"; 
 import { BookingPaymentComponent } from "./BookingPaymentComponent";
 import toast from "react-hot-toast";
 

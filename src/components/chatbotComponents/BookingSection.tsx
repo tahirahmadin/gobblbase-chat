@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ChevronRight, ChevronDown } from "lucide-react";
 import { Theme } from "../../types";
-import BookingFlowComponent from "./BookingFlowComponent";
+import BookingFlowComponent from "./chatbotBookingComponents/BookingFlowComponent";
 import { useBookingLogic } from "../../hooks/useBookingLogic";
 
 interface BookingSectionProps {

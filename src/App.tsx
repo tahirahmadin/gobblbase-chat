@@ -32,7 +32,7 @@ import CreateNewBot from "./pages/admin/CreateNewBot";
 import Plans from "./pages/admin/Plans";
 import Billing from "./pages/admin/Billing";
 import Usage from "./pages/admin/Usage";
-import RescheduleBookingWrapper from "./components/chatbotComponents/RescheduleBookingWrapper";
+import RescheduleBookingWrapper from "./components/chatbotComponents/chatbotBookingComponents/RescheduleBookingWrapper";
 import Commerce from "./pages/admin/TabsComponent/Commerce/Commerce";
 import Operations from "./pages/admin/TabsComponent/Settings/Operations";
 import Home from "./pages/landing/Home";

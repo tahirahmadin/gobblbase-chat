@@ -21,7 +21,7 @@ import {
   getUserBookingHistory,
   cancelUserBooking,
 } from "../../lib/serverActions";
-import RescheduleFlowComponent from "./RescheduleFlowComponent";
+import RescheduleFlowComponent from "./chatbotBookingComponents/RescheduleFlowComponent";
 import { PERSONALITY_OPTIONS } from "../../utils/constants";
 
 declare global {
