@@ -25,7 +25,6 @@ type UnifiedFormType = {
   file?: File | null;
   fileUrl?: string;
   // Physical
-  customQuantity?: number;
   variedSizes?: string[];
   variedQuantities?: Record<string, number>;
   // Service

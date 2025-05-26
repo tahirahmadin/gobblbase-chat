@@ -32,7 +32,7 @@ const Button = styled.button`
   }
 
   &:disabled {
-     background: #d6ffe0;
+    background: #d6ffe0;
     cursor: not-allowed;
     color: black;
   }
@@ -55,7 +55,18 @@ const AiModel = () => {
       if (modelFromPresets) {
         setCurrentModelId(modelFromPresets.id);
         setSelectedModelId(modelFromPresets.id);
+      } else {
+        // If model not found in presets, default to first model
+        console.warn(
+          `Model ${activeBotData.model} not found in presets, defaulting to first model`
+        );
+        setCurrentModelId(MODEL_PRESETS[0].id);
+        setSelectedModelId(MODEL_PRESETS[0].id);
       }
+    } else {
+      // If no model is set, default to first model
+      setCurrentModelId(MODEL_PRESETS[0].id);
+      setSelectedModelId(MODEL_PRESETS[0].id);
     }
   }, [activeBotData?.model]);
 
@@ -163,7 +174,9 @@ const AiModel = () => {
                   key={model.id}
                   onClick={() => handleSelect(model.id)}
                   className={`w-full flex items-center gap-2 p-2 hover:bg-gray-50 transition-colors ${
-                    selectedModelId === model.id ? "border bg-[#CEFFDC] focus:outline-none" : ""
+                    selectedModelId === model.id
+                      ? "border bg-[#CEFFDC] focus:outline-none"
+                      : ""
                   }`}
                 >
                   <img
@@ -212,7 +225,10 @@ const AiModel = () => {
                 <span className="inline-block bg-black text-white text-xs px-2 py-1 rounded">
                   Credits Cost: {selectedModel.creditsCost}
                 </span>
-                 <div style={{ zIndex: "4" }} className="flex justify-end relative">
+                <div
+                  style={{ zIndex: "4" }}
+                  className="flex justify-end relative"
+                >
                   <Button
                     className=""
                     onClick={handleSave}

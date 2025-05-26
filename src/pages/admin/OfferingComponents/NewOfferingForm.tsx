@@ -49,8 +49,8 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
       file: null,
       fileUrl: "",
       // Physical Product specific
-      customQuantity: "",
       variedSizes: [],
+      variedQuantities: {},
       // Service specific
       locationType: "online",
       address: "",
@@ -209,10 +209,7 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
         </div>
 
         {/* Card-like Step Content */}
-        <div
-          className="flex-1 bg-[#e7eafe] rounded-xl p-4 md:p-6 max-w-[1200px] mx-auto w-full "
-          style={{ height: "100%" }}
-        >
+        <div className="flex-1 bg-[#e7eafe] rounded-xl p-4 md:p-6 max-w-[1200px] mx-auto w-full h-full overflow-y-auto">
           {renderStepContent()}
         </div>
       </div>

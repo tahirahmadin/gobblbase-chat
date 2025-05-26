@@ -32,6 +32,8 @@ interface PaymentSectionProps {
     description?: string;
     images?: string[];
     priceType?: string;
+    selectedSize?: string;
+    quantity: number;
     [key: string]: any;
   };
   shipping: {
@@ -390,6 +392,10 @@ export function PaymentSection({
               amount: Math.round(product.price * 100),
               currency: activeBotData.currency || "USD",
               shipping: shipping,
+              checks: {
+                type: product.selectedSize,
+                val: product.quantity,
+              },
             }),
           }
         );

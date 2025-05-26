@@ -279,20 +279,22 @@ const PreviewStep: FC<PreviewStepProps> = ({
               </div>
             )}
             {type === "physicalProduct" &&
-              form.variedSizes &&
-              form.variedSizes.length > 0 && (
+              form.quantityType === "variedSizes" &&
+              form.variedQuantities && (
                 <div className="flex flex-row justify-between w-full px-6 mt-2 mb-2 gap-4">
                   <div className="flex flex-col items-start">
                     <span className="text-xs text-gray-300 mb-1">
                       SELECT SIZE
                     </span>
-                    <div className="flex gap-2">
-                      {form.variedSizes.map((sz: string) => (
+                    <div className="flex gap-1">
+                      {Object.entries(
+                        form.variedQuantities as Record<string, number>
+                      ).map(([size]) => (
                         <button
-                          key={sz}
-                          className="border border-yellow-400 bg-black text-yellow-400 rounded-full px-3 py-1 text-xs font-semibold"
+                          key={size}
+                          className="border border-yellow-400 bg-black text-yellow-400 rounded-full px-2 py-1 text-xs font-semibold"
                         >
-                          {sz}
+                          {size}
                         </button>
                       ))}
                     </div>
@@ -302,7 +304,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
                       SELECT QUANTITY
                     </span>
                     <div className="flex flex-row justify-end items-center gap-2">
-                      <button className="w-6 h-6 rounded-full bg-[#222] border border-gray-600 flex items-center justify-center text-yellow-400">
+                      <button className="w-6 h-6 rounded-full bg-yellow-400 border border-yellow-500 flex items-center justify-center text-black">
                         <MinusIcon />
                       </button>
                       <span className="text-white font-bold text-base">1</span>
@@ -313,33 +315,32 @@ const PreviewStep: FC<PreviewStepProps> = ({
                   </div>
                 </div>
               )}
-            {type === "physicalProduct" &&
-              (!form.variedSizes || form.variedSizes.length === 0) && (
-                <div className="flex flex-row justify-between w-full px-6 mt-2 mb-2 gap-4">
-                  <div className="flex flex-col items-start">
-                    <span className="text-xs text-gray-300 mb-1">
-                      SELECT SIZE
-                    </span>
-                    <button className="border border-yellow-400 bg-black text-yellow-400 rounded-full px-3 py-1 text-xs font-semibold">
-                      One Size
+            {type === "physicalProduct" && form.quantityType === "oneSize" && (
+              <div className="flex flex-row justify-between w-full px-6 mt-2 mb-2 gap-4">
+                <div className="flex flex-col items-start">
+                  <span className="text-xs text-gray-300 mb-1">
+                    TOTAL QUANTITY
+                  </span>
+                  <button className="border border-yellow-400 bg-black text-yellow-400 rounded-full px-3 py-1 text-xs font-semibold">
+                    {form.quantity}
+                  </button>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-xs text-gray-300 mb-1">
+                    SELECT QUANTITY
+                  </span>
+                  <div className="flex flex-row justify-end items-center gap-2">
+                    <button className="w-6 h-6 rounded-full bg-yellow-400 border border-yellow-500 flex items-center justify-center text-black">
+                      <MinusIcon />
+                    </button>
+                    <span className="text-white font-bold text-base">1</span>
+                    <button className="w-6 h-6 rounded-full bg-yellow-400 border border-yellow-500 flex items-center justify-center text-black">
+                      <PlusIcon />
                     </button>
                   </div>
-                  <div className="flex flex-col items-center">
-                    <span className="text-xs text-gray-300 mb-1">
-                      SELECT QUANTITY
-                    </span>
-                    <div className="flex flex-row justify-end items-center gap-2">
-                      <button className="w-6 h-6 rounded-full bg-[#222] border border-gray-600 flex items-center justify-center text-yellow-400">
-                        <MinusIcon />
-                      </button>
-                      <span className="text-white font-bold text-base">1</span>
-                      <button className="w-6 h-6 rounded-full bg-yellow-400 border border-yellow-500 flex items-center justify-center text-black">
-                        <PlusIcon />
-                      </button>
-                    </div>
-                  </div>
                 </div>
-              )}
+              </div>
+            )}
             {type === "Service" && (
               <div className="flex flex-row justify-between w-full px-6 mt-2 mb-2 gap-4">
                 <div className="flex flex-col items-start">

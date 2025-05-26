@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Theme } from "../../types";
 import { useCartStore } from "../../store/useCartStore";
@@ -9,7 +9,10 @@ import toast from "react-hot-toast";
 interface ProductDetailPageProps {
   theme: Theme;
   onBack: () => void;
-  onAddToCart: (quantity: number) => void;
+  onAddToCart: (
+    quantity: number,
+    sizeQuantity?: Record<string, number>
+  ) => void;
   inChatMode?: boolean;
 }
 
@@ -26,45 +29,78 @@ export default function ProductDetailPage({
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+
+  // Get max quantity based on selected size
+  const maxQuantity = useMemo(() => {
+    if (selectedProduct?.quantityType === "variedSizes" && selectedSize) {
+      return selectedProduct.variedQuantities?.[selectedSize] || 0;
+    }
+    return selectedProduct?.quantity || 0;
+  }, [selectedProduct, selectedSize]);
+
+  // Update quantity when size changes
+  useEffect(() => {
+    if (selectedProduct?.quantityType === "variedSizes" && selectedSize) {
+      setQuantity(1);
+    }
+  }, [selectedSize, selectedProduct?.quantityType]);
 
   // Check if any payment method is enabled
   const availablePaymentMethods = useMemo(() => {
     if (!activeBotData?.paymentMethods) return [];
-    
+
     const methods = [];
-    if (activeBotData.paymentMethods.stripe?.enabled) methods.push('stripe');
-    if (activeBotData.paymentMethods.razorpay?.enabled) methods.push('razorpay');
-    if (activeBotData.paymentMethods.usdt?.enabled) methods.push('usdt');
-    if (activeBotData.paymentMethods.usdc?.enabled) methods.push('usdc');
-    
+    if (activeBotData.paymentMethods.stripe?.enabled) methods.push("stripe");
+    if (activeBotData.paymentMethods.razorpay?.enabled)
+      methods.push("razorpay");
+    if (activeBotData.paymentMethods.usdt?.enabled) methods.push("usdt");
+    if (activeBotData.paymentMethods.usdc?.enabled) methods.push("usdc");
+
     return methods;
   }, [activeBotData?.paymentMethods]);
 
   const hasEnabledPaymentMethods = availablePaymentMethods.length > 0;
-  const isFreeProduct = selectedProduct?.priceType === "free" || selectedProduct?.price === 0;
+  const isFreeProduct =
+    selectedProduct?.priceType === "free" || selectedProduct?.price === 0;
 
   const handleBuyNow = () => {
     // Allow free products to proceed regardless of payment methods
     if (isFreeProduct) {
-      onAddToCart(quantity);
+      if (selectedProduct?.quantityType === "variedSizes" && selectedSize) {
+        // Only send the selected size's quantity
+        const sizeQuantity = { [selectedSize]: quantity };
+        onAddToCart(quantity, sizeQuantity);
+      } else {
+        onAddToCart(quantity);
+      }
       setCartView(true);
       return;
     }
 
     // Check if payment methods are enabled for paid products
     if (!hasEnabledPaymentMethods) {
-      toast.error("Payment methods are not enabled. Please contact the admin.", {
-        duration: 4000,
-        style: {
-          background: theme.isDark ? '#2d1b1b' : '#fef2f2',
-          color: theme.isDark ? '#fca5a5' : '#dc2626',
-          border: '1px solid #ef4444',
-        },
-      });
+      toast.error(
+        "Payment methods are not enabled. Please contact the admin.",
+        {
+          duration: 4000,
+          style: {
+            background: theme.isDark ? "#2d1b1b" : "#fef2f2",
+            color: theme.isDark ? "#fca5a5" : "#dc2626",
+            border: "1px solid #ef4444",
+          },
+        }
+      );
       return;
     }
 
-    onAddToCart(quantity);
+    if (selectedProduct?.quantityType === "variedSizes" && selectedSize) {
+      // Only send the selected size's quantity
+      const sizeQuantity = { [selectedSize]: quantity };
+      onAddToCart(quantity, sizeQuantity);
+    } else {
+      onAddToCart(quantity);
+    }
     setCartView(true);
   };
 
@@ -108,14 +144,52 @@ export default function ProductDetailPage({
           <div className="text-xs font-semibold mb-1 text-left">
             SELECT SIZE
           </div>
-          <button
-            className="px-3 py-1 rounded-full border border-[#fff] text-xs font-semibold"
-            style={{
-              color: theme.highlightColor,
-            }}
-          >
-            One Size
-          </button>
+          <div className="flex flex-wrap gap-1">
+            {selectedProduct.quantityType === "variedSizes" ? (
+              Object.entries(selectedProduct.variedQuantities || {}).map(
+                ([size, qty]) => (
+                  <button
+                    key={size}
+                    onClick={() => setSelectedSize(size)}
+                    className={`px-3 py-1 rounded-full border text-xs font-semibold ${
+                      selectedSize === size ? "border-2" : "border"
+                    }`}
+                    style={{
+                      color:
+                        selectedSize === size
+                          ? theme.highlightColor
+                          : theme.isDark
+                          ? "#fff"
+                          : "#000",
+                      borderColor:
+                        selectedSize === size
+                          ? theme.highlightColor
+                          : theme.isDark
+                          ? "#fff"
+                          : "#000",
+                      backgroundColor:
+                        selectedSize === size
+                          ? theme.isDark
+                            ? "#1a1a1a"
+                            : "#f5f5f5"
+                          : "transparent",
+                    }}
+                  >
+                    {size}
+                  </button>
+                )
+              )
+            ) : (
+              <button
+                className="px-3 py-1 rounded-full border border-[#fff] text-xs font-semibold"
+                style={{
+                  color: theme.highlightColor,
+                }}
+              >
+                One Size
+              </button>
+            )}
+          </div>
         </div>
         <div>
           <div className="text-xs font-semibold mb-1 text-left">
@@ -142,12 +216,13 @@ export default function ProductDetailPage({
               {quantity}
             </span>
             <button
-              onClick={() => setQuantity((q) => q + 1)}
+              onClick={() => setQuantity((q) => Math.min(maxQuantity, q + 1))}
               className="px-3 py-1 rounded-full text-lg font-bold"
               style={{
                 backgroundColor: theme.highlightColor,
                 color: !theme.isDark ? "#fff" : "#000000",
               }}
+              disabled={quantity >= maxQuantity}
             >
               +
             </button>
@@ -425,18 +500,19 @@ export default function ProductDetailPage({
             {selectedProduct?.description || "Product Bio "}
           </div>
           {extraFields}
-          
+
           {/* Payment Warning for Paid Products */}
           {!isFreeProduct && !hasEnabledPaymentMethods && (
-            <div 
+            <div
               className="mb-3 p-2 rounded-lg border text-center text-xs"
-              style={{ 
-                backgroundColor: theme.isDark ? '#2d1b1b' : '#fef2f2',
-                borderColor: '#ef4444',
-                color: theme.isDark ? '#fca5a5' : '#dc2626'
+              style={{
+                backgroundColor: theme.isDark ? "#2d1b1b" : "#fef2f2",
+                borderColor: "#ef4444",
+                color: theme.isDark ? "#fca5a5" : "#dc2626",
               }}
             >
-              ⚠️ Payment methods not available. Contact admin to enable purchases.
+              ⚠️ Payment methods not available. Contact admin to enable
+              purchases.
             </div>
           )}
 
@@ -465,15 +541,21 @@ export default function ProductDetailPage({
             </div>
             <button
               className={`w-fit ${buttonSize} rounded-full font-bold transition-all duration-200 ${
-                isBuyNowDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
+                isBuyNowDisabled ? "cursor-not-allowed" : "cursor-pointer"
               }`}
               style={{
-                backgroundColor: isBuyNowDisabled 
-                  ? (theme.isDark ? '#444' : '#ccc') 
+                backgroundColor: isBuyNowDisabled
+                  ? theme.isDark
+                    ? "#444"
+                    : "#ccc"
                   : theme.highlightColor,
-                color: isBuyNowDisabled 
-                  ? (theme.isDark ? '#888' : '#666')
-                  : (!theme.isDark ? "#fff" : "#000"),
+                color: isBuyNowDisabled
+                  ? theme.isDark
+                    ? "#888"
+                    : "#666"
+                  : !theme.isDark
+                  ? "#fff"
+                  : "#000",
                 opacity: isBuyNowDisabled ? 0.6 : 1,
               }}
               onClick={handleBuyNow}
