@@ -610,7 +610,10 @@ export default function ChatProductDisplay({
                     className="text-sm font-medium"
                     style={{ color: theme.highlightColor }}
                   >
-                    {product.priceType === "paid" ? `${product.price}` : "FREE"}
+                    {product.priceType === "paid" 
+                      ? `${product.price} ${activeBotData?.currency || ''}` 
+                      : "FREE"
+                    }
                   </span>
                   <div
                     className="flex items-center text-xs"
