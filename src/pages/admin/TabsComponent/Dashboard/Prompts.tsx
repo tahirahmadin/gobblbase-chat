@@ -382,7 +382,23 @@ const Prompts = () => {
                   Predefined Prompts
                 </h3>
                 <button
-                  onClick={() => setSelectedPrompts([])}
+                  onClick={async () => {
+                    if (activeBotData) {
+                      try {
+                        await updateAgentPrompts(activeBotData.agentId, []);
+                        setSelectedPrompts([]);
+                        setPreviewConfig({
+                          ...activeBotData,
+                          prompts: [],
+                        });
+                        setRefetchBotData();
+                        toast.success("All prompts removed successfully");
+                      } catch (error) {
+                        toast.error("Failed to remove prompts");
+                        console.error("Error removing prompts:", error);
+                      }
+                    }
+                  }}
                   className="para-font border border-[#7D7D7D] text-[#7D7D7D] px-2 py-0.5 xs:px-4 rounded-xl "
                 >
                   Remove
@@ -417,7 +433,7 @@ const Prompts = () => {
                         <Icon
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleRemovePrompt(prompt, false);
+                            handlePromptSelect(prompt);
                           }}
                           className=""
                         >
@@ -464,7 +480,10 @@ const Prompts = () => {
                     {activeBotData?.prompts?.includes(prompt) && (
                       <div style={{ zIndex: "4" }} className="icon relative">
                         <Icon
-                          onClick={() => handleRemovePrompt(prompt, true)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePromptSelect(prompt);
+                          }}
                           className=""
                         >
                           <X className="w-4 h-4 stroke-[4px]" />
