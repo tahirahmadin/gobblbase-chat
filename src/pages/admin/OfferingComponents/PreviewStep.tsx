@@ -108,7 +108,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
         data = await savePhysicalProduct(
           form,
           activeBotId,
-          editMode ? "179" : undefined
+          editMode ? editProduct.productId : undefined
         );
       } else if (type === "digitalProduct") {
         data = await saveDigitalProduct(

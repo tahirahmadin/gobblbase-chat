@@ -190,9 +190,7 @@ const Manage = () => {
               <th className="py-1.5 px-2 text-left text-xs lg:text-sm">
                 PRICE
               </th>
-              <th className="py-1.5 px-2 text-left text-xs lg:text-sm">
-                INVENTORY
-              </th>
+
               <th className="py-1.5 px-2 text-left text-xs lg:text-sm">
                 ACTIONS
               </th>
@@ -230,7 +228,15 @@ const Manage = () => {
                       <div>
                         <div>{p.title}</div>
                         <div className="text-[10px] lg:text-xs text-gray-500">
-                          {p.category}
+                          {p.quantityType === "variedSizes" &&
+                            Object.entries(p.variedQuantities)
+                              .map(([size, quantity]) => `${size}: ${quantity}`)
+                              .join(", ")}
+                          {p.quantityType === "oneSize" &&
+                            p.quantityUnlimited === false &&
+                            p.quantity}
+                          {p.quantityUnlimited === true && "Unlimited"}
+                          {p.type === "Event" && p.category}
                         </div>
                       </div>
                     </div>
@@ -240,12 +246,7 @@ const Manage = () => {
                       ? `${p.price} ${activeBotData?.currency}`
                       : `Free`}
                   </td>
-                  <td className="py-1.5 px-2 text-xs lg:text-sm">
-                    {p.quantityUnlimited === "true" ||
-                    p.quantityUnlimited === true
-                      ? "Unlimited"
-                      : p.quantity}
-                  </td>
+
                   <td className="py-1.5 px-2">
                     <div className="flex gap-1.5 items-center">
                       <button

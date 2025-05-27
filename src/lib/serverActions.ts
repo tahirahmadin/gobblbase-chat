@@ -1678,6 +1678,7 @@ export async function savePhysicalProduct(
   if (productId) {
     formData.append("productId", productId);
   }
+
   formData.append("file", form.thumbnail);
   formData.append("title", form.title);
   formData.append("description", form.description);
