@@ -79,7 +79,6 @@ export const OrderSuccessScreen: React.FC<OrderSuccessScreenProps> = ({
               backgroundColor: theme.isDark ? "#1a1a1a" : "#f8f8f8",
             }}
           >
-            {console.log(orderDetails)}
             <div className="mb-6 text-left">
               <div
                 className="flex justify-between items-center py-2"

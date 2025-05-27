@@ -172,6 +172,8 @@ const Sidebar = () => {
   const { activeBotData } = useBotConfig();
 
   const toggleTab = (tabName: string) => {
+    localStorage.removeItem("editingProduct");
+
     setExpandedTabs((prev) =>
       prev.includes(tabName)
         ? prev.filter((tab) => tab !== tabName)

@@ -43,6 +43,11 @@ const AddNew = () => {
       setEditData(product);
       setSelectedType(type);
     }
+
+    // Cleanup function to clear edit data when component unmounts
+    return () => {
+      localStorage.removeItem("editingProduct");
+    };
   }, []);
 
   const handleBack = () => {

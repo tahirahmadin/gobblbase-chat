@@ -1332,7 +1332,11 @@ const Home = () => {
       <Container>
         <Header>
           <Logo>
-            <img src="/assets/branding/logo.png" alt="logo" className="h-10" />
+            <img
+              src="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/logo.png"
+              alt="logo"
+              className="h-10"
+            />
             {/* <span onClick={() => navigate("/")}>Sayy</span> */}
             <NavLink onClick={() => navigate("/pricing")}>Pricing</NavLink>
           </Logo>
