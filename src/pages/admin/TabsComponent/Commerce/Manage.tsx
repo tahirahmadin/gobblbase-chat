@@ -152,7 +152,7 @@ const Manage = () => {
   };
 
   return (
-    <div className="w-[100vw] lg:w-full overflow-x-hidden pr-4">
+    <div className="w-[100vw] lg:w-full overflow-x-hidden pr-4 p-2 lg:p-4">
       <div className="flex justify-between items-center mb-6 ">
         <h1 className="text-xl lg:text-2xl font-semibold text-gray-900">
           Manage Offerings
