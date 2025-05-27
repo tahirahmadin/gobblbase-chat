@@ -91,9 +91,20 @@ const CustomLinksSection = () => {
 
   const validateUrl = (url: string): boolean => {
     if (!url) return false;
+
+    // Basic URL validation
     try {
-      new URL(url);
-      return true;
+      const urlObj = new URL(url);
+
+      // Check if domain has at least one dot (.) and proper TLD
+      const domainRegex =
+        /^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$/;
+      const hostname = urlObj.hostname;
+
+      // Remove 'www.' if present for domain validation
+      const domain = hostname.replace(/^www\./, "");
+
+      return domainRegex.test(domain);
     } catch {
       return false;
     }
@@ -115,7 +126,7 @@ const CustomLinksSection = () => {
   };
 
   const handleAdd = () => {
-    setCustomHandles((prev) => [...prev, { label: "", url: "" }]);
+    setCustomHandles((prev) => [...prev, { label: "", url: "https://" }]);
   };
 
   const handleRemove = async (idx: number) => {
@@ -127,11 +138,6 @@ const CustomLinksSection = () => {
     try {
       const newHandles = customHandles.filter((_, i) => i !== idx);
       setCustomHandles(newHandles);
-
-      // Update backend immediately when any link is removed
-      await updateCustomHandles(activeBotId, newHandles);
-      setRefetchBotData();
-      toast.success("Custom link removed successfully");
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);

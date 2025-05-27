@@ -18,14 +18,6 @@ type CheckoutStepProps = {
   onBack: () => void;
 };
 
-const defaultCustomerFields = [
-  "Customer Name",
-  "Email",
-  "Contact Number",
-  "Shipping Address",
-  "Billing Address",
-];
-
 const CheckoutStep: React.FC<CheckoutStepProps> = ({
   form,
   setForm,
@@ -37,32 +29,10 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
   const ensureField = (field: string, fallback: any) =>
     form[field] !== undefined ? form[field] : fallback;
 
-  const customFields: string[] = ensureField("customFields", []);
-
-  // Use checkOutCustomerDetails as the source of checked fields
-  const checkOutCustomerDetails: string[] = form.checkOutCustomerDetails || [];
-
-  const toggleCheckOutCustomerDetail = (field: string) => {
-    setForm((prev: any) => {
-      const exists = (prev.checkOutCustomerDetails || []).includes(field);
-      return {
-        ...prev,
-        checkOutCustomerDetails: exists
-          ? prev.checkOutCustomerDetails.filter((f: string) => f !== field)
-          : [...(prev.checkOutCustomerDetails || []), field],
-      };
-    });
-  };
-
   // Email template logic
   const { activeBotId } = useBotConfig();
-  const {
-    emailTemplates,
-    emailTemplatesLoading,
-    emailTemplatesError,
-    fetchEmailTemplates,
-    updateEmailTemplate,
-  } = useAdminStore();
+  const { emailTemplates, fetchEmailTemplates, updateEmailTemplate } =
+    useAdminStore();
 
   // Map product types to template keys
   const templateKeyMap: Record<string, string> = {
@@ -82,11 +52,6 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
   );
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
-
-  // Merge default fields and custom fields for selection, removing duplicates
-  const mergedCustomerFields = Array.from(
-    new Set([...defaultCustomerFields, ...(customFields || [])])
-  );
 
   useEffect(() => {
     if (activeBotId && emailTemplates === null) {
@@ -156,18 +121,13 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
         </div> */}
         <div className="flex-1">
           <div className="font-semibold mb-1">Confirmation Email</div>
-          {emailTemplatesLoading && (
-            <div className="p-2">Loading template...</div>
-          )}
-          {emailTemplatesError && (
-            <div className="p-2 text-red-500">{emailTemplatesError}</div>
-          )}
-          {!emailTemplatesLoading && !emailTemplatesError && !localTemplate && (
+
+          {!localTemplate && (
             <div className="p-2 text-gray-500">
               No email template found for this product type.
             </div>
           )}
-          {!emailTemplatesLoading && !emailTemplatesError && localTemplate && (
+          {localTemplate && (
             <div className="bg-blue-50 border border-blue-300 rounded-lg p-4">
               <div className="mb-2 text-gray-700 font-semibold">
                 {localTemplate.subText}

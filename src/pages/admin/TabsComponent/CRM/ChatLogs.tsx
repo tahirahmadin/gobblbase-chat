@@ -106,9 +106,11 @@ const ChatLogs = () => {
                   >
                     <div className="font-semibold text-green-700">Guest</div>
                     <div className="text-xs text-gray-600 truncate">
-                      {session.userLogs[
-                        session.userLogs.length - 1
-                      ]?.content.slice(0, 50) || "No messages"}
+                      <ReactMarkdown>
+                        {session.userLogs[
+                          session.userLogs.length - 1
+                        ]?.content.slice(0, 60) || "No messages"}
+                      </ReactMarkdown>
                     </div>
                     <div className="text-xs text-right text-green-400">
                       {new Date(session.createdDate).toLocaleDateString()}

@@ -1059,7 +1059,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
             </div>
           </div>
 
-          <div className="p-4 rounded-lg border border-indigo-200 bg-white">
+          {/* <div className="p-4 rounded-lg border border-indigo-200 bg-white">
             <label className="font-semibold block mb-2">CTA Button*</label>
             <input
               className="border border-gray-300 rounded p-2 w-full"
@@ -1067,7 +1067,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
               onChange={(e) => setForm((f) => ({ ...f, cta: e.target.value }))}
               placeholder="Buy Now"
             />
-          </div>
+          </div> */}
 
           <div className="flex justify-end mt-2">
             <button

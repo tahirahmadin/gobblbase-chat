@@ -96,7 +96,7 @@ function StripePaymentForm({
       if (paymentIntent && paymentIntent.status === "succeeded") {
         const orderDetails = {
           product: product,
-          total: product.price,
+          total: product.price * product.quantity,
           orderId: paymentIntent.id,
           paymentMethod: "Credit Card",
           paymentDate: new Date().toLocaleDateString(),
