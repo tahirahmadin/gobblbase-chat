@@ -77,7 +77,7 @@ const CustomerLeads = () => {
   return (
     <div className="flex flex-col lg:flex-row lg:p-8 min-h-[500px] h-screen overflow-y-auto">
       {/* Left Panel */}
-      <div className="w-full lg:w-80 lg:mr-8 flex flex-col mb-8 lg:mb-0 p-4">
+      <div className="w-full lg:w-80 lg:mr-8 flex flex-col mb-2 lg:mb-0 p-4">
         <h2 className="text-lg font-bold text-black mb-2">Customer Leads</h2>
         <p className="text-sm text-black font-medium mb-6">
           Set up your contact form and collect inbound leads from visitors
@@ -213,17 +213,17 @@ const CustomerLeads = () => {
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead>
-                    <tr className="bg-black text-white text-sm lg:text-base">
-                      <th className="py-2 px-4 lg:py-3 lg:px-6 text-left font-medium rounded-tl-xl">
+                    <tr className="bg-black text-white text-xs lg:text-base">
+                      <th className="py-2 px-2 lg:py-3 lg:px-6 text-left font-medium rounded-tl-xl">
                         NAME
                       </th>
-                      <th className="py-2 px-4 lg:py-3 lg:px-6 text-left font-medium">
+                      <th className="py-2 px-2 lg:py-3 lg:px-6 text-left font-medium">
                         EMAIL ADDRESS
                       </th>
-                      <th className="py-2 px-4 lg:py-3 lg:px-6 text-left font-medium">
+                      <th className="py-2 px-2 lg:py-3 lg:px-6 text-left font-medium">
                         PHONE NUMBER
                       </th>
-                      <th className="py-2 px-4 lg:py-3 lg:px-6 text-left font-medium rounded-tr-xl">
+                      <th className="py-2 px-2 lg:py-3 lg:px-6 text-left font-medium rounded-tr-xl">
                         QUERY MESSAGE
                       </th>
                     </tr>
@@ -232,18 +232,18 @@ const CustomerLeads = () => {
                     {paginatedLeads.map((lead, idx) => (
                       <tr
                         key={idx}
-                        className="bg-blue-50 text-sm lg:text-base border-b border-blue-100 last:border-b-0"
+                        className="bg-blue-50 text-[9px] lg:text-base border-b border-blue-100 last:border-b-0"
                       >
-                        <td className="py-2 px-4 lg:py-3 lg:px-6">
+                        <td className="py-2 px-2 lg:py-3 lg:px-6">
                           {lead.name}
                         </td>
-                        <td className="py-2 px-4 lg:py-3 lg:px-6">
+                        <td className="py-2 px-2 lg:py-3 lg:px-6 ">
                           {lead.email}
                         </td>
-                        <td className="py-2 px-4 lg:py-3 lg:px-6">
+                        <td className="py-2 px-2 lg:py-3 lg:px-6">
                           {lead.phone}
                         </td>
-                        <td className="py-2 px-4 lg:py-3 lg:px-6">
+                        <td className="py-2 px-2 lg:py-3 lg:px-6">
                           {lead.queryMessage}
                         </td>
                       </tr>

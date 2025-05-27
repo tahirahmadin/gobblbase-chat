@@ -152,8 +152,8 @@ const Manage = () => {
   };
 
   return (
-    <div className="lg:p-6 w-screen lg:w-full">
-      <div className="flex justify-between items-center mb-6">
+    <div className="w-[100vw] lg:w-full overflow-x-hidden pr-4">
+      <div className="flex justify-between items-center mb-6 ">
         <h1 className="text-xl lg:text-2xl font-semibold text-gray-900">
           Manage Offerings
         </h1>
@@ -164,11 +164,11 @@ const Manage = () => {
           Add New +
         </button>
       </div>
-      <div className="flex gap-2 mb-4 max-w-screen lg:w-full">
+      <div className="flex gap-1 lg:gap-2 mb-4 max-w-screen lg:w-full">
         {TABS.map((t) => (
           <button
             key={t.value}
-            className={`px-4 py-2 rounded font-semibold text-xs lg:text-sm ${
+            className={`px-3 py-2 rounded font-semibold text-[9px] lg:text-sm ${
               tab === t.value
                 ? "bg-black text-white"
                 : "bg-white border border-gray-300"
@@ -179,8 +179,8 @@ const Manage = () => {
           </button>
         ))}
       </div>
-      <div className="bg-white rounded-lg border border-gray-200 p-0 overflow-x-auto w-screen lg:w-full">
-        <table className="w-full min-w-[600px]">
+      <div className="bg-white rounded-lg border border-gray-200 p-0  lg:w-full overflow-x-auto">
+        <table className="w-screen min-w-[500px] lg:w-full">
           <thead>
             <tr className="bg-green-100">
               <th className="py-1.5 px-2 text-left text-xs lg:text-sm">CODE</th>
@@ -228,6 +228,7 @@ const Manage = () => {
                       <div>
                         <div>{p.title}</div>
                         <div className="text-[10px] lg:text-xs text-gray-500">
+                          Qty:{" "}
                           {p.quantityType === "variedSizes" &&
                             Object.entries(p.variedQuantities)
                               .map(([size, quantity]) => `${size}: ${quantity}`)
