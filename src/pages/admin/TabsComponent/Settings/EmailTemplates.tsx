@@ -128,9 +128,9 @@ const EmailTemplates = () => {
   }
 
   return (
-    <div className="flex flex-col md:flex-row gap-8 p-6 h-full overflow-hidden">
+    <div className="flex flex-col md:flex-row gap-8 p-6 h-[90vh] min-h-screen overflow-y-auto pb-10">
       {/* Sidebar with scrolling */}
-      <div className="w-full md:w-1/3 max-w-md h-full overflow-y-auto">
+      <div className="w-full md:w-1/3 ">
         <h2 className="text-xl font-bold text-black">Email Templates</h2>
         <p className="text-gray-600 mb-6 text-sm">
           Tailor messages to match every customer action
@@ -187,7 +187,7 @@ const EmailTemplates = () => {
       </div>
 
       {/* Editor area with scrolling */}
-      <div className="flex-1 h-full overflow-y-auto">
+      <div className="flex-1 ">
         {!preview && (
           <div className="bg-blue-50 border border-blue-300 rounded-lg p-6">
             <div className="mb-4 text-gray-700 font-semibold">
@@ -252,7 +252,7 @@ const EmailTemplates = () => {
 
         {/* Preview Panel */}
         {preview && (
-          <div className="bg-white border border-blue-300 rounded-lg p-6 max-h-full overflow-y-auto">
+          <div className="bg-white border border-blue-300 rounded-lg p-6">
             <div className="flex justify-between mb-4">
               <h3 className="font-semibold text-lg">Email Preview</h3>
               <button
