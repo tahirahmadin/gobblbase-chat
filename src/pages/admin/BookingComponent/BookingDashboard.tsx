@@ -395,7 +395,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
     if (!bookingSettings) return null;
 
     return (
-      <div className="bg-blue-50 rounded-lg p-4 w-full h-fit">
+      <div className="bg-blue-50 rounded-lg p-4 w-64 h-fit">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-medium">Calendar Settings</h3>
           <button
