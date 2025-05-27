@@ -61,14 +61,14 @@ const Orders = () => {
   };
 
   return (
-    <div className="p-2 lg:p-6 w-screen lg:w-full">
+    <div className="w-screen lg:w-full w-[100%] p-2 lg:p-6 ">
       <h2 className="text-xl lg:text-2xl font-semibold mb-4 lg:mb-6">
         Orders Dashboard
       </h2>
-      <div className="w-full max-w-full overflow-hidden">
+      <div className="w-full max-w-full max-h-[calc(100vh-160px)] overflow-y-auto rounded-lg border border-gray-200">
         <div className="relative">
           <div className="overflow-x-auto">
-            <div className="min-w-[800px]">
+            <div className="min-w-[800px] ">
               <table className="w-full rounded-lg overflow-hidden text-sm lg:text-base">
                 <thead>
                   <tr className="bg-green-100 text-gray-700 text-left">
@@ -82,7 +82,7 @@ const Orders = () => {
                       CUSTOMER
                     </th>
                     <th className="py-2 px-2 lg:py-3 lg:px-4 font-semibold whitespace-nowrap">
-                      ITEMS
+                      Product
                     </th>
                     <th className="py-2 px-2 lg:py-3 lg:px-4 font-semibold whitespace-nowrap">
                       AMOUNT
@@ -111,7 +111,7 @@ const Orders = () => {
                       return (
                         <tr
                           key={order._id}
-                          className="bg-white border-b border-gray-200 last:border-b-0"
+                          className="bg-white border-b border-gray-200 last:border-b-0 text-xs lg:text-sm "
                         >
                           <td className="py-2 px-2 lg:py-4 lg:px-4 align-top font-medium whitespace-nowrap">
                             #{order.orderId}

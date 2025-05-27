@@ -179,111 +179,125 @@ const Manage = () => {
           </button>
         ))}
       </div>
-      <div className="bg-white rounded-lg border border-gray-200 p-0  lg:w-full overflow-x-auto">
-        <table className="w-screen min-w-[500px] lg:w-full">
-          <thead>
-            <tr className="bg-green-100">
-              <th className="py-1.5 px-2 text-left text-xs lg:text-sm">CODE</th>
-              <th className="py-1.5 px-2 text-left text-xs lg:text-sm">
-                ITEM NAME
-              </th>
-              <th className="py-1.5 px-2 text-left text-xs lg:text-sm">
-                PRICE
-              </th>
+      <div className="bg-white rounded-lg border border-gray-200 p-0 lg:w-full">
+        <div className="overflow-x-auto">
+          <div className="max-h-[calc(100vh-250px)] overflow-y-auto">
+            <table className="w-full min-w-[500px]">
+              <thead className="sticky top-0 bg-green-100 z-10">
+                <tr>
+                  <th className="py-1.5 px-2 text-left text-xs lg:text-sm">
+                    CODE
+                  </th>
+                  <th className="py-1.5 px-2 text-left text-xs lg:text-sm">
+                    ITEM NAME
+                  </th>
+                  <th className="py-1.5 px-2 text-left text-xs lg:text-sm">
+                    PRICE
+                  </th>
 
-              <th className="py-1.5 px-2 text-left text-xs lg:text-sm">
-                ACTIONS
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={5} className="text-center py-4 text-xs lg:text-sm">
-                  Loading...
-                </td>
-              </tr>
-            ) : filteredProducts.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="text-center py-4 text-xs lg:text-sm">
-                  No products found.
-                </td>
-              </tr>
-            ) : (
-              filteredProducts.map((p) => (
-                <tr key={p._id} className="border-t">
-                  <td className="py-1.5 px-2 text-xs lg:text-sm">
-                    {p.productId}
-                  </td>
-                  <td className="py-1.5 px-2 text-xs lg:text-sm">
-                    <div className="flex items-center gap-1.5">
-                      <img
-                        src={
-                          p.images[0] ||
-                          "https://media.istockphoto.com/id/1409329028/vector/no-picture-available-placeholder-thumbnail-icon-illustration-design.jpg?s=612x612&w=0&k=20&c=_zOuJu755g2eEUioiOUdz_mHKJQJn-tDgIAhQzyeKUQ="
-                        }
-                        alt=""
-                        className="w-8 h-8 lg:w-10 lg:h-10 rounded object-cover"
-                      />
-                      <div>
-                        <div>{p.title}</div>
-                        <div className="text-[10px] lg:text-xs text-gray-500">
-                          Qty:{" "}
-                          {p.quantityType === "variedSizes" &&
-                            Object.entries(p.variedQuantities)
-                              .map(([size, quantity]) => `${size}: ${quantity}`)
-                              .join(", ")}
-                          {p.quantityType === "oneSize" &&
-                            p.quantityUnlimited === false &&
-                            p.quantity}
-                          {p.quantityUnlimited === true && "Unlimited"}
-                          {p.type === "Event" && p.category}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-1.5 px-2 text-xs lg:text-sm">
-                    {p.priceType === "paid"
-                      ? `${p.price} ${activeBotData?.currency}`
-                      : `Free`}
-                  </td>
-
-                  <td className="py-1.5 px-2">
-                    <div className="flex gap-1.5 items-center">
-                      <button
-                        className="bg-blue-100 px-2 py-0.5 rounded text-xs lg:text-sm"
-                        onClick={() => handleEdit(p, p.type)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => openPauseModal(p._id, p.isPaused)}
-                        disabled={loadingStates[p._id]}
-                        className={`${
-                          p.isPaused
-                            ? "bg-green-100 text-green-700"
-                            : "bg-blue-100 text-blue-700"
-                        } px-2 py-0.5 rounded hover:opacity-80 transition-opacity disabled:opacity-50 text-xs lg:text-sm`}
-                      >
-                        {loadingStates[p._id]
-                          ? "Updating..."
-                          : p.isPaused
-                          ? "Activate"
-                          : "Pause"}
-                      </button>
-                      <button
-                        className="bg-red-100 text-red-600 px-2 py-0.5 rounded border border-red-300 text-xs lg:text-sm"
-                        onClick={() => openDeleteModal(p._id)}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </td>
+                  <th className="py-1.5 px-2 text-left text-xs lg:text-sm">
+                    ACTIONS
+                  </th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="text-center py-4 text-xs lg:text-sm"
+                    >
+                      Loading...
+                    </td>
+                  </tr>
+                ) : filteredProducts.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="text-center py-4 text-xs lg:text-sm"
+                    >
+                      No products found.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredProducts.map((p) => (
+                    <tr key={p._id} className="border-t">
+                      <td className="py-1.5 px-2 text-xs lg:text-sm">
+                        {p.productId}
+                      </td>
+                      <td className="py-1.5 px-2 text-xs lg:text-sm">
+                        <div className="flex items-center gap-1.5">
+                          <img
+                            src={
+                              p.images[0] ||
+                              "https://media.istockphoto.com/id/1409329028/vector/no-picture-available-placeholder-thumbnail-icon-illustration-design.jpg?s=612x612&w=0&k=20&c=_zOuJu755g2eEUioiOUdz_mHKJQJn-tDgIAhQzyeKUQ="
+                            }
+                            alt=""
+                            className="w-8 h-8 lg:w-10 lg:h-10 rounded object-cover"
+                          />
+                          <div>
+                            <div>{p.title}</div>
+                            <div className="text-[10px] lg:text-xs text-gray-500">
+                              Qty:{" "}
+                              {p.quantityType === "variedSizes" &&
+                                Object.entries(p.variedQuantities)
+                                  .map(
+                                    ([size, quantity]) => `${size}: ${quantity}`
+                                  )
+                                  .join(", ")}
+                              {p.quantityType === "oneSize" &&
+                                p.quantityUnlimited === false &&
+                                p.quantity}
+                              {p.quantityUnlimited === true && "Unlimited"}
+                              {p.type === "Event" && p.category}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-1.5 px-2 text-xs lg:text-sm">
+                        {p.priceType === "paid"
+                          ? `${p.price} ${activeBotData?.currency}`
+                          : `Free`}
+                      </td>
+
+                      <td className="py-1.5 px-2">
+                        <div className="flex gap-1.5 items-center">
+                          <button
+                            className="bg-blue-100 px-2 py-0.5 rounded text-xs lg:text-sm"
+                            onClick={() => handleEdit(p, p.type)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => openPauseModal(p._id, p.isPaused)}
+                            disabled={loadingStates[p._id]}
+                            className={`${
+                              p.isPaused
+                                ? "bg-green-100 text-green-700"
+                                : "bg-blue-100 text-blue-700"
+                            } px-2 py-0.5 rounded hover:opacity-80 transition-opacity disabled:opacity-50 text-xs lg:text-sm`}
+                          >
+                            {loadingStates[p._id]
+                              ? "Updating..."
+                              : p.isPaused
+                              ? "Activate"
+                              : "Pause"}
+                          </button>
+                          <button
+                            className="bg-red-100 text-red-600 px-2 py-0.5 rounded border border-red-300 text-xs lg:text-sm"
+                            onClick={() => openDeleteModal(p._id)}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       {/* Delete Confirmation Modal */}
