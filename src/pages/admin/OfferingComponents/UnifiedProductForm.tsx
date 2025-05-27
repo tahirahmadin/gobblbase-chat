@@ -506,9 +506,9 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
 
               {(form.slots || []).map((slot, index) => (
                 <div key={index} className="mb-4">
-                  <div className="grid grid-cols-12 gap-2 items-center mb-2">
-                    <div className="col-span-4 flex items-center gap-2">
-                      <span className="text-xs font-semibold">Date</span>
+                  <div className="grid grid-cols-12 gap-2 items-start mb-2">
+                    <div className="col-span-6 flex items-center gap-2">
+                      <span className="text-xs font-semibold">Event Date:</span>
                       <DatePicker
                         selected={slot.date}
                         onChange={(date: Date | null) =>
@@ -529,66 +529,70 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                         showPopperArrow={false}
                       />
                     </div>
-                    <div className="col-span-4 flex items-center gap-2">
-                      <span className="text-xs font-semibold">Start</span>
-                      <DatePicker
-                        selected={slot.start}
-                        onChange={(time: Date | null) =>
-                          setForm((f) => {
-                            const slots = [...(f.slots || [])];
-                            slots[index] = {
-                              ...slots[index],
-                              start: time,
-                              end:
-                                time && slot.end && time > slot.end
-                                  ? null
-                                  : slot.end,
-                            };
-                            return { ...f, slots };
-                          })
-                        }
-                        showTimeSelect
-                        showTimeSelectOnly
-                        timeIntervals={15}
-                        timeCaption="Time"
-                        dateFormat="h:mm aa"
-                        className="border border-gray-300 rounded p-1 w-24 text-xs"
-                        placeholderText="Select time"
-                        isClearable
-                        showPopperArrow={false}
-                        minTime={new Date(0, 0, 0, 0, 0, 0)}
-                        maxTime={new Date(0, 0, 0, 23, 59, 0)}
-                      />
-                    </div>
-                    <div className="col-span-4 flex items-center gap-2">
-                      <span className="text-xs font-semibold">End</span>
-                      <DatePicker
-                        selected={slot.end}
-                        onChange={(time: Date | null) =>
-                          setForm((f) => {
-                            const slots = [...(f.slots || [])];
-                            slots[index] = {
-                              ...slots[index],
-                              end: time,
-                            };
-                            return { ...f, slots };
-                          })
-                        }
-                        showTimeSelect
-                        showTimeSelectOnly
-                        timeIntervals={15}
-                        timeCaption="Time"
-                        dateFormat="h:mm aa"
-                        className="border border-gray-300 rounded p-1 w-24 text-xs"
-                        placeholderText="Select time"
-                        isClearable
-                        showPopperArrow={false}
-                        minTime={slot.start || new Date(0, 0, 0, 0, 0, 0)}
-                        maxTime={new Date(0, 0, 0, 23, 59, 0)}
-                      />
+                    <div className="col-span-6 flex flex-col items-center gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold">
+                          Start time:{" "}
+                        </span>
+                        <DatePicker
+                          selected={slot.start}
+                          onChange={(time: Date | null) =>
+                            setForm((f) => {
+                              const slots = [...(f.slots || [])];
+                              slots[index] = {
+                                ...slots[index],
+                                start: time,
+                                end:
+                                  time && slot.end && time > slot.end
+                                    ? null
+                                    : slot.end,
+                              };
+                              return { ...f, slots };
+                            })
+                          }
+                          showTimeSelect
+                          showTimeSelectOnly
+                          timeIntervals={15}
+                          timeCaption="Time"
+                          dateFormat="h:mm aa"
+                          className="border border-gray-300 rounded p-1 w-24 text-xs"
+                          placeholderText="Select time"
+                          isClearable
+                          showPopperArrow={false}
+                          minTime={new Date(0, 0, 0, 0, 0, 0)}
+                          maxTime={new Date(0, 0, 0, 23, 59, 0)}
+                        />
+                      </div>
+                      <div className=" flex items-center gap-2">
+                        <span className="text-xs font-semibold">End time:</span>
+                        <DatePicker
+                          selected={slot.end}
+                          onChange={(time: Date | null) =>
+                            setForm((f) => {
+                              const slots = [...(f.slots || [])];
+                              slots[index] = {
+                                ...slots[index],
+                                end: time,
+                              };
+                              return { ...f, slots };
+                            })
+                          }
+                          showTimeSelect
+                          showTimeSelectOnly
+                          timeIntervals={15}
+                          timeCaption="Time"
+                          dateFormat="h:mm aa"
+                          className="border border-gray-300 rounded p-1 w-24 text-xs"
+                          placeholderText="Select time"
+                          isClearable
+                          showPopperArrow={false}
+                          minTime={slot.start || new Date(0, 0, 0, 0, 0, 0)}
+                          maxTime={new Date(0, 0, 0, 23, 59, 0)}
+                        />
+                      </div>
                     </div>
                   </div>
-                  <div className="mb-2 text-xs font-semibold">
+                  <div className="mb-2 text-sm font-semibold mt-5">
                     Slots/Session
                   </div>
                   <div className="flex items-center gap-6 mb-2">
@@ -645,7 +649,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                             return { ...f, slots };
                           })
                         }
-                        className="border border-gray-300 rounded p-1 w-16 text-xs"
+                        className="border border-gray-300 rounded p-1 w-16 text-sm"
                         disabled={slot.seatType !== "limited"}
                       />
                     </label>
