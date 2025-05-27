@@ -128,7 +128,7 @@ const EmailTemplates = () => {
   }
 
   return (
-    <div className="flex flex-col md:flex-row gap-8 p-6 h-[90vh] min-h-screen overflow-y-auto pb-10">
+    <div className="flex flex-col md:flex-row gap-8 p-6 h-[90vh] min-h-screen overflow-y-auto pb-20">
       {/* Sidebar with scrolling */}
       <div className="w-full md:w-1/3 ">
         <h2 className="text-xl font-bold text-black">Email Templates</h2>
