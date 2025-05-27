@@ -244,7 +244,7 @@ const EmailTemplates = () => {
                 disabled={saving}
                 className="ml-auto bg-green-500 hover:bg-green-600 text-white font-medium px-6 py-2 rounded shadow disabled:opacity-50"
               >
-                {saving ? "Saving..." : "SAVE TEMPLATE"}
+                {saving ? "Saving..." : "Save Template"}
               </button>
             </div>
           </div>
