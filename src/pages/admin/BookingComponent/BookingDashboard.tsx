@@ -1,14 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   Calendar,
-  Clock,
   Users,
-  Settings,
   Edit,
-  Trash2,
-  ArrowLeft,
-  ChevronLeft,
-  ChevronRight,
   Filter,
   ChevronDown,
   ChevronUp,
@@ -163,7 +157,9 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
-  const [detailsOpenState, setDetailsOpenState] = useState<Record<string, boolean>>({});
+  const [detailsOpenState, setDetailsOpenState] = useState<
+    Record<string, boolean>
+  >({});
 
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
@@ -180,9 +176,9 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
 
   // Toggle function to open/close meeting details
   const toggleDetailsOpen = (key: string) => {
-    setDetailsOpenState(prevState => ({
+    setDetailsOpenState((prevState) => ({
       ...prevState,
-      [key]: !prevState[key]
+      [key]: !prevState[key],
     }));
   };
 
@@ -374,15 +370,15 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
 
       return true;
     })
-    .map(meeting => {
+    .map((meeting) => {
       // Create a shallow copy of the meeting object
-      const updatedMeeting = {...meeting};
-      
+      const updatedMeeting = { ...meeting };
+
       // For past meetings tab, change status to "completed" if it was "confirmed"
       if (activeTab === "past" && meeting.status === "confirmed") {
         updatedMeeting.status = "completed";
       }
-      
+
       return updatedMeeting;
     })
     .sort((a, b) => {
@@ -399,7 +395,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
     if (!bookingSettings) return null;
 
     return (
-      <div className="bg-blue-50 rounded-lg p-4 w-64 h-fit">
+      <div className="bg-blue-50 rounded-lg p-4 w-full h-fit">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-medium">Calendar Settings</h3>
           <button
@@ -473,23 +469,24 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
           </div>
 
           {bookingSettings.breaks && bookingSettings.breaks.length > 0 && (
-          <div>
-            <div className="text-sm font-medium mb-1">
-              Break
-              {bookingSettings.breaks.length > 1 ? "s" : ""}
+            <div>
+              <div className="text-sm font-medium mb-1">
+                Break
+                {bookingSettings.breaks.length > 1 ? "s" : ""}
+              </div>
+              <div className="space-y-1">
+                {bookingSettings.breaks.map((breakItem, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-100 rounded-md p-2 text-sm"
+                  >
+                    {formatTime12(breakItem.startTime)} -{" "}
+                    {formatTime12(breakItem.endTime)}
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="space-y-1">
-              {bookingSettings.breaks.map((breakItem, index) => (
-                <div
-                  key={index}
-                  className="bg-gray-100 rounded-md p-2 text-sm"
-                >
-                  {formatTime12(breakItem.startTime)} - {formatTime12(breakItem.endTime)}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+          )}
 
           {bookingSettings.price && (
             <div>
@@ -518,7 +515,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
   };
 
   return (
-    <div className="flex flex-col md:flex-row p-4 md:p-6 gap-6">
+    <div className="flex flex-col md:flex-row p-2 md:p-6 gap-6 w-screen lg:w-full ">
       <div className="flex-1">
         <div className="mb-6">
           <h1 className="text-2xl font-bold mb-1">Bookings Dashboard</h1>
@@ -767,7 +764,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
           </div>
         )}
 
-{activeTab === "schedule" ? (
+        {activeTab === "schedule" ? (
           <AvailabilitySchedule activeAgentId={activeAgentId} />
         ) : (
           <div className="bg-gray-100 rounded-lg p-4">
@@ -837,268 +834,310 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                 </div>
 
                 <div className="max-h-[calc(100vh-220px)] overflow-y-auto">
-                  {activeTab === "upcoming" ? (
-                    <div className="bg-white rounded-lg mb-2 p-3 md:p-4 grid grid-cols-12 gap-2 md:gap-4 font-medium text-sm text-gray-500">
-                      <div className="col-span-3">NAME</div>
-                      <div className="col-span-2">DATE/TIME</div>
-                      <div className="col-span-2">LOCATION</div>
-                      <div className="col-span-2">STATUS</div>
-                      <div className="col-span-3 text-right">ACTIONS</div>
-                    </div>
-                  ) : (
-                    <div className="bg-white rounded-lg mb-2 p-3 md:p-4 grid grid-cols-12 gap-2 md:gap-4 font-medium text-sm text-gray-500">
-                      <div className="col-span-3">NAME</div>
-                      <div className="col-span-3">DATE/TIME</div>
-                      <div className="col-span-3">LOCATION</div>
-                      <div className="col-span-3">STATUS</div>
-                    </div>
-                  )}
-
-                  {filteredMeetings.map((meeting) => {
-                    // Check if meeting has been rescheduled
-                    const hasRescheduledFrom =
-                      meeting.rescheduledFrom &&
-                      meeting.rescheduledFrom.bookingId !== undefined;
-
-                    const isRescheduled =
-                      meeting.isRescheduled || hasRescheduledFrom;
-                    const isRescheduledConfirmed =
-                      isRescheduled && meeting.status === "confirmed";
-                    
-                    // Create unique key for this meeting's details state
-                    const detailsStateKey = `details_${meeting._id}`;
-                    const isDetailsOpen = detailsOpenState[detailsStateKey] || false;
-
-                    return (
-                      <React.Fragment key={meeting._id}>
-                        {/* Meeting Row */}
-                        <div className={`bg-white rounded-lg ${isDetailsOpen ? 'mb-0 rounded-b-none' : 'mb-2'} p-3 md:p-4 hover:shadow-md transition-shadow`}>
-                          {activeTab === "upcoming" ? (
-                            <div className="grid grid-cols-12 gap-2 md:gap-4 items-center">
-                              <div className="col-span-3">
-                                <div className="text-sm font-medium">
-                                  {meeting.name.split("@")[0]}
-                                </div>
-                                <div className="text-xs text-gray-500 truncate">
-                                  {meeting.userId}
-                                </div>
-                              </div>
-
-                              <div className="col-span-2">
-                                <div className="text-sm font-medium">
-                                  {formatDate(meeting.date)}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  {formatTime(meeting.startTime)} -{" "}
-                                  {formatTime(meeting.endTime)}
-                                </div>
-                              </div>
-
-                              <div className="col-span-2">
-                                <div className="text-sm font-medium">
-                                  {meeting.location === "google_meet" && "Google Meet"}
-                                  {meeting.location === "zoom" && "Zoom"}
-                                  {meeting.location === "teams" && "Microsoft Teams"}
-                                  {meeting.location === "in_person" && "In-person"}
-                                </div>
-                                {/* Only show meeting links if meeting is not cancelled */}
-                                {meeting.status !== "cancelled" && 
-                                  meeting.location !== "in_person" &&
-                                  meeting.meetingLink && (
-                                    <div className="mt-1 flex flex-wrap gap-1">
-                                      <a
-                                        href={meeting.meetingLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="px-2 py-0.5 text-xs bg-green-500 hover:bg-green-600 transition-colors text-white rounded"
-                                      >
-                                        Join Now
-                                      </a>
-
-                                      <button
-                                        onClick={() => {
-                                          navigator.clipboard.writeText(meeting.meetingLink);
-                                          alert("Meeting link copied to clipboard!");
-                                        }}
-                                        className="px-2 py-0.5 text-xs bg-blue-50 hover:bg-blue-100 transition-colors text-blue-600 rounded"
-                                      >
-                                        Copy Link
-                                      </button>
-                                    </div>
-                                  )
-                                }
-                              </div>
-
-                              <div className="col-span-2">
-                                <div className="flex flex-wrap gap-1">
-                                  <span
-                                    className={`px-2 py-0.5 rounded text-xs ${
-                                      meeting.status === "confirmed"
-                                        ? "bg-green-100 text-green-700"
-                                        : meeting.status === "cancelled"
-                                        ? "bg-red-100 text-red-700"
-                                        : "bg-blue-100 text-blue-700"
-                                    }`}
-                                  >
-                                    {meeting.status.charAt(0).toUpperCase() + 
-                                      meeting.status.slice(1)}
-                                  </span>
-                                  {isRescheduledConfirmed && (
-                                    <span className="px-2 py-0.5 rounded text-xs bg-orange-100 text-orange-700">
-                                      Rescheduled
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="col-span-3 text-right">
-                              {meeting.status === "cancelled" ? (
-                                <div className="flex flex-wrap gap-1 justify-end">
-                                  <button
-                                    onClick={() => toggleDetailsOpen(detailsStateKey)}
-                                    className="flex items-center justify-center px-4 py-2 text-xs bg-gray-100 hover:bg-gray-200 transition-colors text-gray-700 rounded-md w-32"
-                                  >
-                                    <Info className="h-3 w-3 mr-1" />
-                                    Details
-                                    {isDetailsOpen ? (
-                                      <ChevronUp className="h-3 w-3 ml-1" />
-                                    ) : (
-                                      <ChevronDown className="h-3 w-3 ml-1" />
-                                    )}
-                                  </button>
-                                </div>
-                              ) : (
-                                <div className="flex flex-wrap gap-1 justify-end">
-                                  {meeting.status === "confirmed" && (
-                                    <button
-                                      onClick={() => handleSendRescheduleEmail(meeting)}
-                                      disabled={sendingEmailId === meeting._id}
-                                      className="text-xs bg-blue-100 hover:bg-blue-200 transition-colors text-blue-800 px-4 py-2 rounded-md flex items-center justify-center gap-1 w-32"
-                                    >
-                                      {sendingEmailId === meeting._id ? (
-                                        <Loader2 className="h-3 w-3 animate-spin" />
-                                      ) : (
-                                        <Mail className="h-3 w-3" />
-                                      )}
-                                      Reschedule
-                                    </button>
-                                  )}
-                                  
-                                  <button
-                                    onClick={() => handleCancelBooking(meeting._id)}
-                                    disabled={cancellingId === meeting._id}
-                                    className="text-xs bg-red-100 hover:bg-red-200 transition-colors text-red-800 px-4 py-2 rounded-md flex items-center justify-center w-32"
-                                  >
-                                    {cancellingId === meeting._id ? (
-                                      <Loader2 className="h-3 w-3 animate-spin inline-block" />
-                                    ) : (
-                                      "Cancel"
-                                    )}
-                                  </button>
-                                  
-                                  <button
-                                    onClick={() => toggleDetailsOpen(detailsStateKey)}
-                                    className="text-xs flex items-center justify-center px-4 py-2 bg-gray-100 hover:bg-gray-200 transition-colors text-gray-700 rounded-md w-32"
-                                  >
-                                    <Info className="h-3 w-3 mr-1" />
-                                    Details
-                                    {isDetailsOpen ? (
-                                      <ChevronUp className="h-3 w-3 ml-1" />
-                                    ) : (
-                                      <ChevronDown className="h-3 w-3 ml-1" />
-                                    )}
-                                  </button>
-                                </div>
-                              )}
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="grid grid-cols-12 gap-2 md:gap-4 items-center">
-                              <div className="col-span-3">
-                                <div className="text-sm font-medium">
-                                  {meeting.name.split("@")[0]}
-                                </div>
-                                <div className="text-xs text-gray-500 truncate">
-                                  {meeting.userId}
-                                </div>
-                              </div>
-
-                              <div className="col-span-3">
-                                <div className="text-sm font-medium">
-                                  {formatDate(meeting.date)}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  {formatTime(meeting.startTime)} -{" "}
-                                  {formatTime(meeting.endTime)}
-                                </div>
-                              </div>
-
-                              <div className="col-span-3">
-                                <div className="text-sm font-medium">
-                                  {meeting.location === "google_meet" &&
-                                    "Google Meet"}
-                                  {meeting.location === "zoom" && "Zoom"}
-                                  {meeting.location === "teams" &&
-                                    "Microsoft Teams"}
-                                  {meeting.location === "in_person" && "In-person"}
-                                </div>
-                              </div>
-
-                              <div className="col-span-3">
-                                <div className="flex flex-wrap gap-1 items-center justify-between">
-                                  <span
-                                    className={`px-2 py-0.5 rounded-full text-xs w-fit ${
-                                      meeting.status === "completed" || 
-                                      (activeTab === "past" && meeting.status === "confirmed")
-                                        ? "bg-gray-100 text-gray-800"
-                                        : meeting.status === "cancelled"
-                                        ? "bg-red-100 text-red-800"
-                                        : "bg-blue-100 text-blue-800"
-                                    }`}
-                                  >
-                                    {(activeTab === "past" && meeting.status === "confirmed") 
-                                      ? "Completed" 
-                                      : meeting.status.charAt(0).toUpperCase() + meeting.status.slice(1)}
-                                  </span>
-                                  {isRescheduledConfirmed && (
-                                    <span className="px-2 py-0.5 rounded-full text-xs bg-orange-100 text-orange-800 w-fit">
-                                      Rescheduled
-                                    </span>
-                                  )}
-                                  
-                                  <button
-                                    onClick={() => toggleDetailsOpen(detailsStateKey)}
-                                    className="flex items-center justify-between px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 transition-colors text-gray-800 rounded"
-                                  >
-                                    <span className="flex items-center">
-                                      <Info className="h-3 w-3 mr-1" />
-                                      Details
-                                    </span>
-                                    {isDetailsOpen ? (
-                                      <ChevronUp className="h-3 w-3 ml-1" />
-                                    ) : (
-                                      <ChevronDown className="h-3 w-3 ml-1" />
-                                    )}
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Details Panel - Displayed when isDetailsOpen is true */}
-                        {isDetailsOpen && (
-                          <MeetingDetails 
-                            meeting={meeting}
-                            businessTimezone={businessTimezone}
-                            formatDate={formatDate}
-                            formatTime={formatTime}
-                            activeTab={activeTab}
-                          />
+                  <div className="w-full">
+                    <div className="overflow-x-auto">
+                      <div className="min-w-[800px]">
+                        {activeTab === "upcoming" ? (
+                          <div className="bg-white rounded-lg mb-2 p-3 md:p-4 grid grid-cols-12 gap-2 md:gap-4 font-medium text-sm text-gray-500">
+                            <div className="col-span-3">NAME</div>
+                            <div className="col-span-2">DATE/TIME</div>
+                            <div className="col-span-2">LOCATION</div>
+                            <div className="col-span-2">STATUS</div>
+                            <div className="col-span-3 text-right">ACTIONS</div>
+                          </div>
+                        ) : (
+                          <div className="bg-white rounded-lg mb-2 p-3 md:p-4 grid grid-cols-12 gap-2 md:gap-4 font-medium text-sm text-gray-500">
+                            <div className="col-span-3">NAME</div>
+                            <div className="col-span-3">DATE/TIME</div>
+                            <div className="col-span-3">LOCATION</div>
+                            <div className="col-span-3">STATUS</div>
+                          </div>
                         )}
-                      </React.Fragment>
-                    );
-                  })}
+
+                        {filteredMeetings.map((meeting) => {
+                          // Check if meeting has been rescheduled
+                          const hasRescheduledFrom =
+                            meeting.rescheduledFrom &&
+                            meeting.rescheduledFrom.bookingId !== undefined;
+
+                          const isRescheduled =
+                            meeting.isRescheduled || hasRescheduledFrom;
+                          const isRescheduledConfirmed =
+                            isRescheduled && meeting.status === "confirmed";
+
+                          // Create unique key for this meeting's details state
+                          const detailsStateKey = `details_${meeting._id}`;
+                          const isDetailsOpen =
+                            detailsOpenState[detailsStateKey] || false;
+
+                          return (
+                            <React.Fragment key={meeting._id}>
+                              {/* Meeting Row */}
+                              <div
+                                className={`bg-white rounded-lg ${
+                                  isDetailsOpen ? "mb-0 rounded-b-none" : "mb-2"
+                                } p-3 md:p-4 hover:shadow-md transition-shadow`}
+                              >
+                                {activeTab === "upcoming" ? (
+                                  <div className="grid grid-cols-12 gap-2 md:gap-4 items-center">
+                                    <div className="col-span-3">
+                                      <div className="text-sm font-medium">
+                                        {meeting.name.split("@")[0]}
+                                      </div>
+                                      <div className="text-xs text-gray-500 truncate">
+                                        {meeting.userId}
+                                      </div>
+                                    </div>
+
+                                    <div className="col-span-2">
+                                      <div className="text-sm font-medium">
+                                        {formatDate(meeting.date)}
+                                      </div>
+                                      <div className="text-xs text-gray-500">
+                                        {formatTime(meeting.startTime)} -{" "}
+                                        {formatTime(meeting.endTime)}
+                                      </div>
+                                    </div>
+
+                                    <div className="col-span-2">
+                                      <div className="text-sm font-medium">
+                                        {meeting.location === "google_meet" &&
+                                          "Google Meet"}
+                                        {meeting.location === "zoom" && "Zoom"}
+                                        {meeting.location === "teams" &&
+                                          "Microsoft Teams"}
+                                        {meeting.location === "in_person" &&
+                                          "In-person"}
+                                      </div>
+                                      {/* Only show meeting links if meeting is not cancelled */}
+                                      {meeting.status !== "cancelled" &&
+                                        meeting.location !== "in_person" &&
+                                        meeting.meetingLink && (
+                                          <div className="mt-1 flex flex-wrap gap-1">
+                                            <a
+                                              href={meeting.meetingLink}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="px-2 py-0.5 text-xs bg-green-500 hover:bg-green-600 transition-colors text-white rounded"
+                                            >
+                                              Join Now
+                                            </a>
+
+                                            <button
+                                              onClick={() => {
+                                                navigator.clipboard.writeText(
+                                                  meeting.meetingLink
+                                                );
+                                                alert(
+                                                  "Meeting link copied to clipboard!"
+                                                );
+                                              }}
+                                              className="px-2 py-0.5 text-xs bg-blue-50 hover:bg-blue-100 transition-colors text-blue-600 rounded"
+                                            >
+                                              Copy Link
+                                            </button>
+                                          </div>
+                                        )}
+                                    </div>
+
+                                    <div className="col-span-2">
+                                      <div className="flex flex-wrap gap-1">
+                                        <span
+                                          className={`px-2 py-0.5 rounded text-xs ${
+                                            meeting.status === "confirmed"
+                                              ? "bg-green-100 text-green-700"
+                                              : meeting.status === "cancelled"
+                                              ? "bg-red-100 text-red-700"
+                                              : "bg-blue-100 text-blue-700"
+                                          }`}
+                                        >
+                                          {meeting.status
+                                            .charAt(0)
+                                            .toUpperCase() +
+                                            meeting.status.slice(1)}
+                                        </span>
+                                        {isRescheduledConfirmed && (
+                                          <span className="px-2 py-0.5 rounded text-xs bg-orange-100 text-orange-700">
+                                            Rescheduled
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    <div className="col-span-3 text-right">
+                                      {meeting.status === "cancelled" ? (
+                                        <div className="flex flex-wrap gap-1 justify-end">
+                                          <button
+                                            onClick={() =>
+                                              toggleDetailsOpen(detailsStateKey)
+                                            }
+                                            className="flex items-center justify-center px-4 py-2 text-xs bg-gray-100 hover:bg-gray-200 transition-colors text-gray-700 rounded-md w-32"
+                                          >
+                                            <Info className="h-3 w-3 mr-1" />
+                                            Details
+                                            {isDetailsOpen ? (
+                                              <ChevronUp className="h-3 w-3 ml-1" />
+                                            ) : (
+                                              <ChevronDown className="h-3 w-3 ml-1" />
+                                            )}
+                                          </button>
+                                        </div>
+                                      ) : (
+                                        <div className="flex flex-wrap gap-1 justify-end">
+                                          {meeting.status === "confirmed" && (
+                                            <button
+                                              onClick={() =>
+                                                handleSendRescheduleEmail(
+                                                  meeting
+                                                )
+                                              }
+                                              disabled={
+                                                sendingEmailId === meeting._id
+                                              }
+                                              className="text-xs bg-blue-100 hover:bg-blue-200 transition-colors text-blue-800 px-4 py-2 rounded-md flex items-center justify-center gap-1 w-32"
+                                            >
+                                              {sendingEmailId ===
+                                              meeting._id ? (
+                                                <Loader2 className="h-3 w-3 animate-spin" />
+                                              ) : (
+                                                <Mail className="h-3 w-3" />
+                                              )}
+                                              Reschedule
+                                            </button>
+                                          )}
+
+                                          <button
+                                            onClick={() =>
+                                              handleCancelBooking(meeting._id)
+                                            }
+                                            disabled={
+                                              cancellingId === meeting._id
+                                            }
+                                            className="text-xs bg-red-100 hover:bg-red-200 transition-colors text-red-800 px-4 py-2 rounded-md flex items-center justify-center w-32"
+                                          >
+                                            {cancellingId === meeting._id ? (
+                                              <Loader2 className="h-3 w-3 animate-spin inline-block" />
+                                            ) : (
+                                              "Cancel"
+                                            )}
+                                          </button>
+
+                                          <button
+                                            onClick={() =>
+                                              toggleDetailsOpen(detailsStateKey)
+                                            }
+                                            className="text-xs flex items-center justify-center px-4 py-2 bg-gray-100 hover:bg-gray-200 transition-colors text-gray-700 rounded-md w-32"
+                                          >
+                                            <Info className="h-3 w-3 mr-1" />
+                                            Details
+                                            {isDetailsOpen ? (
+                                              <ChevronUp className="h-3 w-3 ml-1" />
+                                            ) : (
+                                              <ChevronDown className="h-3 w-3 ml-1" />
+                                            )}
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="grid grid-cols-12 gap-2 md:gap-4 items-center">
+                                    <div className="col-span-3">
+                                      <div className="text-sm font-medium">
+                                        {meeting.name.split("@")[0]}
+                                      </div>
+                                      <div className="text-xs text-gray-500 truncate">
+                                        {meeting.userId}
+                                      </div>
+                                    </div>
+
+                                    <div className="col-span-3">
+                                      <div className="text-sm font-medium">
+                                        {formatDate(meeting.date)}
+                                      </div>
+                                      <div className="text-xs text-gray-500">
+                                        {formatTime(meeting.startTime)} -{" "}
+                                        {formatTime(meeting.endTime)}
+                                      </div>
+                                    </div>
+
+                                    <div className="col-span-3">
+                                      <div className="text-sm font-medium">
+                                        {meeting.location === "google_meet" &&
+                                          "Google Meet"}
+                                        {meeting.location === "zoom" && "Zoom"}
+                                        {meeting.location === "teams" &&
+                                          "Microsoft Teams"}
+                                        {meeting.location === "in_person" &&
+                                          "In-person"}
+                                      </div>
+                                    </div>
+
+                                    <div className="col-span-3">
+                                      <div className="flex flex-wrap gap-1 items-center justify-between">
+                                        <span
+                                          className={`px-2 py-0.5 rounded-full text-xs w-fit ${
+                                            meeting.status === "completed" ||
+                                            (activeTab === "past" &&
+                                              meeting.status === "confirmed")
+                                              ? "bg-gray-100 text-gray-800"
+                                              : meeting.status === "cancelled"
+                                              ? "bg-red-100 text-red-800"
+                                              : "bg-blue-100 text-blue-800"
+                                          }`}
+                                        >
+                                          {activeTab === "past" &&
+                                          meeting.status === "confirmed"
+                                            ? "Completed"
+                                            : meeting.status
+                                                .charAt(0)
+                                                .toUpperCase() +
+                                              meeting.status.slice(1)}
+                                        </span>
+                                        {isRescheduledConfirmed && (
+                                          <span className="px-2 py-0.5 rounded-full text-xs bg-orange-100 text-orange-800 w-fit">
+                                            Rescheduled
+                                          </span>
+                                        )}
+
+                                        <button
+                                          onClick={() =>
+                                            toggleDetailsOpen(detailsStateKey)
+                                          }
+                                          className="flex items-center justify-between px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 transition-colors text-gray-800 rounded"
+                                        >
+                                          <span className="flex items-center">
+                                            <Info className="h-3 w-3 mr-1" />
+                                            Details
+                                          </span>
+                                          {isDetailsOpen ? (
+                                            <ChevronUp className="h-3 w-3 ml-1" />
+                                          ) : (
+                                            <ChevronDown className="h-3 w-3 ml-1" />
+                                          )}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Details Panel - Displayed when isDetailsOpen is true */}
+                              {isDetailsOpen && (
+                                <MeetingDetails
+                                  meeting={meeting}
+                                  businessTimezone={businessTimezone}
+                                  formatDate={formatDate}
+                                  formatTime={formatTime}
+                                  activeTab={activeTab}
+                                />
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

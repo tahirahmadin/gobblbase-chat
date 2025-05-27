@@ -14,8 +14,8 @@ const Commerce = () => {
   };
 
   return (
-    <div className="container min-h-screen w-[100vw] lg:w-full overflow-x-hidden ">
-      <div className="p-2 lg:p-6">{renderContent()}</div>
+    <div className="container min-h-screen w-screen lg:w-full">
+      <div>{renderContent()}</div>
     </div>
   );
 };

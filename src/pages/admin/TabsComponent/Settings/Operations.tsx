@@ -26,7 +26,7 @@ const Operations = () => {
   };
 
   return (
-    <div className="container bg-white min-h-screen">
+    <div className="container min-h-screen w-screen lg:w-full">
       <div>{renderContent()}</div>
     </div>
   );

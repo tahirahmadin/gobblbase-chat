@@ -127,33 +127,33 @@ const Header = () => {
             )}
           </div>
         </div>
-        <div className="">
-          <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2">
+          <div className="relative inline-block">
+            <div className="absolute top-1 left-1 w-full h-full bg-[#6aff97] rounded"></div>
             <div className="relative inline-block">
-              <div className="absolute top-1 left-1 w-full h-full bg-[#6aff97] rounded"></div>
-              <div className="relative inline-block">
-                {/* Bottom layer for shadow effect */}
-                <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
-              </div>
+              {/* Bottom layer for shadow effect */}
+              <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
             </div>
-            <div
-              className="truncate w-full flex items-center space-x-1 px-2 py-1 rounded-lg"
-              style={{
-                border: "1px solid #bdbdbd",
-                backgroundColor: "#effdf4",
-              }}
-            >
-              <div>
-                <div className="truncate w-[80%] text-xs text-black font-semibold">
-                  {adminEmail}
-                </div>
-                <a
-                  href={`https://Sayy.ai/${activeBotData?.username}`}
-                  target="_blank"
-                >
-                  <div className="text-sm text-[#1C4ED8]">Visit agent</div>
-                </a>
+          </div>
+          <div
+            className="truncate w-full flex items-center space-x-1 px-2 py-1 rounded-lg"
+            style={{
+              border: "1px solid #bdbdbd",
+              backgroundColor: "#effdf4",
+            }}
+          >
+            <div>
+              <div className="truncate w-[80%] text-[10px] lg:text-sm text-black font-semibold">
+                {adminEmail}
               </div>
+              <a
+                href={`https://Sayy.ai/${activeBotData?.username}`}
+                target="_blank"
+              >
+                <div className="text-xs lg:text-sm text-[#1C4ED8]">
+                  Visit agent
+                </div>
+              </a>
             </div>
           </div>
         </div>
