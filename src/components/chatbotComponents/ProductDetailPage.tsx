@@ -159,7 +159,9 @@ export default function ProductDetailPage({
   const contentMaxWidth = inChatMode ? "max-w-full" : "max-w-full";
 
   // Determine if Buy Now button should be disabled
-  const isBuyNowDisabled = !isFreeProduct && !hasEnabledPaymentMethods;
+  const isBuyNowDisabled =
+    (!isFreeProduct && !hasEnabledPaymentMethods) ||
+    (selectedProduct?.quantityType === "variedSizes" && !selectedSize);
 
   // UI blocks
   let extraFields = null;
