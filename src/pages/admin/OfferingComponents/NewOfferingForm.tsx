@@ -126,7 +126,7 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex flex-col ">
       <div className="flex items-center gap-2 mb-2 flex-shrink-0">
         <button
           onClick={onBack}

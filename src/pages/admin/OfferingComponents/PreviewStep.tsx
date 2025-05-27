@@ -152,7 +152,7 @@ const PreviewStep: FC<PreviewStepProps> = ({
     console.log(type);
   }
   return (
-    <div className="h-[600px] overflow-y-auto">
+    <div className="h-full">
       <div className="flex flex-col justify-start items-start mb-6">
         <button
           onClick={onBack}
