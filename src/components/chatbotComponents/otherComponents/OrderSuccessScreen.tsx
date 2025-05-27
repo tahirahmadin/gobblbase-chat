@@ -58,7 +58,7 @@ export const OrderSuccessScreen: React.FC<OrderSuccessScreenProps> = ({
             Order Successful!
           </h2>
           <p
-            className="text-sm"
+            className="text-sm text-center"
             style={{ color: theme.isDark ? "#e0e0e0" : "#666666" }}
           >
             Thank you for your purchase. Your order has been confirmed.

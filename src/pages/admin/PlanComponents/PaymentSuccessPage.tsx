@@ -9,7 +9,7 @@ const PaymentSuccessPage = () => (
     <h1 className="text-3xl font-bold mb-2 text-green-700">
       Payment Successful!
     </h1>
-    <p className="text-lg text-gray-700 mb-6">
+    <p className="text-lg text-gray-700 mb-6 text-center">
       Thank you for your purchase. Your subscription has been updated.
     </p>
     <Link

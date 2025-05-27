@@ -238,7 +238,7 @@ const Payment: React.FC<PaymentProps> = ({
               Order Placed Successfully!
             </h2>
             <p
-              className="text-gray-600 mb-6"
+              className="text-gray-600 mb-6 text-center"
               style={{
                 color: activeBotData?.themeColors?.bubbleAgentTextColor,
               }}
