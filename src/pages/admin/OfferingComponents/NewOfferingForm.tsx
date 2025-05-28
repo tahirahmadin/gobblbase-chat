@@ -59,9 +59,9 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
       timeZone: "Asia/Calcutta (GMT +5:30)",
       slots: [
         {
-          date: "",
-          start: "",
-          end: "",
+          date: null,
+          start: null,
+          end: null,
           seatType: "unlimited",
           seats: 0,
         },
