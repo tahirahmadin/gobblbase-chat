@@ -358,7 +358,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           {/* Event Specific */}
           {type === "Event" && (
             <>
-              <label className="font-semibold">Event Type*</label>
+              <label className="font-semibold">Event Type</label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {eventTypes.map((eventType) => (
                   <button
