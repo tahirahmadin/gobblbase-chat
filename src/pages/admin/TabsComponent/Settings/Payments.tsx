@@ -53,6 +53,7 @@ const Payments = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
+  const [hasNextPage, setHasNextPage] = useState(false);
 
   // Payment method states
   const [stripeEnabled, setStripeEnabled] = useState(false);
@@ -88,35 +89,18 @@ const Payments = () => {
       }
 
       // Fetch transactions
-      fetchTransactions();
+      fetchTransactions(currentPage);
     }
-  }, [activeBotData]);
+  }, [activeBotData, currentPage]);
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = async (page: number) => {
     if (!activeBotData) return;
 
     try {
       setIsLoadingTransactions(true);
-      const data = await getTransactions(activeBotData.agentId);
-      // Map data to ensure it matches Transaction interface
-      const mapped = (data || []).map((t: any) => ({
-        _id: t._id,
-        agentId: t.agentId,
-        createdAt: t.createdAt,
-        currency: t.currency,
-        items: t.items || [],
-        orderId: t.orderId,
-        paymentId: t.paymentId,
-        paymentMethod: t.paymentMethod,
-        paymentStatus: t.paymentStatus,
-        status: t.status,
-        totalAmount: t.totalAmount,
-        updatedAt: t.updatedAt,
-        user: t.user,
-        userEmail: t.userEmail,
-        shipping: t.shipping,
-      }));
-      setTransactions(mapped);
+      const response = await getTransactions(activeBotData.agentId, page);
+      setTransactions(response.orders);
+      setHasNextPage(response.hasNext);
     } catch (error: any) {
       console.error("Error fetching transactions:", error);
       toast.error(error.message || "Failed to fetch transactions");
@@ -198,6 +182,10 @@ const Payments = () => {
     } else {
       setChains([...currentChains, chain]);
     }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
   };
 
   // Calculate pagination
@@ -487,7 +475,7 @@ const Payments = () => {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-white">Payments Log</h2>
             <button
-              onClick={fetchTransactions}
+              onClick={() => fetchTransactions(currentPage)}
               disabled={isLoadingTransactions}
               className="p-2 bg-white rounded-full hover:bg-gray-100 disabled:opacity-50"
             >
@@ -500,18 +488,18 @@ const Payments = () => {
           </div>
         </div>
 
-        {isLoadingTransactions ? (
-          <div className="flex justify-center items-center h-40">
-            <div className="animate-spin h-8 w-8 border-4 border-white border-t-transparent rounded-full"></div>
-          </div>
-        ) : transactions.length === 0 ? (
-          <div className="text-center text-white py-8">
-            <p>No transactions found</p>
-          </div>
-        ) : (
-          <>
-            <div className="space-y-6 ">
-              {currentTransactions.map((transaction) => {
+        <div className="w-full max-w-full max-h-[calc(100vh-220px)] overflow-y-auto rounded-lg">
+          {isLoadingTransactions ? (
+            <div className="flex justify-center items-center h-40">
+              <div className="animate-spin h-8 w-8 border-4 border-white border-t-transparent rounded-full"></div>
+            </div>
+          ) : transactions.length === 0 ? (
+            <div className="text-center text-white py-8">
+              <p>No transactions found</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {transactions.map((transaction) => {
                 const item = transaction.items[0] || {};
                 return (
                   <div
@@ -554,7 +542,7 @@ const Payments = () => {
                       </div>
                     </div>
                     <div className="flex justify-between items-end mt-2">
-                      <a className="text-blue-600 text-sm font-medium  cursor-pointer">
+                      <a className="text-blue-600 text-sm font-medium cursor-pointer">
                         {item.title || "Product Name"}
                       </a>
                       <div className="flex flex-row items-center gap-4">
@@ -578,47 +566,27 @@ const Payments = () => {
                 );
               })}
             </div>
+          )}
+        </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center items-center space-x-2 mt-8">
-                <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className="p-1 rounded-full bg-white text-blue-500 border border-blue-200 hover:bg-blue-100 disabled:opacity-50"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <div className="flex items-center space-x-2">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (page) => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`w-8 h-8 rounded-full border font-medium ${
-                          page === currentPage
-                            ? "bg-blue-500 text-white border-blue-500"
-                            : "bg-white text-blue-500 border-blue-200"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    )
-                  )}
-                </div>
-                <button
-                  onClick={() =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="p-1 rounded-full bg-white text-blue-500 border border-blue-200 hover:bg-blue-100 disabled:opacity-50"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-            )}
-          </>
-        )}
+        {/* Pagination Controls */}
+        <div className="mt-4 flex justify-center items-center space-x-2">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1 || isLoadingTransactions}
+            className="px-3 py-1 rounded border border-white text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <span className="text-sm text-white">Page {currentPage}</span>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={!hasNextPage || isLoadingTransactions}
+            className="px-3 py-1 rounded border border-white text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );
