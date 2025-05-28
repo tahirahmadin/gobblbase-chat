@@ -238,7 +238,7 @@ const Manage = () => {
                           <div>
                             <div>{p.title}</div>
                             <div className="text-[10px] lg:text-xs text-gray-500">
-                              Qty:{" "}
+                              Qty:
                               {p.quantityType === "variedSizes" &&
                                 Object.entries(p.variedQuantities)
                                   .map(
@@ -249,7 +249,7 @@ const Manage = () => {
                                 p.quantityUnlimited === false &&
                                 p.quantity}
                               {p.quantityUnlimited === true && "Unlimited"}
-                              {p.type === "Event" && p.category}
+                              {p.type === "Event" && " Multiple slots"}
                             </div>
                           </div>
                         </div>
