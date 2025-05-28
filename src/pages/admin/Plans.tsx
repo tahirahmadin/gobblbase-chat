@@ -141,7 +141,10 @@ const Plans = () => {
     const currentPlanIndex = planHierarchy.indexOf(currentPlan.type);
     const planIndex = planHierarchy.indexOf(plan.type);
 
-    return planIndex <= currentPlanIndex;
+    if (planIndex === currentPlanIndex) {
+      return plan.recurrence.toLowerCase() === "monthly";
+    }
+    return planIndex < currentPlanIndex;
   };
 
   return (

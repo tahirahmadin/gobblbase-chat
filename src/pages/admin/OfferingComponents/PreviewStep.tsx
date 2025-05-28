@@ -442,11 +442,11 @@ const PreviewStep: FC<PreviewStepProps> = ({
               <div className="flex flex-row justify-between w-full px-6 mt-2 mb-2 gap-4">
                 <div className="flex flex-col items-start">
                   <span className="text-xs text-gray-300 mb-1">LOCATION</span>
-                  <button className="border border-yellow-400 bg-black text-yellow-400 rounded-full px-3 py-1 text-xs font-semibold">
+                  <div className=" text-yellow-400  text-xs font-semibold  max-w-[130px] line-clamp-3">
                     {form.locationType === "offline"
                       ? form.address || "Offline"
                       : "Online"}
-                  </button>
+                  </div>
                 </div>
                 <div className="flex flex-col items-center">
                   <span className="text-xs text-gray-300 mb-1">

@@ -164,13 +164,19 @@ const ChatLogs = () => {
                   msg.role === "agent" ? (
                     <div key={idx} className="flex p-1">
                       <div className="bg-gray-300 text-gray-800 px-3 py-2 rounded-lg max-w-[85%] md:max-w-xs text-sm break-words whitespace-pre-wrap">
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>{" "}
+                        <div className="text-xs text-left text-gray-900 font-semibold">
+                          {new Date(msg.timestamp).toLocaleTimeString()}
+                        </div>
                       </div>
                     </div>
                   ) : (
                     <div key={idx} className="flex justify-end p-1">
                       <div className="bg-black text-white px-3 py-2 rounded-lg max-w-[85%] md:max-w-xs text-sm break-words whitespace-pre-wrap">
-                        {msg.content}
+                        <div>{msg.content}</div>
+                        <div className="text-xs text-left text-gray-200 font-semibold">
+                          {new Date(msg.timestamp).toLocaleTimeString()}
+                        </div>
                       </div>
                     </div>
                   )

@@ -942,7 +942,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                     onChange={(e) =>
                       setForm((f) => ({ ...f, address: e.target.value }))
                     }
-                    className="border border-gray-300 rounded p-1 w-40 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    className="border border-gray-300 rounded p-1 w-40 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full"
                     placeholder="Address"
                     disabled={form.locationType !== "offline"}
                   />
