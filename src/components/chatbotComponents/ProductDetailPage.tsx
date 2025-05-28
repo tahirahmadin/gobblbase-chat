@@ -161,7 +161,10 @@ export default function ProductDetailPage({
   // Determine if Buy Now button should be disabled
   const isBuyNowDisabled =
     (!isFreeProduct && !hasEnabledPaymentMethods) ||
-    (selectedProduct?.quantityType === "variedSizes" && !selectedSize);
+    (selectedProduct?.quantityType === "variedSizes" && !selectedSize) ||
+    (selectedProduct?.type === "Event" &&
+      selectedSlot &&
+      selectedSlot.seats === 0);
 
   // UI blocks
   let extraFields = null;
