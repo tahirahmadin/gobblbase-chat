@@ -4,6 +4,20 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useBotConfig } from "../../../store/useBotConfig";
 
+// Add styles for DatePicker
+const datePickerStyles = `
+  .react-datepicker-popper {
+    z-index: 9999 !important;
+  }
+  .react-datepicker-wrapper {
+    display: inline-block;
+  }
+  .react-datepicker {
+    font-family: inherit;
+    font-size: 0.9rem;
+  }
+`;
+
 type UnifiedFormType = {
   // Common fields
   title?: string;
@@ -88,6 +102,9 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
   const { activeBotData } = useBotConfig();
   const [thumbnailInputKey, setThumbnailInputKey] = useState(0);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [userTimeZone, setUserTimeZone] = useState<string>(
+    Intl.DateTimeFormat().resolvedOptions().timeZone
+  );
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -107,38 +124,38 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
     }
 
     // Description validation
-    if (!form.descriptionEnabled) {
-      newErrors.description = "Please enable description";
-    } else if (!form.description) {
+    if (!form.description) {
       newErrors.description = "Description is required";
     } else if (form.description.length > 300) {
       newErrors.description = "Description must be 300 characters or less";
     }
 
-    // Quantity validation
-    if (!form.quantityType) {
-      newErrors.quantity = "Please select a quantity type";
-    } else if (form.quantityType === "oneSize" && !form.quantityUnlimited) {
-      if (form.quantity === 0 || form.quantity === undefined) {
-        newErrors.quantity = "Please enter a quantity";
-      } else if (form.quantity < 0) {
-        newErrors.quantity = "Quantity cannot be negative";
-      }
-    } else if (form.quantityType === "variedSizes") {
-      if (!form.variedSizes || form.variedSizes.length === 0) {
-        newErrors.quantity = "Please select at least one size";
-      } else {
-        const variedErrors: Record<string, string> = {};
-        form.variedSizes.forEach((size) => {
-          const qty = form.variedQuantities?.[size];
-          if (qty === 0 || qty === undefined) {
-            variedErrors[size] = "Please enter a quantity";
-          } else if (qty < 0) {
-            variedErrors[size] = "Quantity cannot be negative";
+    // Quantity validation (skip for Event)
+    if (type !== "Event") {
+      if (!form.quantityType) {
+        newErrors.quantity = "Please select a quantity type";
+      } else if (form.quantityType === "oneSize" && !form.quantityUnlimited) {
+        if (form.quantity === 0 || form.quantity === undefined) {
+          newErrors.quantity = "Please enter a quantity";
+        } else if (form.quantity < 0) {
+          newErrors.quantity = "Quantity cannot be negative";
+        }
+      } else if (form.quantityType === "variedSizes") {
+        if (!form.variedSizes || form.variedSizes.length === 0) {
+          newErrors.quantity = "Please select at least one size";
+        } else {
+          const variedErrors: Record<string, string> = {};
+          form.variedSizes.forEach((size) => {
+            const qty = form.variedQuantities?.[size];
+            if (qty === 0 || qty === undefined) {
+              variedErrors[size] = "Please enter a quantity";
+            } else if (qty < 0) {
+              variedErrors[size] = "Quantity cannot be negative";
+            }
+          });
+          if (Object.keys(variedErrors).length > 0) {
+            newErrors.variedQuantities = variedErrors;
           }
-        });
-        if (Object.keys(variedErrors).length > 0) {
-          newErrors.variedQuantities = variedErrors;
         }
       }
     }
@@ -157,25 +174,58 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
       }
     }
 
-    // Event Slots validation
+    // Enhanced Event Slots validation
     if (type === "Event") {
       if (!form.slots || form.slots.length === 0) {
         newErrors.slots = "Please add at least one slot";
       } else {
         const slotErrors = form.slots.map((slot, index) => {
           const errors: Record<string, string> = {};
+
+          // Date validation
           if (!slot.date) {
             errors.date = "Date is required";
+          } else {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (slot.date < today) {
+              errors.date = "Date cannot be in the past";
+            }
           }
+
+          // Time validation
           if (!slot.start) {
             errors.start = "Start time is required";
           }
           if (!slot.end) {
             errors.end = "End time is required";
           }
-          if (slot.seatType === "limited" && (!slot.seats || slot.seats <= 0)) {
-            errors.seats = "Please enter number of seats";
+
+          // Validate start time is before end time
+          if (slot.start && slot.end) {
+            const startTime = new Date(slot.start);
+            const endTime = new Date(slot.end);
+
+            if (startTime >= endTime) {
+              errors.end = "End time must be after start time";
+            }
+
+            // Check if slot duration is at least 15 minutes
+            const duration = endTime.getTime() - startTime.getTime();
+            if (duration < 15 * 60 * 1000) {
+              errors.end = "Slot duration must be at least 15 minutes";
+            }
           }
+
+          // Seat validation for limited seats
+          if (slot.seatType === "limited") {
+            if (!slot.seats || slot.seats <= 0) {
+              errors.seats = "Please enter a valid number of seats";
+            } else if (slot.seats > 1000) {
+              errors.seats = "Maximum 1000 seats allowed per slot";
+            }
+          }
+
           return errors;
         });
 
@@ -193,8 +243,20 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
   };
 
   const handleNext = () => {
-    if (validateForm()) {
+    const isValid = validateForm();
+    console.log("Form validation result:", isValid);
+    console.log("Current form errors:", errors);
+    if (isValid) {
       onNext();
+    } else {
+      // Scroll to the first error
+      const firstErrorElement = document.querySelector(".border-red-500");
+      if (firstErrorElement) {
+        firstErrorElement.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
     }
   };
 
@@ -215,6 +277,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
 
   return (
     <div className="mx-auto w-full">
+      <style>{datePickerStyles}</style>
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Left Side */}
         <div className="flex-1 flex flex-col gap-2 min-w-0 ">
@@ -324,29 +387,6 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           <div className="mb-2">
             <div className="flex items-center justify-between gap-3 mb-1">
               <label className="font-semibold mb-0">Description*</label>
-              {/* <button
-                type="button"
-                aria-label={
-                  form.descriptionEnabled
-                    ? "Disable description"
-                    : "Enable description"
-                }
-                className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors duration-200 focus:outline-none ${
-                  form.descriptionEnabled ? "bg-green-500" : "bg-gray-300"
-                }`}
-                onClick={() =>
-                  setForm((f) => ({
-                    ...f,
-                    descriptionEnabled: !f.descriptionEnabled,
-                  }))
-                }
-              >
-                <span
-                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${
-                    form.descriptionEnabled ? "translate-x-6" : "translate-x-1"
-                  }`}
-                />
-              </button> */}
             </div>
             <textarea
               value={form.description || ""}
@@ -361,7 +401,6 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
               } rounded p-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white`}
               placeholder="Describe your offering..."
               rows={3}
-              disabled={!form.descriptionEnabled}
               maxLength={300}
             />
             <div className="flex justify-between">
@@ -595,6 +634,9 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           {type === "Event" && (
             <div className="p-4 rounded-xl border border-indigo-200 bg-[#ffffff]">
               <label className="font-semibold block mb-2">Set Slots</label>
+              <div className="text-xs text-gray-500 mb-2">
+                Timezone: {userTimeZone}
+              </div>
               {errors.slots && (
                 <div className="text-xs text-red-500 mb-2">{errors.slots}</div>
               )}
@@ -653,7 +695,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                           Start time:
                         </span>
                         <DatePicker
-                          selected={slot.start}
+                          selected={slot.start ? new Date(slot.start) : null}
                           onChange={(time: Date | null) =>
                             setForm((f) => {
                               const slots = [...(f.slots || [])];
@@ -661,7 +703,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                                 ...slots[index],
                                 start: time,
                                 end:
-                                  time && slot.end && time > slot.end
+                                  time && slot.end && time > new Date(slot.end)
                                     ? null
                                     : slot.end,
                               };
@@ -683,6 +725,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                           showPopperArrow={false}
                           minTime={new Date(0, 0, 0, 0, 0, 0)}
                           maxTime={new Date(0, 0, 0, 23, 59, 0)}
+                          portalId="root"
+                          popperClassName="react-datepicker-popper"
+                          popperPlacement="bottom-start"
+                          calendarClassName="react-datepicker-calendar"
+                          wrapperClassName="react-datepicker-wrapper"
                         />
                         {errors.slotDetails?.[index]?.start && (
                           <div className="text-xs text-red-500">
@@ -693,7 +740,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-semibold">End time:</span>
                         <DatePicker
-                          selected={slot.end}
+                          selected={slot.end ? new Date(slot.end) : null}
                           onChange={(time: Date | null) =>
                             setForm((f) => {
                               const slots = [...(f.slots || [])];
@@ -717,8 +764,17 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                           placeholderText="Select time"
                           isClearable
                           showPopperArrow={false}
-                          minTime={slot.start || new Date(0, 0, 0, 0, 0, 0)}
+                          minTime={
+                            slot.start
+                              ? new Date(slot.start)
+                              : new Date(0, 0, 0, 0, 0, 0)
+                          }
                           maxTime={new Date(0, 0, 0, 23, 59, 0)}
+                          portalId="root"
+                          popperClassName="react-datepicker-popper"
+                          popperPlacement="bottom-start"
+                          calendarClassName="react-datepicker-calendar"
+                          wrapperClassName="react-datepicker-wrapper"
                         />
                         {errors.slotDetails?.[index]?.end && (
                           <div className="text-xs text-red-500">
