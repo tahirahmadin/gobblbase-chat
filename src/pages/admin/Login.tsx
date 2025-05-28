@@ -278,7 +278,7 @@ const Login: React.FC = () => {
               />
             </svg>
           </span>
-          LOGIN WITH EMAIL
+          LOGIN WITH EMAIL <span className="text-[10px]">(coming soon)</span>
         </Button>
       </div>
     </Card>
