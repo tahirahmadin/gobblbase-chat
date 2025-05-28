@@ -74,7 +74,11 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
   };
 
   const handleBack = () => {
-    setStep(step - 1);
+    if (step > 0) {
+      setStep(step - 1);
+    } else {
+      onBack();
+    }
   };
 
   const handleApprove = () => {
@@ -91,6 +95,7 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
             form={form}
             setForm={setForm}
             onNext={handleNext}
+            editMode={editMode}
           />
         );
       case 1:
@@ -129,7 +134,7 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
     <div className="flex flex-col ">
       <div className="flex items-center gap-2 mb-2 flex-shrink-0">
         <button
-          onClick={onBack}
+          onClick={handleBack}
           className="text-gray-600 hover:text-gray-800 text-md lg:text-lg font-medium"
         >
           ← Back

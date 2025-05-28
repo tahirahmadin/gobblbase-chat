@@ -91,17 +91,6 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
 
   return (
     <div className="rounded-2xl mx-auto">
-      <div className="flex flex-col justify-start items-start mb-2">
-        <button
-          onClick={onBack}
-          className="text-gray-600 hover:text-gray-800 flex items-center gap-2"
-        >
-          ← Back to Form
-        </button>
-        <h2 className="text-xl lg:text-2xl font-semibold text-gray-900">
-          Checkout
-        </h2>
-      </div>
       <div className="flex flex-col md:flex-row gap-4">
         {/* <div className="flex-1">
           <div className="font-semibold mb-2">Choose Customer Details</div>

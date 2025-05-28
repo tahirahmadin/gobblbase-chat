@@ -25,21 +25,33 @@ interface Order {
   updatedAt: string;
   user: string;
   userEmail: string;
-  __v: number;
+  shipping: {
+    name: string;
+    phone: string;
+    address: string;
+    city: string;
+    state: string;
+    zip: string;
+    country: string;
+  };
 }
 
 const Orders = () => {
   const { activeBotData } = useBotConfig();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(false);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (page: number) => {
     if (!activeBotData) return;
 
     try {
       setIsLoading(true);
-      const data = await getTransactions(activeBotData.agentId);
-      setOrders(data);
+      const response = await getTransactions(activeBotData.agentId, page);
+
+      setOrders(response.orders);
+      setHasNextPage(response.hasNext);
     } catch (error: any) {
       console.error("Error fetching orders:", error);
       toast.error(error.message || "Failed to fetch orders");
@@ -49,8 +61,12 @@ const Orders = () => {
   };
 
   useEffect(() => {
-    fetchOrders();
-  }, [activeBotData]);
+    fetchOrders(currentPage);
+  }, [activeBotData, currentPage]);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -65,7 +81,8 @@ const Orders = () => {
       <h2 className="text-xl lg:text-2xl font-semibold mb-4 lg:mb-6">
         Orders Dashboard
       </h2>
-      <div className="w-full max-w-full max-h-[calc(100vh-160px)] overflow-y-auto rounded-lg border border-gray-200">
+
+      <div className="w-full max-w-full max-h-[calc(100vh-220px)] overflow-y-auto rounded-lg border border-gray-200">
         <div className="relative">
           <div className="overflow-x-auto">
             <div className="min-w-[800px] ">
@@ -87,9 +104,6 @@ const Orders = () => {
                     <th className="py-2 px-2 lg:py-3 lg:px-4 font-semibold whitespace-nowrap">
                       AMOUNT
                     </th>
-                    {/* <th className="py-2 px-2 lg:py-3 lg:px-4 font-semibold whitespace-nowrap">
-                      ACTION
-                    </th> */}
                   </tr>
                 </thead>
                 <tbody>
@@ -121,19 +135,19 @@ const Orders = () => {
                             <div className="text-xs text-gray-500">{time}</div>
                           </td>
                           <td className="py-2 px-2 lg:py-4 lg:px-4 align-top whitespace-nowrap">
-                            <div className="font-medium">{order.userEmail}</div>
+                            <div className="font-semibold">
+                              {order.shipping?.name}
+                            </div>
+                            <div className="font-regular text-xs">
+                              {order.userEmail}
+                            </div>
                           </td>
                           <td className="py-2 px-2 lg:py-4 lg:px-4 align-top">
                             {order.items.map((item, i) => (
-                              <div>
-                                <div
-                                  key={i}
-                                  className="flex items-center text-xs lg:text-sm"
-                                >
+                              <div key={i}>
+                                <div className="flex items-center text-xs lg:text-sm">
                                   <span className="mr-1 truncate max-w-[100px] lg:max-w-[200px]">
-                                    {item.title}{" "}
-                                    {item.quantityType === "variedSizes" &&
-                                      `- ${item.checkType}`}
+                                    {item.title}
                                   </span>
                                 </div>
                                 <div className="whitespace-nowrap text-xs">
@@ -143,18 +157,10 @@ const Orders = () => {
                             ))}
                           </td>
                           <td className="py-2 px-2 lg:py-4 lg:px-4 align-top whitespace-nowrap">
-                            <div className="font-medium">
+                            <div className="font-semibold">
                               {order.totalAmount / 100} {order.currency}
                             </div>
-                            <div className="text-xs text-gray-500">
-                              {order.paymentStatus}
-                            </div>
                           </td>
-                          {/* <td className="py-2 px-2 lg:py-4 lg:px-4 align-top whitespace-nowrap">
-                            <button className="bg-white border border-red-300 text-red-500 rounded px-2 py-1 hover:bg-red-100 transition text-xs lg:text-sm font-medium">
-                              Cancel
-                            </button>
-                          </td> */}
                         </tr>
                       );
                     })
@@ -164,6 +170,25 @@ const Orders = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="mt-4 flex justify-center items-center space-x-2">
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1 || isLoading}
+          className="px-3 py-1 rounded border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+        >
+          Previous
+        </button>
+        <span className="text-sm text-gray-600">Page {currentPage}</span>
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={!hasNextPage || isLoading}
+          className="px-3 py-1 rounded border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+        >
+          Next
+        </button>
       </div>
     </div>
   );
