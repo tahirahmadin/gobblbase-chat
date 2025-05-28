@@ -164,7 +164,9 @@ export default function ProductDetailPage({
     (selectedProduct?.quantityType === "variedSizes" && !selectedSize) ||
     (selectedProduct?.type === "Event" &&
       selectedSlot &&
-      selectedSlot.seats === 0);
+      (selectedSlot.seatType === "unlimited"
+        ? false
+        : selectedSlot.seats === 0));
 
   // UI blocks
   let extraFields = null;
@@ -410,7 +412,10 @@ export default function ProductDetailPage({
                           {start.time} - {end.time}
                         </div>
                         <div className="text-xs opacity-70">
-                          Available Seats: {slot.seats}
+                          Available Seats:{" "}
+                          {slot.seatType === "unlimited"
+                            ? "Unlimited"
+                            : slot.seats}
                         </div>
                       </button>
                     );
@@ -434,7 +439,10 @@ export default function ProductDetailPage({
                     color: theme.isDark ? "#fff" : "#000",
                   }}
                 >
-                  {selectedSlot.seats} seats
+                  {selectedSlot.seatType === "unlimited"
+                    ? "Unlimited "
+                    : selectedSlot.seats}
+                  seats
                 </div>
               </div>
               <div>
