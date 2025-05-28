@@ -77,6 +77,9 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
   const [saveError, setSaveError] = useState(null);
   const [weeklyAvailability, setWeeklyAvailability] = useState([]);
   
+  // Mobile responsive state
+  const [showMobileDetails, setShowMobileDetails] = useState(false);
+  
   // FIXED: Add meeting duration state
   const [meetingDuration, setMeetingDuration] = useState(30);
   const [bufferTime, setBufferTime] = useState(10);
@@ -415,6 +418,16 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
     setWorkingHours(JSON.parse(JSON.stringify(day.timeSlots)) || [{ start: "09:00", end: "17:00" }]);
     setScheduledSlots(day.bookings || []);
     setIsEditingHours(false); // Reset editing state when selecting a new day
+    
+    // Show mobile details view on mobile
+    setShowMobileDetails(true);
+  };
+
+  // Mobile back button handler
+  const handleMobileBack = () => {
+    setShowMobileDetails(false);
+    setSelectedDay(null);
+    setIsEditingHours(false);
   };
 
   const handleEditHours = () => {
@@ -763,6 +776,259 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
     }
   };
 
+  // Calendar component for both desktop and mobile
+  const CalendarView = () => (
+    <div className="bg-white rounded-lg p-4">
+      <div className="flex justify-between items-center mb-4">
+        <span className="text-sm text-gray-500">Select Day</span>
+        <span className="text-xs text-gray-500">Timezone: {formatTimezone(userTimezone)}</span>
+      </div>
+      
+      <div className="flex justify-between items-center mb-4 bg-blue-600 text-white px-4 py-2 rounded-lg">
+        <button onClick={prevMonth} className="text-white p-1 rounded-full hover:bg-blue-700">
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+        <span className="font-medium">{formatMonthYear(currentMonth)}</span>
+        <button onClick={nextMonth} className="text-white p-1 rounded-full hover:bg-blue-700">
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+      
+      <div className="grid grid-cols-7 gap-1">
+        {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map(day => (
+          <div key={day} className="text-center text-xs font-medium py-1">{day}</div>
+        ))}
+        
+        {getCalendarDays().map((day, index) => (
+          <div 
+            key={index} 
+            onClick={() => day.empty ? null : handleDayClick(day)}
+            className={`${day.empty ? 'invisible' : 
+              day.isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'} 
+              text-center p-1`}
+          >
+            {!day.empty && (
+              <div 
+                className={`aspect-square flex justify-center items-center rounded-full
+                  ${day.isDisabled ? 'bg-gray-200 text-gray-500' :
+                    day.isSelected ? 'bg-blue-600 text-white' : 
+                    day.isToday ? 'border border-blue-500' : 
+                    day.allDay ? 'bg-red-100' : 
+                    day.hasBookings ? 'bg-green-200' : 'hover:bg-gray-100'}`}
+              >
+                {day.dayNum}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      
+      <div className="mt-4 text-xs text-gray-500 grid grid-cols-2 gap-2">
+        <div className="flex items-center">
+          <div className="w-4 h-4 bg-green-200 rounded-full mr-2"></div>
+          <span>Has bookings</span>
+        </div>
+        <div className="flex items-center">
+          <div className="w-4 h-4 bg-red-100 rounded-full mr-2"></div>
+          <span>Unavailable</span>
+        </div>
+        <div className="flex items-center">
+          <div className="w-4 h-4 border border-blue-500 rounded-full mr-2"></div>
+          <span>Today</span>
+        </div>
+        <div className="flex items-center">
+          <div className="w-4 h-4 bg-gray-200 rounded-full mr-2"></div>
+          <span>Past date</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Details component for both desktop and mobile
+  const DetailsView = () => (
+    <div className="bg-white rounded-lg p-4 border border-blue-200">
+      {/* Mobile back button - only show on mobile */}
+      <div className="block md:hidden mb-4">
+        <button
+          onClick={handleMobileBack}
+          className="flex items-center text-blue-600 hover:text-blue-800"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Calendar
+        </button>
+      </div>
+
+      {selectedDay ? (
+        <div>
+          <h3 className="font-medium mb-4">{getSelectedDayFormatted()}</h3>
+          
+          {/* Availability toggle */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">
+                {selectedDay.available ? "Available" : "Unavailable"}
+              </span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedDay.available}
+                  onChange={toggleDayAvailability}
+                  className="sr-only"
+                />
+                <div className={`w-10 h-6 rounded-full peer ${
+                  selectedDay.available ? "bg-green-500" : "bg-gray-200"
+                }`}>
+                  <div
+                    className={`absolute w-4 h-4 rounded-full bg-white transition-all ${
+                      selectedDay.available ? "right-1" : "left-1"
+                    } top-1`}
+                  ></div>
+                </div>
+              </label>
+            </div>
+          </div>
+          
+          {selectedDay.available && (
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Working Hours</span>
+                {isEditingHours ? (
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={handleCancelEdit}
+                      className="text-xs bg-gray-500 text-white px-3 py-1 rounded-md"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      onClick={handleSaveHours}
+                      className="text-xs bg-green-500 text-white px-3 py-1 rounded-md"
+                    >
+                      Done
+                    </button>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={handleEditHours}
+                    className="text-xs bg-green-500 text-white px-3 py-1 rounded-md"
+                  >
+                    EDIT HOURS
+                  </button>
+                )}
+              </div>
+              
+              {isEditingHours ? (
+                <div className="space-y-3">
+                  {workingHours.map((slot, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <Clock className="h-4 w-4 text-gray-400" />
+                      <select 
+                        value={slot.start}
+                        onChange={(e) => updateTimeSlot(index, 'start', e.target.value)}
+                        className="border border-gray-300 rounded-md p-1 text-sm"
+                      >
+                        {getAvailableStartTimes(index).map((time) => (
+                          <option key={time} value={time}>
+                            {formatTime12(time)}
+                          </option>
+                        ))}
+                      </select>
+                      
+                      <span>—</span>
+                      
+                      <select 
+                        value={slot.end}
+                        onChange={(e) => updateTimeSlot(index, 'end', e.target.value)}
+                        className="border border-gray-300 rounded-md p-1 text-sm"
+                      >
+                        {getAvailableEndTimes(index, slot.start).map((time) => (
+                          <option key={time} value={time}>
+                            {formatTime12(time)}
+                          </option>
+                        ))}
+                      </select>
+
+                      <button
+                        onClick={addTimeSlot}
+                        className="flex items-center justify-center w-8 h-8 bg-green-500 text-white rounded-full hover:bg-green-600"
+                        title="Add time slot"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+
+                      {workingHours.length > 1 && (
+                        <button
+                          onClick={() => removeTimeSlot(index)}
+                          className="flex items-center justify-center w-8 h-8 bg-red-500 text-white rounded-full hover:bg-red-600"
+                          title="Remove time slot"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {workingHours.map((slot, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <div className="border border-gray-300 rounded-md px-3 py-1">
+                        {formatTime12(slot.start)}
+                      </div>
+                      <span>—</span>
+                      <div className="border border-gray-300 rounded-md px-3 py-1">
+                        {formatTime12(slot.end)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Display meeting duration info */}
+          {selectedDay.available && (
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <div className="text-sm text-blue-700">
+                <div className="font-medium mb-1">Meeting Settings</div>
+                <div>Duration: {meetingDuration} minutes{bufferTime > 0 && ` + ${bufferTime} min buffer`}</div>
+              </div>
+            </div>
+          )}
+          
+          {/* Display booked slots if available */}
+          {scheduledSlots.length > 0 ? (
+            <div className="mt-6">
+              <div className="grid grid-cols-3 gap-2 mb-2 border-b pb-2">
+                <div className="text-xs font-medium">Booked Slots</div>
+                <div className="text-xs font-medium">Guest Name</div>
+                <div className="text-xs font-medium">Guest Email</div>
+              </div>
+              
+              {scheduledSlots.map((slot, index) => (
+                <div key={index} className="grid grid-cols-3 gap-2 py-1">
+                  <div className="text-xs bg-green-100 px-2 py-1 rounded">{slot.time}</div>
+                  <div className="text-xs">{slot.name}</div>
+                  <div className="text-xs truncate">{slot.email}</div>
+                </div>
+              ))}
+            </div>
+          ) : selectedDay.available ? (
+            <div className="mt-6 p-4 bg-gray-50 rounded text-center text-sm text-gray-500">
+              No bookings for this day
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center h-full text-center">
+          <Calendar className="h-12 w-12 text-gray-400 mb-3" />
+          <h3 className="text-lg font-medium text-gray-600 mb-2">Select a date to view your schedule</h3>
+          <p className="text-sm text-gray-500">Click on a date from the calendar to see your appointments</p>
+        </div>
+      )}
+    </div>
+  );
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -811,244 +1077,19 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
         </div>
       )}
       
-      <div className="grid grid-cols-2 gap-6">
-        {/* Left side - Calendar */}
-        <div className="bg-white rounded-lg p-4">
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-sm text-gray-500">Select Day</span>
-            <span className="text-xs text-gray-500">Timezone: {formatTimezone(userTimezone)}</span>
-          </div>
-          
-          <div className="flex justify-between items-center mb-4 bg-blue-600 text-white px-4 py-2 rounded-lg">
-            <button onClick={prevMonth} className="text-white p-1 rounded-full hover:bg-blue-700">
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <span className="font-medium">{formatMonthYear(currentMonth)}</span>
-            <button onClick={nextMonth} className="text-white p-1 rounded-full hover:bg-blue-700">
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-          
-          <div className="grid grid-cols-7 gap-1">
-            {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map(day => (
-              <div key={day} className="text-center text-xs font-medium py-1">{day}</div>
-            ))}
-            
-            {getCalendarDays().map((day, index) => (
-              <div 
-                key={index} 
-                onClick={() => day.empty ? null : handleDayClick(day)}
-                className={`${day.empty ? 'invisible' : 
-                  day.isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'} 
-                  text-center p-1`}
-              >
-                {!day.empty && (
-                  <div 
-                    className={`aspect-square flex justify-center items-center rounded-full
-                      ${day.isDisabled ? 'bg-gray-200 text-gray-500' :
-                        day.isSelected ? 'bg-blue-600 text-white' : 
-                        day.isToday ? 'border border-blue-500' : 
-                        day.allDay ? 'bg-red-100' : 
-                        day.hasBookings ? 'bg-green-200' : 'hover:bg-gray-100'}`}
-                  >
-                    {day.dayNum}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-          
-          <div className="mt-4 text-xs text-gray-500 grid grid-cols-2 gap-2">
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-green-200 rounded-full mr-2"></div>
-              <span>Has bookings</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-red-100 rounded-full mr-2"></div>
-              <span>Unavailable</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 border border-blue-500 rounded-full mr-2"></div>
-              <span>Today</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-gray-200 rounded-full mr-2"></div>
-              <span>Past date</span>
-            </div>
-          </div>
-        </div>
-        
-        {/* Right side - Selected day details */}
-        <div className="bg-white rounded-lg p-4 border border-blue-200">
-          {selectedDay ? (
-            <div>
-              <h3 className="font-medium mb-4">{getSelectedDayFormatted()}</h3>
-              
-              {/* Availability toggle */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">
-                    {selectedDay.available ? "Available" : "Unavailable"}
-                  </span>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedDay.available}
-                      onChange={toggleDayAvailability}
-                      className="sr-only"
-                    />
-                    <div className={`w-10 h-6 rounded-full peer ${
-                      selectedDay.available ? "bg-green-500" : "bg-gray-200"
-                    }`}>
-                      <div
-                        className={`absolute w-4 h-4 rounded-full bg-white transition-all ${
-                          selectedDay.available ? "right-1" : "left-1"
-                        } top-1`}
-                      ></div>
-                    </div>
-                  </label>
-                </div>
-              </div>
-              
-              {selectedDay.available && (
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">Working Hours</span>
-                    {isEditingHours ? (
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={handleCancelEdit}
-                          className="text-xs bg-gray-500 text-white px-3 py-1 rounded-md"
-                        >
-                          Cancel
-                        </button>
-                        <button 
-                          onClick={handleSaveHours}
-                          className="text-xs bg-green-500 text-white px-3 py-1 rounded-md"
-                        >
-                          Done
-                        </button>
-                      </div>
-                    ) : (
-                      <button 
-                        onClick={handleEditHours}
-                        className="text-xs bg-green-500 text-white px-3 py-1 rounded-md"
-                      >
-                        EDIT HOURS
-                      </button>
-                    )}
-                  </div>
-                  
-                  {isEditingHours ? (
-                    <div className="space-y-3">
-                      {workingHours.map((slot, index) => (
-                        <div key={index} className="flex items-center space-x-2">
-                          <Clock className="h-4 w-4 text-gray-400" />
-                          <select 
-                            value={slot.start}
-                            onChange={(e) => updateTimeSlot(index, 'start', e.target.value)}
-                            className="border border-gray-300 rounded-md p-1 text-sm"
-                          >
-                            {getAvailableStartTimes(index).map((time) => (
-                              <option key={time} value={time}>
-                                {formatTime12(time)}
-                              </option>
-                            ))}
-                          </select>
-                          
-                          <span>—</span>
-                          
-                          <select 
-                            value={slot.end}
-                            onChange={(e) => updateTimeSlot(index, 'end', e.target.value)}
-                            className="border border-gray-300 rounded-md p-1 text-sm"
-                          >
-                            {getAvailableEndTimes(index, slot.start).map((time) => (
-                              <option key={time} value={time}>
-                                {formatTime12(time)}
-                              </option>
-                            ))}
-                          </select>
-
-                          <button
-                            onClick={addTimeSlot}
-                            className="flex items-center justify-center w-8 h-8 bg-green-500 text-white rounded-full hover:bg-green-600"
-                            title="Add time slot"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </button>
-
-                          {workingHours.length > 1 && (
-                            <button
-                              onClick={() => removeTimeSlot(index)}
-                              className="flex items-center justify-center w-8 h-8 bg-red-500 text-white rounded-full hover:bg-red-600"
-                              title="Remove time slot"
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {workingHours.map((slot, index) => (
-                        <div key={index} className="flex items-center space-x-2">
-                          <div className="border border-gray-300 rounded-md px-3 py-1">
-                            {formatTime12(slot.start)}
-                          </div>
-                          <span>—</span>
-                          <div className="border border-gray-300 rounded-md px-3 py-1">
-                            {formatTime12(slot.end)}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              {/* Display meeting duration info */}
-              {selectedDay.available && (
-                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                  <div className="text-sm text-blue-700">
-                    <div className="font-medium mb-1">Meeting Settings</div>
-                    <div>Duration: {meetingDuration} minutes{bufferTime > 0 && ` + ${bufferTime} min buffer`}</div>
-                  </div>
-                </div>
-              )}
-              
-              {/* Display booked slots if available */}
-              {scheduledSlots.length > 0 ? (
-                <div className="mt-6">
-                  <div className="grid grid-cols-3 gap-2 mb-2 border-b pb-2">
-                    <div className="text-xs font-medium">Booked Slots</div>
-                    <div className="text-xs font-medium">Guest Name</div>
-                    <div className="text-xs font-medium">Guest Email</div>
-                  </div>
-                  
-                  {scheduledSlots.map((slot, index) => (
-                    <div key={index} className="grid grid-cols-3 gap-2 py-1">
-                      <div className="text-xs bg-green-100 px-2 py-1 rounded">{slot.time}</div>
-                      <div className="text-xs">{slot.name}</div>
-                      <div className="text-xs truncate">{slot.email}</div>
-                    </div>
-                  ))}
-                </div>
-              ) : selectedDay.available ? (
-                <div className="mt-6 p-4 bg-gray-50 rounded text-center text-sm text-gray-500">
-                  No bookings for this day
-                </div>
-              ) : null}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <Calendar className="h-12 w-12 text-gray-400 mb-3" />
-              <h3 className="text-lg font-medium text-gray-600 mb-2">Select a date to view your schedule</h3>
-              <p className="text-sm text-gray-500">Click on a date from the calendar to see your appointments</p>
-            </div>
-          )}
-        </div>
+      {/* Desktop Layout (2 columns) */}
+      <div className="hidden md:grid md:grid-cols-2 gap-6">
+        <CalendarView />
+        <DetailsView />
+      </div>
+      
+      {/* Mobile Layout (single column with conditional rendering) */}
+      <div className="block md:hidden">
+        {!showMobileDetails ? (
+          <CalendarView />
+        ) : (
+          <DetailsView />
+        )}
       </div>
     </div>
   );
