@@ -120,6 +120,11 @@ const Card = styled.div`
 const GENERIC_LLM_SYSTEM_PROMPT = (context: string) =>
   `You are an AI assistant helping to engage users for a business or service. Based on the following context, generate 8 engaging, concise, and friendly opening prompts (cues) that encourage users to interact, ask questions, or explore the agent's capabilities. Make sure to never use Sayy related text while genrating prompts. Return only array of strings of max 3-4 words each.\n Context:\n${context}. Output format should be a JSON array of strings as example: ["Return policy?","Best Products?","Summarise the business!","Need support?","Consltation fees?","Book live call","Explore our features!"]`;
 
+// Utility to extract JSON array from markdown code block
+function extractJsonArray(str: string): string {
+  return str.replace(/```json|```/g, "").trim();
+}
+
 const Prompts = () => {
   const { activeBotData, setRefetchBotData } = useBotConfig();
   const [selectedPrompts, setSelectedPrompts] = useState<string[]>([]);
@@ -128,6 +133,7 @@ const Prompts = () => {
   const [newPrompt, setNewPrompt] = useState("");
   const [previewConfig, setPreviewConfig] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
 
   // To set backend generated prompts
@@ -153,52 +159,49 @@ const Prompts = () => {
       const customSelected = activeBotData.prompts.filter(
         (prompt) => !generatedPrompts.includes(prompt)
       );
-      setSelectedPrompts(generatedSelected);
-      setCustomPrompts(customSelected);
+      setSelectedPrompts([...generatedSelected, ...customSelected]);
+      // For customPrompts, only keep those not in generatedPrompts or activeBotData.prompts
+      setCustomPrompts((prev) => {
+        // Keep all custom prompts that are not in generatedPrompts or activeBotData.prompts
+        const allCustom = prev.filter(
+          (p) =>
+            !generatedPrompts.includes(p) && !activeBotData.prompts.includes(p)
+        );
+        return [
+          ...allCustom,
+          ...customSelected.filter((p) => !prev.includes(p)),
+        ];
+      });
+      // Initialize preview config (only selectedPrompts)
+      setPreviewConfig({
+        ...activeBotData,
+        prompts: [...generatedSelected, ...customSelected],
+      });
     }
-  }, [activeBotData]);
+  }, [activeBotData, generatedPrompts]);
 
-  const allPrompts = [...selectedPrompts, ...customPrompts];
-  const canAddMore = allPrompts.length < 4;
+  const canAddMore = selectedPrompts.length < 4;
 
-  const handlePromptSelect = async (prompt: string) => {
+  const handlePromptSelect = (prompt: string) => {
+    let updatedSelectedPrompts;
     if (selectedPrompts.includes(prompt)) {
-      setSelectedPrompts(selectedPrompts.filter((p) => p !== prompt));
+      updatedSelectedPrompts = selectedPrompts.filter((p) => p !== prompt);
     } else if (canAddMore) {
-      setSelectedPrompts([...selectedPrompts, prompt]);
+      updatedSelectedPrompts = [...selectedPrompts, prompt];
     } else {
       toast.error("You can only have up to 4 prompts in total");
       return;
     }
 
-    if (activeBotData) {
-      try {
-        const updatedPrompts = selectedPrompts.includes(prompt)
-          ? selectedPrompts.filter((p) => p !== prompt)
-          : canAddMore
-          ? [...selectedPrompts, prompt]
-          : selectedPrompts;
-
-        await updateAgentPrompts(activeBotData.agentId, [
-          ...updatedPrompts,
-          ...customPrompts,
-        ]);
-
-        setPreviewConfig({
-          ...activeBotData,
-          prompts: [...updatedPrompts, ...customPrompts],
-        });
-
-        setRefetchBotData();
-        toast.success("Prompts updated successfully");
-      } catch (error) {
-        toast.error("Failed to update prompts");
-        console.error("Error updating prompts:", error);
-      }
-    }
+    setSelectedPrompts(updatedSelectedPrompts);
+    // Update preview config with the new state (only selectedPrompts)
+    setPreviewConfig({
+      ...activeBotData,
+      prompts: updatedSelectedPrompts,
+    });
   };
 
-  const handleAddCustomPrompt = async () => {
+  const handleAddCustomPrompt = () => {
     if (!newPrompt.trim()) {
       toast.error("Please enter a prompt");
       return;
@@ -209,62 +212,56 @@ const Prompts = () => {
       return;
     }
 
-    if (activeBotData) {
-      try {
-        const updatedCustomPrompts = [...customPrompts, newPrompt];
-
-        await updateAgentPrompts(activeBotData.agentId, [
-          ...selectedPrompts,
-          ...updatedCustomPrompts,
-        ]);
-
-        setCustomPrompts(updatedCustomPrompts);
-        setNewPrompt("");
-
-        setPreviewConfig({
-          ...activeBotData,
-          prompts: [...selectedPrompts, ...updatedCustomPrompts],
-        });
-
-        setRefetchBotData();
-        toast.success("Custom prompt added successfully");
-      } catch (error) {
-        toast.error("Failed to add custom prompt");
-        console.error("Error adding custom prompt:", error);
-      }
+    // Check if the prompt already exists in either selected or custom prompts
+    if (
+      selectedPrompts.includes(newPrompt) ||
+      customPrompts.includes(newPrompt)
+    ) {
+      toast.error("This prompt already exists");
+      return;
     }
+
+    const updatedCustomPrompts = [...customPrompts, newPrompt];
+    setCustomPrompts(updatedCustomPrompts);
+    setNewPrompt("");
+    // Do NOT add to selectedPrompts automatically
+    // Do NOT update previewConfig here
   };
 
-  const handleRemovePrompt = async (prompt: string, isCustom: boolean) => {
-    if (activeBotData) {
-      try {
-        let updatedSelected = [...selectedPrompts];
-        let updatedCustom = [...customPrompts];
+  const handleRemovePrompt = (prompt: string, isCustom: boolean) => {
+    let updatedSelected = [...selectedPrompts];
+    let updatedCustom = [...customPrompts];
 
-        if (isCustom) {
-          updatedCustom = customPrompts.filter((p) => p !== prompt);
-          setCustomPrompts(updatedCustom);
-        } else {
-          updatedSelected = selectedPrompts.filter((p) => p !== prompt);
-          setSelectedPrompts(updatedSelected);
-        }
+    if (isCustom) {
+      updatedCustom = customPrompts.filter((p) => p !== prompt);
+      setCustomPrompts(updatedCustom);
+      // Also remove from selectedPrompts if present
+      updatedSelected = updatedSelected.filter((p) => p !== prompt);
+      setSelectedPrompts(updatedSelected);
+    } else {
+      updatedSelected = selectedPrompts.filter((p) => p !== prompt);
+      setSelectedPrompts(updatedSelected);
+    }
 
-        await updateAgentPrompts(activeBotData.agentId, [
-          ...updatedSelected,
-          ...updatedCustom,
-        ]);
+    // Update preview config with the new state (only selectedPrompts)
+    setPreviewConfig({
+      ...activeBotData,
+      prompts: updatedSelected,
+    });
+  };
 
-        setPreviewConfig({
-          ...activeBotData,
-          prompts: [...updatedSelected, ...updatedCustom],
-        });
-
-        setRefetchBotData();
-        toast.success("Prompt removed successfully");
-      } catch (error) {
-        toast.error("Failed to remove prompt");
-        console.error("Error removing prompt:", error);
-      }
+  const handleSavePrompts = async () => {
+    if (!activeBotData) return;
+    setIsSaving(true);
+    try {
+      await updateAgentPrompts(activeBotData.agentId, [...selectedPrompts]);
+      setRefetchBotData();
+      toast.success("Prompts saved successfully");
+    } catch (error) {
+      toast.error("Failed to save prompts");
+      console.error("Error saving prompts:", error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -291,12 +288,10 @@ const Prompts = () => {
       });
 
       let output = completion.choices[0].message.content;
-      let cleanOutput = JSON.parse(output || "[]");
-      console.log(cleanOutput);
-
+      let cleanOutput = extractJsonArray(output || "");
       let llmPrompts: string[] = [];
       try {
-        llmPrompts = JSON.parse(output || "[]");
+        llmPrompts = JSON.parse(cleanOutput || "[]");
       } catch {
         toast.error("Failed to parse LLM response");
         setIsGenerating(false);
@@ -326,6 +321,24 @@ const Prompts = () => {
       setIsGenerating(false);
     }
   };
+
+  const allPredefinedToShow = Array.from(
+    new Set([
+      ...generatedPrompts,
+      ...selectedPrompts.filter(
+        (p) => !customPrompts.includes(p) && !generatedPrompts.includes(p)
+      ),
+    ])
+  );
+
+  const allCustomToShow = Array.from(
+    new Set([
+      ...customPrompts,
+      ...selectedPrompts.filter(
+        (p) => !generatedPrompts.includes(p) && !customPrompts.includes(p)
+      ),
+    ])
+  );
 
   return (
     <div className="w-full h-full flex flex-col lg:flex-row gap-0 overflow-y-auto lg:overflow-hidden">
@@ -382,22 +395,12 @@ const Prompts = () => {
                   Predefined Prompts
                 </h3>
                 <button
-                  onClick={async () => {
-                    if (activeBotData) {
-                      try {
-                        await updateAgentPrompts(activeBotData.agentId, []);
-                        setSelectedPrompts([]);
-                        setPreviewConfig({
-                          ...activeBotData,
-                          prompts: [],
-                        });
-                        setRefetchBotData();
-                        toast.success("All prompts removed successfully");
-                      } catch (error) {
-                        toast.error("Failed to remove prompts");
-                        console.error("Error removing prompts:", error);
-                      }
-                    }
+                  onClick={() => {
+                    setSelectedPrompts([]);
+                    setPreviewConfig({
+                      ...activeBotData,
+                      prompts: [],
+                    });
                   }}
                   className="para-font border border-[#7D7D7D] text-[#7D7D7D] px-2 py-0.5 xs:px-4 rounded-xl "
                 >
@@ -406,9 +409,9 @@ const Prompts = () => {
               </div>
 
               <div className="space-y-2">
-                {generatedPrompts.map((prompt) => (
+                {allPredefinedToShow.map((prompt) => (
                   <div key={prompt} className="flex gap-4 items-center">
-                    {activeBotData?.prompts?.includes(prompt) ? (
+                    {selectedPrompts.includes(prompt) ? (
                       <>
                         <div className="relative w-[25px] h-[25px] bg-[#CEFFDC] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3">
                           <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]"></div>
@@ -421,14 +424,14 @@ const Prompts = () => {
                       onClick={() => handlePromptSelect(prompt)}
                       className={`w-full text-left pl-4 pr-1 py-2 border transition-all relative
                       ${
-                        activeBotData?.prompts?.includes(prompt)
+                        selectedPrompts.includes(prompt)
                           ? "bg-[#CEFFDC] border-2 border-[#6AFF97] focus:outline-none"
                           : "border-[#7D7D7D] hover:border-gray-300"
                       }`}
                     >
                       {prompt}
                     </button>
-                    {activeBotData?.prompts?.includes(prompt) && (
+                    {selectedPrompts.includes(prompt) && (
                       <div style={{ zIndex: "4" }} className="icon relative">
                         <Icon
                           onClick={(e) => {
@@ -454,9 +457,9 @@ const Prompts = () => {
               </div>
 
               <div className="space-y-2">
-                {customPrompts.map((prompt) => (
+                {allCustomToShow.map((prompt) => (
                   <div key={prompt} className="flex gap-4 items-center">
-                    {activeBotData?.prompts?.includes(prompt) ? (
+                    {selectedPrompts.includes(prompt) ? (
                       <>
                         <div className="relative w-[25px] h-[25px] bg-[#CEFFDC] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3">
                           <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]"></div>
@@ -469,7 +472,7 @@ const Prompts = () => {
                       onClick={() => handlePromptSelect(prompt)}
                       className={`w-full text-left px-4 py-2 border transition-all relative
                       ${
-                        activeBotData?.prompts?.includes(prompt)
+                        selectedPrompts.includes(prompt)
                           ? "bg-[#CEFFDC] border-2 border-[#6AFF97] focus:outline-none"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
@@ -477,7 +480,7 @@ const Prompts = () => {
                       {prompt}
                     </button>
 
-                    {activeBotData?.prompts?.includes(prompt) && (
+                    {selectedPrompts.includes(prompt) && (
                       <div style={{ zIndex: "4" }} className="icon relative">
                         <Icon
                           onClick={(e) => {
@@ -492,6 +495,15 @@ const Prompts = () => {
                     )}
                   </div>
                 ))}
+              </div>
+              <div className="flex justify-end relative z-10 mt-4">
+                <Button
+                  onClick={handleSavePrompts}
+                  className="disabled:cursor-not-allowed"
+                  disabled={isSaving}
+                >
+                  {isSaving ? "Saving..." : "Save Changes"}
+                </Button>
               </div>
             </div>
             <div className="pb-12 pt-8">

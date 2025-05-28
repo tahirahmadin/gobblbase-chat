@@ -183,7 +183,7 @@ const Manage = () => {
         <div className="overflow-x-auto">
           <div className="max-h-[calc(100vh-250px)] overflow-y-auto">
             <table className="w-full min-w-[500px]">
-              <thead className="sticky top-0 bg-green-100 z-10">
+              <thead className="sticky top-0 bg-green-100 z-5">
                 <tr>
                   <th className="py-1.5 px-2 text-left text-xs lg:text-sm">
                     CODE

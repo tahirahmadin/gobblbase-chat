@@ -22,11 +22,17 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
   const [step, setStep] = useState(0);
   const [form, setForm] = useState(() => {
     if (editProduct) {
+      // If there are varied quantities, automatically select those sizes
+      const variedSizes = editProduct.variedQuantities
+        ? Object.keys(editProduct.variedQuantities)
+        : [];
+
       return {
         ...editProduct,
         descriptionEnabled: true,
         images: editProduct.images || [],
         imagesUrl: editProduct.imagesUrl || [],
+        variedSizes: variedSizes,
       };
     }
     return {
