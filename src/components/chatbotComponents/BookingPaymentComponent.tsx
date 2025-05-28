@@ -424,7 +424,7 @@ export function BookingPaymentComponent({
         };
 
         const response = await fetch(
-          `${backendApiUrl}/product/create-payment-intent`,
+          `${backendApiUrl}/product/create-booking-payment-intent`,
           {
             method: "POST",
             headers: {
