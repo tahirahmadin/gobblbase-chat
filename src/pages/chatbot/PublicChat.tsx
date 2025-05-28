@@ -4,7 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { BotConfig, ChatMessage } from "../../types";
 import { useBotConfig } from "../../store/useBotConfig";
 import { useUserStore } from "../../store/useUserStore";
-import { useChatLogs } from "../../hooks/useChatLogs"; 
+import { useChatLogs } from "../../hooks/useChatLogs";
 import HeaderSection from "../../components/chatbotComponents/HeaderSection";
 import ChatSection from "../../components/chatbotComponents/ChatSection";
 import InputSection from "../../components/chatbotComponents/InputSection";
@@ -264,8 +264,11 @@ export default function PublicChat({
     scrollToBottom,
   ]);
 
-  const logConversation = async (userMessage: string, agentResponse: string) => {
-    if (!isPreview) { 
+  const logConversation = async (
+    userMessage: string,
+    agentResponse: string
+  ) => {
+    if (!isPreview) {
       try {
         await addMessages(userMessage, agentResponse);
       } catch (error) {
@@ -291,7 +294,8 @@ export default function PublicChat({
     setShowCues(false);
     scrollToBottom();
 
-    const messageCountBefore = messages.length + 1; 
+    const messageCountBefore = messages.length + 1;
+    let responseContent = "";
 
     // Process contact requests first (including lead collection)
     const contactHandled = await handleContactRequest(
@@ -303,18 +307,15 @@ export default function PublicChat({
 
     if (contactHandled) {
       setTimeout(() => {
-        setMessages(currentMessages => {
-          const newMessages = currentMessages.slice(messageCountBefore);
-          const latestBotMessage = newMessages.find(msg => msg.sender === "agent");
-          
-          if (latestBotMessage) {
-            logConversation(msgToSend, latestBotMessage.content);
-          } else {
-            logConversation(msgToSend, "Contact collection initiated");
-          }
-          
-          return currentMessages; 
-        });
+        const currentMessages = messages;
+        const newMessages = currentMessages.slice(messageCountBefore);
+        const latestBotMessage = newMessages.find(
+          (msg) => msg.sender === "agent"
+        );
+        responseContent = latestBotMessage
+          ? latestBotMessage.content
+          : "Contact collection initiated";
+        logConversation(msgToSend, responseContent);
       }, 200);
       return;
     }
@@ -327,7 +328,8 @@ export default function PublicChat({
     );
 
     if (bookingHandled) {
-      logConversation(msgToSend, "Booking calendar displayed");
+      responseContent = "Booking calendar displayed";
+      logConversation(msgToSend, responseContent);
       return;
     }
 
@@ -339,30 +341,30 @@ export default function PublicChat({
     );
 
     if (productHandled) {
-      logConversation(msgToSend, "Product catalog displayed");
+      responseContent = "Product catalog displayed";
+      logConversation(msgToSend, responseContent);
       return;
     }
 
     try {
       await handleAIResponse(msgToSend);
-      
+
+      // Wait for the AI response to be added to messages
       setTimeout(() => {
-        setMessages(currentMessages => {
-          const latestAgentMessage = currentMessages
-            .slice(messageCountBefore)
-            .find(msg => msg.sender === "agent");
-          
-          if (latestAgentMessage) {
-            logConversation(msgToSend, latestAgentMessage.content);
-          }
-          
-          return currentMessages; 
-        });
+        const currentMessages = messages;
+        const latestAgentMessage = currentMessages
+          .slice(messageCountBefore)
+          .find((msg) => msg.sender === "agent");
+
+        if (latestAgentMessage) {
+          responseContent = latestAgentMessage.content;
+          logConversation(msgToSend, responseContent);
+        }
       }, 1000);
-      
     } catch (error) {
       console.error("Error handling AI response:", error);
-      logConversation(msgToSend, "Error occurred while processing request");
+      responseContent = "Error occurred while processing request";
+      logConversation(msgToSend, responseContent);
     }
   };
 

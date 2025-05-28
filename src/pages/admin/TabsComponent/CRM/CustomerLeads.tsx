@@ -106,8 +106,10 @@ const CustomerLeads = () => {
           </label>
         </div>
         <div>
-          <h3 className="text-md font-semibold mb-2">Contact Form Fields</h3>
-          <p className="text-xs text-gray-800 mb-4">
+          <h3 className="text-md font-semibold mb-0 lg:mb-2">
+            Contact Form Fields
+          </h3>
+          <p className="text-xs text-gray-800 mb-2 lg:mb-4">
             Select your desired categories. All selected fields will be
             compulsory.
           </p>
@@ -196,7 +198,7 @@ const CustomerLeads = () => {
         </div>
       </div>
       {/* Right Panel */}
-      <div className="flex-1 w-screen lg:w-full px-4 sm:px-0 p-4">
+      <div className="flex-1 w-screen lg:w-full px-4 sm:px-0">
         <h2 className="text-lg font-semibold mb-4">Form Responses</h2>
 
         <div className="bg-white rounded-xl shadow overflow-hidden w-full">

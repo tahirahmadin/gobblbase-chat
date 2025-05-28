@@ -924,10 +924,13 @@ export const updateStripeAccountIdCurrency = async (data: {
   }
 };
 
-export const getTransactions = async (agentId: string): Promise<any[]> => {
+export const getTransactions = async (
+  agentId: string,
+  page: number
+): Promise<{ orders: any[]; hasNext: boolean }> => {
   try {
     const response = await axios.get(
-      `${apiUrl}/client/getAgentOrders?agentId=${agentId}`
+      `${apiUrl}/client/getAgentOrders?agentId=${agentId}&page=${page}`
     );
     return response.data.result;
   } catch (error) {

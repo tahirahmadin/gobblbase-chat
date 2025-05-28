@@ -503,13 +503,13 @@ export default function AboutSection({
           </div>
 
           {/* Policies Section */}
-          <div className="flex justify-center space-x-4 mt-4 mb-6">
+          <div className="grid grid-cols-2 gap-x-8 gap-y-4 mt-4 mb-6 px-4 max-w-md mx-auto">
             {Object.entries(policies)
               .filter(([_, p]) => p.enabled)
               .map(([key, p]) => (
                 <button
                   key={key}
-                  className="text-sm opacity-60 hover:opacity-100 underline"
+                  className="text-sm opacity-60 hover:opacity-100 underline text-center"
                   style={{
                     background: "none",
                     border: "none",
