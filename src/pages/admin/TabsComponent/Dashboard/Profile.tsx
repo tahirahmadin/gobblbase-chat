@@ -15,6 +15,7 @@ import { PERSONALITY_OPTIONS } from "../../../../utils/constants";
 import SocialMediaSection from "./SocialMediaSection";
 import CustomLinksSection from "./CustomLinksSection";
 import styled from "styled-components";
+import { useAdminStore } from "../../../../store/useAdminStore";
 const Lable = styled.label`
   position: relative;
   width: 35px;
@@ -128,6 +129,7 @@ const Profile = () => {
     setRefetchBotData,
     updateBotLogoViaStore,
   } = useBotConfig();
+  const { fetchAllAgents } = useAdminStore();
   const [isSavingName, setIsSavingName] = useState(false);
   const [isSavingBio, setIsSavingBio] = useState(false);
   const [isSavingPromoBanner, setIsSavingPromoBanner] = useState(false);
@@ -205,6 +207,7 @@ const Profile = () => {
       setIsEditingUrl(false);
       setUrlAvailable(true);
       toast.success("Agent URL updated successfully");
+      fetchAllAgents();
     } catch (error: any) {
       console.error("Error updating agent username:", error);
       setUrlAvailable(false);

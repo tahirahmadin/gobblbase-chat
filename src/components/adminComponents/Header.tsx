@@ -13,7 +13,7 @@ interface Agent {
 
 const Header = () => {
   const { activeBotData, activeBotId, setActiveBotId } = useBotConfig();
-  const { agents, adminEmail, adminId, fetchAllAgents } = useAdminStore();
+  const { agents, adminEmail } = useAdminStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();

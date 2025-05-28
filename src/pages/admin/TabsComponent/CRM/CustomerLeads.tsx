@@ -9,7 +9,7 @@ import toast from "react-hot-toast";
 const PAGE_SIZE = 8;
 
 const CustomerLeads = () => {
-  const { activeBotId, activeBotData } = useBotConfig();
+  const { activeBotId, activeBotData, setRefetchBotData } = useBotConfig();
   const [formEnabled, setFormEnabled] = useState(
     activeBotData?.customerLeadFlag || false
   );
@@ -65,6 +65,7 @@ const CustomerLeads = () => {
       setIsUpdating(true);
       await updateCustomerLeadFlag(activeBotId, !formEnabled);
       setFormEnabled(!formEnabled);
+      setRefetchBotData();
     } catch (error) {
       console.error("Failed to update form status:", error);
       toast.error("Failed to update form status");
