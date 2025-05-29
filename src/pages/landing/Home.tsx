@@ -1694,7 +1694,7 @@ const Home = () => {
                       <p className="para-font text-[13px] font-[500]">Your intelligent storefront guiding customers and closing sales 24x7.</p>
                   </div>
                   <img
-                    src="public/assets/landing-asset/assemble/who-card-1.png"
+                    src="public/assets/landing-asset/assemble/who-card-2.png"
                     alt=""
                     width={"100%"}
                   />
