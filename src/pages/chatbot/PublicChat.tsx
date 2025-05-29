@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { BotConfig, ChatMessage } from "../../types";
 import { useBotConfig } from "../../store/useBotConfig";
 import { useUserStore } from "../../store/useUserStore";
+import { useChatLogs } from "../../hooks/useChatLogs";
 import HeaderSection from "../../components/chatbotComponents/HeaderSection";
 import ChatSection from "../../components/chatbotComponents/ChatSection";
 import InputSection from "../../components/chatbotComponents/InputSection";
@@ -37,6 +38,8 @@ export default function PublicChat({
     fetchBotData,
   } = useBotConfig();
   const { initializeSession } = useUserStore();
+
+  const { addMessages } = useChatLogs();
 
   const [viewportHeight, setViewportHeight] = useState<number>(
     window.innerHeight
@@ -261,6 +264,19 @@ export default function PublicChat({
     scrollToBottom,
   ]);
 
+  const logConversation = async (
+    userMessage: string,
+    agentResponse: string
+  ) => {
+    if (!isPreview) {
+      try {
+        await addMessages(userMessage, agentResponse);
+      } catch (error) {
+        console.error("Failed to log conversation:", error);
+      }
+    }
+  };
+
   const handleSendMessage = async (inputMessage?: string): Promise<void> => {
     let msgToSend = typeof inputMessage === "string" ? inputMessage : message;
 
@@ -278,6 +294,9 @@ export default function PublicChat({
     setShowCues(false);
     scrollToBottom();
 
+    const messageCountBefore = messages.length + 1;
+    let responseContent = "";
+
     // Process contact requests first (including lead collection)
     const contactHandled = await handleContactRequest(
       msgToSend,
@@ -286,7 +305,20 @@ export default function PublicChat({
       currentConfig?.customerLeadFlag
     );
 
-    if (contactHandled) return;
+    if (contactHandled) {
+      setTimeout(() => {
+        const currentMessages = messages;
+        const newMessages = currentMessages.slice(messageCountBefore);
+        const latestBotMessage = newMessages.find(
+          (msg) => msg.sender === "agent"
+        );
+        responseContent = latestBotMessage
+          ? latestBotMessage.content
+          : "Contact collection initiated";
+        logConversation(msgToSend, responseContent);
+      }, 200);
+      return;
+    }
 
     // Process booking-related messages
     const bookingHandled = handleBookingRequest(
@@ -295,7 +327,11 @@ export default function PublicChat({
       scrollToBottom
     );
 
-    if (bookingHandled) return;
+    if (bookingHandled) {
+      responseContent = "Booking calendar displayed";
+      logConversation(msgToSend, responseContent);
+      return;
+    }
 
     // Process product-related messages
     const productHandled = handleProductRequest(
@@ -304,9 +340,32 @@ export default function PublicChat({
       scrollToBottom
     );
 
-    if (productHandled) return;
+    if (productHandled) {
+      responseContent = "Product catalog displayed";
+      logConversation(msgToSend, responseContent);
+      return;
+    }
 
-    await handleAIResponse(msgToSend);
+    try {
+      await handleAIResponse(msgToSend);
+
+      // Wait for the AI response to be added to messages
+      setTimeout(() => {
+        const currentMessages = messages;
+        const latestAgentMessage = currentMessages
+          .slice(messageCountBefore)
+          .find((msg) => msg.sender === "agent");
+
+        if (latestAgentMessage) {
+          responseContent = latestAgentMessage.content;
+          logConversation(msgToSend, responseContent);
+        }
+      }, 1000);
+    } catch (error) {
+      console.error("Error handling AI response:", error);
+      responseContent = "Error occurred while processing request";
+      logConversation(msgToSend, responseContent);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent): void => {
@@ -337,8 +396,8 @@ export default function PublicChat({
           <Helmet>
             <title>
               {currentConfig.name
-                ? `${currentConfig.name} | KiFor.ai chatbot`
-                : "KiFor.ai chatbot"}
+                ? `${currentConfig.name} | Sayy.ai chatbot`
+                : "Sayy.ai chatbot"}
             </title>
           </Helmet>
           <div

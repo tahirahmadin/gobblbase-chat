@@ -78,7 +78,7 @@ const BookingDashboardWrapper: React.FC<BookingDashboardWrapperProps> = ({
       className="h-full overflow-y-auto py-6"
       style={{ maxHeight: "calc(100vh - 64px)" }}
     >
-      <div className="px-4">
+      <div className=" overflow-x-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <svg

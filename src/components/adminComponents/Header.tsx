@@ -13,7 +13,7 @@ interface Agent {
 
 const Header = () => {
   const { activeBotData, activeBotId, setActiveBotId } = useBotConfig();
-  const { agents, adminEmail, adminId, fetchAllAgents } = useAdminStore();
+  const { agents, adminEmail } = useAdminStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -69,7 +69,9 @@ const Header = () => {
                   </span>
                 </div>
               )}
-              <span className="hidden xs:block">{activeBotData?.name || "Select Agent"}</span>
+              <span className="hidden xs:block">
+                {activeBotData?.name || "Select Agent"}
+              </span>
               <ChevronDown className="w-4 h-4 text-gray-500" />
             </button>
             {isDropdownOpen && (
@@ -103,7 +105,7 @@ const Header = () => {
                           </span>
                         </div>
                       )}
-                      <span className="hidden font-medium">{agent.name}</span>
+                      <span className=" font-medium">{agent.name}</span>
                       {agent.agentId === activeBotId && (
                         <span className="ml-auto text-xs text-green-200 font-semibold">
                           Selected
@@ -125,6 +127,7 @@ const Header = () => {
             )}
           </div>
         </div>
+<<<<<<< HEAD
         <div className="">
           <div className="flex items-center space-x-2 ">
             <div className="relative inline-block">
@@ -146,7 +149,35 @@ const Header = () => {
                 >
                   <div className="text-sm text-[#1C4ED8]">Visit chatbot</div>
                 </a>
+=======
+        <div className="flex items-center space-x-2">
+          <div className="relative inline-block">
+            <div className="absolute top-1 left-1 w-full h-full bg-[#6aff97] rounded"></div>
+            <div className="relative inline-block">
+              {/* Bottom layer for shadow effect */}
+              <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
+            </div>
+          </div>
+          <div
+            className="truncate w-full flex items-center space-x-1 px-2 py-1 rounded-lg"
+            style={{
+              border: "1px solid #bdbdbd",
+              backgroundColor: "#effdf4",
+            }}
+          >
+            <div>
+              <div className="truncate w-[80%] text-[10px] lg:text-sm text-black font-semibold">
+                {adminEmail}
+>>>>>>> origin/main
               </div>
+              <a
+                href={`https://Sayy.ai/${activeBotData?.username}`}
+                target="_blank"
+              >
+                <div className="text-xs lg:text-sm text-[#1C4ED8]">
+                  Visit agent
+                </div>
+              </a>
             </div>
           </div>
         </div>

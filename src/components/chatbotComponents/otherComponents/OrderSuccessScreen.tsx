@@ -1,5 +1,6 @@
 import React from "react";
 import { CheckCircle, ShoppingBag, ArrowRight } from "lucide-react";
+import { useBotConfig } from "../../../store/useBotConfig";
 
 interface OrderSuccessScreenProps {
   theme: {
@@ -21,6 +22,7 @@ interface OrderSuccessScreenProps {
     product: {
       title: string;
       price: number;
+      quantity: number;
     };
   };
 }
@@ -30,10 +32,12 @@ export const OrderSuccessScreen: React.FC<OrderSuccessScreenProps> = ({
   onContinueShopping,
   orderDetails,
 }) => {
+  const { activeBotData } = useBotConfig();
+
   return (
-    <div className="flex flex-col items-center justify-center p-6 min-h-[80vh]">
+    <div className="flex flex-col items-center justify-center p-4 min-h-[80vh]">
       <div
-        className="w-full max-w-2xl p-8 rounded-xl"
+        className="w-full max-w-2xl p-4 rounded-xl"
         style={{
           backgroundColor: theme.isDark ? "#232323" : "#ffffff",
           border: `1px solid ${theme.highlightColor}`,
@@ -54,7 +58,7 @@ export const OrderSuccessScreen: React.FC<OrderSuccessScreenProps> = ({
             Order Successful!
           </h2>
           <p
-            className="text-sm"
+            className="text-sm text-center"
             style={{ color: theme.isDark ? "#e0e0e0" : "#666666" }}
           >
             Thank you for your purchase. Your order has been confirmed.
@@ -82,27 +86,44 @@ export const OrderSuccessScreen: React.FC<OrderSuccessScreenProps> = ({
               >
                 <div className="flex items-center">
                   <span className="mr-2">•</span>
-                  <span>1x {orderDetails.product.title}</span>
+                  <span>
+                    {orderDetails.product.quantity}x{" "}
+                    {orderDetails.product.title}
+                  </span>
                 </div>
-                <span>${orderDetails.product.price.toFixed(2)}</span>
+                <span>
+                  {orderDetails.product.price.toFixed(2)}{" "}
+                  {activeBotData?.currency}{" "}
+                </span>
               </div>
-
               <p
                 className="text-sm mb-2"
                 style={{ color: theme.isDark ? "#e0e0e0" : "#666666" }}
               >
-                <strong>Total Amount:</strong> ${orderDetails.total}
+                <span className="mr-2">•</span>
+                <strong>Total Amount:</strong> {orderDetails.total}{" "}
+                {activeBotData?.currency}
               </p>
               <p
                 className="text-sm mb-2"
                 style={{ color: theme.isDark ? "#e0e0e0" : "#666666" }}
               >
+                <span className="mr-2">•</span>
+                <strong>Payment Id:</strong> {orderDetails.orderId}{" "}
+              </p>
+              <p
+                className="text-sm mb-2"
+                style={{ color: theme.isDark ? "#e0e0e0" : "#666666" }}
+              >
+                {" "}
+                <span className="mr-2">•</span>
                 <strong>Payment Method:</strong> {orderDetails.paymentMethod}
               </p>
               <p
                 className="text-sm"
                 style={{ color: theme.isDark ? "#e0e0e0" : "#666666" }}
               >
+                <span className="mr-2">•</span>
                 <strong>Date:</strong> {orderDetails.paymentDate}
               </p>
             </div>

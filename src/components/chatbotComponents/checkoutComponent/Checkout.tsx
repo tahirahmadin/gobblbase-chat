@@ -140,12 +140,14 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
     paymentMethod?: string;
     paymentDate?: string;
   }) => {
+    if (!selectedProduct) return;
+
     setOrderDetails({
       ...details,
       items: [
         {
           title: details.product.title,
-          quantity: details.product.quantity || 1,
+          quantity: selectedProduct.quantity || 1,
           price: details.product.price,
         },
       ],

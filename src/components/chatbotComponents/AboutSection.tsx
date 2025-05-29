@@ -16,6 +16,7 @@ import { getAgentPolicies, saveCustomerLead } from "../../lib/serverActions";
 import { toast } from "react-hot-toast";
 import { PERSONALITY_OPTIONS } from "../../utils/constants";
 import { useBotConfig } from "../../store/useBotConfig";
+import { FaSnapchat } from "react-icons/fa";
 
 interface AboutSectionProps {
   currentConfig: {
@@ -291,23 +292,27 @@ export default function AboutSection({
 
   useEffect(() => {
     if (activeBotData?.logo) {
-      setAgentPicture(activeBotData?.logo);
+      if (agentPicture === activeBotData?.logo) {
+        return;
+      }
+      const logoWithTimestamp = `${activeBotData.logo}?t=${Date.now()}`;
+      setAgentPicture(logoWithTimestamp);
     } else if (activeBotData?.personalityType?.name) {
-      let voiceName = activeBotData?.personalityType?.name;
+      let voiceName = activeBotData.personalityType.name;
 
       const logoObj = PERSONALITY_OPTIONS.find(
         (model) => model.title === voiceName
       );
 
       if (logoObj) {
-        setAgentPicture(logoObj?.image);
+        setAgentPicture(logoObj.image);
       } else {
         setAgentPicture(
           "https://t4.ftcdn.net/jpg/08/04/36/29/360_F_804362990_0n7bGLz9clMBi5ajG52k8OAUQTneMbj4.jpg"
         );
       }
     }
-  }, [activeBotData?.logo, activeBotData?.personalityType?.name]);
+  }, [activeBotData]);
 
   useEffect(() => {
     if (showContactForm !== undefined) {
@@ -365,7 +370,7 @@ export default function AboutSection({
             {/* Profile Image */}
             <div className="w-20 h-20 rounded-full overflow-hidden">
               <img
-                src={agentPicture}
+                src={agentPicture || ""}
                 alt="Agent"
                 className="w-full h-full object-cover"
               />
@@ -380,7 +385,15 @@ export default function AboutSection({
             <div className="flex space-x-4">
               {socials?.twitter && (
                 <a
-                  href={socials.twitter}
+                  href={
+                    typeof socials.twitter === "string" &&
+                    (socials.twitter || "").startsWith("http")
+                      ? socials.twitter
+                      : `https://twitter.com/${(socials.twitter || "").replace(
+                          /^@/,
+                          ""
+                        )}`
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:opacity-80"
@@ -390,7 +403,14 @@ export default function AboutSection({
               )}
               {socials?.instagram && (
                 <a
-                  href={socials.instagram}
+                  href={
+                    typeof socials.instagram === "string" &&
+                    socials.instagram.startsWith("http")
+                      ? socials.instagram
+                      : `https://instagram.com/${(
+                          socials.instagram || ""
+                        ).replace(/^@/, "")}`
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:opacity-80"
@@ -400,7 +420,15 @@ export default function AboutSection({
               )}
               {socials?.tiktok && (
                 <a
-                  href={socials.tiktok}
+                  href={
+                    typeof socials.tiktok === "string" &&
+                    socials.tiktok.startsWith("http")
+                      ? socials.tiktok
+                      : `https://tiktok.com/@${(socials.tiktok || "").replace(
+                          /^@/,
+                          ""
+                        )}`
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:opacity-80"
@@ -410,7 +438,14 @@ export default function AboutSection({
               )}
               {socials?.facebook && (
                 <a
-                  href={socials.facebook}
+                  href={
+                    typeof socials.facebook === "string" &&
+                    socials.facebook.startsWith("http")
+                      ? socials.facebook
+                      : `https://facebook.com/${(
+                          socials.facebook || ""
+                        ).replace(/^@/, "")}`
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:opacity-80"
@@ -420,7 +455,15 @@ export default function AboutSection({
               )}
               {socials?.youtube && (
                 <a
-                  href={socials.youtube}
+                  href={
+                    typeof socials.youtube === "string" &&
+                    socials.youtube.startsWith("http")
+                      ? socials.youtube
+                      : `https://youtube.com/${(socials.youtube || "").replace(
+                          /^@/,
+                          ""
+                        )}`
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:opacity-80"
@@ -430,7 +473,19 @@ export default function AboutSection({
               )}
               {socials?.linkedin && (
                 <a
-                  href={socials.linkedin}
+                  href={
+                    typeof socials.linkedin === "string" &&
+                    socials.linkedin.startsWith("http")
+                      ? socials.linkedin
+                      : socials.linkedin.startsWith("company/")
+                      ? `https://linkedin.com/company/${socials.linkedin.replace(
+                          "company/",
+                          ""
+                        )}`
+                      : `https://linkedin.com/in/${(
+                          socials.linkedin || ""
+                        ).replace(/^@/, "")}`
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:opacity-80"
@@ -438,9 +493,26 @@ export default function AboutSection({
                   <Linkedin className="w-5 h-5" />
                 </a>
               )}
+              {socials?.snapchat && (
+                <a
+                  href={
+                    typeof socials.snapchat === "string" &&
+                    socials.snapchat.startsWith("http")
+                      ? socials.snapchat
+                      : `https://www.snapchat.com/add/${(
+                          socials.snapchat || ""
+                        ).replace(/^@/, "")}`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:opacity-80"
+                >
+                  <FaSnapchat className="w-5 h-5" />
+                </a>
+              )}
               {socials?.link && (
                 <a
-                  href={socials.link}
+                  href={socials.link || ""}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:opacity-80"
@@ -503,13 +575,13 @@ export default function AboutSection({
           </div>
 
           {/* Policies Section */}
-          <div className="flex justify-center space-x-4 mt-4 mb-6">
+          <div className="grid grid-cols-2 gap-x-8 gap-y-4 mt-4 mb-6 px-4 max-w-md mx-auto">
             {Object.entries(policies)
               .filter(([_, p]) => p.enabled)
               .map(([key, p]) => (
                 <button
                   key={key}
-                  className="text-sm opacity-60 hover:opacity-100 underline"
+                  className="text-sm opacity-60 hover:opacity-100 underline text-center"
                   style={{
                     background: "none",
                     border: "none",

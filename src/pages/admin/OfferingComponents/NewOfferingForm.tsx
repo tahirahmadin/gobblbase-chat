@@ -22,11 +22,17 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
   const [step, setStep] = useState(0);
   const [form, setForm] = useState(() => {
     if (editProduct) {
+      // If there are varied quantities, automatically select those sizes
+      const variedSizes = editProduct.variedQuantities
+        ? Object.keys(editProduct.variedQuantities)
+        : [];
+
       return {
         ...editProduct,
         descriptionEnabled: true,
         images: editProduct.images || [],
         imagesUrl: editProduct.imagesUrl || [],
+        variedSizes: variedSizes,
       };
     }
     return {
@@ -49,8 +55,8 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
       file: null,
       fileUrl: "",
       // Physical Product specific
-      customQuantity: "",
       variedSizes: [],
+      variedQuantities: {},
       // Service specific
       locationType: "online",
       address: "",
@@ -59,9 +65,9 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
       timeZone: "Asia/Calcutta (GMT +5:30)",
       slots: [
         {
-          date: "",
-          start: "",
-          end: "",
+          date: null,
+          start: null,
+          end: null,
           seatType: "unlimited",
           seats: 0,
         },
@@ -74,7 +80,11 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
   };
 
   const handleBack = () => {
-    setStep(step - 1);
+    if (step > 0) {
+      setStep(step - 1);
+    } else {
+      onBack();
+    }
   };
 
   const handleApprove = () => {
@@ -91,6 +101,7 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
             form={form}
             setForm={setForm}
             onNext={handleNext}
+            editMode={editMode}
           />
         );
       case 1:
@@ -126,10 +137,10 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex flex-col ">
       <div className="flex items-center gap-2 mb-2 flex-shrink-0">
         <button
-          onClick={onBack}
+          onClick={handleBack}
           className="text-gray-600 hover:text-gray-800 text-md lg:text-lg font-medium"
         >
           ← Back
@@ -209,10 +220,7 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
         </div>
 
         {/* Card-like Step Content */}
-        <div
-          className="flex-1 bg-[#e7eafe] rounded-xl p-4 md:p-6 max-w-[1200px] mx-auto w-full "
-          style={{ height: "100%" }}
-        >
+        <div className="flex-1 bg-[#e7eafe] rounded-xl p-4 md:p-6 max-w-[1200px] mx-auto w-full h-full overflow-y-auto">
           {renderStepContent()}
         </div>
       </div>

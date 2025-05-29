@@ -1,1 +1,1 @@
-Kifor - AI Agent for Business
+Sayy - AI Agent for Business

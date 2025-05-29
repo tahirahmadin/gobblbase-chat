@@ -88,10 +88,10 @@ const Usage = () => {
 
       try {
         setLoading(true);
-        
+
         const [usageData, clientData] = await Promise.all([
           getClientUsage(adminId),
-          getClient(adminId)
+          getClient(adminId),
         ]);
 
         if (usageData) {
@@ -137,8 +137,9 @@ const Usage = () => {
           setClientData(clientData);
           setCurrentPlan(clientData.planId);
           setTotalCredits(clientData.creditsPerMonth);
-          
-          const calculatedCreditsUsed = clientData.creditsPerMonth - clientData.availableCredits;
+
+          const calculatedCreditsUsed =
+            clientData.creditsPerMonth - clientData.availableCredits;
           setCreditsUsed(calculatedCreditsUsed);
         }
 
@@ -221,7 +222,8 @@ const Usage = () => {
     if (agent === "All Agents") {
       agentDailyUsage = [...allDailyUsage];
       if (clientData) {
-        const calculatedCreditsUsed = clientData.creditsPerMonth - clientData.availableCredits;
+        const calculatedCreditsUsed =
+          clientData.creditsPerMonth - clientData.availableCredits;
         setCreditsUsed(calculatedCreditsUsed);
         setTotalCredits(clientData.creditsPerMonth);
       }
@@ -273,33 +275,43 @@ const Usage = () => {
     switch (timeFrame) {
       case "Today": {
         const lastDays: { date: string; usage: number }[] = [];
-        
+
         const today = new Date();
         const todayDay = today.getDate();
         const todayYear = today.getFullYear();
-        
-        const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 
-                           'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+        const monthNames = [
+          "JAN",
+          "FEB",
+          "MAR",
+          "APR",
+          "MAY",
+          "JUN",
+          "JUL",
+          "AUG",
+          "SEP",
+          "OCT",
+          "NOV",
+          "DEC",
+        ];
         const todayMonth = monthNames[today.getMonth()];
-        
+
         const startDay = Math.max(1, todayDay - 6);
-        
+
         for (let day = startDay; day <= todayDay; day++) {
           const dayUsage = agentDailyUsage
             .filter(
               (d) =>
-                d.day === day &&
-                d.month === todayMonth &&
-                d.year === todayYear
+                d.day === day && d.month === todayMonth && d.year === todayYear
             )
             .reduce((sum, d) => sum + d.usage, 0);
-      
+
           lastDays.push({
             date: `${getMonthName(todayMonth).substring(0, 3)} ${day}`,
-            usage: dayUsage, 
+            usage: dayUsage,
           });
         }
-      
+
         result = lastDays;
         break;
       }
@@ -442,13 +454,13 @@ const Usage = () => {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="flex flex-row justify-between items-center gap-4 mb-4">
+    <div className="p-4 sm:p-6 max-w-6xl mx-auto">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
         <h1 className="text-xl font-bold">Usage</h1>
         {/* Filters */}
-        <div className="flex flex-row gap-2">
+        <div className="flex flex-row gap-2 w-full sm:w-auto">
           <select
-            className="border border-blue-300 rounded px-3 py-2 bg-blue-100 text-gray-800 mb-2"
+            className="border border-blue-300 rounded px-3 py-2 bg-blue-100 text-gray-800 mb-2 flex-1 sm:flex-none"
             value={selectedAgent}
             onChange={handleAgentChange}
           >
@@ -458,7 +470,7 @@ const Usage = () => {
             ))}
           </select>
           <select
-            className="border border-blue-300 rounded px-3 py-2 bg-blue-100 text-gray-800 mb-2"
+            className="border border-blue-300 rounded px-3 py-2 bg-blue-100 text-gray-800 mb-2 flex-1 sm:flex-none"
             value={timeFrame}
             onChange={handleTimeFrameChange}
           >
@@ -473,7 +485,7 @@ const Usage = () => {
 
       <div className="flex flex-wrap gap-4 mb-6">
         {/* Current Plan */}
-        <div className="bg-green-100 rounded-lg p-4 flex flex-col justify-between w-56">
+        <div className="bg-green-100 rounded-lg p-4 flex flex-col justify-between w-full sm:w-56">
           <span className="text-xs text-gray-600 mb-1">Current Plan</span>
           <span className="font-bold text-lg mb-3">
             {currentPlan || "FREE"}
@@ -487,14 +499,13 @@ const Usage = () => {
         </div>
 
         {/* Credits Used */}
-        <div className="bg-blue-100 rounded-lg p-4 flex-1 flex flex-col justify-between">
+        <div className="bg-blue-100 rounded-lg p-4 flex-1 flex flex-col justify-between min-w-[200px]">
           <div className="flex items-center mb-2">
             <span className="text-2xl font-bold mr-2">{creditsUsed}</span>
             <span className="text-gray-700">
-              {selectedAgent === "All Agents" && totalCredits > 0 
+              {selectedAgent === "All Agents" && totalCredits > 0
                 ? `/ ${totalCredits.toLocaleString()} Credits used`
-                : "Credits used"
-              }
+                : "Credits used"}
             </span>
           </div>
           {selectedAgent === "All Agents" && totalCredits > 0 && (
@@ -512,14 +523,13 @@ const Usage = () => {
         </div>
 
         {/* Agents Used */}
-        <div className="bg-blue-100 rounded-lg p-4 flex-1 flex flex-col justify-between">
+        <div className="bg-blue-100 rounded-lg p-4 flex-1 flex flex-col justify-between min-w-[200px]">
           <div className="flex items-center mb-2">
             <span className="text-2xl font-bold mr-2">{agentsUsed}</span>
             <span className="text-gray-700">
-              {selectedAgent === "All Agents" 
+              {selectedAgent === "All Agents"
                 ? `/ ${formatAgentLimit(agentLimit)} Agents`
-                : "Agent"
-              }
+                : "Agent"}
             </span>
           </div>
           {selectedAgent === "All Agents" && (
@@ -531,7 +541,7 @@ const Usage = () => {
                 style={{
                   width:
                     agentLimit === 9999
-                      ? "100%" 
+                      ? "100%"
                       : `${Math.min((totalAgents / agentLimit) * 100, 100)}%`,
                 }}
               ></div>
@@ -541,38 +551,50 @@ const Usage = () => {
       </div>
 
       {/* Usage History */}
-      <div>
+      <div className="w-[92vw] lg:w-full">
         <h3 className="text-lg font-bold mb-2">Usage History</h3>
-        <div className="border rounded-lg bg-white min-h-[220px] mb-2 overflow-hidden">
+        <div className="border rounded-lg bg-white min-h-[220px] mb-2 w-full overflow-x-auto">
           {/* Chart */}
-          <div className="pt-6 px-4 h-44 flex items-end justify-around">
-            {usageHistory.map((day, index) => (
-              <div
-                key={index}
-                className="flex flex-col items-center justify-end h-full"
-              >
-                <div className="text-xs text-gray-500 mb-1 min-h-[16px]">
-                  {day.usage > 0 ? day.usage + " tokens" : ""}
-                </div>
+          <div className="w-screen">
+            <div
+              className={`pt-6 px-4 h-44 flex items-end gap-2`}
+              style={{ minWidth: 0 }}
+            >
+              {usageHistory.map((day, index) => (
                 <div
-                  className="w-16 bg-blue-400 rounded-t"
-                  style={{
-                    height: `${(day.usage / maxUsage) * 80}%`,
-                    minHeight: day.usage > 0 ? "4px" : "0",
-                  }}
-                ></div>
-              </div>
-            ))}
-          </div>
-          <div className="flex border-t bg-blue-50 text-gray-700 text-sm">
-            {usageHistory.map((day, index) => (
-              <div
-                key={index}
-                className="flex-1 text-center py-2 px-1 truncate"
-              >
-                {day.date}
-              </div>
-            ))}
+                  key={index}
+                  className={`flex flex-col items-center justify-end h-full ${
+                    usageHistory.length <= 7 ? "flex-1" : "min-w-[48px]"
+                  }`}
+                >
+                  <div className="text-xs text-gray-500 mb-1 min-h-[16px] whitespace-nowrap">
+                    {day.usage > 0 ? day.usage + " tokens" : ""}
+                  </div>
+                  <div
+                    className="w-8 sm:w-16 bg-blue-400 rounded-t"
+                    style={{
+                      height: `${(day.usage / maxUsage) * 80}%`,
+                      minHeight: day.usage > 0 ? "4px" : "0",
+                    }}
+                  ></div>
+                </div>
+              ))}
+            </div>
+            <div
+              className={`flex border-t bg-blue-50 text-gray-700 text-sm gap-2 px-4`}
+              style={{ minWidth: 0 }}
+            >
+              {usageHistory.map((day, index) => (
+                <div
+                  key={index}
+                  className={`text-center py-2 px-1 whitespace-nowrap ${
+                    usageHistory.length <= 7 ? "flex-1" : "min-w-[48px]"
+                  }`}
+                >
+                  {day.date}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

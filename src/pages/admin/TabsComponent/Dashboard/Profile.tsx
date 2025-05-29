@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Upload, Link2, Copy, Check, X } from "lucide-react";
 import PublicChat from "../../../chatbot/PublicChat";
 import {
@@ -15,6 +15,7 @@ import { PERSONALITY_OPTIONS } from "../../../../utils/constants";
 import SocialMediaSection from "./SocialMediaSection";
 import CustomLinksSection from "./CustomLinksSection";
 import styled from "styled-components";
+import { useAdminStore } from "../../../../store/useAdminStore";
 const Lable = styled.label`
   position: relative;
   width: 35px;
@@ -102,11 +103,12 @@ const Button = styled.button`
     min-width: 100px;
   }
   &:disabled {
-    background: #d6ffe0;
+    background: #d4deff;
+    color: #b0b0b0;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #d6ffe0;
+    background: #d4deff;
   }
 `;
 const Profile = () => {
@@ -128,19 +130,38 @@ const Profile = () => {
     setRefetchBotData,
     updateBotLogoViaStore,
   } = useBotConfig();
+  const { fetchAllAgents } = useAdminStore();
   const [isSavingName, setIsSavingName] = useState(false);
   const [isSavingBio, setIsSavingBio] = useState(false);
   const [isSavingPromoBanner, setIsSavingPromoBanner] = useState(false);
 
+  // Add state for original values
+  const [originalName, setOriginalName] = useState("");
+  const [originalBio, setOriginalBio] = useState("");
+  const [originalPromoBanner, setOriginalPromoBanner] = useState("");
+  const [originalPromoBannerEnabled, setOriginalPromoBannerEnabled] =
+    useState(false);
+
   const [agentPicture, setAgentPicture] = useState<string | null>(null);
 
-  const baseUrl = "http://www.kifor.ai/";
+  const baseUrl = "http://www.Sayy.ai/";
+
+  // Add functions to check for changes
+  const hasNameChanged = () => agentName !== originalName;
+  const hasBioChanged = () => agentBio !== originalBio;
+  const hasPromoBannerChanged = () =>
+    promotionalBanner !== originalPromoBanner ||
+    isPromoBannerEnabled !== originalPromoBannerEnabled;
 
   useEffect(() => {
     if (activeBotData?.logo) {
-      setAgentPicture(activeBotData?.logo);
+      if (agentPicture === activeBotData?.logo) {
+        return;
+      }
+      const logoWithTimestamp = `${activeBotData.logo}?t=${Date.now()}`;
+      setAgentPicture(logoWithTimestamp);
     } else if (activeBotData?.personalityType?.name) {
-      let voiceName = activeBotData?.personalityType?.name;
+      let voiceName = activeBotData.personalityType.name;
 
       const logoObj = PERSONALITY_OPTIONS.find(
         (model) => model.title === voiceName
@@ -149,10 +170,12 @@ const Profile = () => {
       if (logoObj) {
         setAgentPicture(logoObj.image);
       } else {
-        setAgentPicture("/assets/voice/friend.png");
+        setAgentPicture(
+          "https://t4.ftcdn.net/jpg/08/04/36/29/360_F_804362990_0n7bGLz9clMBi5ajG52k8OAUQTneMbj4.jpg"
+        );
       }
     }
-  }, [activeBotData?.logo, activeBotData?.personalityType?.name]);
+  }, [activeBotData]);
 
   useEffect(() => {
     if (activeBotData) {
@@ -161,6 +184,12 @@ const Profile = () => {
       setAgentBio(activeBotData.bio);
       setPromotionalBanner(activeBotData.promotionalBanner || "");
       setIsPromoBannerEnabled(activeBotData.isPromoBannerEnabled);
+
+      // Set original values
+      setOriginalName(activeBotData.name);
+      setOriginalBio(activeBotData.bio);
+      setOriginalPromoBanner(activeBotData.promotionalBanner || "");
+      setOriginalPromoBannerEnabled(activeBotData.isPromoBannerEnabled);
 
       // Calculate and set smartness level
       const newSmartnessLevel = calculateSmartnessLevel(activeBotData);
@@ -205,6 +234,7 @@ const Profile = () => {
       setIsEditingUrl(false);
       setUrlAvailable(true);
       toast.success("Agent URL updated successfully");
+      fetchAllAgents();
     } catch (error: any) {
       console.error("Error updating agent username:", error);
       setUrlAvailable(false);
@@ -239,9 +269,16 @@ const Profile = () => {
         reader.readAsDataURL(file);
 
         // Then upload to server
-        await updateBotLogoViaStore(activeBotId, file);
+        const response = await updateBotLogoViaStore(activeBotId, file);
 
-        toast.success("Profile picture updated successfully");
+        if (response) {
+          // Update both the preview and actual image state
+          // setProfileImage(response);
+          setAgentPicture(response);
+          toast.success("Profile picture updated successfully");
+        } else {
+          throw new Error("Failed to update profile picture");
+        }
       } catch (error) {
         console.error("Error uploading profile picture:", error);
         toast.error("Failed to update profile picture");
@@ -326,6 +363,25 @@ const Profile = () => {
     setPromotionalBanner(value);
   };
 
+  const previewConfig = useMemo(
+    () => ({
+      ...activeBotData,
+      isPromoBannerEnabled,
+      promotionalBanner,
+      bio: agentBio,
+      name: agentName,
+      username: agentUsername,
+    }),
+    [
+      activeBotData,
+      isPromoBannerEnabled,
+      promotionalBanner,
+      agentBio,
+      agentName,
+      agentUsername,
+    ]
+  );
+
   return (
     <div
       className="grid grid-cols-1 lg:grid-cols-5 w-[100%] bg-white overflow-scroll lg:overflow-hidden"
@@ -346,9 +402,15 @@ const Profile = () => {
                       alt="Agent"
                       className="w-full h-full object-coverc"
                     />
+                  ) : agentPicture ? (
+                    <img
+                      src={agentPicture}
+                      alt="Agent"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <img
-                      src={agentPicture || "/assets/voice/friend.png"}
+                      src={"/assets/voice/friend.png"}
                       alt="Agent"
                       className="w-full h-full object-cover"
                     />
@@ -405,8 +467,12 @@ const Profile = () => {
                   <div className="flex justify-end relative z-10">
                     <Button
                       onClick={handleSaveName}
-                      disabled={isSavingName}
-                      className={`${isSavingName ? " cursor-not-allowed" : ""}`}
+                      disabled={isSavingName || !hasNameChanged()}
+                      className={`${
+                        isSavingName || !hasNameChanged()
+                          ? " cursor-not-allowed"
+                          : ""
+                      }`}
                     >
                       {isSavingName ? (
                         <div className="flex items-center space-x-2">
@@ -430,11 +496,13 @@ const Profile = () => {
                       <div className="flex-1 w-full sm:w-fit lg:w-full relative">
                         <div className="flex items-center border border-[#7D7D7D] w-[100%] overflow-hidden">
                           <span className=" pr-1 py-2 bg-gray-100 text-gray-500 text-sm border-r">
-                            <h2 className="pl-3 truncate max:w-[80%]">{baseUrl}</h2>
-                          </span>
-                            <h2 className="truncate w-[8z`0%] flex-1 px-3 py-2 focus:outline-none text-sm">
-                              {agentUsername} 
+                            <h2 className="pl-3 truncate max:w-[80%]">
+                              {baseUrl}
                             </h2>
+                          </span>
+                          <h2 className="truncate w-[8z`0%] flex-1 px-3 py-2 focus:outline-none text-sm">
+                            {agentUsername}
+                          </h2>
                         </div>
                         <div className="absolute right-1 top-1/2 -translate-y-1/2 flex space-x-1">
                           <button
@@ -544,8 +612,12 @@ const Profile = () => {
                 <div className="flex justify-end relative z-10">
                   <Button
                     onClick={handleSaveBio}
-                    disabled={isSavingBio}
-                    className={` ${isSavingBio ? " cursor-not-allowed" : ""}`}
+                    disabled={isSavingBio || !hasBioChanged()}
+                    className={` ${
+                      isSavingBio || !hasBioChanged()
+                        ? " cursor-not-allowed"
+                        : ""
+                    }`}
                   >
                     {isSavingBio ? (
                       <div className="flex items-center space-x-2">
@@ -582,7 +654,10 @@ const Profile = () => {
                   </div>
                 </div>
               </div>
-              <div style={{ zIndex: 10 }} className="btn-container z-10 relative">
+              <div
+                style={{ zIndex: 10 }}
+                className="btn-container z-10 relative"
+              >
                 <Button
                   className=""
                   onClick={() => {
@@ -608,7 +683,9 @@ const Profile = () => {
                       type="checkbox"
                       className="sr-only peer"
                       checked={isPromoBannerEnabled}
-                      onChange={(e) => setIsPromoBannerEnabled(e.target.checked)}
+                      onChange={(e) =>
+                        setIsPromoBannerEnabled(e.target.checked)
+                      }
                     />
                     <div className="w-11 h-6 bg-[#CDCDCD] border border-[#000000] peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-[#000000] rounded-full peer peer-checked:after:translate-x-[80%] peer-checked:after:border-[#000000] after:content-[''] after:absolute after:top-[0px] after:border-[#000000] after:left-[0px] after:bg-white after:border after:border-[#000000] after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
@@ -617,7 +694,9 @@ const Profile = () => {
                   <span className="text-xs text-gray-500">
                     Display banner under the main header
                   </span>
-                  <span className="text-xs text-gray-500">MAX 50 CHARACTERS</span>
+                  <span className="text-xs text-gray-500">
+                    MAX 50 CHARACTERS
+                  </span>
                 </div>
               </div>
               <div className="space-y-2">
@@ -632,9 +711,11 @@ const Profile = () => {
                 <div className="flex justify-end relative z-10">
                   <Button
                     onClick={handleSavePromoBanner}
-                    disabled={isSavingPromoBanner}
+                    disabled={isSavingPromoBanner || !hasPromoBannerChanged()}
                     className={` ${
-                      isSavingPromoBanner ? " cursor-not-allowed" : ""
+                      isSavingPromoBanner || !hasPromoBannerChanged()
+                        ? " cursor-not-allowed"
+                        : ""
                     }`}
                   >
                     {isSavingPromoBanner ? (
@@ -679,14 +760,7 @@ const Profile = () => {
         >
           <PublicChat
             screenName={"about"}
-            previewConfig={{
-              ...activeBotData,
-              isPromoBannerEnabled: isPromoBannerEnabled,
-              promotionalBanner: promotionalBanner,
-              bio: agentBio,
-              name: agentName,
-              username: agentUsername,
-            }}
+            previewConfig={previewConfig}
             chatHeight={null}
             isPreview={true}
           />

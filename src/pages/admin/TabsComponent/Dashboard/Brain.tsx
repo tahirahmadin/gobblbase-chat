@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { X, Upload, Loader2, FileText, AlertCircle, ChevronDown } from "lucide-react";
+import { X, Upload, Loader2, FileText, AlertCircle, ChevronDown, Save } from "lucide-react";
 import { toast } from "react-hot-toast";
 import * as pdfjsLib from "pdfjs-dist";
 import mammoth from "mammoth";
@@ -17,6 +17,7 @@ import { updateAgentBrain } from "../../../../lib/serverActions";
 import { calculateSmartnessLevel } from "../../../../utils/helperFn";
 import styled from "styled-components";
 import { backendApiUrl } from "../../../../utils/constants";
+
 const Icon = styled.button`
   position: relative;
   width: 30px;
@@ -46,10 +47,11 @@ const Icon = styled.button`
     width: 100%;
     height: 100%;
     border: 2px solid #000000;
-    z-index: -1; // place it behind the button
+    z-index: -1;
     background: #aeb8ff;
   }
 `;
+
 const Button = styled.button`
   position: relative;
   background: #4d65ff;
@@ -71,7 +73,7 @@ const Button = styled.button`
     width: 100%;
     height: 100%;
     border: 2px solid #000000;
-    z-index: -1; // place it behind the button
+    z-index: -1;
     background: #6aff97;
   }
 
@@ -84,6 +86,9 @@ const Button = styled.button`
     background: #d6ffe0;
   }
 `;
+
+
+
 pdfjsLib.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
 
 interface UploadedFile {
@@ -149,6 +154,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   const [isFetchingPlan, setIsFetchingPlan] = useState(false);
   const languages = ["English", "Spanish", "French"];
   const [isOpen, setIsOpen] = useState(false);
+
   useEffect(() => {
     if (activeBotData) {
       setSelectedLanguage(activeBotData.language || "English");
@@ -913,50 +919,61 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     else return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   };
 
-  // Validation function for insights data
-  const validateInsightsData = (): {
-    isValid: boolean;
-    missingFields: string[];
-  } => {
-    const fields = [
-      { key: "usp", label: "Brand USP" },
-      { key: "brandPersonality", label: "Brand Personality" },
-      { key: "languageTerms", label: "Brand Language Terms" },
-      { key: "frequentQuestions", label: "Frequent Questions" },
-    ];
-
-    const missingFields: string[] = [];
-
-    fields.forEach((field) => {
-      const value = insightsData[field.key as keyof typeof insightsData];
-      const wordCount = value
-        .trim()
-        .split(/\s+/)
-        .filter((word) => word.length > 0).length;
-
-      if (wordCount < 5) {
-        missingFields.push(field.label);
-      }
-    });
-
-    return {
-      isValid: missingFields.length === 0,
-      missingFields,
-    };
+  // Helper function to count words
+  const countWords = (text: string): number => {
+    return text.trim().split(/\s+/).filter(word => word.length > 0).length;
   };
 
+  // Check if any field has content to save (any content, we'll validate word count only when saving)
+  const hasAnyContent = (): boolean => {
+    return Object.values(insightsData).some(value => value.trim().length > 0);
+  };
+
+  // Validate individual fields and provide specific feedback
+  const validateInsights = (): { isValid: boolean; message: string } => {
+    const fieldsWithContent = Object.entries(insightsData).filter(([key, value]) => {
+      return value.trim().length > 0;
+    });
+
+    if (fieldsWithContent.length === 0) {
+      return { isValid: false, message: "Please provide some insights before saving" };
+    }
+
+    // Check each field that has content for minimum word count
+    const invalidFields = fieldsWithContent.filter(([key, value]) => {
+      const wordCount = countWords(value);
+      return wordCount < 5;
+    });
+
+    if (invalidFields.length > 0) {
+      const fieldNames: Record<string, string> = {
+        usp: "USP",
+        brandPersonality: "Brand Personality", 
+        languageTerms: "Language Terms",
+        frequentQuestions: "Frequent Questions"
+      };
+
+      const invalidFieldNames = invalidFields.map(([key]) => fieldNames[key]).join(", ");
+      return { 
+        isValid: false, 
+        message: `Please provide at least 5 words for: ${invalidFieldNames}` 
+      };
+    }
+
+    return { isValid: true, message: "" };
+  };
+
+  // Save insights - only save fields that have content and meet word count requirement
   const handleSave = async () => {
     if (!activeBotData) {
       toast.error("No agent selected");
       return;
     }
 
-    // Validate insights data
-    const validation = validateInsightsData();
+    // Validate insights with word count requirement
+    const validation = validateInsights();
     if (!validation.isValid) {
-      toast.error(
-        "Please complete all insights fields with at least 5 words each before saving"
-      );
+      toast.error(validation.message);
       return;
     }
 
@@ -976,23 +993,20 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         updatedAnswers
       );
 
-      const formattedInsights = `
-  BRAND INSIGHTS:
-  
-  1. What makes you/your brand unique? The main USP:
-  ${insightsData.usp}
-  
-  2. How would your most loyal follower/customer describe you or your brand's personality?
-  ${insightsData.brandPersonality}
-  
-  3. What specific language, terms, or phrases should your AI agent use (or avoid) to authentically represent your brand voice?
-  ${insightsData.languageTerms}
-  
-  4. What questions do your customers most frequently ask?
-  ${insightsData.frequentQuestions}
-  `.trim();
+      // Create insights document with only filled fields that meet word count
+      const insights = [];
+      if (countWords(insightsData.usp) >= 5)
+        insights.push(`1. What makes you/your brand unique? The main USP:\n${insightsData.usp}`);
+      if (countWords(insightsData.brandPersonality) >= 5)
+        insights.push(`2. How would your most loyal follower/customer describe you or your brand's personality?\n${insightsData.brandPersonality}`);
+      if (countWords(insightsData.languageTerms) >= 5)
+        insights.push(`3. What specific language, terms, or phrases should your AI agent use (or avoid) to authentically represent your brand voice?\n${insightsData.languageTerms}`);
+      if (countWords(insightsData.frequentQuestions) >= 5)
+        insights.push(`4. What questions do your customers most frequently ask?\n${insightsData.frequentQuestions}`);
 
-      if (formattedInsights.trim().length > 0) {
+      if (insights.length > 0) {
+        const formattedInsights = `BRAND INSIGHTS:\n\n${insights.join('\n\n')}`;
+
         const docSize = new TextEncoder().encode(formattedInsights).length;
 
         try {
@@ -1048,10 +1062,10 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       }
 
       setRefetchBotData();
-      toast.success("Agent brain updated successfully");
+      toast.success("Insights saved successfully");
     } catch (error: any) {
       console.error("Error updating agent brain:", error);
-      toast.error(error.message || "Failed to update agent brain");
+      toast.error(error.message || "Failed to save insights");
     } finally {
       setIsSaving(false);
     }
@@ -1120,110 +1134,44 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           </div>
 
           {/* Agent Language */}
-
           <div className="py-8 sm:py-6 flex items-center gap-5">
             <h1  style={{lineHeight: "20px", whiteSpace: "nowrap"}} className="para-font text-[#000000] block text-sm sm:text-lg font-medium">
               Agent Language
             </h1>
-     <div className="relative w-60 flex  ">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
-      >
-        {selectedLanguage}
-        
-      </button>
-        <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
-          <ChevronDown size={20}
-          className={`text-[#000000] stroke-[3px] transition-transform  ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        />
-        </div>
-
-      {isOpen && (
-        <div className="absolute z-10 mt-1 top-8 w-full bg-white border border-[#7D7D7D] shadow-sm rounded-sm">
-          {languages.map((lang) => (
-            <button
-              key={lang}
-              onClick={() => {
-                setSelectedLanguage(lang);
-                setIsOpen(false);
-              }}
-              className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
-                selectedLanguage === lang ? "bg-[#AEB8FF]" : ""
-              }`}
-            >
-              {lang}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-          </div>
-
-          {/* Add Links */}
-          <div className="my-6">
-            {/* <div className="content flex justify-between items-center gap-4 pr-6">
-              <span className="texts">
-                <h3 className="main-font block text-md sm:text-xl font-bold text-[#000000]">
-                  Add Social Links to your Profile
-                </h3>
-                <p className="text-xs text-gray-500 mb-2">
-                  Paste direct links to your website and online files
-                </p>
-              </span>
-              <span className="para-font border border-[#7D7D7D] text-[#7D7D7D] px-2 py-0.5 xs:px-4 rounded-xl -mr-6">
-                Remove
-              </span>
-            </div> */}
-
-            {/* Existing Links */}
-            {/* <div className="space-y-2 mb-3">
-              {links.map((link, index) => (
-                <div
-                  key={index}
-                  className="flex flex-row items-center justify-between space-x-2 pr-8"
-                >
-                    <input
-                      type="text"
-                      value={link}
-                      readOnly
-                      className="px-2 py-1 border w-[80%] lg:w-[90%] bg-[#CEFFDC] border-2 border-[#6AFF97] focus:outline-none"
-                    />
-                  <div style={{ zIndex: "4" }} className="icon relative">
-                    <Icon
-                      onClick={() => handleRemoveLink(link)}
-                      className=""
-                      aria-label="Remove link"
-                    >
-                      <X className="w-4 h-4" />
-                    </Icon>
-                  </div>
-                </div>
-              ))}
-            </div> */}
-
-            {/* New Link Input */}
-
-            {/* <div className="flex flex-col items-end p-4 bg-[#CDCDCD] rounded-lg space-y-2">
-
-              <input
-                type="text"
-                value={newLink}
-                onChange={(e) => setNewLink(e.target.value)}
-                placeholder="Paste your link..."
-                className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            <div className="relative w-60 flex  ">
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
+              >
+                {selectedLanguage}
+              </button>
+              <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
+                <ChevronDown size={20}
+                className={`text-[#000000] stroke-[3px] transition-transform  ${
+                  isOpen ? "rotate-180" : ""
+                }`}
               />
-              <div className="flex justify-end relative z-10 mt-4">
-                <Button style={{background: "#6AFF97", color: "black"}}
-                  onClick={handleAddLink}
-                  className=""
-                >
-                  ADD LINK
-                </Button>
               </div>
-            </div> */}
+
+              {isOpen && (
+                <div className="absolute z-10 mt-1 top-8 w-full bg-white border border-[#7D7D7D] shadow-sm rounded-sm">
+                  {languages.map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => {
+                        setSelectedLanguage(lang);
+                        setIsOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                        selectedLanguage === lang ? "bg-[#AEB8FF]" : ""
+                      }`}
+                    >
+                      {lang}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Upload Files */}
@@ -1452,35 +1400,25 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             />
           </div>
 
-          {/* Validation Message */}
-          {(() => {
-            const validation = validateInsightsData();
-            if (!validation.isValid) {
-              return (
-                <div className="flex items-start space-x-2 p-3 bg-amber-50 border border-amber-200 rounded-md">
-                  <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm text-amber-700">
-                    <p className="font-medium mb-1">
-                      Complete all insights to save your progress
-                    </p>
-                    <p>
-                      Please provide at least 5 words for each field to help
-                      your agent deliver more personalized and effective
-                      responses.
-                    </p>
-                  </div>
-                </div>
-              );
-            }
-            return null;
-          })()}
+          {/* Info Message */}
+          <div className="flex items-start space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-blue-700">
+              <p className="font-medium mb-1">
+                Fill any insights you'd like to save
+              </p>
+              <p>
+                You can fill out whichever insights you want and save them. Each field requires at least 5 words to be saved. Empty fields will be skipped.
+              </p>
+            </div>
+          </div>
 
            <div className="flex justify-end relative z-10 mt-4">
             <Button
               onClick={handleSave}
-              disabled={isSaving || !validateInsightsData().isValid}
+              disabled={isSaving || !hasAnyContent()}
               className={`${
-                isSaving || !validateInsightsData().isValid
+                isSaving || !hasAnyContent()
                   ? "cursor-not-allowed"
                   : ""
               }`}
@@ -1502,4 +1440,3 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 };
 
 export default Brain;
-

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { getChatLogs } from "../../../../lib/serverActions";
 import { useBotConfig } from "../../../../store/useBotConfig";
 import { ChatLog } from "../../../../types";
+import ReactMarkdown from "react-markdown";
 
 const PAGE_SIZE = 3;
 
@@ -105,9 +106,11 @@ const ChatLogs = () => {
                   >
                     <div className="font-semibold text-green-700">Guest</div>
                     <div className="text-xs text-gray-600 truncate">
-                      {session.userLogs[
-                        session.userLogs.length - 1
-                      ]?.content.slice(0, 50) || "No messages"}
+                      <ReactMarkdown>
+                        {session.userLogs[
+                          session.userLogs.length - 1
+                        ]?.content.slice(0, 60) || "No messages"}
+                      </ReactMarkdown>
                     </div>
                     <div className="text-xs text-right text-green-400">
                       {new Date(session.createdDate).toLocaleDateString()}
@@ -161,13 +164,19 @@ const ChatLogs = () => {
                   msg.role === "agent" ? (
                     <div key={idx} className="flex p-1">
                       <div className="bg-gray-300 text-gray-800 px-3 py-2 rounded-lg max-w-[85%] md:max-w-xs text-sm break-words whitespace-pre-wrap">
-                        {msg.content}
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>{" "}
+                        <div className="text-xs text-left text-gray-900 font-semibold">
+                          {new Date(msg.timestamp).toLocaleTimeString()}
+                        </div>
                       </div>
                     </div>
                   ) : (
                     <div key={idx} className="flex justify-end p-1">
                       <div className="bg-black text-white px-3 py-2 rounded-lg max-w-[85%] md:max-w-xs text-sm break-words whitespace-pre-wrap">
-                        {msg.content}
+                        <div>{msg.content}</div>
+                        <div className="text-xs text-left text-gray-200 font-semibold">
+                          {new Date(msg.timestamp).toLocaleTimeString()}
+                        </div>
                       </div>
                     </div>
                   )

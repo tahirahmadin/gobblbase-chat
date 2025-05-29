@@ -7,15 +7,17 @@ export default function TryFreeBanner() {
         className="flex items-center justify-between p-2"
         style={{ backgroundColor: "#91a3ff" }}
       >
-        <span className="text-sm text-black px-4">Create your free AI Agent</span>
+        <span className="text-sm text-black px-4">
+          Create your free AI Agent
+        </span>
         <button
           onClick={() => {
-            window.open("https://www.kifor.ai/", "_blank");
+            window.open("https://www.Sayy.ai/", "_blank");
           }}
           className="px-4 py-2 rounded-lg bg-indigo-600 text-sm font-medium mr-4"
           style={{ color: "white" }}
         >
-          TRY KIFOR
+          TRY Sayy
         </button>
       </div>
     </div>

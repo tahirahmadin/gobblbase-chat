@@ -211,6 +211,20 @@ export interface Product {
   images: string[];
   category: string;
   priceType: "paid" | "free";
+  quantityType?: "variedSizes" | "unlimited" | "limited";
+  variedQuantities?: Record<string, number>;
+  checkType?: string;
+  quantity?: number;
+  address?: string;
+  locationType?: "online" | "offline";
+  fileFormat?: string;
+  slots?: Array<{
+    date: string;
+    start: string;
+    end: string;
+    seatType: "unlimited" | "limited";
+    seats: number;
+  }>;
 }
 
 export interface SocialMediaLinks {

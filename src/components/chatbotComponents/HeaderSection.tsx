@@ -122,6 +122,9 @@ function HeaderSection({
 
   useEffect(() => {
     if (currentConfig?.logo) {
+      if (agentPicture === currentConfig?.logo) {
+        return;
+      }
       const logoWithTimestamp = `${currentConfig.logo}?t=${Date.now()}`;
       setAgentPicture(logoWithTimestamp);
     } else if (currentConfig?.personalityType?.name) {

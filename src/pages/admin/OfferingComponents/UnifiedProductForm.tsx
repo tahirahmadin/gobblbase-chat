@@ -4,6 +4,20 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useBotConfig } from "../../../store/useBotConfig";
 
+// Add styles for DatePicker
+const datePickerStyles = `
+  .react-datepicker-popper {
+    z-index: 9999 !important;
+  }
+  .react-datepicker-wrapper {
+    display: inline-block;
+  }
+  .react-datepicker {
+    font-family: inherit;
+    font-size: 0.9rem;
+  }
+`;
+
 type UnifiedFormType = {
   // Common fields
   title?: string;
@@ -25,7 +39,6 @@ type UnifiedFormType = {
   file?: File | null;
   fileUrl?: string;
   // Physical
-  customQuantity?: number;
   variedSizes?: string[];
   variedQuantities?: Record<string, number>;
   // Service
@@ -51,6 +64,8 @@ type FormErrors = {
   description?: string;
   price?: string;
   quantity?: string;
+  slots?: string;
+  slotDetails?: Array<Record<string, string>>;
   variedQuantities?: {
     [key: string]: string;
   };
@@ -61,6 +76,7 @@ type UnifiedProductFormProps = {
   form: UnifiedFormType;
   setForm: React.Dispatch<React.SetStateAction<UnifiedFormType>>;
   onNext: () => void;
+  editMode?: boolean;
 };
 
 const digitalFormats = [
@@ -81,10 +97,14 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
   form,
   setForm,
   onNext,
+  editMode = false,
 }) => {
   const { activeBotData } = useBotConfig();
   const [thumbnailInputKey, setThumbnailInputKey] = useState(0);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [userTimeZone, setUserTimeZone] = useState<string>(
+    Intl.DateTimeFormat().resolvedOptions().timeZone
+  );
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -97,42 +117,124 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
     }
 
     // Category validation
-    if (form.category && form.category.length > 20) {
+    if (!form.category) {
+      newErrors.category = "Category is required";
+    } else if (form.category.length > 20) {
       newErrors.category = "Category must be 20 characters or less";
     }
 
     // Description validation
-    if (form.descriptionEnabled && form.description) {
-      if (form.description.length > 300) {
-        newErrors.description = "Description must be 300 characters or less";
+    if (!form.description) {
+      newErrors.description = "Description is required";
+    } else if (form.description.length > 300) {
+      newErrors.description = "Description must be 300 characters or less";
+    }
+
+    // Quantity validation (skip for Event)
+    if (type !== "Event") {
+      if (!form.quantityType) {
+        newErrors.quantity = "Please select a quantity type";
+      } else if (form.quantityType === "oneSize" && !form.quantityUnlimited) {
+        if (form.quantity === 0 || form.quantity === undefined) {
+          newErrors.quantity = "Please enter a quantity";
+        } else if (form.quantity < 0) {
+          newErrors.quantity = "Quantity cannot be negative";
+        }
+      } else if (form.quantityType === "variedSizes") {
+        if (!form.variedSizes || form.variedSizes.length === 0) {
+          newErrors.quantity = "Please select at least one size";
+        } else {
+          const variedErrors: Record<string, string> = {};
+          form.variedSizes.forEach((size) => {
+            const qty = form.variedQuantities?.[size];
+            if (qty === 0 || qty === undefined) {
+              variedErrors[size] = "Please enter a quantity";
+            } else if (qty < 0) {
+              variedErrors[size] = "Quantity cannot be negative";
+            }
+          });
+          if (Object.keys(variedErrors).length > 0) {
+            newErrors.variedQuantities = variedErrors;
+          }
+        }
       }
     }
 
     // Price validation
-    if (form.priceType === "paid" && form.price) {
-      const priceNum = parseFloat(form.price);
-      if (isNaN(priceNum) || priceNum < 0) {
-        newErrors.price = "Price must be a positive number";
-      }
-    }
-
-    // Quantity validation
-    if (form.quantityType === "oneSize" && !form.quantityUnlimited) {
-      if (form.quantity < 0) {
-        newErrors.quantity = "Quantity cannot be negative";
-      }
-    }
-
-    // Varied sizes quantity validation
-    if (form.quantityType === "variedSizes") {
-      const variedErrors: Record<string, string> = {};
-      Object.entries(form.variedQuantities || {}).forEach(([size, qty]) => {
-        if (qty < 0) {
-          variedErrors[size] = "Quantity cannot be negative";
+    if (!form.priceType) {
+      newErrors.price = "Please select a price type";
+    } else if (form.priceType === "paid") {
+      if (!form.price || form.price === "0") {
+        newErrors.price = "Please enter a price";
+      } else {
+        const priceNum = parseFloat(form.price);
+        if (isNaN(priceNum) || priceNum < 0) {
+          newErrors.price = "Price must be a positive number";
         }
-      });
-      if (Object.keys(variedErrors).length > 0) {
-        newErrors.variedQuantities = variedErrors;
+      }
+    }
+
+    // Enhanced Event Slots validation
+    if (type === "Event") {
+      if (!form.slots || form.slots.length === 0) {
+        newErrors.slots = "Please add at least one slot";
+      } else {
+        const slotErrors = form.slots.map((slot, index) => {
+          const errors: Record<string, string> = {};
+
+          // Date validation
+          if (!slot.date) {
+            errors.date = "Date is required";
+          } else {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (slot.date < today) {
+              errors.date = "Date cannot be in the past";
+            }
+          }
+
+          // Time validation
+          if (!slot.start) {
+            errors.start = "Start time is required";
+          }
+          if (!slot.end) {
+            errors.end = "End time is required";
+          }
+
+          // Validate start time is before end time
+          if (slot.start && slot.end) {
+            const startTime = new Date(slot.start);
+            const endTime = new Date(slot.end);
+
+            if (startTime >= endTime) {
+              errors.end = "End time must be after start time";
+            }
+
+            // Check if slot duration is at least 15 minutes
+            const duration = endTime.getTime() - startTime.getTime();
+            if (duration < 15 * 60 * 1000) {
+              errors.end = "Slot duration must be at least 15 minutes";
+            }
+          }
+
+          // Seat validation for limited seats
+          if (slot.seatType === "limited") {
+            if (!slot.seats || slot.seats <= 0) {
+              errors.seats = "Please enter a valid number of seats";
+            } else if (slot.seats > 1000) {
+              errors.seats = "Maximum 1000 seats allowed per slot";
+            }
+          }
+
+          return errors;
+        });
+
+        const hasErrors = slotErrors.some(
+          (errors) => Object.keys(errors).length > 0
+        );
+        if (hasErrors) {
+          newErrors.slotDetails = slotErrors;
+        }
       }
     }
 
@@ -141,8 +243,20 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
   };
 
   const handleNext = () => {
-    if (validateForm()) {
+    const isValid = validateForm();
+    console.log("Form validation result:", isValid);
+    console.log("Current form errors:", errors);
+    if (isValid) {
       onNext();
+    } else {
+      // Scroll to the first error
+      const firstErrorElement = document.querySelector(".border-red-500");
+      if (firstErrorElement) {
+        firstErrorElement.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
     }
   };
 
@@ -162,7 +276,8 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
   };
 
   return (
-    <div className="mx-auto w-full overflow-y-auto h-full ">
+    <div className="mx-auto w-full">
+      <style>{datePickerStyles}</style>
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Left Side */}
         <div className="flex-1 flex flex-col gap-2 min-w-0 ">
@@ -186,7 +301,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
             <div className="text-xs text-gray-500">{form.title?.length}/50</div>
           </div>
 
-          <label className="font-semibold">Category / Type</label>
+          <label className="font-semibold">Category / Type*</label>
           <input
             maxLength={20}
             value={form.category || ""}
@@ -211,7 +326,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           {/* Digital Product Specific */}
           {type === "digitalProduct" && (
             <>
-              <label className="font-semibold">File Format*</label>
+              {/* <label className="font-semibold">File Format*</label>
               <div className="flex flex-wrap gap-1 mb-2 mt-1">
                 {digitalFormats.map((fmt) => (
                   <button
@@ -236,14 +351,14 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                     {fmt.toLocaleUpperCase()}
                   </button>
                 ))}
-              </div>
+              </div> */}
             </>
           )}
 
           {/* Event Specific */}
           {type === "Event" && (
             <>
-              <label className="font-semibold">Event Type*</label>
+              <label className="font-semibold">Event Type</label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {eventTypes.map((eventType) => (
                   <button
@@ -271,30 +386,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           {/* Description with inline toggle */}
           <div className="mb-2">
             <div className="flex items-center justify-between gap-3 mb-1">
-              <label className="font-semibold mb-0">Description</label>
-              <button
-                type="button"
-                aria-label={
-                  form.descriptionEnabled
-                    ? "Disable description"
-                    : "Enable description"
-                }
-                className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors duration-200 focus:outline-none ${
-                  form.descriptionEnabled ? "bg-green-500" : "bg-gray-300"
-                }`}
-                onClick={() =>
-                  setForm((f) => ({
-                    ...f,
-                    descriptionEnabled: !f.descriptionEnabled,
-                  }))
-                }
-              >
-                <span
-                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${
-                    form.descriptionEnabled ? "translate-x-6" : "translate-x-1"
-                  }`}
-                />
-              </button>
+              <label className="font-semibold mb-0">Description*</label>
             </div>
             <textarea
               value={form.description || ""}
@@ -309,7 +401,6 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
               } rounded p-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white`}
               placeholder="Describe your offering..."
               rows={3}
-              disabled={!form.descriptionEnabled}
               maxLength={300}
             />
             <div className="flex justify-between">
@@ -323,7 +414,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           {/* Images Section */}
           <div>
             <label className="font-semibold">Thumbnail & Images</label>
-            <div className="text-xs">(*only .png, .jpg, .jpeg)</div>
+            <div className="text-xs">(*png, jpg, jpeg only - max 1 MB)</div>
             <div className="flex flex-wrap gap-2 mt-1">
               {/* If thumbnailUrl (new upload) exists, show it as main preview */}
               {form.thumbnailUrl ? (
@@ -408,6 +499,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                           alert("Please upload only PNG, JPG, or JPEG files");
                           return;
                         }
+                        // Check file size (1MB = 1024 * 1024 bytes)
+                        if (file.size > 1024 * 1024) {
+                          alert("File size must be less than 1MB");
+                          return;
+                        }
                         setForm((f) => ({
                           ...f,
                           thumbnail: file,
@@ -473,6 +569,16 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                     </button>
                   </div>
                 </label>
+                {/* {editMode && form.fileUrl && (
+                  <a
+                    href={form.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline"
+                  >
+                    View uploaded file
+                  </a>
+                )} */}
                 <label className="flex items-center gap-2">
                   <input
                     type="radio"
@@ -496,6 +602,30 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                     disabled={form.uploadType !== "redirect"}
                   />
                 </label>
+                {/* Status line */}
+                <div className="mt-2 text-sm">
+                  {form.uploadType === "upload" && (
+                    <>
+                      {form.file && (
+                        <div className="flex items-center gap-2 text-green-600">
+                          <span>✓ File successfully uploaded</span>
+                        </div>
+                      )}
+                      {form.uploadType === "upload" &&
+                        editMode &&
+                        form.fileUrl && (
+                          <a
+                            href={form.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 underline"
+                          >
+                            View attachment
+                          </a>
+                        )}
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -504,12 +634,32 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           {type === "Event" && (
             <div className="p-4 rounded-xl border border-indigo-200 bg-[#ffffff]">
               <label className="font-semibold block mb-2">Set Slots</label>
+              <div className="text-xs text-gray-500 mb-2">
+                Timezone: {userTimeZone}
+              </div>
+              {errors.slots && (
+                <div className="text-xs text-red-500 mb-2">{errors.slots}</div>
+              )}
 
               {(form.slots || []).map((slot, index) => (
-                <div key={index} className="mb-4">
-                  <div className="grid grid-cols-12 gap-2 items-center mb-2">
-                    <div className="col-span-4 flex items-center gap-2">
-                      <span className="text-xs font-semibold">Date</span>
+                <div key={index} className="mb-4 relative">
+                  {(form.slots || []).length > 1 && (
+                    <button
+                      type="button"
+                      className="absolute -right-2 -top-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                      onClick={() => {
+                        setForm((f) => ({
+                          ...f,
+                          slots: (f.slots || []).filter((_, i) => i !== index),
+                        }));
+                      }}
+                    >
+                      ×
+                    </button>
+                  )}
+                  <div className="grid grid-cols-12 gap-2 items-start mb-2">
+                    <div className="col-span-6 flex items-center gap-2">
+                      <span className="text-xs font-semibold">Event Date:</span>
                       <DatePicker
                         selected={slot.date}
                         onChange={(date: Date | null) =>
@@ -523,73 +673,118 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                           })
                         }
                         dateFormat="MM/dd/yyyy"
-                        className="border border-gray-300 rounded p-1 w-32 text-xs"
+                        className={`border ${
+                          errors.slotDetails?.[index]?.date
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        } rounded p-1 w-32 text-xs`}
                         placeholderText="Select date"
                         minDate={new Date()}
                         isClearable
                         showPopperArrow={false}
                       />
+                      {errors.slotDetails?.[index]?.date && (
+                        <div className="text-xs text-red-500">
+                          {errors.slotDetails[index].date}
+                        </div>
+                      )}
                     </div>
-                    <div className="col-span-4 flex items-center gap-2">
-                      <span className="text-xs font-semibold">Start</span>
-                      <DatePicker
-                        selected={slot.start}
-                        onChange={(time: Date | null) =>
-                          setForm((f) => {
-                            const slots = [...(f.slots || [])];
-                            slots[index] = {
-                              ...slots[index],
-                              start: time,
-                              end:
-                                time && slot.end && time > slot.end
-                                  ? null
-                                  : slot.end,
-                            };
-                            return { ...f, slots };
-                          })
-                        }
-                        showTimeSelect
-                        showTimeSelectOnly
-                        timeIntervals={15}
-                        timeCaption="Time"
-                        dateFormat="h:mm aa"
-                        className="border border-gray-300 rounded p-1 w-24 text-xs"
-                        placeholderText="Select time"
-                        isClearable
-                        showPopperArrow={false}
-                        minTime={new Date(0, 0, 0, 0, 0, 0)}
-                        maxTime={new Date(0, 0, 0, 23, 59, 0)}
-                      />
-                    </div>
-                    <div className="col-span-4 flex items-center gap-2">
-                      <span className="text-xs font-semibold">End</span>
-                      <DatePicker
-                        selected={slot.end}
-                        onChange={(time: Date | null) =>
-                          setForm((f) => {
-                            const slots = [...(f.slots || [])];
-                            slots[index] = {
-                              ...slots[index],
-                              end: time,
-                            };
-                            return { ...f, slots };
-                          })
-                        }
-                        showTimeSelect
-                        showTimeSelectOnly
-                        timeIntervals={15}
-                        timeCaption="Time"
-                        dateFormat="h:mm aa"
-                        className="border border-gray-300 rounded p-1 w-24 text-xs"
-                        placeholderText="Select time"
-                        isClearable
-                        showPopperArrow={false}
-                        minTime={slot.start || new Date(0, 0, 0, 0, 0, 0)}
-                        maxTime={new Date(0, 0, 0, 23, 59, 0)}
-                      />
+                    <div className="col-span-6 flex flex-col items-center gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold">
+                          Start time:
+                        </span>
+                        <DatePicker
+                          selected={slot.start ? new Date(slot.start) : null}
+                          onChange={(time: Date | null) =>
+                            setForm((f) => {
+                              const slots = [...(f.slots || [])];
+                              slots[index] = {
+                                ...slots[index],
+                                start: time,
+                                end:
+                                  time && slot.end && time > new Date(slot.end)
+                                    ? null
+                                    : slot.end,
+                              };
+                              return { ...f, slots };
+                            })
+                          }
+                          showTimeSelect
+                          showTimeSelectOnly
+                          timeIntervals={15}
+                          timeCaption="Time"
+                          dateFormat="h:mm aa"
+                          className={`border ${
+                            errors.slotDetails?.[index]?.start
+                              ? "border-red-500"
+                              : "border-gray-300"
+                          } rounded p-1 w-24 text-xs`}
+                          placeholderText="Select time"
+                          isClearable
+                          showPopperArrow={false}
+                          minTime={new Date(0, 0, 0, 0, 0, 0)}
+                          maxTime={new Date(0, 0, 0, 23, 59, 0)}
+                          portalId="root"
+                          popperClassName="react-datepicker-popper"
+                          popperPlacement="bottom-start"
+                          calendarClassName="react-datepicker-calendar"
+                          wrapperClassName="react-datepicker-wrapper"
+                        />
+                        {errors.slotDetails?.[index]?.start && (
+                          <div className="text-xs text-red-500">
+                            {errors.slotDetails[index].start}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold">End time:</span>
+                        <DatePicker
+                          selected={slot.end ? new Date(slot.end) : null}
+                          onChange={(time: Date | null) =>
+                            setForm((f) => {
+                              const slots = [...(f.slots || [])];
+                              slots[index] = {
+                                ...slots[index],
+                                end: time,
+                              };
+                              return { ...f, slots };
+                            })
+                          }
+                          showTimeSelect
+                          showTimeSelectOnly
+                          timeIntervals={15}
+                          timeCaption="Time"
+                          dateFormat="h:mm aa"
+                          className={`border ${
+                            errors.slotDetails?.[index]?.end
+                              ? "border-red-500"
+                              : "border-gray-300"
+                          } rounded p-1 w-24 text-xs`}
+                          placeholderText="Select time"
+                          isClearable
+                          showPopperArrow={false}
+                          minTime={
+                            slot.start
+                              ? new Date(slot.start)
+                              : new Date(0, 0, 0, 0, 0, 0)
+                          }
+                          maxTime={new Date(0, 0, 0, 23, 59, 0)}
+                          portalId="root"
+                          popperClassName="react-datepicker-popper"
+                          popperPlacement="bottom-start"
+                          calendarClassName="react-datepicker-calendar"
+                          wrapperClassName="react-datepicker-wrapper"
+                        />
+                        {errors.slotDetails?.[index]?.end && (
+                          <div className="text-xs text-red-500">
+                            {errors.slotDetails[index].end}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  <div className="mb-2 text-xs font-semibold">
+                  <div className="mb-2 text-sm font-semibold mt-5">
                     Slots/Session
                   </div>
                   <div className="flex items-center gap-6 mb-2">
@@ -633,20 +828,55 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       />
                       <span className="font-medium">Limited Seats</span>
                       <input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         placeholder="100"
-                        value={slot.seats}
-                        onChange={(e) =>
+                        value={slot.seats === 0 ? "" : slot.seats}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // Allow empty value
+                          if (value === "") {
+                            setForm((f) => {
+                              const slots = [...(f.slots || [])];
+                              slots[index] = {
+                                ...slots[index],
+                                seats: 0,
+                              };
+                              return { ...f, slots };
+                            });
+                            return;
+                          }
+                          // Only allow numbers
+                          if (!/^\d*$/.test(value)) return;
+                          const numValue = parseInt(value);
                           setForm((f) => {
                             const slots = [...(f.slots || [])];
                             slots[index] = {
                               ...slots[index],
-                              seats: parseInt(e.target.value),
+                              seats: numValue,
                             };
                             return { ...f, slots };
-                          })
-                        }
-                        className="border border-gray-300 rounded p-1 w-16 text-xs"
+                          });
+                        }}
+                        onKeyDown={(e) => {
+                          // Prevent non-numeric characters
+                          if (
+                            !/^\d$/.test(e.key) &&
+                            e.key !== "Backspace" &&
+                            e.key !== "Delete" &&
+                            e.key !== "ArrowLeft" &&
+                            e.key !== "ArrowRight" &&
+                            e.key !== "Tab"
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                        className={`border ${
+                          errors.slotDetails?.[index]?.seats
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        } rounded p-1 w-16 text-sm`}
                         disabled={slot.seatType !== "limited"}
                       />
                     </label>
@@ -712,10 +942,14 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                     onChange={(e) =>
                       setForm((f) => ({ ...f, address: e.target.value }))
                     }
-                    className="border border-gray-300 rounded p-1 w-40 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    className="border border-gray-300 rounded p-1 w-40 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full"
                     placeholder="Address"
                     disabled={form.locationType !== "offline"}
+                    maxLength={50}
                   />
+                  <div className="text-xs text-gray-500 ml-2">
+                    {(form.address || "").length}/50
+                  </div>
                 </label>
               </div>
             </div>
@@ -869,13 +1103,14 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                             value={form.variedQuantities?.[size] || ""}
                             onChange={(e) => {
                               const value = e.target.value;
-                              // Prevent negative numbers
-                              if (parseInt(value) < 0) return;
+                              // Only allow positive integers
+                              if (!/^\d*$/.test(value)) return;
+                              const numValue = parseInt(value) || 0;
                               setForm((f) => ({
                                 ...f,
                                 variedQuantities: {
                                   ...(f.variedQuantities || {}),
-                                  [size]: parseInt(value) || 0,
+                                  [size]: numValue,
                                 },
                               }));
                               if (errors.variedQuantities?.[size]) {
@@ -892,8 +1127,15 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                               }
                             }}
                             onKeyDown={(e) => {
-                              // Prevent minus sign
-                              if (e.key === "-") {
+                              // Prevent non-numeric characters
+                              if (
+                                !/^\d$/.test(e.key) &&
+                                e.key !== "Backspace" &&
+                                e.key !== "Delete" &&
+                                e.key !== "ArrowLeft" &&
+                                e.key !== "ArrowRight" &&
+                                e.key !== "Tab"
+                              ) {
                                 e.preventDefault();
                               }
                             }}
@@ -903,7 +1145,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                             }
                           />
                           {errors.variedQuantities?.[size] && (
-                            <div className="text-xs text-red-500">
+                            <div className="text-xs text-red-500 pl-2">
                               {errors.variedQuantities[size]}
                             </div>
                           )}
@@ -1060,7 +1302,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
             </div>
           </div>
 
-          <div className="p-4 rounded-lg border border-indigo-200 bg-white">
+          {/* <div className="p-4 rounded-lg border border-indigo-200 bg-white">
             <label className="font-semibold block mb-2">CTA Button*</label>
             <input
               className="border border-gray-300 rounded p-2 w-full"
@@ -1068,7 +1310,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
               onChange={(e) => setForm((f) => ({ ...f, cta: e.target.value }))}
               placeholder="Buy Now"
             />
-          </div>
+          </div> */}
 
           <div className="flex justify-end mt-2">
             <button

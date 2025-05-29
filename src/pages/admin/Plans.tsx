@@ -36,6 +36,16 @@ const Plans = () => {
 
     try {
       const response = await getPlans(adminId);
+
+      const currentPlanId = response.find((plan) => plan.isCurrentPlan)?.id;
+      const upgradedPlanId = plans.find((plan) => plan.isCurrentPlan)?.id;
+
+      if (currentPlanId !== upgradedPlanId) {
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+        }
+      }
+
       setPlans(response as PlanData[]);
 
       const currentPlan = (response as PlanData[]).find(
@@ -105,19 +115,28 @@ const Plans = () => {
       setUpgradingPlanId(planId);
 
       // Get Stripe session URL
-      const stripeUrl = await subscribeToPlan(adminId, planId);
+      const response = await subscribeToPlan(adminId, planId);
+
+      const isBillingUrl = response.isUrl;
+      const billingMessage = response.message;
 
       // Start polling for plan updates
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
       }
 
-      pollingIntervalRef.current = setInterval(async () => {
-        await fetchPlans();
-      }, 5000); // Poll every 5 seconds
-
-      // Redirect to Stripe payment page
-      window.open(stripeUrl, "_blank", "noopener,noreferrer");
+      if (isBillingUrl) {
+        pollingIntervalRef.current = setInterval(async () => {
+          await fetchPlans();
+        }, 3000); // Poll every 5 seconds
+        // Redirect to Stripe payment page
+        window.open(billingMessage, "_blank", "noopener,noreferrer");
+      } else {
+        pollingIntervalRef.current = setInterval(async () => {
+          await fetchPlans();
+        }, 1000); // Poll every 5 seconds
+        toast.success(billingMessage);
+      }
     } catch (error) {
       console.error("Error changing plan:", error);
       toast.error(error?.response?.data?.result || "Failed to change plan");
@@ -141,7 +160,10 @@ const Plans = () => {
     const currentPlanIndex = planHierarchy.indexOf(currentPlan.type);
     const planIndex = planHierarchy.indexOf(plan.type);
 
-    return planIndex <= currentPlanIndex;
+    if (planIndex === currentPlanIndex) {
+      return plan.recurrence.toLowerCase() === "monthly";
+    }
+    return planIndex < currentPlanIndex;
   };
 
   return (

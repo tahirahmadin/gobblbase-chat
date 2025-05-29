@@ -137,7 +137,7 @@ const Pricing = () => {
     <Container>
       <Header>
         <Logo>
-          <span onClick={() => navigate("/")}>kifor</span>
+          <span onClick={() => navigate("/")}>Sayy</span>
           <NavLink onClick={() => navigate("/pricing")}>Pricing</NavLink>
         </Logo>
         <NavLinks>

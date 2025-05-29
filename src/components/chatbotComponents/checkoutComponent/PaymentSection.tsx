@@ -32,6 +32,9 @@ interface PaymentSectionProps {
     description?: string;
     images?: string[];
     priceType?: string;
+    selectedSize?: string;
+    quantity: number;
+    sizeQuantity?: Record<string, number>;
     [key: string]: any;
   };
   shipping: {
@@ -93,7 +96,7 @@ function StripePaymentForm({
       if (paymentIntent && paymentIntent.status === "succeeded") {
         const orderDetails = {
           product: product,
-          total: product.price,
+          total: product.price * product.quantity,
           orderId: paymentIntent.id,
           paymentMethod: "Credit Card",
           paymentDate: new Date().toLocaleDateString(),
@@ -313,6 +316,8 @@ export function PaymentSection({
             currency: "USD",
             cart: [product],
             shipping: shipping,
+            checkType: product.checkType,
+            checkQuantity: product.quantity,
             stripeAccountId:
               activeBotData?.paymentMethods?.stripe?.accountId || "",
           }),
@@ -387,9 +392,11 @@ export function PaymentSection({
               userId: userId,
               userEmail: userEmail,
               stripeAccountId: activeBotData.paymentMethods.stripe.accountId,
-              amount: Math.round(product.price * 100),
+              amount: Math.round(product.price * 100) * product.quantity,
               currency: activeBotData.currency || "USD",
               shipping: shipping,
+              checkType: product.checkType,
+              checkQuantity: product.quantity,
             }),
           }
         );
