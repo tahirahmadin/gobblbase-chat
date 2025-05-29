@@ -1873,17 +1873,17 @@ const Home = () => {
                             </div>
                           )}
                           {/* mobile icon  */}
-                          <FeatureIcon
-                            className={`hidden [@media(max-width:900px)]:flex absolute top-4 -left-4
-                                ${
-                                  feature.key === selectedFeature
-                                    ? "bg-[#000] text-[#64FFB7] "
-                                    : "bg-white text-[#000]"
-                                }
-                              `}
-                          >
-                            {featureIcons[idx]}
-                          </FeatureIcon>
+                         <FeatureIcon
+                          className={`hidden [@media(max-width:900px)]:flex absolute -left-4 top-1/2 -translate-y-1/2
+                            ${
+                              feature.key === selectedFeature
+                                ? "bg-[#000] text-[#64FFB7]"
+                                : "bg-white text-[#000]"
+                            }
+                          `}
+                        >
+                          {featureIcons[idx]}
+                        </FeatureIcon>
                         </FeatureListLabel>
                         <FeatureIcon
                           className={`flex [@media(max-width:900px)]:hidden
