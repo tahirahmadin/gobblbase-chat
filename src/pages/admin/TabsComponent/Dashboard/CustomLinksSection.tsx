@@ -39,13 +39,13 @@ const Icon = styled.button`
 `;
 const Button = styled.button`
   position: relative;
-  background: #6aff97;
+  background: #4d65ff;
   padding: 0.6vh 1vw;
   border: 2px solid black;
   cursor: pointer;
   transition: background 0.3s;
   font-size: clamp(8px, 4vw, 16px);
-
+  color: white;
   @media (max-width: 600px) {
     min-width: 120px;
   }
@@ -63,16 +63,20 @@ const Button = styled.button`
   }
 
   &:disabled {
-    background: #d6ffe0;
+    background: #d4deff;
+    color: #b0b0b0;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #d6ffe0;
+    background: #d4deff;
   }
 `;
 const CustomLinksSection = () => {
   const { activeBotId, activeBotData, setRefetchBotData } = useBotConfig();
   const [customHandles, setCustomHandles] = useState([{ label: "", url: "" }]);
+  const [originalCustomHandles, setOriginalCustomHandles] = useState([
+    { label: "", url: "" },
+  ]);
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<{
     [key: number]: { label?: string; url?: string };
@@ -84,8 +88,10 @@ const CustomLinksSection = () => {
       activeBotData.customHandles.length > 0
     ) {
       setCustomHandles(activeBotData.customHandles);
+      setOriginalCustomHandles(activeBotData.customHandles);
     } else {
       setCustomHandles([]);
+      setOriginalCustomHandles([]);
     }
   }, [activeBotData]);
 
@@ -147,6 +153,19 @@ const CustomLinksSection = () => {
       // Revert the state if the backend update fails
       setCustomHandles(customHandles);
     }
+  };
+
+  const hasCustomLinksChanged = () => {
+    if (customHandles.length !== originalCustomHandles.length) return true;
+    for (let i = 0; i < customHandles.length; i++) {
+      if (
+        customHandles[i].label !== originalCustomHandles[i].label ||
+        customHandles[i].url !== originalCustomHandles[i].url
+      ) {
+        return true;
+      }
+    }
+    return false;
   };
 
   const handleSave = async () => {
@@ -284,10 +303,21 @@ const CustomLinksSection = () => {
       <div className="flex justify-end relative z-10 mt-4">
         <Button
           onClick={handleSave}
-          disabled={isSaving}
-          className={`${isSaving ? "cursor-not-allowed" : ""}`}
+          disabled={isSaving || !hasCustomLinksChanged()}
+          className={`transition-colors ${
+            isSaving || !hasCustomLinksChanged()
+              ? "opacity-50 cursor-not-allowed"
+              : ""
+          }`}
         >
-          {isSaving ? "Saving..." : "Save"}
+          {isSaving ? (
+            <div className="flex items-center space-x-2">
+              <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+              <span>Saving...</span>
+            </div>
+          ) : (
+            "Save"
+          )}
         </Button>
       </div>
     </div>
