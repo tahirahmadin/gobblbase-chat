@@ -325,18 +325,14 @@ const Prompts = () => {
   const allPredefinedToShow = Array.from(
     new Set([
       ...generatedPrompts,
-      ...selectedPrompts.filter(
-        (p) => !customPrompts.includes(p) && !generatedPrompts.includes(p)
-      ),
+      ...selectedPrompts.filter((p) => generatedPrompts.includes(p)),
     ])
   );
 
   const allCustomToShow = Array.from(
     new Set([
       ...customPrompts,
-      ...selectedPrompts.filter(
-        (p) => !generatedPrompts.includes(p) && !customPrompts.includes(p)
-      ),
+      ...selectedPrompts.filter((p) => !generatedPrompts.includes(p)),
     ])
   );
 
