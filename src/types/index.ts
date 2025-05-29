@@ -217,6 +217,7 @@ export interface Product {
   quantity?: number;
   address?: string;
   locationType?: "online" | "offline";
+  fileFormat?: string;
   slots?: Array<{
     date: string;
     start: string;

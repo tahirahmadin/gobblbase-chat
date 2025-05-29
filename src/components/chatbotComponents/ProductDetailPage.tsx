@@ -270,20 +270,60 @@ export default function ProductDetailPage({
   } else if (selectedProduct?.type === "digitalProduct") {
     extraFields = (
       <div
-        className={`flex flex-col gap-${inChatMode ? "2" : "3"} mb-${
-          inChatMode ? "2" : "3"
+        className={`flex flex-row justify-between gap-2 ${
+          inChatMode ? "py-2" : "py-3"
         }`}
       >
+        <div
+          className={`flex flex-col gap-${inChatMode ? "2" : "3"} mb-${
+            inChatMode ? "2" : "3"
+          }`}
+        >
+          <div>
+            <div className="text-xs font-semibold mb-1 text-left">
+              AVAILABLE FORMATS
+            </div>
+            <div className="flex gap-2">
+              <button className="px-3 py-1 rounded-full border border-[#fff] text-xs font-semibold bg-[#232323]">
+                {selectedProduct?.fileFormat}
+              </button>
+            </div>
+          </div>
+        </div>
         <div>
           <div className="text-xs font-semibold mb-1 text-left">
-            AVAILABLE FORMATS
+            SELECT QUANTITY
           </div>
-          <div className="flex gap-2">
-            <button className="px-3 py-1 rounded-full border border-[#fff] text-xs font-semibold bg-[#232323]">
-              PDF
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              className="px-3 py-1 rounded-full text-lg font-bold bg-[#232323]"
+              style={{
+                backgroundColor: theme.highlightColor,
+                color: !theme.isDark ? "#fff" : "#000000",
+              }}
+            >
+              -
             </button>
-            <button className="px-3 py-1 rounded-full border border-[#fff] text-xs font-semibold bg-[#232323]">
-              PNG
+            <span
+              className="px-3 py-1 rounded-full  text-sm font-semibold"
+              style={{
+                backgroundColor: theme.mainLightColor,
+                color: !theme.isDark ? "#ffffff" : "#000000",
+              }}
+            >
+              {quantity}
+            </span>
+            <button
+              onClick={() => setQuantity((q) => Math.min(maxQuantity, q + 1))}
+              className="px-3 py-1 rounded-full text-lg font-bold"
+              style={{
+                backgroundColor: theme.highlightColor,
+                color: !theme.isDark ? "#fff" : "#000000",
+              }}
+              disabled={quantity >= maxQuantity}
+            >
+              +
             </button>
           </div>
         </div>
@@ -485,14 +525,21 @@ export default function ProductDetailPage({
                   </span>
                   <button
                     onClick={() =>
-                      setQuantity((q) => Math.min(selectedSlot.seats, q + 1))
+                      setQuantity((q) =>
+                        selectedSlot.seatType === "unlimited"
+                          ? q + 1
+                          : Math.min(selectedSlot.seats, q + 1)
+                      )
                     }
                     className="px-2 py-1 rounded-full text-lg font-bold"
                     style={{
                       backgroundColor: theme.highlightColor,
                       color: !theme.isDark ? "#fff" : "#000000",
                     }}
-                    disabled={quantity >= selectedSlot.seats}
+                    disabled={
+                      selectedSlot.seatType !== "unlimited" &&
+                      quantity >= selectedSlot.seats
+                    }
                   >
                     +
                   </button>
