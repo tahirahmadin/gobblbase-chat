@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Upload, Link2, Copy, Check, X } from "lucide-react";
 import PublicChat from "../../../chatbot/PublicChat";
 import {
@@ -155,9 +155,13 @@ const Profile = () => {
 
   useEffect(() => {
     if (activeBotData?.logo) {
-      setAgentPicture(activeBotData?.logo);
+      if (agentPicture === activeBotData?.logo) {
+        return;
+      }
+      const logoWithTimestamp = `${activeBotData.logo}?t=${Date.now()}`;
+      setAgentPicture(logoWithTimestamp);
     } else if (activeBotData?.personalityType?.name) {
-      let voiceName = activeBotData?.personalityType?.name;
+      let voiceName = activeBotData.personalityType.name;
 
       const logoObj = PERSONALITY_OPTIONS.find(
         (model) => model.title === voiceName
@@ -166,10 +170,12 @@ const Profile = () => {
       if (logoObj) {
         setAgentPicture(logoObj.image);
       } else {
-        setAgentPicture("/assets/voice/friend.png");
+        setAgentPicture(
+          "https://t4.ftcdn.net/jpg/08/04/36/29/360_F_804362990_0n7bGLz9clMBi5ajG52k8OAUQTneMbj4.jpg"
+        );
       }
     }
-  }, [activeBotData?.logo, activeBotData?.personalityType?.name]);
+  }, [activeBotData]);
 
   useEffect(() => {
     if (activeBotData) {
@@ -263,9 +269,16 @@ const Profile = () => {
         reader.readAsDataURL(file);
 
         // Then upload to server
-        await updateBotLogoViaStore(activeBotId, file);
+        const response = await updateBotLogoViaStore(activeBotId, file);
 
-        toast.success("Profile picture updated successfully");
+        if (response) {
+          // Update both the preview and actual image state
+          // setProfileImage(response);
+          setAgentPicture(response);
+          toast.success("Profile picture updated successfully");
+        } else {
+          throw new Error("Failed to update profile picture");
+        }
       } catch (error) {
         console.error("Error uploading profile picture:", error);
         toast.error("Failed to update profile picture");
@@ -350,6 +363,25 @@ const Profile = () => {
     setPromotionalBanner(value);
   };
 
+  const previewConfig = useMemo(
+    () => ({
+      ...activeBotData,
+      isPromoBannerEnabled,
+      promotionalBanner,
+      bio: agentBio,
+      name: agentName,
+      username: agentUsername,
+    }),
+    [
+      activeBotData,
+      isPromoBannerEnabled,
+      promotionalBanner,
+      agentBio,
+      agentName,
+      agentUsername,
+    ]
+  );
+
   return (
     <div
       className="grid grid-cols-1 lg:grid-cols-5 w-full bg-white overflow-scroll lg:overflow-hidden"
@@ -370,9 +402,15 @@ const Profile = () => {
                       alt="Agent"
                       className="w-full h-full object-coverc"
                     />
+                  ) : agentPicture ? (
+                    <img
+                      src={agentPicture}
+                      alt="Agent"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <img
-                      src={agentPicture || "/assets/voice/friend.png"}
+                      src={"/assets/voice/friend.png"}
                       alt="Agent"
                       className="w-full h-full object-cover"
                     />
@@ -728,14 +766,7 @@ const Profile = () => {
         >
           <PublicChat
             screenName={"about"}
-            previewConfig={{
-              ...activeBotData,
-              isPromoBannerEnabled: isPromoBannerEnabled,
-              promotionalBanner: promotionalBanner,
-              bio: agentBio,
-              name: agentName,
-              username: agentUsername,
-            }}
+            previewConfig={previewConfig}
             chatHeight={null}
             isPreview={true}
           />

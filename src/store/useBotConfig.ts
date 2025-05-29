@@ -31,7 +31,7 @@ interface BotConfigState {
   updateBotLogoViaStore: (
     inputBotId: string,
     inputProfilePicture: File
-  ) => Promise<void>;
+  ) => Promise<string | null>;
   clearBotConfig: () => void;
 }
 
@@ -128,6 +128,7 @@ export const useBotConfig = create<BotConfigState>()((set, get) => {
         );
         if (response.error) {
           toast.error(response.error);
+          return null;
         } else {
           const currentData = get().activeBotData;
           if (currentData) {
@@ -138,9 +139,11 @@ export const useBotConfig = create<BotConfigState>()((set, get) => {
               },
             });
           }
+          return response;
         }
       } catch (error) {
         console.error("Error updating username:", error);
+        return null;
       }
     },
   };

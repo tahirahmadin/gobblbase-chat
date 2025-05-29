@@ -292,23 +292,27 @@ export default function AboutSection({
 
   useEffect(() => {
     if (activeBotData?.logo) {
-      setAgentPicture(activeBotData?.logo);
+      if (agentPicture === activeBotData?.logo) {
+        return;
+      }
+      const logoWithTimestamp = `${activeBotData.logo}?t=${Date.now()}`;
+      setAgentPicture(logoWithTimestamp);
     } else if (activeBotData?.personalityType?.name) {
-      let voiceName = activeBotData?.personalityType?.name;
+      let voiceName = activeBotData.personalityType.name;
 
       const logoObj = PERSONALITY_OPTIONS.find(
         (model) => model.title === voiceName
       );
 
       if (logoObj) {
-        setAgentPicture(logoObj?.image);
+        setAgentPicture(logoObj.image);
       } else {
         setAgentPicture(
           "https://t4.ftcdn.net/jpg/08/04/36/29/360_F_804362990_0n7bGLz9clMBi5ajG52k8OAUQTneMbj4.jpg"
         );
       }
     }
-  }, [activeBotData?.logo, activeBotData?.personalityType?.name]);
+  }, [activeBotData]);
 
   useEffect(() => {
     if (showContactForm !== undefined) {
