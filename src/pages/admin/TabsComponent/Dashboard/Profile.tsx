@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Upload, Link2, Copy, Check, X } from "lucide-react";
 import PublicChat from "../../../chatbot/PublicChat";
 import {
-  uploadProfilePicture,
   updateAgentUsername,
   updateAgentNameAndBio,
   updatePromotionalBanner,
