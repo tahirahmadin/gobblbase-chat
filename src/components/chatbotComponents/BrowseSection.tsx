@@ -173,8 +173,7 @@ export default function BrowseSection({
                       </div>
                       <img
                         src={
-                          product.images?.[0] ||
-                          "https://karanzi.websites.co.in/obaju-turquoise/img/product-placeholder.png"
+                          product.images?.[0] || "https://i.imgur.com/EJLFNOwg.jpg"
                         }
                         alt={product.title}
                         className="w-full h-28 object-cover"
