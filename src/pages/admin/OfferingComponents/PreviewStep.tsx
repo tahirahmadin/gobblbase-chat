@@ -266,7 +266,11 @@ const PreviewStep: FC<PreviewStepProps> = ({
             {/* Description */}
             <div
               className="px-4 text-xs text-gray-300 text-center mb-2 line-clamp-4"
-              style={{ minHeight: 48 }}
+              style={{
+                minHeight: 48,
+                wordBreak: "break-word",
+                overflowWrap: "break-word",
+              }}
             >
               {descriptionEnabled && description
                 ? description

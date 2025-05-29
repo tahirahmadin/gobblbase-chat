@@ -945,7 +945,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                     className="border border-gray-300 rounded p-1 w-40 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full"
                     placeholder="Address"
                     disabled={form.locationType !== "offline"}
+                    maxLength={50}
                   />
+                  <div className="text-xs text-gray-500 ml-2">
+                    {(form.address || "").length}/50
+                  </div>
                 </label>
               </div>
             </div>
