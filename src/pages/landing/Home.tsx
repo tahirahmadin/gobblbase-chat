@@ -1636,7 +1636,7 @@ const Home = () => {
                       <p className="para-font text-[13px] font-[500]">The power of a full team working for you, without traditional hiring costs.</p>
                   </div>
                   <img
-                    src="public/assets/landing-asset/assemble/who-card-1.png"
+                    src="/assets/landing-asset/assemble/who-card-1.png"
                     alt=""
                     width={"100%"}
                   />
@@ -1694,7 +1694,7 @@ const Home = () => {
                       <p className="para-font text-[13px] font-[500]">Your intelligent storefront guiding customers and closing sales 24x7.</p>
                   </div>
                   <img
-                    src="public/assets/landing-asset/assemble/who-card-2.png"
+                    src="/assets/landing-asset/assemble/who-card-2.png"
                     alt=""
                     width={"100%"}
                   />
@@ -1752,7 +1752,7 @@ const Home = () => {
                       <p className="para-font text-[13px] font-[500]">Your AI front desk handling bookings, leads, and nurturing client relationships.</p>
                   </div>
                   <img
-                    src="public/assets/landing-asset/assemble/who-card-3.png"
+                    src="/assets/landing-asset/assemble/who-card-3.png"
                     alt=""
                     width={"100%"}
                   />
