@@ -56,7 +56,7 @@ const socialMediaBaseUrls = {
   tiktok: "https://www.tiktok.com/@",
   facebook: "https://www.facebook.com/",
   youtube: "https://www.youtube.com/@",
-  linkedin: "https://www.linkedin.com/in/",
+  linkedin: "https://www.linkedin.com/",
   snapchat: "https://www.snapchat.com/add/",
 };
 
@@ -112,7 +112,7 @@ const SocialMediaSection = () => {
       tiktok: /^[a-zA-Z0-9_.]{1,24}$/,
       facebook: /^[a-zA-Z0-9.]{5,50}$/,
       youtube: /^[a-zA-Z0-9_-]{1,30}$/,
-      linkedin: /^[a-zA-Z0-9-]{3,100}$/,
+      linkedin: /^(?:in\/[a-zA-Z0-9-]{3,100}|company\/[a-zA-Z0-9-]{3,100})$/,
       snapchat: /^[a-zA-Z0-9_.]{3,15}$/,
     },
 
@@ -128,7 +128,7 @@ const SocialMediaSection = () => {
       youtube:
         "YouTube username can only contain letters, numbers, underscores, and hyphens (max 30 chars)",
       linkedin:
-        "LinkedIn username can only contain letters, numbers, and hyphens (min 3, max 100 chars)",
+        "LinkedIn handle should be in format 'in/username' for personal profiles or 'company/username' for company pages (3-100 chars)",
       snapchat:
         "Snapchat username can only contain letters, numbers, underscores, and periods (3-15 chars)",
     },

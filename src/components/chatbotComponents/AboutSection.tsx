@@ -477,6 +477,11 @@ export default function AboutSection({
                     typeof socials.linkedin === "string" &&
                     socials.linkedin.startsWith("http")
                       ? socials.linkedin
+                      : socials.linkedin.startsWith("company/")
+                      ? `https://linkedin.com/company/${socials.linkedin.replace(
+                          "company/",
+                          ""
+                        )}`
                       : `https://linkedin.com/in/${(
                           socials.linkedin || ""
                         ).replace(/^@/, "")}`
