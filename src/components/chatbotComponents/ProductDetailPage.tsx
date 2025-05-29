@@ -298,15 +298,28 @@ export default function ProductDetailPage({
       >
         <div>
           <div className="text-xs font-semibold mb-1 text-left">LOCATION</div>
-          <button
-            className="px-3 py-1 rounded-full border text-xs font-semibold"
-            style={{
-              color: theme.highlightColor,
-              borderColor: theme.isDark ? "#fff" : "#000",
-            }}
-          >
-            Online
-          </button>
+          {selectedProduct.locationType === "offline" && (
+            <div
+              className=" py-1  text-xs font-semibold text-left"
+              style={{
+                color: theme.highlightColor,
+                borderColor: theme.isDark ? "#fff" : "#000",
+              }}
+            >
+              {selectedProduct.address}
+            </div>
+          )}
+          {selectedProduct.locationType === "online" && (
+            <button
+              className="px-3 py-1 rounded-full border text-xs font-semibold text-left"
+              style={{
+                color: theme.highlightColor,
+                borderColor: theme.isDark ? "#fff" : "#000",
+              }}
+            >
+              ONLINE
+            </button>
+          )}
         </div>
         <div>
           <div className="text-xs font-semibold mb-1 text-left">
@@ -600,7 +613,7 @@ export default function ProductDetailPage({
             className="w-24 mx-auto border-b-4 mb-2 opacity-90"
             style={{ borderColor: theme.isDark ? "#fff" : "#000" }}
           />
-          <div className="text-sm mb-2 text-left opacity-90">
+          <div className="text-sm mb-2 text-left opacity-90 text-wrap truncate">
             {selectedProduct?.description || "Product Bio "}
           </div>
           {extraFields}

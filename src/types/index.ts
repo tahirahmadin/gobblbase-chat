@@ -215,7 +215,8 @@ export interface Product {
   variedQuantities?: Record<string, number>;
   checkType?: string;
   quantity?: number;
-
+  address?: string;
+  locationType?: "online" | "offline";
   slots?: Array<{
     date: string;
     start: string;
