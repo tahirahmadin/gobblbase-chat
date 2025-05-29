@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import {
@@ -21,11 +21,13 @@ const Container = styled.div`
   min-height: 100vh;
   overflow-x: hidden;
 `;
-const Navbar = styled.nav`
+
+const Navbar = styled.nav<{ $scrolled: boolean }>`
     top; 1px;
     z-index: 111111;
     position: fixed;
     width: 100%;
+    background: ${({ $scrolled }) => ($scrolled ? '#000' : 'transparent')};
 `;
 const Header = styled.header`
   display: flex;
@@ -1345,6 +1347,17 @@ const FooterBelow = styled.div`
 `;
 
 const Home = () => {
+  const [scrolled, setScrolled] = useState(false);
+
+useEffect(() => {
+  const handleScroll = () => {
+    const isScrolled = window.scrollY > 10;
+    setScrolled(isScrolled);
+  };
+
+  window.addEventListener("scroll", handleScroll);
+  return () => window.removeEventListener("scroll", handleScroll);
+}, []);
   const [selectedFeature, setSelectedFeature] = useState(features[0].key);
 
   const selected = features.find((f) => f.key === selectedFeature);
@@ -1353,7 +1366,7 @@ const Home = () => {
   return (
     <>
       <Container>
-        <Navbar>
+        <Navbar $scrolled={scrolled}>
           <Header>
             <Logo>
               <span onClick={() => navigate("/")}>
@@ -1508,7 +1521,7 @@ const Home = () => {
                 <h1 className="para-font px-3">Sayy? What’s that?</h1>
               </span>
             </BlackBackground>
-            <span className="relative w-fit z-10 ml-8 md:ml-auto">
+            {/* <span className="relative w-fit z-10 ml-8 md:ml-auto">
               <img
                 src="/assets/landing-asset/assemble/sayy-what-white-bg.png"
                 alt="bubble"
@@ -1520,7 +1533,17 @@ const Home = () => {
                 operations – all through simple, intelligent conversations, 24
                 hours a day. No coding skills needed.
               </PracticalDesc>
-            </span>
+            </span> */}
+            <WhiteBackground style={{width: "80%" , marginLeft:"auto", marginRight:"2vw"}}>
+                <span >
+                  <h3 className="para-font text-[14px] font-[500]">
+                    Imagine an AI that does the work of an entire team: selling your
+                    services, supporting customers, capturing leads, and managing
+                    operations – all through simple, intelligent conversations, 24
+                    hours a day. No coding skills needed.
+                  </h3>
+                  </span>              
+            </WhiteBackground>
           </PracticalSection>
           <CardsRow>
             <PracticalCard>
@@ -1529,13 +1552,25 @@ const Home = () => {
                   <h1 className="para-font px-3">Who is Sayy AI for?</h1>
                 </span>
               </BlackBackground>
-              <img src="assets\landing-asset\assemble\card-1.png" alt="" />
+                  <div className="hidden max-[800px]:flex w-full justify-center mb-6">
+                    <WhiteBackground className="">
+                      <span style={{padding: "2vh 2vw", width: "98%"}}>
+                        <h3 className="para-font text-[16px] font-[800]">
+                          Solopreneurs, E-Commerce & Service Providers    
+                        </h3>
+                      </span>
+                    </WhiteBackground>
+                  </div>
+                <img className="hidden min-[801px]:flex " src="assets\landing-asset\assemble\card-1.png" alt="" />
+                <img className="hidden max-[800px]:flex " src="assets\landing-asset\assemble\mob-card-1.png" alt="" />
             </PracticalCard>
             <PracticalCard style={{ justifyContent: "center" }}>
-              <img src="assets\landing-asset\assemble\card-2.png" alt="" />
+              <img className="hidden min-[801px]:flex " src="assets\landing-asset\assemble\card-2.png" alt="" />
+                <img className="hidden max-[800px]:flex " src="assets\landing-asset\assemble\mob-card-2.png" alt="" />
             </PracticalCard>
             <PracticalCard>
-              <img src="assets\landing-asset\assemble\card-3.png" alt="" />
+              <img className="hidden min-[801px]:flex " src="assets\landing-asset\assemble\card-3.png" alt="" />
+                <img className="hidden max-[800px]:flex " src="assets\landing-asset\assemble\mob-card-3.png" alt="" />
             </PracticalCard>
           </CardsRow>
         </section>
@@ -1841,7 +1876,7 @@ const Home = () => {
                             <div className="img">
                               <object
                                 type="image/svg+xml"
-                                data="assets/landing-asset/animation/web anim-1 @sdevc.svg"
+                                data="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/web+anim-1+%40sdevc.svg"
                                 className="w-fit h-auto"
                               ></object>
                             </div>
@@ -1849,11 +1884,6 @@ const Home = () => {
                         </div>
                       </div>
                        <div className="card min:h-[300px] max:h-[600px] h-full bg-[#fff]">
-                        {/* <div className="top-heading absolute -top-4 left-8">
-                          <BlackBackground>
-                              <span style={{width: "150px", padding:"1vh 4vw", color:"black", backgroundColor: "#9AFFDC"}}>Brain</span>
-                          </BlackBackground>  
-                        </div> */}
                         <div className="card-heading">
                             <h1 className="main-font font-[1000] text-[22px]">Smart beyond limits</h1>
                         </div>
@@ -1861,7 +1891,7 @@ const Home = () => {
                             <div className="img">
                               <object
                                 type="image/svg+xml"
-                                data="assets/landing-asset/animation/web anim-3 @sdevc.svg"
+                                data="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/web+anim-3+%40sdevc.svg"
                                 className="w-fit h-auto"
                               ></object>
                             </div>
@@ -1869,11 +1899,6 @@ const Home = () => {
                         </div>
                       </div>
                        <div className="card min:h-[300px] max:h-[600px] h-full bg-[#fff]">
-                        {/* <div className="top-heading absolute -top-4 left-8">
-                          <BlackBackground>
-                              <span style={{width: "150px", padding:"1vh 4vw", color:"black", backgroundColor: "#9AFFDC"}}>Brain</span>
-                          </BlackBackground>  
-                        </div> */}
                         <div className="card-heading">
                             <h1 className="main-font font-[1000] text-[22px]">Smart beyond limits</h1>
                         </div>
@@ -1881,7 +1906,7 @@ const Home = () => {
                             <div className="img">
                               <object
                                 type="image/svg+xml"
-                                data="assets/landing-asset/animation/web anim-2@sdevc.svg"
+                                data="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/web+anim-2%40sdevc.svg"
                                 className="w-fit h-auto"
                               ></object>
                             </div>
