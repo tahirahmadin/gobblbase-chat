@@ -31,14 +31,14 @@ const Navbar = styled.nav<{ $scrolled: boolean }>`
     background: ${({ $scrolled }) => ($scrolled ? "#140065" : "transparent")};
     `;
 const Header = styled.header`
-    padding: 2vh 2vw;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    // border-bottom: 1px solid #e5e7eb;
-    @media(max-width:600px){
-      padding: 3vh 6vw;
-    }
+  padding: 2vh 2vw;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  // border-bottom: 1px solid #e5e7eb;
+  @media (max-width: 600px) {
+    padding: 3vh 6vw;
+  }
 `;
 
 const Logo = styled.div`
@@ -1317,7 +1317,7 @@ const FooterBelow = styled.div`
 const Home = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  
+
   const [selectedFeature, setSelectedFeature] = useState(features[0].key);
 
   const selected = features.find((f) => f.key === selectedFeature);
@@ -1348,79 +1348,79 @@ const Home = () => {
   return (
     <>
       <Container>
-        <Navbar
-          $scrolled={scrolled}
-        >
-          <Header style={{
-            background: menuOpen ? "#140065" : "transparent",
-          }}>
-              <Logo>
-                <span onClick={() => navigate("/")}>
-                  <img src="/assets/header-logo.png" alt="logo" width={80} />
-                </span>
-                <NavLink
-                  className="hidden [@media(min-width:601px)]:flex"
-                  onClick={() => navigate("/pricing")}
-                >
-                  PRICING
-                </NavLink>
-              </Logo>
-              <NavLinks className="">
-                <div className="relative z-10 hidden [@media(min-width:601px)]:flex">
-                  <LoginButton onClick={() => navigate("/admin")}>
-                    Login/Sign up
+        <Navbar $scrolled={scrolled}>
+          <Header
+            style={{
+              background: menuOpen ? "#140065" : "transparent",
+            }}
+          >
+            <Logo>
+              <span onClick={() => navigate("/")}>
+                <img src="/assets/header-logo.png" alt="logo" width={80} />
+              </span>
+              <NavLink
+                className="hidden [@media(min-width:601px)]:flex"
+                onClick={() => navigate("/pricing")}
+              >
+                PRICING
+              </NavLink>
+            </Logo>
+            <NavLinks className="">
+              <div className="relative z-10 hidden [@media(min-width:601px)]:flex">
+                <LoginButton onClick={() => navigate("/admin")}>
+                  Login/Sign up
+                </LoginButton>
+              </div>
+              <div className="relative z-10 hidden [@media(max-width:601px)]:block">
+                {!menuOpen ? (
+                  <LoginButton
+                    onClick={() => setMenuOpen(!menuOpen)}
+                    style={{ minWidth: "fit-content" }}
+                  >
+                    <Menu />
                   </LoginButton>
-                </div>
-                <div className="relative z-10 hidden [@media(max-width:601px)]:block">
-                  {!menuOpen ? (
-                    <LoginButton
-                      onClick={() => setMenuOpen(!menuOpen)}
-                      style={{ minWidth: "fit-content" }}
-                    >
-                      <Menu />
-                    </LoginButton>
-                  ) : (
-                    <LoginButton
-                      onClick={() => setMenuOpen(!menuOpen)}
-                      style={{ minWidth: "fit-content" }}
-                    >
-                      <X />
-                    </LoginButton>
-                  )}
-                </div>
-                {menuOpen && (
-                  <div className=" hidden [@media(max-width:601px)]:flex w-full h-[100vh] flex flex-col gap-12 py-8 absolute right-0 mt-4 w-48 bg-black shadow-lg">
-                    <NavLink
-                      style={{
-                        borderBottom: "1px solid #fff",
-                        width: "80%",
-                        borderRadius: "0px",
-                        margin: "0 auto",
-                        padding: "2vh 2vw",
-                      }}
-                      className=""
-                      onClick={() => navigate("/pricing")}
-                    >
-                      PRICING
-                    </NavLink>
-                    <div
-                      className="relative z-10"
-                      style={{
-                        width: "80%",
-                        borderRadius: "0px",
-                        margin: "0 auto",
-                      }}
-                    >
-                      <LoginButton
-                        style={{ width: "100%" }}
-                        onClick={() => navigate("/admin")}
-                      >
-                        Login/Sign up
-                      </LoginButton>
-                    </div>
-                  </div>
+                ) : (
+                  <LoginButton
+                    onClick={() => setMenuOpen(!menuOpen)}
+                    style={{ minWidth: "fit-content" }}
+                  >
+                    <X />
+                  </LoginButton>
                 )}
-              </NavLinks>
+              </div>
+              {menuOpen && (
+                <div className=" hidden [@media(max-width:601px)]:flex w-full h-[100vh] flex flex-col gap-12 py-8 absolute right-0 mt-4 w-48 bg-black shadow-lg">
+                  <NavLink
+                    style={{
+                      borderBottom: "1px solid #fff",
+                      width: "80%",
+                      borderRadius: "0px",
+                      margin: "0 auto",
+                      padding: "2vh 2vw",
+                    }}
+                    className=""
+                    onClick={() => navigate("/pricing")}
+                  >
+                    PRICING
+                  </NavLink>
+                  <div
+                    className="relative z-10"
+                    style={{
+                      width: "80%",
+                      borderRadius: "0px",
+                      margin: "0 auto",
+                    }}
+                  >
+                    <LoginButton
+                      style={{ width: "100%" }}
+                      onClick={() => navigate("/admin")}
+                    >
+                      Login/Sign up
+                    </LoginButton>
+                  </div>
+                </div>
+              )}
+            </NavLinks>
           </Header>
         </Navbar>
 
@@ -1575,6 +1575,8 @@ const Home = () => {
             </WhiteBackground>
           </PracticalSection>
           <CardsRow>
+
+            {/* card 1 */}
             <PracticalCard>
               <BlackBackground>
                 <span className="card-1 relative z-10 w-full h-fit">
@@ -1590,41 +1592,179 @@ const Home = () => {
                   </span>
                 </WhiteBackground>
               </div>
-              <img
-                className="hidden min-[801px]:flex "
-                src="assets\landing-asset\assemble\card-1.png"
-                alt=""
-              />
-              <img
-                className="hidden max-[800px]:flex "
-                src="assets\landing-asset\assemble\mob-card-1.png"
-                alt=""
-              />
+              <div className="practical-card-content max-w-[350px]">
+                <div className="hidden min-[801px]:flex w-full flex-col gap-2 justify-center">
+                  <WhiteBackground
+                    style={{
+                      width: "100%",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: "95%",
+                        padding: "1.2vh 2vw ",
+                        marginRight: "20px",
+                      }}
+                    >
+                      <h1 className="main-font text-[20px] font-[1000]">
+                        Solopreneurs
+                      </h1>
+                    </span>
+                  </WhiteBackground>
+                  <WhiteBackground
+                    style={{
+                      width: "100%",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: "95%",
+                        padding: "1.2vh 2vw ",
+                        marginRight: "20px",
+                      }}
+                    >
+                      <h3 className="para-font text-[13px] font-[500]">
+                        The power of a full team working for you, without
+                        traditional hiring costs.
+                      </h3>
+                    </span>
+                  </WhiteBackground>
+                </div>
+                <div className="for-card bg-[#fff] mt-2 w-full px-[6px] py-[6px] rounded-[10px] border border-black">
+                  <div className="mob-upper-content hidden max-[800px]:flex w-full flex-col gap-2 text-center py-2 px-2">
+                      <h1 className="main-font text-[20px] font-[1000]">Solopreneurs</h1>
+                      <p className="para-font text-[13px] font-[500]">The power of a full team working for you, without traditional hiring costs.</p>
+                  </div>
+                  <img
+                    src="public/assets/landing-asset/assemble/who-card-1.png"
+                    alt=""
+                    width={"100%"}
+                  />
+                  <div className="content bg-[#FFFEB2] w-full border border-black mt-[6px] px-4 py-1">
+                    <p className="text-center para-font text-[14px] font-[500]">
+                      Creators, Freelancers, <br /> Coaches & Consultants
+                    </p>
+                  </div>
+                </div>
+              </div>
             </PracticalCard>
+
+            {/* card 2 */}
             <PracticalCard style={{ justifyContent: "center" }}>
-              <img
-                className="hidden min-[801px]:flex "
-                src="assets\landing-asset\assemble\card-2.png"
-                alt=""
-              />
-              <img
-                className="hidden max-[800px]:flex "
-                src="assets\landing-asset\assemble\mob-card-2.png"
-                alt=""
-              />
+             <div className="practical-card-content max-w-[350px]">
+                <div className="hidden min-[801px]:flex w-full flex-col gap-2 justify-center">
+                  <WhiteBackground
+                    style={{
+                      width: "100%",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: "95%",
+                        padding: "1.2vh 2vw ",
+                        marginRight: "20px",
+                      }}
+                    >
+                      <h1 className="main-font text-[20px] font-[1000]">
+                        E-Commerce
+                      </h1>
+                    </span>
+                  </WhiteBackground>
+                  <WhiteBackground
+                    style={{
+                      width: "100%",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: "95%",
+                        padding: "1.2vh 2vw ",
+                        marginRight: "20px",
+                      }}
+                    >
+                      <h3 className="para-font text-[13px] font-[500]">
+                        Your intelligent storefront guiding customers and closing sales 24x7.
+                      </h3>
+                    </span>
+                  </WhiteBackground>
+                </div>
+                <div className="for-card bg-[#fff] mt-2 w-full px-[6px] py-[6px] rounded-[10px] border border-black">
+                  <div className="mob-upper-content hidden max-[800px]:flex w-full flex-col gap-2 text-center py-2 px-2">
+                      <h1 className="main-font text-[20px] font-[1000]">E-Commerce</h1>
+                      <p className="para-font text-[13px] font-[500]">Your intelligent storefront guiding customers and closing sales 24x7.</p>
+                  </div>
+                  <img
+                    src="public/assets/landing-asset/assemble/who-card-1.png"
+                    alt=""
+                    width={"100%"}
+                  />
+                  <div className="content bg-[#FFFEB2] w-full border border-black mt-[6px] px-4 py-1">
+                    <p className="text-center para-font text-[14px] font-[500]">
+                      E-commerce, D2C brands <br /> & Influencer storefronts
+                    </p>
+                  </div>
+                </div>
+              </div>
             </PracticalCard>
+
+              {/* card 3 */}
             <PracticalCard>
-              <img
-                className="hidden min-[801px]:flex "
-                src="assets\landing-asset\assemble\card-3.png"
-                alt=""
-              />
-              <img
-                className="hidden max-[800px]:flex "
-                src="assets\landing-asset\assemble\mob-card-3.png"
-                alt=""
-              />
+             <div className="practical-card-content max-w-[350px]">
+                <div className="hidden min-[801px]:flex w-full flex-col gap-2 justify-center">
+                  <WhiteBackground
+                    style={{
+                      width: "100%",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: "95%",
+                        padding: "1.2vh 2vw ",
+                        marginRight: "20px",
+                      }}
+                    >
+                      <h1 className="main-font text-[20px] font-[1000]">
+                        Service Providers
+                      </h1>
+                    </span>
+                  </WhiteBackground>
+                  <WhiteBackground
+                    style={{
+                      width: "100%",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: "95%",
+                        padding: "1.2vh 2vw ",
+                        marginRight: "20px",
+                      }}
+                    >
+                      <h3 className="para-font text-[13px] font-[500]">
+                        Your AI front desk handling bookings, leads, and nurturing client relationships..
+                      </h3>
+                    </span>
+                  </WhiteBackground>
+                </div>
+                <div className="for-card bg-[#fff] mt-2 w-full px-[6px] py-[6px] rounded-[10px] border border-black">
+                  <div className="mob-upper-content hidden max-[800px]:flex w-full flex-col gap-2 text-center py-2 px-2">
+                      <h1 className="main-font text-[20px] font-[1000]">Service Providers</h1>
+                      <p className="para-font text-[13px] font-[500]">Your AI front desk handling bookings, leads, and nurturing client relationships.</p>
+                  </div>
+                  <img
+                    src="public/assets/landing-asset/assemble/who-card-3.png"
+                    alt=""
+                    width={"100%"}
+                  />
+                  <div className="content bg-[#FFFEB2] w-full border border-black mt-[6px] px-4 py-1">
+                    <p className="text-center para-font text-[14px] font-[500]">
+                      Hospitality, Wellness, <br /> Legal & Home Services
+                    </p>
+                  </div>
+                </div>
+              </div>
             </PracticalCard>
+
           </CardsRow>
         </section>
 
@@ -1705,16 +1845,16 @@ const Home = () => {
                                    ? "bg-[#64FFB7]"
                                    : "bg-white"
                                } 
-                                before:content-[''] before:absolute before:bottom-0 before:right-[-10px] before:w-0 before:h-0
+                                before:content-[''] before:absolute before:bottom-0 before:right-[4px] xs:before:right-[-10px] before:w-0 before:h-0
                                 before:border-l-[20px] before:border-r-[20px] before:border-b-[20px]
-                                before:border-l-transparent before:border-r-transparent
+                                before:border-l-transparent before:border-r-transparent 
                                 ${
                                   feature.key === selectedFeature
                                     ? "before:border-b-[#64FFB7]"
                                     : "before:border-b-white"
                                 } before:z-[0]
 
-                                after:content-[''] after:absolute after:bottom-[-1px] after:right-[-12px] after:w-0 after:h-0
+                                after:content-[''] after:absolute after:bottom-[-1px] after:right-[1px] xs:after:right-[-12px] after:w-0 after:h-0
                                 after:border-l-[22px] after:border-r-[22px] after:border-b-[22px]
                                 after:border-l-transparent after:border-r-transparent after:border-b-black after:z-[-1]
                           `}
