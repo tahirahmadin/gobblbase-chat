@@ -12,6 +12,8 @@ import {
   ChevronRight,
   File,
   User,
+  Menu,
+  X,
 } from "lucide-react";
 
 const Container = styled.div`
@@ -26,14 +28,14 @@ const Navbar = styled.nav<{ $scrolled: boolean }>`
     z-index: 111111;
     position: fixed;
     width: 100%;
-    background: ${({ $scrolled }) => ($scrolled ? '#000' : 'transparent')};
-`;
+    background: ${({ $scrolled }) => ($scrolled ? "#140065" : "transparent")};
+    `;
 const Header = styled.header`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 2vh 2vw;
-  // border-bottom: 1px solid #e5e7eb;
+    padding: 2vh 2vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    // border-bottom: 1px solid #e5e7eb;
 `;
 
 const Logo = styled.div`
@@ -47,7 +49,7 @@ const Logo = styled.div`
 `;
 
 const NavLinks = styled.div`
-  display: flex;
+  // display: flex;
   align-items: center;
   gap: 24px;
 `;
@@ -61,10 +63,9 @@ const NavLink = styled.button`
   padding: 4px 8px;
   border-radius: 4px;
   transition: background-color 0.2s;
-
   &:hover {
     background-color: #f5f5f5;
-    color: black
+    color: black;
   }
 `;
 
@@ -86,7 +87,7 @@ const LoginButton = styled.button`
     height: 100%;
     border: 2px solid #000000;
     z-index: -1; // place it behind the button
-    background: #6AFF97;
+    background: #6aff97;
   }
   @media (max-width: 600px) {
     min-width: 100px;
@@ -290,7 +291,6 @@ const CTAButton = styled.button`
     background: #d6ffe0;
   }
 `;
-
 
 const PracticalSection = styled.section`
   background: #aeb8ff;
@@ -741,43 +741,43 @@ const BuildAgentSection = styled.section`
     gap: 20px;
     flex-direction: column;
   }
-  .upper{
+  .upper {
     padding: 8vh 2vw 5vh 2vw;
     display: flex;
     flex-direction: column;
     gap: 24px;
-    @media(max-width: 600px){
+    @media (max-width: 600px) {
       padding: 8vh 4vw 5vh 2vw;
     }
   }
-  .below-section{
+  .below-section {
     border-top: 1px solid black;
-    .card-container{
+    .card-container {
       padding: 8vh 4vw;
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
       gap: 16px;
-      @media(max-width: 900px){
+      @media (max-width: 900px) {
         grid-template-columns: 1fr 1fr;
         row-gap: 40px;
       }
-      @media(max-width: 500px){
+      @media (max-width: 500px) {
         grid-template-columns: 1fr;
         text-align: center;
       }
-      .card{
+      .card {
         border-radius: 0;
         position: relative;
         border: 1px solid black;
         display: flex;
         flex-direction: column;
         padding: 0;
-        .top-heading{
-          position: absolute; 
+        .top-heading {
+          position: absolute;
           top: -20px;
           left: 12px;
           width: fit-content;
-          .green-card-title{
+          .green-card-title {
             display: flex;
             flex-direction: column;
             gap: 24px;
@@ -792,53 +792,52 @@ const BuildAgentSection = styled.section`
               height: 100%;
               padding: 1vh 2vw 1vh 2vw;
               text-align: left;
-              background: #9AFFDC;
+              background: #9affdc;
               border: 1px solid black;
               border-radius: 40px;
               position: relative;
               font-weight: 1000;
-              @media(max-width: 600px){
+              @media (max-width: 600px) {
                 padding: 1vh 2vw 1vh 4vw;
               }
-                &::before {
-                  content: "";
-                  position: absolute;
-                  width: 0;
-                  height: 0;
-                  right: -3px;
-                  bottom: -1px;
-                  z-index: -1;
-                  border-left: 20px solid transparent;
-                  border-right: 20px solid transparent;
-                  border-bottom: 20px solid black;
-                }
-                &::after {
-                  content: "";
-                  position: absolute;
-                  bottom: 0px;
-                  width: 0;
-                  height: 0;
-                  border-left: 20px solid transparent;
-                  border-right: 20px solid transparent;
-                  border-bottom: 20px solid #9AFFDC;
-                  right: -1px;
-                  bottom: 0px;
-                }
+              &::before {
+                content: "";
+                position: absolute;
+                width: 0;
+                height: 0;
+                right: -3px;
+                bottom: -1px;
+                z-index: -1;
+                border-left: 20px solid transparent;
+                border-right: 20px solid transparent;
+                border-bottom: 20px solid black;
               }
+              &::after {
+                content: "";
+                position: absolute;
+                bottom: 0px;
+                width: 0;
+                height: 0;
+                border-left: 20px solid transparent;
+                border-right: 20px solid transparent;
+                border-bottom: 20px solid #9affdc;
+                right: -1px;
+                bottom: 0px;
+              }
+            }
           }
         }
 
-        .card-heading{
-          background: #FDE5FF;
+        .card-heading {
+          background: #fde5ff;
           width: 100%;
           padding: 4vh 2vw 2vh 2vw;
           height: fit-content;
         }
-        .content{
+        .content {
           border-top: 1px solid black;
           width: 100%;
           padding: 2vh 2vw 6vh 2vw;
-
         }
       }
     }
@@ -866,8 +865,8 @@ const AppOverloadUpper = styled.div`
   position: relative;
   z-index: 10;
   padding: 8vh 2vw 5vh 2vw;
-  @media(max-width: 600px){
-      padding: 0 4vw 2vh 2vw;
+  @media (max-width: 600px) {
+    padding: 0 4vw 2vh 2vw;
   }
 `;
 const AppOverloadLower = styled.div`
@@ -1003,8 +1002,8 @@ const IntegrationsSection = styled.section`
     padding: 2vh 2vw 5vh 2vw;
     flex-direction: column;
   }
-  @media(max-width: 600px){
-      padding: 0 4vw 2vh 2vw;
+  @media (max-width: 600px) {
+    padding: 0 4vw 2vh 2vw;
   }
 `;
 
@@ -1313,40 +1312,113 @@ const FooterBelow = styled.div`
 `;
 
 const Home = () => {
+  const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-
-useEffect(() => {
-  const handleScroll = () => {
-    const isScrolled = window.scrollY > 10;
-    setScrolled(isScrolled);
-  };
-
-  window.addEventListener("scroll", handleScroll);
-  return () => window.removeEventListener("scroll", handleScroll);
-}, []);
+  
   const [selectedFeature, setSelectedFeature] = useState(features[0].key);
 
   const selected = features.find((f) => f.key === selectedFeature);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 10;
+      setScrolled(isScrolled);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    // Clean up when component unmounts
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
   return (
     <>
       <Container>
-        <Navbar $scrolled={scrolled}>
-          <Header>
-            <Logo>
-              <span onClick={() => navigate("/")}>
-                <img src="/assets/header-logo.png" alt="logo" width={80} />
-              </span>
-              <NavLink onClick={() => navigate("/pricing")}>PRICING</NavLink>
-            </Logo>
-            <NavLinks>
-              <div className="relative z-10">
-                <LoginButton onClick={() => navigate("/admin")}>
-                  Login/Sign up
-                </LoginButton>
-              </div>
-            </NavLinks>
+        <Navbar
+          $scrolled={scrolled}
+          
+        >
+          <Header style={{
+            background: menuOpen ? "#140065" : "transparent",
+          }}>
+              <Logo>
+                <span onClick={() => navigate("/")}>
+                  <img src="/assets/header-logo.png" alt="logo" width={80} />
+                </span>
+                <NavLink
+                  className="hidden [@media(min-width:601px)]:flex"
+                  onClick={() => navigate("/pricing")}
+                >
+                  PRICING
+                </NavLink>
+              </Logo>
+              <NavLinks className="">
+                <div className="relative z-10 hidden [@media(min-width:601px)]:flex">
+                  <LoginButton onClick={() => navigate("/admin")}>
+                    Login/Sign up
+                  </LoginButton>
+                </div>
+                <div className="relative z-10 hidden [@media(max-width:601px)]:block">
+                  {!menuOpen ? (
+                    <LoginButton
+                      onClick={() => setMenuOpen(!menuOpen)}
+                      style={{ minWidth: "fit-content" }}
+                    >
+                      <Menu />
+                    </LoginButton>
+                  ) : (
+                    <LoginButton
+                      onClick={() => setMenuOpen(!menuOpen)}
+                      style={{ minWidth: "fit-content" }}
+                    >
+                      <X />
+                    </LoginButton>
+                  )}
+                </div>
+                {menuOpen && (
+                  <div className=" hidden [@media(max-width:601px)]:flex w-full h-[100vh] flex flex-col gap-12 py-8 absolute right-0 mt-4 w-48 bg-black shadow-lg">
+                    <NavLink
+                      style={{
+                        borderBottom: "1px solid #fff",
+                        width: "80%",
+                        borderRadius: "0px",
+                        margin: "0 auto",
+                        padding: "2vh 2vw",
+                      }}
+                      className=""
+                      onClick={() => navigate("/pricing")}
+                    >
+                      PRICING
+                    </NavLink>
+                    <div
+                      className="relative z-10"
+                      style={{
+                        width: "80%",
+                        borderRadius: "0px",
+                        margin: "0 auto",
+                      }}
+                    >
+                      <LoginButton
+                        style={{ width: "100%" }}
+                        onClick={() => navigate("/admin")}
+                      >
+                        Login/Sign up
+                      </LoginButton>
+                    </div>
+                  </div>
+                )}
+              </NavLinks>
           </Header>
         </Navbar>
 
@@ -1379,76 +1451,76 @@ useEffect(() => {
               </div>
               <Subheadline>
                 <div className="w-fit flex flex-col">
-                <span className="heading flex items-center">
-                  <p className="text-[#AEB8FF]">Select their tasks</p>
-                  <ChevronRight
-                    size={16}
-                    className="ml-2 mt-1 stroke-4 stroke-grey-400"
-                  />
-                </span>
+                  <span className="heading flex items-center">
+                    <p className="text-[#AEB8FF]">Select their tasks</p>
+                    <ChevronRight
+                      size={16}
+                      className="ml-2 mt-1 stroke-4 stroke-grey-400"
+                    />
+                  </span>
 
-                    <div className="btns grid grid-cols-2 gap-x-4 gap-y-8 mt-4 place-items-center">
-                      <span className="relative inline-block">
-                        <img
-                          src="/assets/landing-asset/assemble/btn-bg-bubble.png"
-                          alt="bubble"
-                          className="block w-fit h-[40px] sm:h-[50px]"
-                        />
-                        <div className="para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px]">
-                          Answer Queries
-                        </div>
-                      </span>
-                      <span className="relative inline-block">
-                        <img
-                          src="/assets/landing-asset/assemble/btn-bg-bubble.png"
-                          alt="bubble"
-                          className="block w-fit h-[40px] sm:h-[50px]"
-                        />
-                        <div className="para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px]">
-                          Sell Products
-                        </div>
-                      </span>{" "}
-                      <span className="relative inline-block">
-                        <img
-                          src="/assets/landing-asset/assemble/btn-bg-bubble.png"
-                          alt="bubble"
-                          className="block w-fit h-[40px] sm:h-[50px]"
-                        />
-                        <div className="para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px]">
-                          Offer Services
-                        </div>
-                      </span>
-                      <span className="relative inline-block">
-                        <img
-                          src="/assets/landing-asset/assemble/btn-bg-bubble.png"
-                          alt="bubble"
-                          className="block w-fit h-[40px] sm:h-[50px]"
-                        />
-                        <div className="para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px]">
-                          Book Meetings
-                        </div>
-                      </span>
-                      <span className="relative inline-block">
-                        <img
-                          src="/assets/landing-asset/assemble/btn-bg-bubble.png"
-                          alt="bubble"
-                          className="block w-fit h-[40px] sm:h-[50px]"
-                        />
-                        <div className="para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px]">
-                          Collect Leads
-                        </div>
-                      </span>
-                      <span className="relative inline-block">
-                        <img
-                          src="/assets/landing-asset/assemble/btn-bg-bubble.png"
-                          alt="bubble"
-                          className="block w-fit h-[40px] sm:h-[50px]"
-                        />
-                        <div className="para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px]">
-                          Collect Payments
-                        </div>
-                      </span>
-                    </div>
+                  <div className="btns grid grid-cols-2 gap-x-4 gap-y-8 mt-4 place-items-center">
+                    <button className="relative inline-block">
+                      <img
+                        src="/assets/landing-asset/assemble/btn-bg-bubble.png"
+                        alt="bubble"
+                        className="block w-fit h-[40px] sm:h-[50px]"
+                      />
+                      <div className="para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px]">
+                        Answer Queries
+                      </div>
+                    </button>
+                    <button className="relative inline-block">
+                      <img
+                        src="/assets/landing-asset/assemble/btn-bg-bubble.png"
+                        alt="bubble"
+                        className="block w-fit h-[40px] sm:h-[50px]"
+                      />
+                      <div className="para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px]">
+                        Sell Products
+                      </div>
+                    </button>
+                    <button className="relative inline-block">
+                      <img
+                        src="/assets/landing-asset/assemble/btn-bg-bubble.png"
+                        alt="bubble"
+                        className="block w-fit h-[40px] sm:h-[50px]"
+                      />
+                      <div className="para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px]">
+                        Offer Services
+                      </div>
+                    </button>
+                    <button className="relative inline-block">
+                      <img
+                        src="/assets/landing-asset/assemble/btn-bg-bubble.png"
+                        alt="bubble"
+                        className="block w-fit h-[40px] sm:h-[50px]"
+                      />
+                      <div className="para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px]">
+                        Book Meetings
+                      </div>
+                    </button>
+                    <button className="relative inline-block">
+                      <img
+                        src="/assets/landing-asset/assemble/btn-bg-bubble.png"
+                        alt="bubble"
+                        className="block w-fit h-[40px] sm:h-[50px]"
+                      />
+                      <div className="para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px]">
+                        Collect Leads
+                      </div>
+                    </button>
+                    <button className="relative inline-block">
+                      <img
+                        src="/assets/landing-asset/assemble/btn-bg-bubble.png"
+                        alt="bubble"
+                        className="block w-fit h-[40px] sm:h-[50px]"
+                      />
+                      <div className="para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px]">
+                        Collect Payments
+                      </div>
+                    </button>
+                  </div>
                   <div className="relative z-10 mt-12">
                     <CTAButton onClick={() => navigate("/admin")}>
                       LAUNCH YOUR FREE AGENT
@@ -1487,15 +1559,17 @@ useEffect(() => {
                 <h1 className="para-font px-3">Sayy? What’s that?</h1>
               </span>
             </BlackBackground>
-            <WhiteBackground style={{width: "80%" , marginLeft:"auto", marginRight:"2vw"}}>
-                <span >
-                  <h3 className="para-font text-[14px] font-[500]">
-                    Imagine an AI that does the work of an entire team: selling your
-                    services, supporting customers, capturing leads, and managing
-                    operations – all through simple, intelligent conversations, 24
-                    hours a day. No coding skills needed.
-                  </h3>
-                  </span>              
+            <WhiteBackground
+              style={{ width: "80%", marginLeft: "auto", marginRight: "2vw" }}
+            >
+              <span>
+                <h3 className="para-font text-[14px] font-[500]">
+                  Imagine an AI that does the work of an entire team: selling
+                  your services, supporting customers, capturing leads, and
+                  managing operations – all through simple, intelligent
+                  conversations, 24 hours a day. No coding skills needed.
+                </h3>
+              </span>
             </WhiteBackground>
           </PracticalSection>
           <CardsRow>
@@ -1505,25 +1579,49 @@ useEffect(() => {
                   <h1 className="para-font px-3">Who is Sayy AI for?</h1>
                 </span>
               </BlackBackground>
-                  <div className="hidden max-[800px]:flex w-full justify-center mb-6">
-                    <WhiteBackground className="">
-                      <span style={{padding: "2vh 2vw", width: "98%"}}>
-                        <h3 className="para-font text-[16px] font-[800]">
-                          Solopreneurs, E-Commerce & Service Providers    
-                        </h3>
-                      </span>
-                    </WhiteBackground>
-                  </div>
-                <img className="hidden min-[801px]:flex " src="assets\landing-asset\assemble\card-1.png" alt="" />
-                <img className="hidden max-[800px]:flex " src="assets\landing-asset\assemble\mob-card-1.png" alt="" />
+              <div className="hidden max-[800px]:flex w-full justify-center mb-6">
+                <WhiteBackground className="">
+                  <span style={{ padding: "2vh 2vw", width: "98%" }}>
+                    <h3 className="para-font text-[16px] font-[800]">
+                      Solopreneurs, E-Commerce & Service Providers
+                    </h3>
+                  </span>
+                </WhiteBackground>
+              </div>
+              <img
+                className="hidden min-[801px]:flex "
+                src="assets\landing-asset\assemble\card-1.png"
+                alt=""
+              />
+              <img
+                className="hidden max-[800px]:flex "
+                src="assets\landing-asset\assemble\mob-card-1.png"
+                alt=""
+              />
             </PracticalCard>
             <PracticalCard style={{ justifyContent: "center" }}>
-              <img className="hidden min-[801px]:flex " src="assets\landing-asset\assemble\card-2.png" alt="" />
-                <img className="hidden max-[800px]:flex " src="assets\landing-asset\assemble\mob-card-2.png" alt="" />
+              <img
+                className="hidden min-[801px]:flex "
+                src="assets\landing-asset\assemble\card-2.png"
+                alt=""
+              />
+              <img
+                className="hidden max-[800px]:flex "
+                src="assets\landing-asset\assemble\mob-card-2.png"
+                alt=""
+              />
             </PracticalCard>
             <PracticalCard>
-              <img className="hidden min-[801px]:flex " src="assets\landing-asset\assemble\card-3.png" alt="" />
-                <img className="hidden max-[800px]:flex " src="assets\landing-asset\assemble\mob-card-3.png" alt="" />
+              <img
+                className="hidden min-[801px]:flex "
+                src="assets\landing-asset\assemble\card-3.png"
+                alt=""
+              />
+              <img
+                className="hidden max-[800px]:flex "
+                src="assets\landing-asset\assemble\mob-card-3.png"
+                alt=""
+              />
             </PracticalCard>
           </CardsRow>
         </section>
@@ -1557,9 +1655,9 @@ useEffect(() => {
                     className={`flex
                         ${
                           feature.key === selectedFeature
-                          ? "bg-[#000] text-[#64FFB7] "
-                          : "bg-white text-[#000]"
-                          }
+                            ? "bg-[#000] text-[#64FFB7] "
+                            : "bg-white text-[#000]"
+                        }
                         `}
                   >
                     {featureIcons[idx]}
@@ -1598,42 +1696,52 @@ useEffect(() => {
                         selected={selectedFeature === feature.key}
                         onClick={() => setSelectedFeature(feature.key)}
                       >
-                        <FeatureListLabel className= {`w-full pl-4 pr-3 py-4
-                               ${feature.key === selectedFeature ? "bg-[#64FFB7]" : "bg-white"} 
+                        <FeatureListLabel
+                          className={`w-full pl-4 pr-3 py-4
+                               ${
+                                 feature.key === selectedFeature
+                                   ? "bg-[#64FFB7]"
+                                   : "bg-white"
+                               } 
                                 before:content-[''] before:absolute before:bottom-0 before:right-[-10px] before:w-0 before:h-0
                                 before:border-l-[20px] before:border-r-[20px] before:border-b-[20px]
                                 before:border-l-transparent before:border-r-transparent
-                                ${feature.key === selectedFeature ? "before:border-b-[#64FFB7]" : "before:border-b-white"} before:z-[0]
+                                ${
+                                  feature.key === selectedFeature
+                                    ? "before:border-b-[#64FFB7]"
+                                    : "before:border-b-white"
+                                } before:z-[0]
 
                                 after:content-[''] after:absolute after:bottom-[-1px] after:right-[-12px] after:w-0 after:h-0
                                 after:border-l-[22px] after:border-r-[22px] after:border-b-[22px]
                                 after:border-l-transparent after:border-r-transparent after:border-b-black after:z-[-1]
-                          `}>
-                            <FeatureListH1>{feature.label}</FeatureListH1>
+                          `}
+                        >
+                          <FeatureListH1>{feature.label}</FeatureListH1>
 
-                            <div className="block max-[900px]:block min-[901px]:hidden pl-5">
-                              <FeatureListDesc>{feature?.desc}</FeatureListDesc>
+                          <div className="block max-[900px]:block min-[901px]:hidden pl-5">
+                            <FeatureListDesc>{feature?.desc}</FeatureListDesc>
+                          </div>
+
+                          {feature.key === selectedFeature && (
+                            <div className="hidden max-[900px]:hidden min-[901px]:block">
+                              <FeatureListDesc>
+                                {selected?.desc}
+                              </FeatureListDesc>
                             </div>
-
-                            {feature.key === selectedFeature && (
-                              <div className="hidden max-[900px]:hidden min-[901px]:block">
-                                <FeatureListDesc>
-                                  {selected?.desc}
-                                </FeatureListDesc>
-                              </div>
-                            )}
-                            {/* mobile icon  */}
-                            <FeatureIcon
-                              className={`hidden [@media(max-width:900px)]:flex absolute top-4 -left-4
+                          )}
+                          {/* mobile icon  */}
+                          <FeatureIcon
+                            className={`hidden [@media(max-width:900px)]:flex absolute top-4 -left-4
                                 ${
                                   feature.key === selectedFeature
                                     ? "bg-[#000] text-[#64FFB7] "
                                     : "bg-white text-[#000]"
                                 }
                               `}
-                            >
-                              {featureIcons[idx]}
-                            </FeatureIcon>
+                          >
+                            {featureIcons[idx]}
+                          </FeatureIcon>
                         </FeatureListLabel>
                         <FeatureIcon
                           className={`flex [@media(max-width:900px)]:hidden
@@ -1793,7 +1901,7 @@ useEffect(() => {
                   </h1>
                 </span>
               </BlackBackground>
-              <WhiteBackground className="ml-auto">
+              <WhiteBackground className="ml-auto mr-1">
                 <span className="card-2 ml-auto w-full h-fit">
                   <h2>
                     Train your AI-mployee’s intelligence and personality to
@@ -1804,87 +1912,102 @@ useEffect(() => {
             </article>
 
             <article className="below-section h-[100%] bg-[#FDCDFF] relative w-full">
-                  <div className="tab w-[103%] sm:w-[90%] mx-auto flex items-center justify-between px-4 py-2 bg-[#FDCDFF] border border-black rounded-full absolute -top-7 left-1/2 transform -translate-x-1/2">
-                      <h1 className="main-font font-[1000] text-[18px]">Your AI, Your Way</h1>
-                      <div className="icons flex items-center gap-4">
-                        <span className="bg-[#fff] p-2 m-auto rounded-full border border-black">
-                          <User size={24} ></User>
-                        </span>
-                        <span className="bg-[#fff] p-2 m-auto rounded-full border border-black">
-                          <File size={24}></File>
-                        </span>
-                      </div>
+              <div className="tab w-[103%] sm:w-[90%] mx-auto flex items-center justify-between px-4 py-2 bg-[#FDCDFF] border border-black rounded-full absolute -top-7 left-1/2 transform -translate-x-1/2">
+                <h1 className="main-font font-[1000] text-[18px]">
+                  Your AI, Your Way
+                </h1>
+                <div className="icons flex items-center gap-4">
+                  <span className="bg-[#fff] p-2 m-auto rounded-full border border-black">
+                    <User size={24}></User>
+                  </span>
+                  <span className="bg-[#fff] p-2 m-auto rounded-full border border-black">
+                    <File size={24}></File>
+                  </span>
+                </div>
+              </div>
+              <div className="card-container">
+                <div className="card min:h-[300px] max:h-[600px] h-full bg-[#fff]">
+                  <div className="top-heading relative z-10">
+                    <div className="green-card-title">
+                      <span>
+                        <h2 className="relative z-10">Brain</h2>
+                      </span>
+                    </div>
                   </div>
-                  <div className="card-container">
-                      <div className="card min:h-[300px] max:h-[600px] h-full bg-[#fff]">
-                        <div className="top-heading relative z-10">
-                          <div className="green-card-title">
-                              <span>
-                                <h2 className="relative z-10">Brain</h2>
-                              </span>
-                          </div>  
-                        </div>
-                        <div className="card-heading">
-                            <h1 className="main-font font-[1000] text-[22px]">Smart beyond limits</h1>
-                        </div>
-                        <div className="content">
-                            <div className="img">
-                              <object
-                                type="image/svg+xml"
-                                data="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/web+anim-1+%40sdevc.svg"
-                                className="w-fit h-auto"
-                              ></object>
-                            </div>
-                            <p className="para-font mt-4 font-[600] text-[14px] md:text-[16px]">Smarten up your Agent’s brain with files, catalogs, social links and all information related to your business.</p>
-                        </div>
-                      </div>
-                       <div className="card min:h-[300px] max:h-[600px] h-full bg-[#fff]">
-                        <div className="top-heading relative z-10">
-                          <div className="green-card-title">
-                              <span>
-                                <h2 className="z-10 relative">Voice</h2>
-                              </span>
-                          </div>  
-                        </div>
-                        <div className="card-heading">
-                            <h1 className="main-font font-[1000] text-[22px]">Smart beyond limits</h1>
-                        </div>
-                        <div className="content">
-                            <div className="img">
-                              <object
-                                type="image/svg+xml"
-                                data="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/web+anim-3+%40sdevc.svg"
-                                className="w-fit h-auto"
-                              ></object>
-                            </div>
-                            <p className="para-font mt-4 font-[600] text-[14px] md:text-[16px]">Craft a conversational style that reflects your brand's personality, from professional to playful.</p>
-                        </div>
-                      </div>
-                       <div className="card min:h-[300px] max:h-[600px] h-full bg-[#fff]">
-                        <div className="top-heading relative z-10">
-                          <div className="green-card-title">
-                              <span>
-                                <h2 className="z-10 relative">
-                                  Appearance    
-                                </h2>
-                                </span>
-                          </div>  
-                        </div>
-                        <div className="card-heading">
-                            <h1 className="main-font font-[1000] text-[22px]">Smart beyond limits</h1>
-                        </div>
-                        <div className="content">
-                            <div className="img">
-                              <object
-                                type="image/svg+xml"
-                                data="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/web+anim-2%40sdevc.svg"
-                                className="w-fit h-auto"
-                              ></object>
-                            </div>
-                            <p className="para-font mt-4 font-[600] text-[14px] md:text-[16px]">Customize chat themes, colors, and interactions to create a seamless, on-brand user experience.</p>
-                        </div>
-                      </div>
+                  <div className="card-heading">
+                    <h1 className="main-font font-[1000] text-[22px]">
+                      Smart beyond limits
+                    </h1>
                   </div>
+                  <div className="content">
+                    <div className="img">
+                      <object
+                        type="image/svg+xml"
+                        data="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/web+anim-1+%40sdevc.svg"
+                        className="w-fit h-auto"
+                      ></object>
+                    </div>
+                    <p className="para-font mt-4 font-[600] text-[14px] md:text-[16px]">
+                      Smarten up your Agent’s brain with files, catalogs, social
+                      links and all information related to your business.
+                    </p>
+                  </div>
+                </div>
+                <div className="card min:h-[300px] max:h-[600px] h-full bg-[#fff]">
+                  <div className="top-heading relative z-10">
+                    <div className="green-card-title">
+                      <span>
+                        <h2 className="z-10 relative">Voice</h2>
+                      </span>
+                    </div>
+                  </div>
+                  <div className="card-heading">
+                    <h1 className="main-font font-[1000] text-[22px]">
+                      Smart beyond limits
+                    </h1>
+                  </div>
+                  <div className="content">
+                    <div className="img">
+                      <object
+                        type="image/svg+xml"
+                        data="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/web+anim-3+%40sdevc.svg"
+                        className="w-fit h-auto"
+                      ></object>
+                    </div>
+                    <p className="para-font mt-4 font-[600] text-[14px] md:text-[16px]">
+                      Craft a conversational style that reflects your brand's
+                      personality, from professional to playful.
+                    </p>
+                  </div>
+                </div>
+                <div className="card min:h-[300px] max:h-[600px] h-full bg-[#fff]">
+                  <div className="top-heading relative z-10">
+                    <div className="green-card-title">
+                      <span>
+                        <h2 className="z-10 relative">Appearance</h2>
+                      </span>
+                    </div>
+                  </div>
+                  <div className="card-heading">
+                    <h1 className="main-font font-[1000] text-[22px]">
+                      Smart beyond limits
+                    </h1>
+                  </div>
+                  <div className="content">
+                    <div className="img">
+                      <object
+                        type="image/svg+xml"
+                        data="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/web+anim-2%40sdevc.svg"
+                        className="w-fit h-auto"
+                      ></object>
+                    </div>
+                    <p className="para-font mt-4 font-[600] text-[14px] md:text-[16px]">
+                      Customize chat themes, colors, and interactions to create
+                      a seamless, on-brand user experience.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </article>
           </BuildAgentSection>
         </section>
@@ -1917,9 +2040,8 @@ useEffect(() => {
             </AppOverloadUpper>
             <AppOverloadLower>
               <AppOverloadCardsRow>
-
                 <AppOverloadCard>
-                  <AppOverloadCardTop style={{background: "#C8EEFF"}}>
+                  <AppOverloadCardTop style={{ background: "#C8EEFF" }}>
                     <AppOverloadCardTitle>
                       WEBSITE BUILDERS
                     </AppOverloadCardTitle>
@@ -1942,7 +2064,7 @@ useEffect(() => {
                 </AppOverloadCard>
 
                 <AppOverloadCard>
-                  <AppOverloadCardTop style={{background: "#94DFFF"}}>
+                  <AppOverloadCardTop style={{ background: "#94DFFF" }}>
                     <AppOverloadCardTitle>SCHEDULING APPS</AppOverloadCardTitle>
                     <AppOverloadIcon>
                       <img
@@ -1961,7 +2083,7 @@ useEffect(() => {
                 </AppOverloadCard>
 
                 <AppOverloadCard>
-                  <AppOverloadCardTop style={{background: "#c8eeff"}}>
+                  <AppOverloadCardTop style={{ background: "#c8eeff" }}>
                     <AppOverloadCardTitle>CHATBOTS</AppOverloadCardTitle>
                     <AppOverloadIcon>
                       <img
@@ -1980,7 +2102,7 @@ useEffect(() => {
                 </AppOverloadCard>
 
                 <AppOverloadCard>
-                  <AppOverloadCardTop style={{background: "#94dfff"}}>
+                  <AppOverloadCardTop style={{ background: "#94dfff" }}>
                     <AppOverloadCardTitle>CRMs</AppOverloadCardTitle>
                     <AppOverloadIcon>
                       <img
@@ -1996,7 +2118,7 @@ useEffect(() => {
                   </AppOverloadCardBottom>
                 </AppOverloadCard>
 
-                <AppOverloadCard style={{background: "#c8eeff"}}>
+                <AppOverloadCard style={{ background: "#c8eeff" }}>
                   <AppOverloadCardTop>
                     <AppOverloadCardTitle>
                       LINK-IN-BIO TOOLS
@@ -2026,7 +2148,9 @@ useEffect(() => {
           <IntegrationsSection>
             <BlackBackground>
               <span className="">
-                <h1 className="par-font px-3">Extensive Integrations via MCP</h1>
+                <h1 className="par-font px-3">
+                  Extensive Integrations via MCP
+                </h1>
               </span>
             </BlackBackground>
             <WhiteBackground className="ml-auto">
