@@ -284,7 +284,13 @@ export default function ProductDetailPage({
               AVAILABLE FORMATS
             </div>
             <div className="flex gap-2">
-              <button className="px-3 py-1 rounded-full border border-[#fff] text-xs font-semibold bg-[#232323]">
+              <button
+                className="px-3 py-1 rounded-full border border-[#fff] text-xs font-semibold "
+                style={{
+                  backgroundColor: theme.highlightColor,
+                  color: !theme.isDark ? "#fff" : "#000000",
+                }}
+              >
                 {selectedProduct?.fileFormat}
               </button>
             </div>
