@@ -36,6 +36,9 @@ const Header = styled.header`
     justify-content: space-between;
     align-items: center;
     // border-bottom: 1px solid #e5e7eb;
+    @media(max-width:600px){
+      padding: 3vh 6vw;
+    }
 `;
 
 const Logo = styled.div`
@@ -1347,7 +1350,6 @@ const Home = () => {
       <Container>
         <Navbar
           $scrolled={scrolled}
-          
         >
           <Header style={{
             background: menuOpen ? "#140065" : "transparent",
