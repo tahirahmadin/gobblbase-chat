@@ -759,6 +759,7 @@ const BuildAgentSection = styled.section`
       gap: 16px;
       @media(max-width: 900px){
         grid-template-columns: 1fr 1fr;
+        row-gap: 40px;
       }
       @media(max-width: 500px){
         grid-template-columns: 1fr;
@@ -771,6 +772,62 @@ const BuildAgentSection = styled.section`
         display: flex;
         flex-direction: column;
         padding: 0;
+        .top-heading{
+          position: absolute; 
+          top: -20px;
+          left: 12px;
+          width: fit-content;
+          .green-card-title{
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+            span {
+              width: 100%;
+              min-width: 120px;
+              max-width: 200px;
+              font-size: clamp(1rem, 4vw, 1.2rem);
+              height: 100%;
+              padding: 1vh 2vw 1vh 2vw;
+              text-align: left;
+              background: #9AFFDC;
+              border: 1px solid black;
+              border-radius: 40px;
+              position: relative;
+              font-weight: 1000;
+              @media(max-width: 600px){
+                padding: 1vh 2vw 1vh 4vw;
+              }
+                &::before {
+                  content: "";
+                  position: absolute;
+                  width: 0;
+                  height: 0;
+                  right: -3px;
+                  bottom: -1px;
+                  z-index: -1;
+                  border-left: 20px solid transparent;
+                  border-right: 20px solid transparent;
+                  border-bottom: 20px solid black;
+                }
+                &::after {
+                  content: "";
+                  position: absolute;
+                  bottom: 0px;
+                  width: 0;
+                  height: 0;
+                  border-left: 20px solid transparent;
+                  border-right: 20px solid transparent;
+                  border-bottom: 20px solid #9AFFDC;
+                  right: -1px;
+                  bottom: 0px;
+                }
+              }
+          }
+        }
+
         .card-heading{
           background: #FDE5FF;
           width: 100%;
@@ -808,7 +865,7 @@ const AppOverloadUpper = styled.div`
   width: 100%;
   position: relative;
   z-index: 10;
-  padding: 2vh 2vw 5vh 2vw;
+  padding: 8vh 2vw 5vh 2vw;
   @media(max-width: 600px){
       padding: 0 4vw 2vh 2vw;
   }
@@ -866,13 +923,13 @@ const AppOverloadCardTop = styled.div`
   align-items: center;
   border-bottom: 1px solid black;
 
-  &:nth-child(even) {
-    background: #c8eeff;
-  }
+  // &:nth-child(even) {
+  //   background: #c8eeff;
+  // }
 
-  &:nth-child(odd) {
-    background: #94dfff;
-  }
+  // &:nth-child(odd) {
+  //   background: #94dfff;
+  // }
 `;
 
 const AppOverloadCardTitle = styled.div`
@@ -939,7 +996,7 @@ const IntegrationsSection = styled.section`
   height: 100%;
   border: 1px solid #000000;
   display: flex;
-  padding: 2vh 2vw 5vh 2vw;
+  padding: 8vh 2vw 5vh 2vw;
   flex-direction: column;
   gap: 8px;
   @media (max-width: 900px) {
@@ -1207,13 +1264,13 @@ const SocialIcon = styled.span`
 `;
 const FooterLogo = styled.div`
   display: flex;
-  align-items: center;
+  align-items: end;
   justify-content: center;
   position: relative;
   gap: 12px;
   font-size: 1.08rem;
   width: 100%;
-  padding: 2vh 3vw;
+  padding: 2vh 3vw 4vh 3vw;
   background: #0a0a0a;
   height: 100%;
   @media (max-width: 800px) {
@@ -1760,11 +1817,13 @@ useEffect(() => {
                   </div>
                   <div className="card-container">
                       <div className="card min:h-[300px] max:h-[600px] h-full bg-[#fff]">
-                        {/* <div className="top-heading absolute -top-4 left-8">
-                          <BlackBackground>
-                              <span style={{width: "150px", padding:"1vh 4vw", color:"black", backgroundColor: "#9AFFDC"}}>Brain</span>
-                          </BlackBackground>  
-                        </div> */}
+                        <div className="top-heading relative z-10">
+                          <div className="green-card-title">
+                              <span>
+                                <h2 className="relative z-10">Brain</h2>
+                              </span>
+                          </div>  
+                        </div>
                         <div className="card-heading">
                             <h1 className="main-font font-[1000] text-[22px]">Smart beyond limits</h1>
                         </div>
@@ -1780,6 +1839,13 @@ useEffect(() => {
                         </div>
                       </div>
                        <div className="card min:h-[300px] max:h-[600px] h-full bg-[#fff]">
+                        <div className="top-heading relative z-10">
+                          <div className="green-card-title">
+                              <span>
+                                <h2 className="z-10 relative">Voice</h2>
+                              </span>
+                          </div>  
+                        </div>
                         <div className="card-heading">
                             <h1 className="main-font font-[1000] text-[22px]">Smart beyond limits</h1>
                         </div>
@@ -1795,6 +1861,15 @@ useEffect(() => {
                         </div>
                       </div>
                        <div className="card min:h-[300px] max:h-[600px] h-full bg-[#fff]">
+                        <div className="top-heading relative z-10">
+                          <div className="green-card-title">
+                              <span>
+                                <h2 className="z-10 relative">
+                                  Appearance    
+                                </h2>
+                                </span>
+                          </div>  
+                        </div>
                         <div className="card-heading">
                             <h1 className="main-font font-[1000] text-[22px]">Smart beyond limits</h1>
                         </div>
@@ -1842,8 +1917,9 @@ useEffect(() => {
             </AppOverloadUpper>
             <AppOverloadLower>
               <AppOverloadCardsRow>
+
                 <AppOverloadCard>
-                  <AppOverloadCardTop className="background: #c8eef">
+                  <AppOverloadCardTop style={{background: "#C8EEFF"}}>
                     <AppOverloadCardTitle>
                       WEBSITE BUILDERS
                     </AppOverloadCardTitle>
@@ -1864,8 +1940,9 @@ useEffect(() => {
                     </AppOverloadCardReplace>
                   </AppOverloadCardBottom>
                 </AppOverloadCard>
+
                 <AppOverloadCard>
-                  <AppOverloadCardTop>
+                  <AppOverloadCardTop style={{background: "#94DFFF"}}>
                     <AppOverloadCardTitle>SCHEDULING APPS</AppOverloadCardTitle>
                     <AppOverloadIcon>
                       <img
@@ -1882,8 +1959,9 @@ useEffect(() => {
                     </AppOverloadCardReplace>
                   </AppOverloadCardBottom>
                 </AppOverloadCard>
+
                 <AppOverloadCard>
-                  <AppOverloadCardTop>
+                  <AppOverloadCardTop style={{background: "#c8eeff"}}>
                     <AppOverloadCardTitle>CHATBOTS</AppOverloadCardTitle>
                     <AppOverloadIcon>
                       <img
@@ -1900,8 +1978,9 @@ useEffect(() => {
                     </AppOverloadCardReplace>
                   </AppOverloadCardBottom>
                 </AppOverloadCard>
+
                 <AppOverloadCard>
-                  <AppOverloadCardTop>
+                  <AppOverloadCardTop style={{background: "#94dfff"}}>
                     <AppOverloadCardTitle>CRMs</AppOverloadCardTitle>
                     <AppOverloadIcon>
                       <img
@@ -1916,7 +1995,8 @@ useEffect(() => {
                     <AppOverloadCardReplace>Hubspot</AppOverloadCardReplace>
                   </AppOverloadCardBottom>
                 </AppOverloadCard>
-                <AppOverloadCard>
+
+                <AppOverloadCard style={{background: "#c8eeff"}}>
                   <AppOverloadCardTop>
                     <AppOverloadCardTitle>
                       LINK-IN-BIO TOOLS
@@ -2004,7 +2084,7 @@ useEffect(() => {
                     alt="footer logo"
                     className="[@media(max-width:800px)]:hidden"
                   />
-                  <p className="[@media(max-width:800px)]:block">
+                  <p className="hidden [@media(max-width:800px)]:block">
                     © 2025 Sayy AI
                   </p>
                 </FooterLogo>
