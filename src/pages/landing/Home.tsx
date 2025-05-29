@@ -1498,12 +1498,12 @@ useEffect(() => {
                 >
                   <FeatureIcon
                     className={`flex
-                                ${
-                                  feature.key === selectedFeature
-                                    ? "bg-[#000] text-[#64FFB7] "
-                                    : "bg-white text-[#000]"
-                                }
-                              `}
+                        ${
+                          feature.key === selectedFeature
+                          ? "bg-[#000] text-[#64FFB7] "
+                          : "bg-white text-[#000]"
+                          }
+                        `}
                   >
                     {featureIcons[idx]}
                   </FeatureIcon>
@@ -1541,7 +1541,7 @@ useEffect(() => {
                         selected={selectedFeature === feature.key}
                         onClick={() => setSelectedFeature(feature.key)}
                       >
-                        <FeatureListLabel className= {`w-full bg-white pl-4 pr-3 py-4 bg-white
+                        <FeatureListLabel className= {`w-full pl-4 pr-3 py-4
                                ${feature.key === selectedFeature ? "bg-[#64FFB7]" : "bg-white"} 
                                 before:content-[''] before:absolute before:bottom-0 before:right-[-10px] before:w-0 before:h-0
                                 before:border-l-[20px] before:border-r-[20px] before:border-b-[20px]
