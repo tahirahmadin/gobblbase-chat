@@ -156,14 +156,7 @@ const Plans = () => {
     const currentPlan = plans.find((p) => p.isCurrentPlan);
     if (!currentPlan) return false;
 
-    const planHierarchy = ["STARTER", "SOLO", "PRO", "BUSINESS"];
-    const currentPlanIndex = planHierarchy.indexOf(currentPlan.type);
-    const planIndex = planHierarchy.indexOf(plan.type);
-
-    if (planIndex === currentPlanIndex) {
-      return plan.recurrence.toLowerCase() === "monthly";
-    }
-    return planIndex < currentPlanIndex;
+    return currentPlan.totalPrice > plan.totalPrice;
   };
 
   return (
