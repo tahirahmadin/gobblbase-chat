@@ -105,7 +105,10 @@ const Plans = () => {
       setUpgradingPlanId(planId);
 
       // Get Stripe session URL
-      const stripeUrl = await subscribeToPlan(adminId, planId);
+      const response = await subscribeToPlan(adminId, planId);
+
+      const isBillingUrl = response.isUrl;
+      const billingMessage = response.message;
 
       // Start polling for plan updates
       if (pollingIntervalRef.current) {
@@ -116,8 +119,12 @@ const Plans = () => {
         await fetchPlans();
       }, 5000); // Poll every 5 seconds
 
-      // Redirect to Stripe payment page
-      window.open(stripeUrl, "_blank", "noopener,noreferrer");
+      if (isBillingUrl) {
+        // Redirect to Stripe payment page
+        window.open(billingMessage, "_blank", "noopener,noreferrer");
+      } else {
+        toast.success(billingMessage);
+      }
     } catch (error) {
       console.error("Error changing plan:", error);
       toast.error(error?.response?.data?.result || "Failed to change plan");
