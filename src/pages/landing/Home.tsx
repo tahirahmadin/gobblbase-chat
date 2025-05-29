@@ -13,7 +13,6 @@ import {
   File,
   User,
 } from "lucide-react";
-import App from "../../App";
 
 const Container = styled.div`
   font-family: "DM Sans", sans-serif;
@@ -292,86 +291,6 @@ const CTAButton = styled.button`
   }
 `;
 
-<<<<<<< HEAD
-// type SpeechBubbleProps = {
-//   top: string;
-//   left?: string;
-//   right?: string;
-//   color?: string;
-//   bgurl?: string;
-// };
-
-// const SpeechBubble = styled.div<SpeechBubbleProps>`
-//   position: absolute;
-//   top: ${({ top }: { top: string }) => top};
-//   left: ${({ left }: { left?: string }) => left || "auto"};
-//   right: ${({ right }: { right?: string }) => right || "auto"};
-//   // background: ${({ bgurl }: { bgurl?: string }) =>
-//     bgurl ? `url(${bgurl})` : "#fff"};
-//   background-repeat: no-repeat;
-//   background-size: contain;
-//   color: #222;
-//   border-radius: 18px;
-//   font-size: clamp(10px, 4vw, 14px);
-//   // box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-//   // border: 2px solid #222;
-//   width: fit-cotnent;
-//   z-index: 2;
-//   display: grid;
-//   place-items: center;
-//   font-family: itim;
-//   fonmt-weight: 1000;
-//   display: none;
-//   @media (max-width: 1200px) {
-//     font-size: 0.95rem;
-//   }
-//   @media (max-width: 900px) {
-//     display: none;
-//   }
-//   @media (max-width: 600px) {
-//     font-size: 0.8rem;
-//     min-width: 70px;
-//     max-width: 120px;
-//     padding: 5px 7px;
-//     display: none;
-//   }
-// `;
-=======
-const SpeechBubble = styled.div<SpeechBubbleProps>`
-  position: absolute;
-  top: ${({ top }: { top: string }) => top};
-  left: ${({ left }: { left?: string }) => left || "auto"};
-  right: ${({ right }: { right?: string }) => right || "auto"};
-  // background: ${({ bgurl }: { bgurl?: string }) =>
-    bgurl ? `url(${bgurl})` : "#fff"};
-  background-repeat: no-repeat;
-  background-size: contain;
-  color: #222;
-  border-radius: 18px;
-  font-size: clamp(10px, 4vw, 14px);
-  // box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  // border: 2px solid #222;
-  width: fit-cotnent;
-  z-index: 2;
-  display: grid;
-  place-items: center;
-  font-family: itim;
-  fonmt-weight: 1000;
-  @media (max-width: 1200px) {
-    font-size: 0.95rem;
-  }
-  @media (max-width: 900px) {
-    display: none;
-  }
-  @media (max-width: 600px) {
-    font-size: 0.8rem;
-    min-width: 70px;
-    max-width: 120px;
-    padding: 5px 7px;
-    display: none;
-  }
-`;
->>>>>>> origin/main
 
 const PracticalSection = styled.section`
   background: #aeb8ff;
@@ -384,53 +303,6 @@ const PracticalSection = styled.section`
   gap: 24px;
   @media (max-width: 600px) {
     gap: 0;
-  }
-`;
-
-const PracticalDesc = styled.p`
-  color: #444;
-  font-size: clamp(0.8rem, 4vw, 1rem);
-  font-weight: 800;
-  text-align: left;
-  width: calc(100% - 50px);
-  background: transparent;
-  @media (max-width: 768px) {
-    width: 100%;
-    border: 1px solid #000000;
-    background: #fff;
-  }
-  &::before {
-    content: "";
-    position: absolute;
-    bottom: 1px;
-    right: -8px;
-    width: 0;
-    height: 0;
-    border-left: 20px solid transparent;
-    border-right: 20px solid transparent;
-    border-bottom: 20px solid white;
-    z-index: 0;
-    display: none;
-    @media (max-width: 768px) {
-      display: block;
-    }
-  }
-
-  &::after {
-    content: "";
-    position: absolute;
-    bottom: 0px;
-    right: -10px;
-    width: 0;
-    height: 0;
-    border-left: 22px solid transparent;
-    border-right: 22px solid transparent;
-    border-bottom: 22px solid black;
-    z-index: -1;
-    display: none;
-    @media (max-width: 768px) {
-      display: block;
-    }
   }
 `;
 
@@ -1403,7 +1275,6 @@ useEffect(() => {
   return (
     <>
       <Container>
-<<<<<<< HEAD
         <Navbar $scrolled={scrolled}>
           <Header>
             <Logo>
@@ -1421,24 +1292,6 @@ useEffect(() => {
             </NavLinks>
           </Header>
         </Navbar>
-=======
-        <Header>
-          <Logo>
-            <img
-              src="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/logo.png"
-              alt="logo"
-              className="h-10"
-            />
-            {/* <span onClick={() => navigate("/")}>Sayy</span> */}
-            <NavLink onClick={() => navigate("/pricing")}>Pricing</NavLink>
-          </Logo>
-          <NavLinks>
-            <LoginButton onClick={() => navigate("/admin")}>
-              Login/Sign up
-            </LoginButton>
-          </NavLinks>
-        </Header>
->>>>>>> origin/main
 
         {/* hero section  */}
         <section className="practial-section relative w-full">
@@ -1577,20 +1430,6 @@ useEffect(() => {
                 <h1 className="para-font px-3">Sayy? What’s that?</h1>
               </span>
             </BlackBackground>
-            {/* <span className="relative w-fit z-10 ml-8 md:ml-auto">
-              <img
-                src="/assets/landing-asset/assemble/sayy-what-white-bg.png"
-                alt="bubble"
-                className="hidden w-fit h-[120px] lg:h-[100px] md:flex"
-              />
-<<<<<<< HEAD
-              <PracticalDesc className="para-font bg-white pl-4 rounded-[30px] pr-3 py-4 md:bg-[transparent] md:absolute md:top-0 md:left-6 md:px-3">
-                Imagine an AI that does the work of an entire team: selling your
-                services, supporting customers, capturing leads, and managing
-                operations – all through simple, intelligent conversations, 24
-                hours a day. No coding skills needed.
-              </PracticalDesc>
-            </span> */}
             <WhiteBackground style={{width: "80%" , marginLeft:"auto", marginRight:"2vw"}}>
                 <span >
                   <h3 className="para-font text-[14px] font-[500]">
@@ -1602,84 +1441,6 @@ useEffect(() => {
                   </span>              
             </WhiteBackground>
           </PracticalSection>
-=======
-              <div className="absolute -top-0 flex items-center justify-center text-center p-3 font-[1000]">
-                Book a 1:1 meeting with our senior dietitian
-              </div>
-            </div>
-          </SpeechBubble>
-          <SpeechBubble top="75%" left="12%">
-            <div className="relative inline-block">
-              <img
-                src="/assets/landing-asset/speechBubbles/your-spin-class.png"
-                alt="bubble"
-                className="block w-full h-auto"
-              />
-              <div className="absolute top-1 flex items-center  justify-center text-center  py-3 px-8  text-[15px] font-[1000]">
-                Your spin class is booked for 8am tomorrow.
-              </div>
-            </div>
-          </SpeechBubble>
-          <SpeechBubble top="10%" right="3%" color="#ceffaf">
-            <div className="relative inline-block">
-              <img
-                src="/assets/landing-asset/speechBubbles/should-i-repeat.png"
-                alt="bubble"
-                className="block w-full h-auto"
-              />
-              <div className="absolute top-0 flex items-center  justify-center text-center  py-3 px-8  text-sm font-[1000]">
-                Should I repeat your order?
-              </div>
-            </div>
-          </SpeechBubble>
-          <SpeechBubble top="40%" right="8%">
-            <div className="relative inline-block">
-              <img
-                src="/assets/landing-asset/speechBubbles/how-would-you.png"
-                alt="bubble"
-                className="block w-full h-auto"
-              />
-              <div className="absolute top-2 flex items-center  justify-center text-center  py-3 px-8  text-sm font-[1000]">
-                How would you like to pay today?
-              </div>
-            </div>
-          </SpeechBubble>
-          <SpeechBubble top="65%" right="3%" color="#a1a9ff">
-            <div className="relative inline-block">
-              <img
-                src="/assets/landing-asset/speechBubbles/drop-us-your-contact.png"
-                alt="bubble"
-                className="block w-full h-auto"
-              />
-              <div className="absolute top-2 flex items-center  justify-center text-center  py-3 px-8  text-sm font-[1000]">
-                Drop us your contact details for more info.
-              </div>
-            </div>
-          </SpeechBubble>
-          <Headline>
-            The first AI-in-1 Employee
-            <br />
-            designed to Sell
-          </Headline>
-          <Subheadline>
-            Sell products, book appointments, reply to customers, and take
-            payments — all through conversation.
-            <br />
-            No Coding Required.
-          </Subheadline>
-          <div className="flex justify-center relative z-10 mt-8">
-            <CTAButton onClick={() => navigate("/admin")}>
-              LAUNCH YOUR FREE AGENT
-            </CTAButton>
-          </div>
-        </HeroSection>
-        <PracticalSection>
-          <PracticalTitle>Practical AI for your business</PracticalTitle>
-          <PracticalDesc>
-            Customized intelligent support designed to meet the specific needs
-            of different business models, helping you work smarter, not harder.
-          </PracticalDesc>
->>>>>>> origin/main
           <CardsRow>
             <PracticalCard>
               <BlackBackground>
@@ -1842,7 +1603,6 @@ useEffect(() => {
           </FeaturesSection>
         </section>
 
-<<<<<<< HEAD
         {/* Where all can I use my AI-mployee?  */}
         <section className="practial-section relative w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw] py-16 max-[900px]:pb-0">
           <PlatformSection>
@@ -1913,57 +1673,6 @@ useEffect(() => {
             </PlatformLeft>
             <AssembleSection className="max-[900px]:hidden">
               <AssembleGrid>
-=======
-              <PlatformCardDesc>
-                Add your assistant to your <br />
-                social links — like a smart,
-                <br /> interactive AI storefront.
-              </PlatformCardDesc>
-            </PlatformCard>
-            <PlatformCard>
-              <PlatformCardTitle>Website</PlatformCardTitle>
-              <PlatformIcon>
-                <img
-                  src="assets/landing-asset/platform/website.png"
-                  alt="Website"
-                  style={{ height: 70 }}
-                />
-              </PlatformIcon>
-
-              <PlatformCardDesc>
-                Install our AI Agent directly <br />
-                into your site for seamless
-                <br /> customer interactions.
-              </PlatformCardDesc>
-            </PlatformCard>
-            <PlatformCard>
-              <PlatformCardTitle>ChatGPT</PlatformCardTitle>
-              <PlatformIcon>
-                <img
-                  src="assets/landing-asset/platform/chatgpt.png"
-                  alt="ChatGPT"
-                  style={{ height: 70 }}
-                />
-              </PlatformIcon>
-
-              <PlatformCardDesc>
-                Transform the popular AI <br />
-                platform into your personalized <br />
-                sales channel.
-              </PlatformCardDesc>
-            </PlatformCard>
-          </PlatformCardsRow>
-          <AssembleSection>
-            <AssembleTitle>
-              Assemble Your Agent : Your AI, Your Way
-            </AssembleTitle>
-            <AssembleSubtitle>
-              Train Sayy to talk, think, and sell like you or anyone you want,
-              no coding needed.
-            </AssembleSubtitle>
-            <AssembleGrid>
-              <AssembleCol>
->>>>>>> origin/main
                 <AssembleCard>
                   <img
                     src="/assets/landing-asset/assemble/use-my-ai-1.png"
@@ -2016,7 +1725,6 @@ useEffect(() => {
           </AssembleGrid>
         </AssembleSection>
 
-<<<<<<< HEAD
         {/* So, how do I build my AI-mployee? */}
         <section className="practial-section relative w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw] py-[6vh]">
           <BuildAgentSection>
@@ -2304,145 +2012,6 @@ useEffect(() => {
             </FooterUpper>
             <FooterBelow>
               <span className="footer-card-1">
-=======
-        <AppOverloadSection>
-          <AppOverloadTitle>Goodbye, App Overload</AppOverloadTitle>
-          <AppOverloadSub>
-            Running a business shouldn't be a juggling act. Sayy's AI Agent
-            replaces your entire tech stack, delivering comprehensive business
-            management in a single, intelligent interface.
-          </AppOverloadSub>
-          <AppOverloadToolsTitle>Replace 10+ Tools</AppOverloadToolsTitle>
-          <AppOverloadCardsRow>
-            <AppOverloadCard>
-              <AppOverloadCardTop>
-                <AppOverloadCardTitle>WEBSITE BUILDERS</AppOverloadCardTitle>
-                <AppOverloadIcon>
-                  <img
-                    src="/assets/landing-asset/goodbye/web.png"
-                    alt="Website Builders"
-                    style={{
-                      height: 40,
-                    }}
-                  />
-                </AppOverloadIcon>
-              </AppOverloadCardTop>
-              <AppOverloadCardBottom>
-                <AppOverloadCardSub>Replaces</AppOverloadCardSub>
-                <AppOverloadCardReplace>Wix & Wordpress</AppOverloadCardReplace>
-              </AppOverloadCardBottom>
-            </AppOverloadCard>
-            <AppOverloadCard>
-              <AppOverloadCardTop>
-                <AppOverloadCardTitle>SCHEDULING APPS</AppOverloadCardTitle>
-                <AppOverloadIcon>
-                  <img
-                    src="/assets/landing-asset/goodbye/calender.png"
-                    alt="Scheduling Apps"
-                    style={{ height: 40 }}
-                  />
-                </AppOverloadIcon>
-              </AppOverloadCardTop>
-              <AppOverloadCardBottom>
-                <AppOverloadCardSub>Replaces</AppOverloadCardSub>
-                <AppOverloadCardReplace>Calendly & Cal</AppOverloadCardReplace>
-              </AppOverloadCardBottom>
-            </AppOverloadCard>
-            <AppOverloadCard>
-              <AppOverloadCardTop>
-                <AppOverloadCardTitle>CHATBOTS</AppOverloadCardTitle>
-                <AppOverloadIcon>
-                  <img
-                    src="/assets/landing-asset/goodbye/chatbot.png"
-                    alt="Chatbots"
-                    style={{ height: 40 }}
-                  />
-                </AppOverloadIcon>
-              </AppOverloadCardTop>
-              <AppOverloadCardBottom>
-                <AppOverloadCardSub>Replaces</AppOverloadCardSub>
-                <AppOverloadCardReplace>Tawk.to & Tidio</AppOverloadCardReplace>
-              </AppOverloadCardBottom>
-            </AppOverloadCard>
-            <AppOverloadCard>
-              <AppOverloadCardTop>
-                <AppOverloadCardTitle>CRMs</AppOverloadCardTitle>
-                <AppOverloadIcon>
-                  <img
-                    src="/assets/landing-asset/goodbye/group.png"
-                    alt="CRMs"
-                    style={{ height: 40 }}
-                  />
-                </AppOverloadIcon>
-              </AppOverloadCardTop>
-              <AppOverloadCardBottom>
-                <AppOverloadCardSub>Replaces</AppOverloadCardSub>
-                <AppOverloadCardReplace>Hubspot</AppOverloadCardReplace>
-              </AppOverloadCardBottom>
-            </AppOverloadCard>
-            <AppOverloadCard>
-              <AppOverloadCardTop>
-                <AppOverloadCardTitle>LINK-IN-BIO TOOLS</AppOverloadCardTitle>
-                <AppOverloadIcon>
-                  <img
-                    src="/assets/landing-asset/goodbye/link.png"
-                    alt="Link-in-Bio Tools"
-                    style={{ height: 40 }}
-                  />
-                </AppOverloadIcon>
-              </AppOverloadCardTop>
-              <AppOverloadCardBottom>
-                <AppOverloadCardSub>Replaces</AppOverloadCardSub>
-                <AppOverloadCardReplace>Linktree & Hopp</AppOverloadCardReplace>
-              </AppOverloadCardBottom>
-            </AppOverloadCard>
-          </AppOverloadCardsRow>
-        </AppOverloadSection>
-        <IntegrationsSection>
-          <IntegrationsTitle>Extensive Integrations via MCP</IntegrationsTitle>
-          <IntegrationsSub>
-            Convert any API into a feature packed selling machine. Make your
-            agents powerful by integrating 200+ apps using Model Context
-            Protocol (MCP).
-          </IntegrationsSub>
-          <IntegrationsGrid>
-            {integrationsGrid.map(({ name, src }, idx) => (
-              <IntegrationBox key={idx}>
-                <img src={src} alt={name} />
-              </IntegrationBox>
-            ))}
-          </IntegrationsGrid>
-        </IntegrationsSection>
-        <FooterSection>
-          <FooterContent>
-            <FooterLeft>
-              <div>
-                <FooterHeadline>
-                  Your new AI-ployee is here (& free) !
-                </FooterHeadline>
-                <FooterSub>
-                  Experience the future of sales: an AI-powered agent that
-                  adapts to your business needs, engages customers, and drives
-                  growth continuously.
-                </FooterSub>
-              </div>
-              <CTAButton onClick={() => navigate("/admin")}>
-                LAUNCH YOUR FREE AGENT
-              </CTAButton>
-
-              <FooterSocial>
-                Follow us
-                <SocialIcon title="X">X</SocialIcon>
-                <SocialIcon title="LinkedIn">in</SocialIcon>
-              </FooterSocial>
-            </FooterLeft>
-            <FooterRight>
-              <FooterCopyright>© 2025 Sayy AI</FooterCopyright>
-            </FooterRight>
-            <div>
-              <FooterMascot>
-                {/* Mascot/image placeholder */}
->>>>>>> origin/main
                 <img
                   src="/assets/landing-asset/assemble/footer-card-1.png"
                   alt="Kifor Mascot"
