@@ -32,11 +32,12 @@ const Button = styled.button`
   }
 
   &:disabled {
-    background: #d6ffe0;
+    background: #d4deff;
+    color: #b0b0b0;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #d6ffe0;
+    background: #d4deff;
   }
 `;
 const socialMediaIcons = {
@@ -74,6 +75,18 @@ const SocialMediaSection = () => {
     link: "",
   });
 
+  const [originalSocialMedia, setOriginalSocialMedia] =
+    useState<SocialMediaLinks>({
+      instagram: "",
+      twitter: "",
+      tiktok: "",
+      facebook: "",
+      youtube: "",
+      linkedin: "",
+      snapchat: "",
+      link: "",
+    });
+
   const [socialMediaErrors, setSocialMediaErrors] = useState({
     instagram: false,
     twitter: false,
@@ -87,9 +100,8 @@ const SocialMediaSection = () => {
   useEffect(() => {
     if (activeBotData?.socials) {
       const socialsData = activeBotData.socials as any;
-      setSocialMedia({
-        ...socialsData,
-      });
+      setSocialMedia({ ...socialsData });
+      setOriginalSocialMedia({ ...socialsData });
     }
   }, [activeBotData]);
 
@@ -235,6 +247,14 @@ const SocialMediaSection = () => {
     }
   };
 
+  const hasSocialsChanged = () => {
+    return Object.keys(socialMedia).some(
+      (key) =>
+        socialMedia[key as keyof SocialMediaLinks] !==
+        originalSocialMedia[key as keyof SocialMediaLinks]
+    );
+  };
+
   return (
     <div className="space-y-4 pt-8">
       <h1 className="main-font block text-md sm:text-xl font-bold text-[#000000]">
@@ -248,10 +268,7 @@ const SocialMediaSection = () => {
           socialMediaErrors[platform as keyof typeof socialMediaErrors];
 
         return (
-          <div
-            key={platform}
-            className="space-y-1 w-[100%]"
-          >
+          <div key={platform} className="space-y-1 w-[100%]">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden shadow-sm">
                 <img
@@ -293,17 +310,19 @@ const SocialMediaSection = () => {
                     }`}
                 />
                 <div className="w-[30px] hidden sm:block">
-
-                  
                   {handle && (
-                    <div className={`icon w-[30px] h-full py-2 flex items-center justify-center
-                      ${hasError ? "bg-red-50" : "border-[#78FFC5] bg-[#CEFFDC]"} 
+                    <div
+                      className={`icon w-[30px] h-full py-2 flex items-center justify-center
                       ${
-                      handle
-                        ? "border-[#78FFC5] bg-[#CEFFDC]"
-                        : "border-[] bg-[#FFFFFF]"
-                    }
-                    `}>
+                        hasError ? "bg-red-50" : "border-[#78FFC5] bg-[#CEFFDC]"
+                      } 
+                      ${
+                        handle
+                          ? "border-[#78FFC5] bg-[#CEFFDC]"
+                          : "border-[] bg-[#FFFFFF]"
+                      }
+                    `}
+                    >
                       {hasError ? (
                         <div className="w-5 h-5 flex items-center justify-center rounded-full bg-black">
                           <X className="w-4 h-4 text-red-500 stroke-[4px]" />
@@ -315,10 +334,8 @@ const SocialMediaSection = () => {
                       )}
                     </div>
                   )}
-                  
                 </div>
               </div>
-        
             </div>
             {hasError && (
               <p className="text-xs text-red-500 mt-1">
@@ -334,15 +351,13 @@ const SocialMediaSection = () => {
       })}
 
       <div className="flex justify-end relative z-10 mt-4">
-        <Button style={{
-          background: "#6AFF97",
-          color: "#000000"
-
-        }}
+        <Button
           onClick={handleSaveSocials}
-          disabled={isSavingSocials}
+          disabled={isSavingSocials || !hasSocialsChanged()}
           className={`transition-colors ${
-            isSavingSocials ? "opacity-50 cursor-not-allowed" : ""
+            isSavingSocials || !hasSocialsChanged()
+              ? "opacity-50 cursor-not-allowed"
+              : ""
           }`}
         >
           {isSavingSocials ? (

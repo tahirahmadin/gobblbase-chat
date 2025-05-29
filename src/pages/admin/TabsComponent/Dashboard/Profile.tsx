@@ -103,11 +103,12 @@ const Button = styled.button`
     min-width: 100px;
   }
   &:disabled {
-    background: #d6ffe0;
+    background: #d4deff;
+    color: #b0b0b0;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #d6ffe0;
+    background: #d4deff;
   }
 `;
 const Profile = () => {
@@ -134,9 +135,23 @@ const Profile = () => {
   const [isSavingBio, setIsSavingBio] = useState(false);
   const [isSavingPromoBanner, setIsSavingPromoBanner] = useState(false);
 
+  // Add state for original values
+  const [originalName, setOriginalName] = useState("");
+  const [originalBio, setOriginalBio] = useState("");
+  const [originalPromoBanner, setOriginalPromoBanner] = useState("");
+  const [originalPromoBannerEnabled, setOriginalPromoBannerEnabled] =
+    useState(false);
+
   const [agentPicture, setAgentPicture] = useState<string | null>(null);
 
   const baseUrl = "http://www.Sayy.ai/";
+
+  // Add functions to check for changes
+  const hasNameChanged = () => agentName !== originalName;
+  const hasBioChanged = () => agentBio !== originalBio;
+  const hasPromoBannerChanged = () =>
+    promotionalBanner !== originalPromoBanner ||
+    isPromoBannerEnabled !== originalPromoBannerEnabled;
 
   useEffect(() => {
     if (activeBotData?.logo) {
@@ -163,6 +178,12 @@ const Profile = () => {
       setAgentBio(activeBotData.bio);
       setPromotionalBanner(activeBotData.promotionalBanner || "");
       setIsPromoBannerEnabled(activeBotData.isPromoBannerEnabled);
+
+      // Set original values
+      setOriginalName(activeBotData.name);
+      setOriginalBio(activeBotData.bio);
+      setOriginalPromoBanner(activeBotData.promotionalBanner || "");
+      setOriginalPromoBannerEnabled(activeBotData.isPromoBannerEnabled);
 
       // Calculate and set smartness level
       const newSmartnessLevel = calculateSmartnessLevel(activeBotData);
@@ -408,8 +429,12 @@ const Profile = () => {
                   <div className="flex justify-end relative z-10">
                     <Button
                       onClick={handleSaveName}
-                      disabled={isSavingName}
-                      className={`${isSavingName ? " cursor-not-allowed" : ""}`}
+                      disabled={isSavingName || !hasNameChanged()}
+                      className={`${
+                        isSavingName || !hasNameChanged()
+                          ? " cursor-not-allowed"
+                          : ""
+                      }`}
                     >
                       {isSavingName ? (
                         <div className="flex items-center space-x-2">
@@ -549,8 +574,12 @@ const Profile = () => {
                 <div className="flex justify-end relative z-10">
                   <Button
                     onClick={handleSaveBio}
-                    disabled={isSavingBio}
-                    className={` ${isSavingBio ? " cursor-not-allowed" : ""}`}
+                    disabled={isSavingBio || !hasBioChanged()}
+                    className={` ${
+                      isSavingBio || !hasBioChanged()
+                        ? " cursor-not-allowed"
+                        : ""
+                    }`}
                   >
                     {isSavingBio ? (
                       <div className="flex items-center space-x-2">
@@ -644,9 +673,11 @@ const Profile = () => {
                 <div className="flex justify-end relative z-10">
                   <Button
                     onClick={handleSavePromoBanner}
-                    disabled={isSavingPromoBanner}
+                    disabled={isSavingPromoBanner || !hasPromoBannerChanged()}
                     className={` ${
-                      isSavingPromoBanner ? " cursor-not-allowed" : ""
+                      isSavingPromoBanner || !hasPromoBannerChanged()
+                        ? " cursor-not-allowed"
+                        : ""
                     }`}
                   >
                     {isSavingPromoBanner ? (
