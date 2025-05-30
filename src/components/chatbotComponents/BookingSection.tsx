@@ -3,6 +3,7 @@ import { ChevronRight, ChevronDown } from "lucide-react";
 import { Theme } from "../../types";
 import BookingFlowComponent from "./chatbotBookingComponents/BookingFlowComponent";
 import { useBookingLogic } from "../../hooks/useBookingLogic";
+import { useBotConfig } from "../../store/useBotConfig";
 
 interface BookingSectionProps {
   theme: Theme;
@@ -26,8 +27,34 @@ export default function BookingSection({
     propIsBookingConfigured !== undefined ? propIsBookingConfigured : false
   );
   
-  // Use our booking hook for pricing data
+  const { activeBotData } = useBotConfig();
+  const globalCurrency = activeBotData?.currency || "USD";
+  
   const { pricingInfo, loadingPricing } = useBookingLogic(businessId, sessionName);
+
+  const formatPriceDisplay = (priceInfo: any): string => {
+    if (loadingPricing) return "Loading...";
+    
+    if (priceInfo.isFreeSession || priceInfo.sessionPrice === "Free") {
+      return "Free";
+    }
+    
+    const amount = typeof priceInfo.sessionPrice === 'string' 
+      ? parseFloat(priceInfo.sessionPrice.replace(/[^0-9.]/g, '')) || 0
+      : priceInfo.sessionPrice || 0;
+    
+    return amount > 0 ? `${amount} ${globalCurrency}` : "Free";
+  };
+
+  const formatServicePrice = (): string => {
+    if (pricingInfo.isFreeSession) return "Free";
+    
+    const amount = typeof pricingInfo.sessionPrice === 'string' 
+      ? parseFloat(pricingInfo.sessionPrice.replace(/[^0-9.]/g, '')) || 0
+      : pricingInfo.sessionPrice || 0;
+    
+    return amount > 0 ? `${amount} ${globalCurrency}` : "Free";
+  };
 
   useEffect(() => {
     if (propIsBookingConfigured !== undefined) {
@@ -76,8 +103,8 @@ export default function BookingSection({
       >
         <BookingFlowComponent
           businessId={businessId}
-          serviceName={sessionName}
-          servicePrice={pricingInfo.sessionPrice}
+          serviceName={pricingInfo.sessionName || sessionName}
+          servicePrice={formatServicePrice()}
           theme={theme}
           onClose={() => {
             setShowBooking(false);
@@ -111,7 +138,7 @@ export default function BookingSection({
             {pricingInfo.sessionName || sessionName}
           </div>
           <div className="text-md font-medium text-left">
-            {loadingPricing ? "Loading..." : pricingInfo.sessionPrice}
+            {formatPriceDisplay(pricingInfo)}
           </div>
         </div>
         {showBooking ? (
@@ -141,7 +168,7 @@ export default function BookingSection({
           <BookingFlowComponent
             businessId={businessId}
             serviceName={pricingInfo.sessionName || sessionName}
-            servicePrice={pricingInfo.sessionPrice}
+            servicePrice={formatServicePrice()}
             theme={theme}
             onClose={() => {
               setShowBooking(false);

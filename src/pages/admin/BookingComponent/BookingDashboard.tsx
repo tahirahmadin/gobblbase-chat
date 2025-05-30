@@ -147,6 +147,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
   const queryParams = new URLSearchParams(location.search);
   const agentIdFromUrl = queryParams.get("agentId");
   const { activeBotData, activeBotId } = useBotConfig();
+  const globalCurrency = activeBotData?.currency || "USD";
   const activeAgentId =
     propAgentId || agentIdFromUrl || activeBotId || activeBotData?.agentId;
   const [activeTab, setActiveTab] = useState<"upcoming" | "past" | "schedule">(
@@ -515,19 +516,15 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
           )}
 
           {bookingSettings.price && (
-            <div>
-              <div className="text-sm font-medium mb-1">Price</div>
-              <div className="bg-gray-100 rounded-md p-2 text-sm">
-                {bookingSettings.price.isFree
-                  ? "Free"
-                  : `${
-                      CURRENCIES.find(
-                        (c) => c.code === bookingSettings.price.currency
-                      )?.symbol || "$"
-                    }${bookingSettings.price.amount}`}
-              </div>
+          <div>
+            <div className="text-sm font-medium mb-1">Price</div>
+            <div className="bg-gray-100 rounded-md p-2 text-sm">
+              {bookingSettings.price.isFree
+                ? "Free"
+                : `${bookingSettings.price.amount} ${globalCurrency}`}
             </div>
-          )}
+          </div>
+        )}
 
           <button
             onClick={handleEditSettingsClick}

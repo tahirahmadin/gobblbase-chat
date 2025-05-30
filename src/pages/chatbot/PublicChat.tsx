@@ -37,6 +37,7 @@ export default function PublicChat({
     isLoading: isConfigLoading,
     fetchBotData,
   } = useBotConfig();
+  const globalCurrency = activeBotData?.currency || "USD";
   const { initializeSession } = useUserStore();
 
   const { addMessages } = useChatLogs();
@@ -509,7 +510,7 @@ export default function PublicChat({
                     currentConfig={{
                       agentId: currentConfig?.agentId,
                       name: currentConfig?.name,
-                      currency: currentConfig.currency,
+                      currency: globalCurrency,
                       sessionName: pricingInfo.sessionName,
                       sessionPrice: pricingInfo.sessionPrice,
                       isFreeSession: pricingInfo.isFreeSession,

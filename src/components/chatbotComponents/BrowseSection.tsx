@@ -41,6 +41,8 @@ export default function BrowseSection({
     setCartView,
   } = useCartStore();
   const { activeBotId } = useBotConfig();
+  const { activeBotData } = useBotConfig();
+  const globalCurrency = activeBotData?.currency || "USD";
 
   const [isBookingConfigured, setIsBookingConfigured] = useState(
     propIsBookingConfigured !== undefined ? propIsBookingConfigured : false
@@ -194,7 +196,7 @@ export default function BrowseSection({
                           >
                             {product.priceType === "free"
                               ? "Free"
-                              : `${product.price} ${currentConfig?.currency}`}
+                              : `${product.price} ${globalCurrency}`}
                           </span>
                         </div>
                       </div>

@@ -296,7 +296,7 @@ export default function ProductDetailPage({
             </div>
           </div>
         </div>
-        <div>
+        {/* <div>
           <div className="text-xs font-semibold mb-1 text-left">
             SELECT QUANTITY
           </div>
@@ -332,7 +332,7 @@ export default function ProductDetailPage({
               +
             </button>
           </div>
-        </div>
+        </div> */}
       </div>
     );
   } else if (selectedProduct?.type === "Service") {
