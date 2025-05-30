@@ -6,13 +6,13 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import { useBotConfig } from "../../store/useBotConfig";
-import { useUserStore } from "../../store/useUserStore";
+import { useBotConfig } from "../../../store/useBotConfig";
+import { useUserStore } from "../../../store/useUserStore";
 import toast from "react-hot-toast";
 import { CreditCard, Wallet } from "lucide-react";
 import { Theme } from "../../types";
-import { bookAppointment } from "../../lib/serverActions";
-import { backendApiUrl } from "../../utils/constants";
+import { bookAppointment } from "../../../lib/serverActions";
+import { backendApiUrl } from "../../../utils/constants";
 
 interface BookingPaymentProps {
   theme: Theme;

@@ -9,8 +9,25 @@ import {
 import { useBotConfig } from "../../../store/useBotConfig";
 import { useUserStore } from "../../../store/useUserStore";
 import toast from "react-hot-toast";
-import { CreditCard, Wallet } from "lucide-react";
+import { CreditCard, Wallet, AlertCircle } from "lucide-react";
 import { backendApiUrl } from "../../../utils/constants";
+import { useAccount, useConnect, useDisconnect, useContractWrite } from "wagmi";
+import { injected } from "wagmi/connectors";
+import { parseEther } from "viem";
+import { mainnet, base, bsc } from "viem/chains";
+import { createConfig, http } from "wagmi";
+import { Hash, TransactionReceipt } from "viem";
+import { useCryptoPayment } from "../../../hooks/useCryptoHook";
+
+// Create wagmi config
+const config = createConfig({
+  chains: [mainnet, base, bsc],
+  transports: {
+    [mainnet.id]: http(),
+    [base.id]: http(),
+    [bsc.id]: http(),
+  },
+});
 
 interface PaymentSectionProps {
   theme: {
@@ -194,59 +211,145 @@ function CryptoPaymentForm({
   product: PaymentSectionProps["product"];
 }) {
   const { activeBotData } = useBotConfig();
-
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    onOrderDetails({
-      product: product,
-      total: product.price,
-      paymentMethod: type.toUpperCase(),
-      paymentDate: new Date().toLocaleDateString(),
-    });
-    onSuccess();
-  };
-
   const walletAddress = activeBotData?.paymentMethods[type]?.walletAddress;
-  const chains = activeBotData?.paymentMethods[type]?.chains;
+  const supportedChains = activeBotData?.paymentMethods[type]?.chains;
+
+  const {
+    isConnected,
+    address,
+    isSubmitting,
+    isPending,
+    selectedChain,
+    handleConnectWallet,
+    handleChainSelect,
+    handleSubmit,
+    disconnect,
+    tokenAddresses,
+  } = useCryptoPayment({
+    type,
+    product,
+    onSuccess,
+    onOrderDetails,
+    walletAddress: walletAddress || "",
+  });
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="p-4 rounded-lg border" style={{ borderColor: "#FFD700" }}>
-        <p
-          className="text-center mb-2"
-          style={{ color: activeBotData?.themeColors.isDark ? "#fff" : "#000" }}
+      {!isConnected ? (
+        <button
+          type="button"
+          onClick={handleConnectWallet}
+          className="w-full p-3 rounded font-medium flex items-center justify-center gap-2"
+          style={{
+            backgroundColor: "#FFD700",
+            color: "#000",
+          }}
         >
-          Send {type.toUpperCase()} to the following address
-        </p>
-        <div className="mt-2 text-center">
-          <p
-            className="font-mono text-sm break-all"
+          <Wallet className="w-5 h-5" />
+          Connect Wallet
+        </button>
+      ) : (
+        <>
+          <div
+            className="p-4 rounded-lg border"
+            style={{ borderColor: "#FFD700" }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <p
+                style={{
+                  color: activeBotData?.themeColors.isDark ? "#fff" : "#000",
+                }}
+              >
+                Connected: {address?.slice(0, 6)}...{address?.slice(-4)}
+              </p>
+              <button
+                type="button"
+                onClick={() => disconnect()}
+                className="text-sm underline"
+                style={{
+                  color: activeBotData?.themeColors.isDark ? "#fff" : "#000",
+                }}
+              >
+                Disconnect
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <p
+                  className="mb-2"
+                  style={{
+                    color: activeBotData?.themeColors.isDark ? "#fff" : "#000",
+                  }}
+                >
+                  Select Network
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {supportedChains?.map((chainName: string) => (
+                    <button
+                      key={chainName}
+                      type="button"
+                      onClick={() => handleChainSelect(chainName)}
+                      className={`px-3 py-1 text-sm rounded ${
+                        selectedChain === chainName
+                          ? "bg-yellow-500 text-black"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {chainName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {selectedChain && (
+                <div>
+                  <p
+                    className="mb-2"
+                    style={{
+                      color: activeBotData?.themeColors.isDark
+                        ? "#fff"
+                        : "#000",
+                    }}
+                  >
+                    Send {product.price} {type.toUpperCase()} to:
+                  </p>
+                  <p
+                    className="font-mono text-sm break-all p-2 bg-gray-100 rounded"
+                    style={{
+                      color: activeBotData?.themeColors.isDark
+                        ? "#fff"
+                        : "#000",
+                    }}
+                  >
+                    {walletAddress}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSubmitting || !selectedChain || isPending}
+            className="w-full p-3 rounded font-medium flex items-center justify-center gap-2"
             style={{
-              color: activeBotData?.themeColors.isDark ? "#fff" : "#000",
+              backgroundColor: "#FFD700",
+              color: "#000",
+              opacity: isSubmitting || !selectedChain || isPending ? 0.7 : 1,
             }}
           >
-            {walletAddress}
-          </p>
-          <p
-            className="text-sm mt-2"
-            style={{
-              color: activeBotData?.themeColors.isDark ? "#fff" : "#000",
-            }}
-          >
-            Supported chains: {chains?.join(", ")}
-          </p>
-        </div>
-      </div>
-      <button
-        type="submit"
-        className="w-full p-3 rounded font-medium"
-        style={{
-          backgroundColor: "#FFD700",
-          color: "#000",
-        }}
-      >
-        CONFIRM PAYMENT
-      </button>
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black"></div>
+                Processing...
+              </>
+            ) : (
+              "CONFIRM PAYMENT"
+            )}
+          </button>
+        </>
+      )}
     </form>
   );
 }

@@ -27,7 +27,8 @@ export interface UseBookingLogicReturn {
 
 export function useBookingLogic(
   agentId?: string, 
-  sessionName: string = "Consultation"
+  sessionName: string = "Consultation",
+  globalCurrency: string = "USD" 
 ): UseBookingLogicReturn {
   const [isBookingConfigured, setIsBookingConfigured] = useState<boolean>(false);
   const [pricingInfo, setPricingInfo] = useState<PricingInfo>({
@@ -61,6 +62,8 @@ export function useBookingLogic(
           sessionPrice: formattedPrice,
           sessionName: data.sessionType || sessionName || "Consultation",
           organizationName: data.name || "us",
+          currency: data.price.currency || globalCurrency,
+          amount: data.price.amount || 0,
         });
       }
     } catch (error) {
@@ -121,7 +124,12 @@ export function useBookingLogic(
       return true;
     } else if (containsNewBookingKeywords(msgToSend)) {
       if (isBookingConfigured) {
-        const introMessage = getRandomBookingIntroMessage(pricingInfo);
+        const introMessage = getRandomBookingIntroMessage(pricingInfo, globalCurrency);
+        
+        // Add debugging to verify the generated message
+        console.log("Generated booking intro message:", introMessage);
+        console.log("PricingInfo used:", pricingInfo);
+        console.log("GlobalCurrency used:", globalCurrency);
         
         const bookingIntroMsg: ChatMessage = {
           id: (Date.now() + 1).toString(),
@@ -184,7 +192,7 @@ export function useBookingLogic(
   // Initialize data fetching
   useEffect(() => {
     fetchPricingAndBookingConfig();
-  }, [agentId, sessionName]);
+  }, [agentId, sessionName, globalCurrency]); 
 
   return {
     isBookingConfigured,

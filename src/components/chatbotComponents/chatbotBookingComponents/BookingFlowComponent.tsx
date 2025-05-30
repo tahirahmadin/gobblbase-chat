@@ -24,7 +24,7 @@ import {
   bookAppointment,
   getAppointmentSettings,
   getDayWiseAvailability,
-} from "../../lib/serverActions";
+} from "../../../lib/serverActions";
 import {
   SmartPhoneFormatter,
   validatePhoneNumber,
@@ -35,11 +35,11 @@ import {
   MAJOR_COUNTRIES,
   parsePhoneNumber,
   autoDetectCountry
-} from "../../utils/advphoneUtils";
+} from "../../../utils/advphoneUtils";
 import { Theme } from "../../types";
-import { useUserStore } from "../../store/useUserStore"; 
-import { useBotConfig } from "../../store/useBotConfig";
-import { LoginCard } from "../chatbotComponents/otherComponents/LoginCard"; 
+import { useUserStore } from "../../../store/useUserStore"; 
+import { useBotConfig } from "../../../store/useBotConfig";
+import { LoginCard } from "../otherComponents/LoginCard"; 
 import { BookingPaymentComponent } from "./BookingPaymentComponent";
 import toast from "react-hot-toast";
 
@@ -163,14 +163,14 @@ const getUserCountry = (): string => {
 const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   businessId: propId,
   serviceName = "Session Description",
-  servicePrice = "Free", // Default value
+  servicePrice = "Free", 
   onClose,
   theme
 }) => {
   // Get user information from the user store
   const { isLoggedIn, userEmail } = useUserStore();
   const { activeBotData } = useBotConfig();
-  
+  const globalCurrency = activeBotData?.currency || "USD";
   const businessId = propId || "";
   const [step, setStep] = useState<"date" | "time" | "details" | "payment" | "confirmation">("date");
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -268,7 +268,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const [dynamicPrice, setDynamicPrice] = useState({
     isFree: servicePrice === "Free", 
     amount: servicePrice !== "Free" ? parseFloat(servicePrice.replace(/[^0-9.]/g, "")) || 0 : 0,
-    currency: "USD", // Default currency
+    currency: globalCurrency, 
     displayPrice: servicePrice
   });
   
@@ -286,8 +286,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     if (!priceSettings) return "Free";
     if (priceSettings.isFree) return "Free";
     
-    const symbol = CURRENCY_SYMBOLS[priceSettings.currency] || "$";
-    return `${symbol}${priceSettings.amount}`;
+    return `${priceSettings.amount} ${globalCurrency}`;
   };
   
   const validateEmail = (value: string): boolean => {
@@ -425,11 +424,12 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
 
         // Get pricing data from settings
         if (data.price) {
-          const formattedPrice = formatPrice(data.price);
+          const formattedPrice = data.price.isFree ? "Free" : `${data.price.amount} ${globalCurrency}`;
+          
           setDynamicPrice({
             isFree: data.price.isFree,
             amount: data.price.amount,
-            currency: data.price.currency,
+            currency: globalCurrency, 
             displayPrice: formattedPrice
           });
         }
@@ -449,7 +449,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     };
 
     loadSettings();
-  }, [businessId]);
+  }, [businessId, , globalCurrency]);
 
   useEffect(() => {
     if (settings?.locations?.length) {
@@ -1328,7 +1328,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                     Booking...
                   </div>
                 ) : (
-                  (settings?.price?.isFree || dynamicPrice.isFree) ? "BOOK NOW" : `PAY TO BOOK ${servicePrice}`
+                  (settings?.price?.isFree || dynamicPrice.isFree) ? "BOOK NOW" : `PAY ${servicePrice} TO BOOK`
                 )}
               </button>
             </form>

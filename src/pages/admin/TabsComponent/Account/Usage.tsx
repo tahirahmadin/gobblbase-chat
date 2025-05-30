@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { getClientUsage, getClient } from "../../lib/serverActions";
-import { useAdminStore } from "../../store/useAdminStore";
+import { getClientUsage, getClient } from "../../../../lib/serverActions";
+import { useAdminStore } from "../../../../store/useAdminStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 

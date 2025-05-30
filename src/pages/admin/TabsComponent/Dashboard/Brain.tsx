@@ -1,5 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
-import { X, Upload, Loader2, FileText, AlertCircle, ChevronDown, Save } from "lucide-react";
+import {
+  X,
+  Upload,
+  Loader2,
+  FileText,
+  AlertCircle,
+  ChevronDown,
+  Save,
+} from "lucide-react";
 import { toast } from "react-hot-toast";
 import * as pdfjsLib from "pdfjs-dist";
 import mammoth from "mammoth";
@@ -78,7 +86,7 @@ const Button = styled.button`
   }
 
   &:disabled {
-    background: #6AFF97;
+    background: #6aff97;
     cursor: not-allowed;
     color: black;
   }
@@ -86,8 +94,6 @@ const Button = styled.button`
     background: #d6ffe0;
   }
 `;
-
-
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
 
@@ -921,22 +927,30 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
   // Helper function to count words
   const countWords = (text: string): number => {
-    return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+    return text
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 0).length;
   };
 
   // Check if any field has content to save (any content, we'll validate word count only when saving)
   const hasAnyContent = (): boolean => {
-    return Object.values(insightsData).some(value => value.trim().length > 0);
+    return Object.values(insightsData).some((value) => value.trim().length > 0);
   };
 
   // Validate individual fields and provide specific feedback
   const validateInsights = (): { isValid: boolean; message: string } => {
-    const fieldsWithContent = Object.entries(insightsData).filter(([key, value]) => {
-      return value.trim().length > 0;
-    });
+    const fieldsWithContent = Object.entries(insightsData).filter(
+      ([key, value]) => {
+        return value.trim().length > 0;
+      }
+    );
 
     if (fieldsWithContent.length === 0) {
-      return { isValid: false, message: "Please provide some insights before saving" };
+      return {
+        isValid: false,
+        message: "Please provide some insights before saving",
+      };
     }
 
     // Check each field that has content for minimum word count
@@ -948,15 +962,17 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     if (invalidFields.length > 0) {
       const fieldNames: Record<string, string> = {
         usp: "USP",
-        brandPersonality: "Brand Personality", 
+        brandPersonality: "Brand Personality",
         languageTerms: "Language Terms",
-        frequentQuestions: "Frequent Questions"
+        frequentQuestions: "Frequent Questions",
       };
 
-      const invalidFieldNames = invalidFields.map(([key]) => fieldNames[key]).join(", ");
-      return { 
-        isValid: false, 
-        message: `Please provide at least 5 words for: ${invalidFieldNames}` 
+      const invalidFieldNames = invalidFields
+        .map(([key]) => fieldNames[key])
+        .join(", ");
+      return {
+        isValid: false,
+        message: `Please provide at least 5 words for: ${invalidFieldNames}`,
       };
     }
 
@@ -996,16 +1012,24 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       // Create insights document with only filled fields that meet word count
       const insights = [];
       if (countWords(insightsData.usp) >= 5)
-        insights.push(`1. What makes you/your brand unique? The main USP:\n${insightsData.usp}`);
+        insights.push(
+          `1. What makes you/your brand unique? The main USP:\n${insightsData.usp}`
+        );
       if (countWords(insightsData.brandPersonality) >= 5)
-        insights.push(`2. How would your most loyal follower/customer describe you or your brand's personality?\n${insightsData.brandPersonality}`);
+        insights.push(
+          `2. How would your most loyal follower/customer describe you or your brand's personality?\n${insightsData.brandPersonality}`
+        );
       if (countWords(insightsData.languageTerms) >= 5)
-        insights.push(`3. What specific language, terms, or phrases should your AI agent use (or avoid) to authentically represent your brand voice?\n${insightsData.languageTerms}`);
+        insights.push(
+          `3. What specific language, terms, or phrases should your AI agent use (or avoid) to authentically represent your brand voice?\n${insightsData.languageTerms}`
+        );
       if (countWords(insightsData.frequentQuestions) >= 5)
-        insights.push(`4. What questions do your customers most frequently ask?\n${insightsData.frequentQuestions}`);
+        insights.push(
+          `4. What questions do your customers most frequently ask?\n${insightsData.frequentQuestions}`
+        );
 
       if (insights.length > 0) {
-        const formattedInsights = `BRAND INSIGHTS:\n\n${insights.join('\n\n')}`;
+        const formattedInsights = `BRAND INSIGHTS:\n\n${insights.join("\n\n")}`;
 
         const docSize = new TextEncoder().encode(formattedInsights).length;
 
@@ -1114,7 +1138,12 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
           {/* Agent Smartness */}
           <div className="pb-6 pt-4 border-b-2 border-[#CDCDCD] w-full flex flex-col xs:flex-row xs:gap-4">
-            <h1 style={{lineHeight: "20px"}} className="para-font text-[#000000] block text-sm sm:text-lg font-medium">Agent Smartness</h1>
+            <h1
+              style={{ lineHeight: "20px" }}
+              className="para-font text-[#000000] block text-sm sm:text-lg font-medium"
+            >
+              Agent Smartness
+            </h1>
             <div className="xs:flex-1 relative pt-2">
               <div
                 style={{ outline: "3px solid #CDCDCD" }}
@@ -1135,7 +1164,10 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
           {/* Agent Language */}
           <div className="py-8 sm:py-6 flex items-center gap-5">
-            <h1  style={{lineHeight: "20px", whiteSpace: "nowrap"}} className="para-font text-[#000000] block text-sm sm:text-lg font-medium">
+            <h1
+              style={{ lineHeight: "20px", whiteSpace: "nowrap" }}
+              className="para-font text-[#000000] block text-sm sm:text-lg font-medium"
+            >
               Agent Language
             </h1>
             <div className="relative w-60 flex  ">
@@ -1146,11 +1178,12 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                 {selectedLanguage}
               </button>
               <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
-                <ChevronDown size={20}
-                className={`text-[#000000] stroke-[3px] transition-transform  ${
-                  isOpen ? "rotate-180" : ""
-                }`}
-              />
+                <ChevronDown
+                  size={20}
+                  className={`text-[#000000] stroke-[3px] transition-transform  ${
+                    isOpen ? "rotate-180" : ""
+                  }`}
+                />
               </div>
 
               {isOpen && (
@@ -1176,13 +1209,13 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
           {/* Upload Files */}
           <div>
-           <div className="content flex justify-between items-center gap-4 pr-6">
+            <div className="content flex justify-between items-center gap-4 pr-6">
               <span className="texts">
                 <h3 className="main-font block text-md sm:text-xl font-bold text-[#000000]">
                   Upload Files
                 </h3>
                 <p className="text-xs text-gray-500 mb-2">
-                  Upload PDF, DOCX and TXT files 
+                  Upload PDF, DOCX and TXT files
                 </p>
               </span>
               <span className="para-font border border-[#7D7D7D] text-[#7D7D7D] px-2 py-0.5 xs:px-4 rounded-xl -mr-6">
@@ -1193,11 +1226,13 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
               {uploadedFiles.map((file) => (
                 <div
                   key={file.name + (file.documentId || "")}
-                   className="flex flex-row items-center justify-between space-x-2"
+                  className="flex flex-row items-center justify-between space-x-2"
                 >
                   <div className="flex justify-between items-center px-2 py-1 border w-[80%] bg-[#CEFFDC] border-2 border-[#6AFF97]">
                     <span className="text-sm truncate">{file.name}</span>
-                    <span className="text-xs text-gray-500 whitespace-nowrap">{file.size}</span>
+                    <span className="text-xs text-gray-500 whitespace-nowrap">
+                      {file.size}
+                    </span>
                   </div>
 
                   <div style={{ zIndex: "4" }} className="icon relative pr-8">
@@ -1333,7 +1368,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       {/* Right Section - SMARTEN UP */}
       <div className="p-6 rounded-lg" style={{ backgroundColor: "#D4DEFF" }}>
         <div className="mb-6">
-          <h2 className="main-font text-[#000000] text-lg font-[1000]">SMARTEN UP</h2>
+          <h2 className="main-font text-[#000000] text-lg font-[1000]">
+            SMARTEN UP
+          </h2>
           <p className="para-font text-sm text-[#000000] font-[500]">
             Share Your Insights to Unlock Your Agent's Full Potential
           </p>
@@ -1408,19 +1445,19 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                 Fill any insights you'd like to save
               </p>
               <p>
-                You can fill out whichever insights you want and save them. Each field requires at least 5 words to be saved. Empty fields will be skipped.
+                You can fill out whichever insights you want and save them. Each
+                field requires at least 5 words to be saved. Empty fields will
+                be skipped.
               </p>
             </div>
           </div>
 
-           <div className="flex justify-end relative z-10 mt-4">
+          <div className="flex justify-end relative z-10 mt-4">
             <Button
               onClick={handleSave}
               disabled={isSaving || !hasAnyContent()}
               className={`${
-                isSaving || !hasAnyContent()
-                  ? "cursor-not-allowed"
-                  : ""
+                isSaving || !hasAnyContent() ? "cursor-not-allowed" : ""
               }`}
             >
               {isSaving ? (

@@ -3,7 +3,7 @@ import { Theme, ChatMessage } from "../../types";
 import StreamingText from "./otherComponents/StreamingText";
 import LoadingBubbles from "./otherComponents/LoadingBubbles";
 import BookingSection from "./BookingSection";
-import BookingManagementComponent from "./BookingManagementComponent";
+import BookingManagementComponent from "./chatbotBookingComponents/BookingManagementComponent";
 import ChatProductDisplay from "./ChatProductDisplay";
 import ReactMarkdown from "react-markdown";
 

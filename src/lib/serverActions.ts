@@ -381,7 +381,9 @@ export async function fetchClientAgents(
   clientId: string
 ): Promise<AdminAgent[]> {
   try {
-    const response = await axios.get(`${apiUrl}/client/agents/${clientId}`);
+    const response = await axios.get(
+      `${apiUrl}/client/agents?clientId=${clientId}`
+    );
     if (response.data.error) {
       throw new Error("Failed to fetch client agents");
     }
@@ -1321,7 +1323,9 @@ export async function subscribeToPlan(
 
 export async function getClient(clientId: string) {
   try {
-    const response = await axios.get(`${apiUrl}/client/getClient/${clientId}`);
+    const response = await axios.get(
+      `${apiUrl}/client/getClient?clientId=${clientId}`
+    );
 
     if (response.data.error) {
       throw new Error(response.data.result || "Failed to fetch client data");
@@ -1884,5 +1888,57 @@ export async function updateCustomHandles(
   } catch (error) {
     console.error("Error updating custom handles:", error);
     throw new Error("Failed to update custom links");
+  }
+}
+
+export async function enableStripePayment(
+  clientId: string
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const response = await axios.post(`${apiUrl}/client/enableStripePayment`, {
+      clientId,
+    });
+
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+
+    return {
+      success: true,
+      message: "Stripe payments enabled successfully",
+    };
+  } catch (error) {
+    console.error("Error enabling Stripe payments:", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Failed to enable Stripe payments"
+    );
+  }
+}
+
+export async function completeStripeOnboarding(
+  clientId: string
+): Promise<string | null> {
+  try {
+    const response = await axios.post(
+      `${apiUrl}/client/completeStripeOnboarding`,
+      {
+        clientId,
+      }
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error completing Stripe onboarding:", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Failed to complete Stripe onboarding"
+    );
   }
 }

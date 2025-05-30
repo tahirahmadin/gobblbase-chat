@@ -324,7 +324,7 @@ const Payments = () => {
           </div> */}
 
           {/* USDT (Crypto) */}
-          {/* <div className="space-y-2">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">USDT (Crypto)</span>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -352,12 +352,7 @@ const Payments = () => {
                 />
               </div>
               <div className="flex flex-wrap gap-2">
-                {[
-                  "USDT on Eth",
-                  "USDT on Base",
-                  "USDT on BSC",
-                  "USDT on Solana",
-                ].map((chain) => (
+                {["USDT on Eth", "USDT on Base", "USDT on BSC"].map((chain) => (
                   <button
                     key={chain}
                     onClick={() => handleChainToggle(chain, true)}
@@ -373,7 +368,7 @@ const Payments = () => {
                 ))}
               </div>
             </div>
-          </div> */}
+          </div>
 
           {/* USDC (Crypto) */}
           {/* <div className="space-y-2">
@@ -509,7 +504,7 @@ const Payments = () => {
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-semibold text-base text-gray-900 mb-1">
-                          {transaction.shipping.name || "Customer Name"}
+                          {transaction.shipping?.name || "Customer Name"}
                         </p>
                         <p className="text-xs text-gray-600">
                           {transaction.userEmail}

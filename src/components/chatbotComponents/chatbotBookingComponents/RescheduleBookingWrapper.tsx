@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { getBookingForReschedule } from "../../lib/serverActions";
-import { useBotConfig } from "../../store/useBotConfig";
+import { getBookingForReschedule } from "../../../lib/serverActions";
+import { useBotConfig } from "../../../store/useBotConfig";
 import { Theme } from "../../types";
 import RescheduleFlowComponent from "./RescheduleFlowComponent";
 import { Loader2, AlertCircle, CheckCircle } from "lucide-react";

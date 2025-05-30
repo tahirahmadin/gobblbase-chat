@@ -8,6 +8,10 @@ import {
   useLocation,
 } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
+import { WagmiProvider } from "wagmi";
+import { mainnet, base, bsc } from "viem/chains";
+import { createConfig, http } from "wagmi";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Header from "./components/adminComponents/Header";
 import PublicChat from "./pages/chatbot/PublicChat";
 import CustomerBooking from "./components/adminComponents/bookingComponents/CustomerBooking";
@@ -29,10 +33,10 @@ import BookingDashboardWrapper from "./pages/admin/BookingComponent/BookingDashb
 import Login from "./pages/admin/Login";
 import { useAdminStore } from "./store/useAdminStore";
 import CreateNewBot from "./pages/admin/CreateNewBot";
-import Plans from "./pages/admin/Plans";
+import Plans from "./pages/admin/TabsComponent/Account/Plans";
 import Billing from "./pages/admin/Billing";
-import Usage from "./pages/admin/Usage";
-import RescheduleBookingWrapper from "./components/chatbotComponents/RescheduleBookingWrapper";
+import Usage from "./pages/admin/TabsComponent/Account/Usage";
+
 import Commerce from "./pages/admin/TabsComponent/Commerce/Commerce";
 import Operations from "./pages/admin/TabsComponent/Settings/Operations";
 import Home from "./pages/landing/Home";
@@ -42,6 +46,8 @@ import { Loader } from "lucide-react";
 import PaymentSuccessPage from "./pages/admin/PlanComponents/PaymentSuccessPage";
 import PaymentCancelPage from "./pages/admin/PlanComponents/PaymentCancelPage";
 import { useUserStore } from "./store/useUserStore";
+import StripePaymentConfig from "./pages/admin/TabsComponent/Account/Income";
+import RescheduleBookingWrapper from "./components/chatbotComponents/chatbotBookingComponents/RescheduleBookingWrapper";
 
 // Add type definition for window
 declare global {
@@ -49,6 +55,19 @@ declare global {
     setActiveAdminTab?: (tab: string) => void;
   }
 }
+
+// Create wagmi config
+const config = createConfig({
+  chains: [mainnet, base, bsc],
+  transports: {
+    [mainnet.id]: http(),
+    [base.id]: http(),
+    [bsc.id]: http(),
+  },
+});
+
+// Create a client
+const queryClient = new QueryClient();
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -131,6 +150,7 @@ function Dashboard() {
         <Route path="account/billing" element={<Billing />} />
         <Route path="account/plans" element={<Plans />} />
         <Route path="account/usage" element={<Usage />} />
+        <Route path="account/income" element={<StripePaymentConfig />} />
         <Route path="all-agents" element={<AllAgents />} />
         <Route path="*" element={<Navigate to="dashboard/profile" replace />} />
       </Routes>
@@ -157,39 +177,47 @@ function CustomerBookingPage() {
 function App() {
   return (
     <HelmetProvider>
-      <Router>
-        <Toaster position="top-right" />
-        <Routes>
-          <Route path="/admin/signup" element={<Login />} />
-          <Route
-            path="/admin/dashboard/create-bot"
-            element={<CreateNewBot />}
-          />
-          <Route path="/book/:agentId" element={<CustomerBookingPage />} />
-          <Route
-            path="/reschedule/:bookingId"
-            element={<RescheduleBookingWrapper />}
-          />
-          <Route
-            path=":botUsername"
-            element={
-              <PublicChat
-                chatHeight={null}
-                previewConfig={null}
-                isPreview={false}
+      <QueryClientProvider client={queryClient}>
+        <WagmiProvider config={config}>
+          <Router>
+            <Toaster position="top-right" />
+            <Routes>
+              <Route path="/admin/signup" element={<Login />} />
+              <Route
+                path="/admin/dashboard/create-bot"
+                element={<CreateNewBot />}
               />
-            }
-          />
-          <Route
-            path="/admin/payment-success"
-            element={<PaymentSuccessPage />}
-          />
-          <Route path="/admin/payment-cancel" element={<PaymentCancelPage />} />
-          <Route path="/admin/*" element={<Dashboard />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/" element={<Home />} />
-        </Routes>
-      </Router>
+              <Route path="/book/:agentId" element={<CustomerBookingPage />} />
+              <Route
+                path="/reschedule/:bookingId"
+                element={<RescheduleBookingWrapper />}
+              />
+              <Route
+                path=":botUsername"
+                element={
+                  <PublicChat
+                    chatHeight={null}
+                    previewConfig={null}
+                    isPreview={false}
+                    screenName=""
+                  />
+                }
+              />
+              <Route
+                path="/admin/payment-success"
+                element={<PaymentSuccessPage />}
+              />
+              <Route
+                path="/admin/payment-cancel"
+                element={<PaymentCancelPage />}
+              />
+              <Route path="/admin/*" element={<Dashboard />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/" element={<Home />} />
+            </Routes>
+          </Router>
+        </WagmiProvider>
+      </QueryClientProvider>
     </HelmetProvider>
   );
 }
