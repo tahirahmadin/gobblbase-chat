@@ -590,7 +590,7 @@ const Profile = () => {
           </div>
 
           {/* Agent Bio */}
-          <div className="">
+          <div className="pr-4">
             <div>
               <div className="flex justify-between mb-1 pt-4">
                 <h3 className="main-font block text-md md:text-lg font-medium text-[#000000]">
@@ -634,22 +634,24 @@ const Profile = () => {
           </div>
 
           {/* Agent Smartness */}
-          <div className="bg-[#D4DEFF] p-4 rounded-lg flex flex-col sm:flex-row w-full gap-5">
-            <div className="smartness-details w-full">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">
-                  AGENT SMARTNESS
-                </span>
-                <span className="text-sm text-[#0D0D0D]">
-                  {smartnessLevel}% COMPLETE
-                </span>
-              </div>
-              <div className="relative pt-1">
-                <div className="overflow-hidden h-[10px] text-xs flex rounded-lg bg-[#FFFFFF] shadow-[inset_0_3px_3px_0_rgba(0,0,0,0.25)]">
-                  <div
-                    style={{ width: `${smartnessLevel}%` }}
-                    className="shadow-none h-[10px] flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#4D65FF] border-2 border-[#135220] rounded-lg"
-                  />
+          <div className="pr-4">
+            <div className="bg-[#D4DEFF] p-4 rounded-lg flex flex-col sm:flex-row w-full gap-5 pr-4">
+              <div className="smartness-details w-full">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium text-gray-700">
+                    AGENT SMARTNESS
+                  </span>
+                  <span className="text-sm text-[#0D0D0D]">
+                    {smartnessLevel}% COMPLETE
+                  </span>
+                </div>
+                <div className="relative pt-1">
+                  <div className="overflow-hidden h-[10px] text-xs flex rounded-lg bg-[#FFFFFF] shadow-[inset_0_3px_3px_0_rgba(0,0,0,0.25)]">
+                    <div
+                      style={{ width: `${smartnessLevel}%` }}
+                      className="shadow-none h-[10px] flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#4D65FF] border-2 border-[#135220] rounded-lg"
+                    />
+                  </div>
                 </div>
               </div>
               <div
@@ -657,20 +659,12 @@ const Profile = () => {
                 className="btn-container z-10 relative"
               >
                 <Button
-                  onClick={handleSavePromoBanner}
-                  disabled={isSavingPromoBanner}
-                  className={` ${
-                    isSavingPromoBanner ? " cursor-not-allowed" : ""
-                  }`}
+                  className=""
+                  onClick={() => {
+                    navigate("/admin/dashboard/brain");
+                  }}
                 >
-                  {isSavingPromoBanner ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                      <span>Saving...</span>
-                    </div>
-                  ) : (
-                    "Save"
-                  )}
+                  SMARTEN
                 </Button>
               </div>
             </div>
@@ -739,11 +733,11 @@ const Profile = () => {
           </div>
 
           {/* Social Media Section */}
-          <div className="">
+          <div className="pr-4">
             <SocialMediaSection />
           </div>
           {/* Custom Links Section */}
-          <div className="p-3">
+          <div className="pr-4">
             <CustomLinksSection />
           </div>
         </div>
