@@ -788,21 +788,30 @@ const BuildAgentSection = styled.section`
       display: grid;
       grid-auto-flow: row;
       justify-content: center; /* Center the first row */
-      grid-template-columns: repeat(auto-fit, minmax(360px, max-content));
+      grid-template-columns: repeat(auto-fit, minmax(320px, max-content));
       column-gap: 24px;
       row-gap: 60px;
       padding: 8vh 2vw;
       width: 100%;
+        @media(max-width: 400px){
+          grid-template-columns: repeat(auto-fit, minmax(100%, max-content));
+        }
       .your-ai-card {
         background: #fff;
         border-radius: 0;
         min-height: 70px;
-        width: 360px;
+        width: 320px;
         position: relative;
         border: 1px solid black;
         display: flex;
         flex-direction: column;
         padding: 0;
+        @media(max-width: 400px){
+          width: 100%;
+        }
+        @media(max-width: 400px){
+          width: 100%;
+        }
         .top-heading {
           position: absolute;
           top: -30px;
@@ -2181,10 +2190,10 @@ const Home = () => {
                       <object
                         type="image/svg+xml"
                         data="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/web+anim-1+%40sdevc.svg"
-                        className="w-[200px] sm:w-[300px] h-auto"
+                        className="w-[150px] xs:w-[200px] h-auto"
                       ></object>
                     </div>
-                    <p className="para-font mt-4 font-[600] text-[14px] md:text-[16px]">
+                    <p className="para-font mt-4 font-[400] text-[1rem]">
                       Smarten up your Agent’s brain with files, catalogs, social
                       links and all information related to your business.
                     </p>
@@ -2208,10 +2217,10 @@ const Home = () => {
                       <object
                         type="image/svg+xml"
                         data="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/web+anim-3+%40sdevc.svg"
-                        className="w-fit h-auto"
+                        className="w-[150px] xs:w-[200px] h-auto"
                       ></object>
                     </div>
-                    <p className="para-font mt-4 font-[600] text-[14px] md:text-[16px]">
+                    <p className="para-font mt-4 font-[400] text-[1rem]">
                       Craft a conversational style that reflects your brand's
                       personality, from professional to playful.
                     </p>
@@ -2233,10 +2242,10 @@ const Home = () => {
                       <object
                         type="image/svg+xml"
                         data="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/web+anim-2%40sdevc.svg"
-                        className="w-fit h-auto"
+                        className="w-[150px] xs:w-[200px] h-auto"
                       ></object>
                     </div>
-                    <p className="para-font mt-4 font-[600] text-[14px] md:text-[16px]">
+                    <p className="para-font mt-4 font-[400] text-[1rem]">
                       Customize chat themes, colors, and interactions to create
                       a seamless, on-brand user experience.
                     </p>
