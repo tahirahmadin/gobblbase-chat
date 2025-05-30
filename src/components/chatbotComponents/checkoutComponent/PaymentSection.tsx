@@ -9,8 +9,24 @@ import {
 import { useBotConfig } from "../../../store/useBotConfig";
 import { useUserStore } from "../../../store/useUserStore";
 import toast from "react-hot-toast";
-import { CreditCard, Wallet } from "lucide-react";
+import { CreditCard, Wallet, AlertCircle } from "lucide-react";
 import { backendApiUrl } from "../../../utils/constants";
+import { useAccount, useConnect, useDisconnect, useContractWrite } from "wagmi";
+import { injected } from "wagmi/connectors";
+import { parseEther } from "viem";
+import { mainnet, base, bsc } from "viem/chains";
+import { createConfig, http } from "wagmi";
+import { Hash, TransactionReceipt } from "viem";
+
+// Create wagmi config
+const config = createConfig({
+  chains: [mainnet, base, bsc],
+  transports: {
+    [mainnet.id]: http(),
+    [base.id]: http(),
+    [bsc.id]: http(),
+  },
+});
 
 interface PaymentSectionProps {
   theme: {
@@ -194,59 +210,318 @@ function CryptoPaymentForm({
   product: PaymentSectionProps["product"];
 }) {
   const { activeBotData } = useBotConfig();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedChain, setSelectedChain] = useState<string | null>(null);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  // Wagmi hooks
+  const { address, isConnected } = useAccount();
+  const { connectAsync } = useConnect();
+  const { disconnect } = useDisconnect();
+
+  // Contract configuration
+  const tokenAddresses: Record<string, Record<string, string>> = {
+    usdt: {
+      "USDT on Eth": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      "USDT on Base": "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
+      "USDT on BSC": "0x55d398326f99059fF775485246999027B3197955",
+    },
+    usdc: {
+      "USDC on Eth": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "USDC on Base": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "USDC on BSC": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+    },
+  };
+
+  const tokenABI = [
+    {
+      constant: false,
+      inputs: [
+        {
+          name: "_to",
+          type: "address",
+        },
+        {
+          name: "_value",
+          type: "uint256",
+        },
+      ],
+      name: "transfer",
+      outputs: [
+        {
+          name: "",
+          type: "bool",
+        },
+      ],
+      payable: false,
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+  ] as const;
+
+  const { writeContract, isPending } = useContractWrite({
+    mutation: {
+      onSuccess: (hash: `0x${string}`) => {
+        onOrderDetails({
+          product: product,
+          total: product.price,
+          paymentMethod: type.toUpperCase(),
+          paymentDate: new Date().toLocaleDateString(),
+          transactionHash: hash,
+        });
+        onSuccess();
+      },
+      onError: (error: Error) => {
+        console.error("Transfer error:", error);
+        toast.error(error.message || "Transfer failed. Please try again.");
+      },
+    },
+  });
+
+  const handleConnectWallet = async () => {
+    try {
+      await connectAsync({ connector: injected() });
+    } catch (error) {
+      console.error("Failed to connect wallet:", error);
+      toast.error("Failed to connect wallet. Please try again.");
+    }
+  };
+
+  const handleChainSelect = (chainName: string) => {
+    setSelectedChain(chainName);
+    const chainId = getChainIdFromName(chainName);
+    if (chainId) {
+      // Switch network using the wallet's native method
+      if (window.ethereum) {
+        window.ethereum
+          .request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: `0x${chainId.toString(16)}` }],
+          })
+          .catch((error: any) => {
+            if (error.code === 4902) {
+              // Chain not added to wallet, add it
+              const chainParams = getChainParams(chainId);
+              if (chainParams) {
+                window.ethereum.request({
+                  method: "wallet_addEthereumChain",
+                  params: [chainParams],
+                });
+              }
+            }
+          });
+      }
+    }
+  };
+
+  const getChainIdFromName = (chainName: string): number | undefined => {
+    const chainMap: Record<string, number> = {
+      "USDT on Eth": 1,
+      "USDT on Base": 8453,
+      "USDT on BSC": 56,
+      "USDC on Eth": 1,
+      "USDC on Base": 8453,
+      "USDC on BSC": 56,
+    };
+    return chainMap[chainName];
+  };
+
+  const getChainParams = (chainId: number) => {
+    const chainParams: Record<number, any> = {
+      1: {
+        chainId: "0x1",
+        chainName: "Ethereum Mainnet",
+        nativeCurrency: {
+          name: "Ether",
+          symbol: "ETH",
+          decimals: 18,
+        },
+        rpcUrls: ["https://mainnet.infura.io/v3/"],
+        blockExplorerUrls: ["https://etherscan.io"],
+      },
+      8453: {
+        chainId: "0x2105",
+        chainName: "Base",
+        nativeCurrency: {
+          name: "Ether",
+          symbol: "ETH",
+          decimals: 18,
+        },
+        rpcUrls: ["https://mainnet.base.org"],
+        blockExplorerUrls: ["https://basescan.org"],
+      },
+      56: {
+        chainId: "0x38",
+        chainName: "BNB Smart Chain",
+        nativeCurrency: {
+          name: "BNB",
+          symbol: "BNB",
+          decimals: 18,
+        },
+        rpcUrls: ["https://bsc-dataseed.binance.org"],
+        blockExplorerUrls: ["https://bscscan.com"],
+      },
+    };
+    return chainParams[chainId];
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    onOrderDetails({
-      product: product,
-      total: product.price,
-      paymentMethod: type.toUpperCase(),
-      paymentDate: new Date().toLocaleDateString(),
-    });
-    onSuccess();
+
+    if (!isConnected) {
+      toast.error("Please connect your wallet first");
+      return;
+    }
+
+    if (!selectedChain) {
+      toast.error("Please select a network");
+      return;
+    }
+
+    if (!writeContract) {
+      toast.error("Transaction preparation failed");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await writeContract({
+        abi: tokenABI,
+        functionName: "transfer",
+        address: tokenAddresses[type][selectedChain] as `0x${string}`,
+        args: [
+          activeBotData?.paymentMethods[type]?.walletAddress as `0x${string}`,
+          parseEther(product.price.toString()),
+        ],
+      });
+    } catch (error: any) {
+      console.error("Transfer error:", error);
+      toast.error(error.message || "Transfer failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const walletAddress = activeBotData?.paymentMethods[type]?.walletAddress;
-  const chains = activeBotData?.paymentMethods[type]?.chains;
+  const supportedChains = activeBotData?.paymentMethods[type]?.chains;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="p-4 rounded-lg border" style={{ borderColor: "#FFD700" }}>
-        <p
-          className="text-center mb-2"
-          style={{ color: activeBotData?.themeColors.isDark ? "#fff" : "#000" }}
+      {!isConnected ? (
+        <button
+          type="button"
+          onClick={handleConnectWallet}
+          className="w-full p-3 rounded font-medium flex items-center justify-center gap-2"
+          style={{
+            backgroundColor: "#FFD700",
+            color: "#000",
+          }}
         >
-          Send {type.toUpperCase()} to the following address
-        </p>
-        <div className="mt-2 text-center">
-          <p
-            className="font-mono text-sm break-all"
+          <Wallet className="w-5 h-5" />
+          Connect Wallet
+        </button>
+      ) : (
+        <>
+          <div
+            className="p-4 rounded-lg border"
+            style={{ borderColor: "#FFD700" }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <p
+                style={{
+                  color: activeBotData?.themeColors.isDark ? "#fff" : "#000",
+                }}
+              >
+                Connected: {address?.slice(0, 6)}...{address?.slice(-4)}
+              </p>
+              <button
+                type="button"
+                onClick={() => disconnect()}
+                className="text-sm underline"
+                style={{
+                  color: activeBotData?.themeColors.isDark ? "#fff" : "#000",
+                }}
+              >
+                Disconnect
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <p
+                  className="mb-2"
+                  style={{
+                    color: activeBotData?.themeColors.isDark ? "#fff" : "#000",
+                  }}
+                >
+                  Select Network
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {supportedChains?.map((chainName: string) => (
+                    <button
+                      key={chainName}
+                      type="button"
+                      onClick={() => handleChainSelect(chainName)}
+                      className={`px-3 py-1 text-sm rounded ${
+                        selectedChain === chainName
+                          ? "bg-yellow-500 text-black"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {chainName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {selectedChain && (
+                <div>
+                  <p
+                    className="mb-2"
+                    style={{
+                      color: activeBotData?.themeColors.isDark
+                        ? "#fff"
+                        : "#000",
+                    }}
+                  >
+                    Send {product.price} {type.toUpperCase()} to:
+                  </p>
+                  <p
+                    className="font-mono text-sm break-all p-2 bg-gray-100 rounded"
+                    style={{
+                      color: activeBotData?.themeColors.isDark
+                        ? "#fff"
+                        : "#000",
+                    }}
+                  >
+                    {walletAddress}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSubmitting || !selectedChain || !writeContract}
+            className="w-full p-3 rounded font-medium flex items-center justify-center gap-2"
             style={{
-              color: activeBotData?.themeColors.isDark ? "#fff" : "#000",
+              backgroundColor: "#FFD700",
+              color: "#000",
+              opacity:
+                isSubmitting || !selectedChain || !writeContract ? 0.7 : 1,
             }}
           >
-            {walletAddress}
-          </p>
-          <p
-            className="text-sm mt-2"
-            style={{
-              color: activeBotData?.themeColors.isDark ? "#fff" : "#000",
-            }}
-          >
-            Supported chains: {chains?.join(", ")}
-          </p>
-        </div>
-      </div>
-      <button
-        type="submit"
-        className="w-full p-3 rounded font-medium"
-        style={{
-          backgroundColor: "#FFD700",
-          color: "#000",
-        }}
-      >
-        CONFIRM PAYMENT
-      </button>
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black"></div>
+                Processing...
+              </>
+            ) : (
+              "CONFIRM PAYMENT"
+            )}
+          </button>
+        </>
+      )}
     </form>
   );
 }

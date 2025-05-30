@@ -8,6 +8,10 @@ import {
   useLocation,
 } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
+import { WagmiProvider } from "wagmi";
+import { mainnet, base, bsc } from "viem/chains";
+import { createConfig, http } from "wagmi";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Header from "./components/adminComponents/Header";
 import PublicChat from "./pages/chatbot/PublicChat";
 import CustomerBooking from "./components/adminComponents/bookingComponents/CustomerBooking";
@@ -49,6 +53,19 @@ declare global {
     setActiveAdminTab?: (tab: string) => void;
   }
 }
+
+// Create wagmi config
+const config = createConfig({
+  chains: [mainnet, base, bsc],
+  transports: {
+    [mainnet.id]: http(),
+    [base.id]: http(),
+    [bsc.id]: http(),
+  },
+});
+
+// Create a client
+const queryClient = new QueryClient();
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -157,39 +174,47 @@ function CustomerBookingPage() {
 function App() {
   return (
     <HelmetProvider>
-      <Router>
-        <Toaster position="top-right" />
-        <Routes>
-          <Route path="/admin/signup" element={<Login />} />
-          <Route
-            path="/admin/dashboard/create-bot"
-            element={<CreateNewBot />}
-          />
-          <Route path="/book/:agentId" element={<CustomerBookingPage />} />
-          <Route
-            path="/reschedule/:bookingId"
-            element={<RescheduleBookingWrapper />}
-          />
-          <Route
-            path=":botUsername"
-            element={
-              <PublicChat
-                chatHeight={null}
-                previewConfig={null}
-                isPreview={false}
+      <QueryClientProvider client={queryClient}>
+        <WagmiProvider config={config}>
+          <Router>
+            <Toaster position="top-right" />
+            <Routes>
+              <Route path="/admin/signup" element={<Login />} />
+              <Route
+                path="/admin/dashboard/create-bot"
+                element={<CreateNewBot />}
               />
-            }
-          />
-          <Route
-            path="/admin/payment-success"
-            element={<PaymentSuccessPage />}
-          />
-          <Route path="/admin/payment-cancel" element={<PaymentCancelPage />} />
-          <Route path="/admin/*" element={<Dashboard />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/" element={<Home />} />
-        </Routes>
-      </Router>
+              <Route path="/book/:agentId" element={<CustomerBookingPage />} />
+              <Route
+                path="/reschedule/:bookingId"
+                element={<RescheduleBookingWrapper />}
+              />
+              <Route
+                path=":botUsername"
+                element={
+                  <PublicChat
+                    chatHeight={null}
+                    previewConfig={null}
+                    isPreview={false}
+                    screenName=""
+                  />
+                }
+              />
+              <Route
+                path="/admin/payment-success"
+                element={<PaymentSuccessPage />}
+              />
+              <Route
+                path="/admin/payment-cancel"
+                element={<PaymentCancelPage />}
+              />
+              <Route path="/admin/*" element={<Dashboard />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/" element={<Home />} />
+            </Routes>
+          </Router>
+        </WagmiProvider>
+      </QueryClientProvider>
     </HelmetProvider>
   );
 }
