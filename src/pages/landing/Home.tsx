@@ -14,6 +14,8 @@ import {
   User,
   Menu,
   X,
+  Twitter,
+  Linkedin,
 } from "lucide-react";
 
 const Container = styled.div`
@@ -42,9 +44,6 @@ const Header = styled.header`
 `;
 
 const Logo = styled.div`
-  font-weight: 700;
-  font-size: clamp(1.5rem, 2vw, 2rem);
-  letter-spacing: -1px;
   cursor: pointer;
   display: flex;
   align-items: end;
@@ -65,6 +64,7 @@ const NavLink = styled.button`
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 4px;
+  font-family: "DM Sans", sans-serif;
   transition: background-color 0.2s;
   &:hover {
     background-color: #f5f5f5;
@@ -111,19 +111,19 @@ const BlackBackground = styled.span`
   position: relative;
   z-index: 10;
   @media (max-width: 600px) {
-    padding: 3vh 0 3vh 0;
+    padding: 1vh 0 1vh 0;
   }
   span {
     width: fit-content;
     font-size: clamp(1.1rem, 4vw, 1.4rem);
     font-family: "Lato", sans-serif;
+    font-weight: 600;
     height: 100%;
     padding: 1.5vh 2vw;
     background: black;
     color: white;
     border-radius: 40px;
     position: relative;
-    font-weight: 1000;
     &::before {
       content: "";
       position: absolute;
@@ -162,14 +162,16 @@ const WhiteBackground = styled.span`
   @media (max-width: 400px) {
     width: 95%;
   }
+
   span {
     font-family: "DM Sans", sans-serif;
     font-size: clamp(9px, 4vw, 16px);
     font-weight: 600;
     background: white;
-    width: fit-content;
     border: 1px solid black;
+    width: fit-content;
     height: 100%;
+    width: 100%;
     color: black;
     padding: 4vh 2vw;
     border-radius: 60px;
@@ -180,8 +182,9 @@ const WhiteBackground = styled.span`
     &::before {
       content: "";
       position: absolute;
-      bottom: 1px;
-      right: 4px;
+      transform: translate(-0.4rem, -0.05rem);
+      bottom: 0px;
+      right: 0;
       width: 0;
       height: 0;
       border-left: 24px solid transparent;
@@ -189,7 +192,7 @@ const WhiteBackground = styled.span`
       border-bottom: 24px solid white;
       z-index: 0;
       @media (max-width: 600px) {
-        right: -12px;
+        transform: translate(0.5rem, -0.05rem);
         border-left: 28px solid transparent;
         border-right: 28px solid transparent;
         border-bottom: 28px solid white;
@@ -198,16 +201,17 @@ const WhiteBackground = styled.span`
     &::after {
       content: "";
       position: absolute;
+      transform: translate(-0.25rem, 0rem);
       bottom: 0px;
-      right: 2px;
+      right: 0;
       width: 0;
       height: 0;
-      border-left: 26px solid transparent;
-      border-right: 26px solid transparent;
-      border-bottom: 26px solid black;
-      z-index: -10;
+      border-left: 40px solid transparent;
+      border-right: 40px solid transparent;
+      border-bottom: 40px solid black;
+      z-index: -4;
       @media (max-width: 600px) {
-        right: -14px;
+        transform: translate(0.65rem, 0);
         border-left: 30px solid transparent;
         border-right: 30px solid transparent;
         border-bottom: 30px solid black;
@@ -269,7 +273,7 @@ const CTAButton = styled.button`
   align-items: center;
   justify-content: space-between;
   background: #6aff97;
-  padding: 1vh 1.2vw;
+  padding: 1.43vh 1.2vw;
   border: 2px solid black;
   cursor: pointer;
   transition: background 0.3s;
@@ -305,7 +309,7 @@ const PracticalSection = styled.section`
   background: #aeb8ff;
   text-align: left;
   paading-top: 64px;
-  padding: 5vh 3vw 5vh 3vw;
+  padding: 5vh 2vw 5vh 2vw;
   border: 1px solid #000000;
   display: flex;
   flex-direction: column;
@@ -318,7 +322,7 @@ const PracticalSection = styled.section`
 const CardsRow = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  margin-top: 30px;
+  margin-top: 6vh;
   height: 600px;
   background: #d5fff2;
   @media (max-width: 800px) {
@@ -618,6 +622,7 @@ const PlatformLeft = styled.div`
   display: flex;
   flex-direction: column;
   gap: 24px;
+  width: 100%;
   padding: 6vh 0vw 0 2vw;
   @media (max-width: 900px) {
     width: 100%;
@@ -631,20 +636,25 @@ const PlatformCardsRow = styled.div`
   flex-direction: column;
   gap: 24px;
   justify-content: center;
-  padding: 0 4vw 0 8vw;
+  padding: 0 4vw 0 0;
   min-height: 500px;
   height: 100%;
-  width: 100%;
+  width: fit-content;
+  margin-left: auto;
   @media (max-width: 900px) {
     padding: 0 0vw 4vh 0vw;
   }
 `;
 
 const PlatformCard = styled.div`
+  margin-left: auto;
   gap: 24px;
-  width: 100%;
+  width: 80%;
   position: relative;
   z-index: 10;
+  @media (max-width: 800px) {
+    width: 100%;
+  }
   span {
     display: flex;
     align-items: center;
@@ -667,37 +677,39 @@ const PlatformCard = styled.div`
     &::before {
       content: "";
       position: absolute;
-      bottom: 1px;
-      right: 6px;
+      transform: translate(-0.8rem, -0.05rem);
+      bottom: 0px;
+      right: 0;
       width: 0;
       height: 0;
-      border-left: 30px solid transparent;
-      border-right: 30px solid transparent;
-      border-bottom: 30px solid white;
+      border-left: 24px solid transparent;
+      border-right: 24px solid transparent;
+      border-bottom: 24px solid white;
       z-index: 0;
       @media (max-width: 600px) {
-        right: 0;
-        border-left: 20px solid transparent;
-        border-right: 20px solid transparent;
-        border-bottom: 20px solid white;
+        transform: translate(0.5rem, -0.05rem);
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 28px solid white;
       }
     }
     &::after {
       content: "";
       position: absolute;
+      transform: translate(-0.65rem, 0rem);
       bottom: 0px;
-      right: 4px;
+      right: 0;
       width: 0;
       height: 0;
-      border-left: 32px solid transparent;
-      border-right: 32px solid transparent;
-      border-bottom: 32px solid black;
+      border-left: 40px solid transparent;
+      border-right: 40px solid transparent;
+      border-bottom: 40px solid black;
       z-index: -10;
       @media (max-width: 600px) {
-        right: -2px;
-        border-left: 22px solid transparent;
-        border-right: 22px solid transparent;
-        border-bottom: 22px solid black;
+        transform: translate(0.65rem, 0);
+        border-left: 30px solid transparent;
+        border-right: 30px solid transparent;
+        border-bottom: 30px solid black;
       }
     }
   }
@@ -741,7 +753,11 @@ const AssembleGrid = styled.div`
   }
 `;
 const AssembleCard = styled.div`
-  padding: 6px;
+  padding: 0.5vh 6px;
+  img {
+    border: 3px solid black;
+    object-fit: obtain;
+  }
 `;
 
 const BuildAgentSection = styled.section`
@@ -768,20 +784,20 @@ const BuildAgentSection = styled.section`
   .below-section {
     border-top: 1px solid black;
     .card-container {
-      padding: 8vh 4vw;
+      margin-top: 3rem; 
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 16px;
-      @media (max-width: 900px) {
-        grid-template-columns: 1fr 1fr;
-        row-gap: 40px;
-      }
-      @media (max-width: 500px) {
-        grid-template-columns: 1fr;
-        text-align: center;
-      }
-      .card {
+      grid-auto-flow: row;
+      justify-content: center; /* Center the first row */
+      grid-template-columns: repeat(auto-fit, minmax(360px, max-content));
+      column-gap: 24px;
+      row-gap: 60px;
+      padding: 8vh 2vw;
+      width: 100%;
+      .your-ai-card {
+        background: #fff;
         border-radius: 0;
+        min-height: 70px;
+        width: 360px;
         position: relative;
         border: 1px solid black;
         display: flex;
@@ -789,55 +805,70 @@ const BuildAgentSection = styled.section`
         padding: 0;
         .top-heading {
           position: absolute;
-          top: -20px;
+          top: -30px;
           left: 12px;
           width: fit-content;
           .green-card-title {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
             width: 100%;
             position: relative;
             z-index: 10;
+            position: relative;
             span {
+              min-width: 200px;
+              background: #9affdc;
+              display: flex;
               width: 100%;
-              min-width: 120px;
-              max-width: 200px;
+              align-items: center;
+              min-height: 50px;
               font-size: clamp(1rem, 4vw, 1.2rem);
               height: 100%;
-              padding: 1vh 2vw 1vh 2vw;
               text-align: left;
-              background: #9affdc;
               border: 1px solid black;
               border-radius: 40px;
-              position: relative;
-              font-weight: 1000;
-              @media (max-width: 600px) {
-                padding: 1vh 2vw 1vh 4vw;
+              h2 {
+                font-size: clamp(1.1rem, 4vw, 1.4rem);
+                font-family: "Lato", sans-serif;
+                font-weight: 800;
+                padding-left: 1.5rem;
               }
               &::before {
                 content: "";
                 position: absolute;
+                transform: translate(0.5rem, -0.05rem);
                 width: 0;
                 height: 0;
-                right: -3px;
-                bottom: -1px;
-                z-index: -1;
-                border-left: 20px solid transparent;
-                border-right: 20px solid transparent;
-                border-bottom: 20px solid black;
+                right: 0;
+                bottom: 0;
+                z-index: 0;
+                border-left: 24px solid transparent;
+                border-right: 24px solid transparent;
+                border-bottom: 24px solid #9affdc;
+                @media (max-width: 600px) {
+                  transform: translate(0.5rem, -0.05rem);
+                  border-left: 28px solid transparent;
+                  border-right: 28px solid transparent;
+                  border-bottom: 28px solid #9affdc;
+                }
               }
               &::after {
                 content: "";
                 position: absolute;
+                transform: translate(0.65rem, 0rem);
                 bottom: 0px;
+                right: 0;
                 width: 0;
                 height: 0;
-                border-left: 20px solid transparent;
-                border-right: 20px solid transparent;
-                border-bottom: 20px solid #9affdc;
-                right: -1px;
-                bottom: 0px;
+                border-left: 40px solid transparent;
+                border-right: 40px solid transparent;
+                border-bottom: 40px solid black;
+                z-index: -4;
+
+                @media (max-width: 600px) {
+                  transform: translate(0.65rem, 0);
+                  border-left: 30px solid transparent;
+                  border-right: 30px solid transparent;
+                  border-bottom: 30px solid black;
+                }
               }
             }
           }
@@ -848,6 +879,14 @@ const BuildAgentSection = styled.section`
           width: 100%;
           padding: 4vh 2vw 2vh 2vw;
           height: fit-content;
+          h1 {
+            font-family: "Lato", sans-serif;
+            font-weight: 700;
+            font-size: clamp(0.9rem, 4vw, 1.2rem);
+            @media(max-width: 600px){
+              text-align: right;
+            }
+          }
         }
         .content {
           border-top: 1px solid black;
@@ -892,27 +931,24 @@ const AppOverloadLower = styled.div`
 `;
 const AppOverloadCardsRow = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  grid-auto-flow: row;
+  justify-content: center; /* Center the first row */
+  grid-template-columns: repeat(auto-fit, minmax(220px, max-content));
+  gap: 12px;
   padding: 1vh 1vw;
-  margin: 0 auto;
-  place-items: center;
   width: 100%;
-  gap: 20px;
-  @media (max-width: 1200px) {
-    gap: 20px;
+  @media (max-width: 1400px) {
+    grid-template-columns: repeat(auto-fit, minmax(200px, max-content));
   }
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr 1fr 1fr;
+  @media (max-width: 1400px) {
+    grid-template-columns: repeat(auto-fit, minmax(180px, max-content));
   }
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    padding: 1vh 0vw;
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(auto-fit, minmax(200px, max-content));
   }
   @media (max-width: 450px) {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 1vh 0vw;
+    gap: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(250px, max-content));
   }
 `;
 
@@ -920,7 +956,7 @@ const AppOverloadCard = styled.div`
   background: #fff;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
   overflow: hidden;
-  width: 100%;
+  width: 280px;
   height: 230px;
   display: flex;
   flex-direction: column;
@@ -928,32 +964,37 @@ const AppOverloadCard = styled.div`
   padding: 0;
   border: 1px solid #000000;
   position: relative;
+  @media (max-width: 1400px) {
+    width: 200px;
+    height: 190px;
+  }
+  @media (max-width: 1200px) {
+    width: 180px;
+  }
+  @media (max-width: 1100px) {
+    width: 200px;
+  }
+  @media (max-width: 450px) {
+    width: 250px;
+  }
 `;
 const AppOverloadCardTop = styled.div`
   width: 100%;
-  padding: 4vh 2vw;
+  height: 40%;
   display: flex;
   flex-direction: column;
   align-items: center;
   border-bottom: 1px solid black;
-
-  // &:nth-child(even) {
-  //   background: #c8eeff;
-  // }
-
-  // &:nth-child(odd) {
-  //   background: #94dfff;
-  // }
+  padding-top: 2vh;
 `;
 
 const AppOverloadCardTitle = styled.div`
+  white-space: nowrap;
   font-size: clamp(12px, 4vw, 16px);
   font-family: "DM Sans", sans-serif;
-  white-space: nowrap;
   font-weight: 700;
-  color: #23244a;
+  color: #000;
   text-align: center;
-  margin-bottom: 5px;
 `;
 
 const AppOverloadIcon = styled.div`
@@ -971,13 +1012,16 @@ const AppOverloadIcon = styled.div`
   margin-bottom: 0;
   background-color: white;
   border-radius: 50%;
-  margin-top: -10px;
-  @media (max-width: 1400px) {
-    margin-top: -20px;
+  margin-top: -20px;
+  .icon-img {
+    height: 40px;
   }
-  @media (max-width: 600px) {
+  @media (max-width: 700px) {
     width: 48px;
     height: 48px;
+    .icon-img {
+      height: 35px;
+    }
   }
 `;
 
@@ -985,23 +1029,25 @@ const AppOverloadCardBottom = styled.div`
   background: #fff;
   width: 100%;
   text-align: center;
-  padding: 2vh 0 4vh 0;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 60%;
+  padding-bottom: 2vh;
   justify-content: end;
 `;
 
 const AppOverloadCardSub = styled.div`
   font-size: 0.97rem;
-  color: #888;
-  margin-bottom: 2px;
+  font-family: "DM Sans", sans-serif;
+  color: #000;
+  font-weight: 400;
 `;
 
 const AppOverloadCardReplace = styled.div`
   font-size: 1.08rem;
-  color: #23244a;
-  font-weight: 700;
+  font-family: "DM Sans", sans-serif;
+  color: #000;
+  font-weight: 500;
 `;
 
 const IntegrationsSection = styled.section`
@@ -1222,6 +1268,7 @@ const FooterHeadline = styled.h2`
   font-size: 1.7rem;
   font-weight: 700;
   margin-bottom: 8px;
+  font-family: "Lato", sans-serif;
 `;
 
 const FooterSub = styled.p`
@@ -1256,15 +1303,15 @@ const FooterSocial = styled.div`
   gap: 12px;
   font-size: 1.08rem;
   width: 100%;
-  padding: 2vh 3vw;
+  padding: 4vh 3vw;
   @media (max-width: 800px) {
     width: fit-content;
     gap: 0;
-    background: #000;
+    background: #0a0a0a;
   }
 `;
 
-const SocialIcon = styled.span`
+const SocialIcon = styled.a`
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1294,33 +1341,35 @@ const FooterLogo = styled.div`
 `;
 const FooterBelow = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
   place-items: center;
-  column-gap: 4px;
+  column-gap: 8px;
   row-gap: 12px;
   margin: 6px 4px;
 
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    .footer-card-2,
-    .footer-card-3 {
+  @media (max-width: 1500px) {
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    .footer-card-6,
+    .footer-card-7,
+    .footer-card-8 {
       display: none;
     }
   }
-  @media (max-width: 600px) {
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    .footer-card-5 {
+      display: none;
+    }
+  }
+  @media (max-width: 750px) {
     grid-template-columns: 1fr 1fr 1fr;
-    .footer-card-2,
-    .footer-card-3,
     .footer-card-4 {
       display: none;
     }
   }
-  @media (max-width: 450px) {
+  @media (max-width: 550px) {
     grid-template-columns: 1fr 1fr;
-    .footer-card-2,
-    .footer-card-3,
-    .footer-card-4,
-    .footer-card-6 {
+    .footer-card-3 {
       display: none;
     }
   }
@@ -1368,7 +1417,7 @@ const Home = () => {
           >
             <Logo>
               <span onClick={() => navigate("/")}>
-                <img src="/assets/header-logo.png" alt="logo" width={80} />
+                <img src="/assets/Sayy AI Logo.svg" alt="logo" width={80} />
               </span>
               <NavLink
                 className="hidden [@media(min-width:601px)]:flex"
@@ -1451,7 +1500,7 @@ const Home = () => {
             <article className="left-side w-[100%] lg:w-[70%] z-10">
               <div className="headline flex gap-4 flex-col items-center lg:flex-row">
                 <img
-                  src="/assets/landing-asset/assemble/homepage-logo.png"
+                  src="/assets/landing-asset/assemble/homepage-logo.svg"
                   alt="Kifor Logo"
                   className=""
                 />
@@ -1537,7 +1586,7 @@ const Home = () => {
                   </div>
                   <div className="relative z-10 mt-12">
                     <CTAButton onClick={() => navigate("/admin")}>
-                      LAUNCH MY FREE AI-MPLOYEE 
+                      LAUNCH MY FREE AI-MPLOYEE
                       <ChevronRight size={20} className="ml-2" />
                     </CTAButton>
                   </div>
@@ -1570,32 +1619,52 @@ const Home = () => {
           <PracticalSection>
             <BlackBackground>
               <span className="card-1 relative z-10 w-full h-fit">
-                <h1 className=" px-3">Sayy? What’s that?</h1>
+                <h1 className="px-3">Sayy? What’s that?</h1>
               </span>
             </BlackBackground>
             <WhiteBackground
-              style={{ width: "80%", marginLeft: "auto", marginRight: "2vw" }}
+              style={{ width: "80%", marginLeft: "auto", marginRight: "0" }}
             >
               <span>
-                  Imagine an AI that does the work of an entire team: selling
-                  your services, supporting customers, capturing leads, and
-                  managing operations – all through simple, intelligent
-                  conversations, 24 hours a day. No coding skills needed.
+                Imagine an AI that does the work of an entire team: selling your
+                services, supporting customers, capturing leads, and managing
+                operations – all through simple, intelligent conversations, 24
+                hours a day. No coding skills needed.
+                {/* <div className="clip-path">
+                    
+                  </div>
+                  <div className="triangle">
+                    <svg
+                      width="100"
+                      height="50"
+                      viewBox="0 0 100 50"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <polygon points="50,0 0,50 100,50" fill="white" />
+
+                      <line x1="0" y1="50" x2="100" y2="50" stroke="black" stroke-width="1" />
+
+                      <line x1="50" y1="0" x2="100" y2="50" stroke="black" stroke-width="1" />
+                    </svg>
+
+                  </div> */}
               </span>
             </WhiteBackground>
           </PracticalSection>
           <CardsRow>
-
             {/* card 1 */}
             <PracticalCard>
               <BlackBackground>
                 <span className="card-1 relative z-10 w-full h-fit">
-                    Who is Sayy AI for?
+                  <h1 className="px-3">Who is Sayy AI for?</h1>
                 </span>
               </BlackBackground>
-                  {/* for mobile */}
+              {/* for mobile */}
               <div className="hidden w-full max-[800px]:flex w-full justify-center mb-6">
-                <WhiteBackground style={{ margin: "0 2vw", width: "100%" }} className="">
+                <WhiteBackground
+                  style={{ margin: "0 2vw", width: "100%" }}
+                  className=""
+                >
                   <span style={{ padding: "2vh 2vw", width: "100%" }}>
                     <h3 className="para-font text-[16px] font-[800] text-center z-10 relative">
                       Solopreneurs, E-Commerce & Service Providers
@@ -1617,7 +1686,7 @@ const Home = () => {
                         marginRight: "20px",
                       }}
                     >
-                      <h1 className="main-font text-[20px] lg:text-[24px] font-[1000]">
+                      <h1 className="main-font text-[20px] lg:text-[24px] font-[800]">
                         Solopreneurs
                       </h1>
                     </span>
@@ -1643,10 +1712,15 @@ const Home = () => {
                 </div>
 
                 <div className="for-card bg-[#fff] mt-2 w-full px-[6px] py-[6px] rounded-[10px] border border-black [@media(max-width:600px)]:max-w-[320px]">
-                   {/* for mobile */}
+                  {/* for mobile */}
                   <div className="mob-upper-content hidden max-[800px]:flex w-full flex-col gap-2 text-center py-2 px-2">
-                      <h1 className="main-font text-[20px] font-[1000]">Solopreneurs</h1>
-                      <p className="para-font text-[14px] font-[500]">The power of a full team working for you, without traditional hiring costs.</p>
+                    <h1 className="main-font text-[20px] font-[800]">
+                      Solopreneurs
+                    </h1>
+                    <p className="para-font text-[14px] font-[500]">
+                      The power of a full team working for you, without
+                      traditional hiring costs.
+                    </p>
                   </div>
                   <img
                     src="/assets/landing-asset/assemble/who-card-1.png"
@@ -1664,7 +1738,7 @@ const Home = () => {
 
             {/* card 2 */}
             <PracticalCard style={{ justifyContent: "center" }}>
-             <div className="practical-card-content max-w-[350px]">
+              <div className="practical-card-content max-w-[350px]">
                 <div className="hidden min-[801px]:flex w-full flex-col gap-2 justify-center">
                   <WhiteBackground
                     style={{
@@ -1678,7 +1752,7 @@ const Home = () => {
                         marginRight: "20px",
                       }}
                     >
-                      <h1 className="main-font text-[20px] lg:text-[24px] font-[1000]">
+                      <h1 className="main-font text-[20px] lg:text-[24px] font-[800]">
                         E-Commerce
                       </h1>
                     </span>
@@ -1696,15 +1770,21 @@ const Home = () => {
                       }}
                     >
                       <h3 className="para-font text-[13px] font-[500]">
-                        Your intelligent storefront guiding customers and closing sales 24x7.
+                        Your intelligent storefront guiding customers and
+                        closing sales 24x7.
                       </h3>
                     </span>
                   </WhiteBackground>
                 </div>
                 <div className="for-card bg-[#fff] mt-2 w-full px-[6px] py-[6px] rounded-[10px] border border-black [@media(max-width:600px)]:max-w-[320px]">
                   <div className="mob-upper-content hidden max-[800px]:flex w-full flex-col gap-2 text-center py-2 px-2">
-                      <h1 className="main-font text-[20px] font-[1000]">E-Commerce</h1>
-                      <p className="para-font text-[14px] font-[500]">Your intelligent storefront guiding customers and closing sales 24x7.</p>
+                    <h1 className="main-font text-[20px] font-[800]">
+                      E-Commerce
+                    </h1>
+                    <p className="para-font text-[14px] font-[500]">
+                      Your intelligent storefront guiding customers and closing
+                      sales 24x7.
+                    </p>
                   </div>
                   <img
                     src="/assets/landing-asset/assemble/who-card-2.png"
@@ -1720,9 +1800,9 @@ const Home = () => {
               </div>
             </PracticalCard>
 
-              {/* card 3 */}
+            {/* card 3 */}
             <PracticalCard>
-             <div className="practical-card-content max-w-[350px]">
+              <div className="practical-card-content max-w-[350px]">
                 <div className="hidden min-[801px]:flex w-full flex-col gap-2 justify-center">
                   <WhiteBackground
                     style={{
@@ -1736,7 +1816,7 @@ const Home = () => {
                         marginRight: "20px",
                       }}
                     >
-                      <h1 className="main-font text-[20px] lg:text-[24px] font-[1000]">
+                      <h1 className="main-font text-[20px] lg:text-[24px] font-[800]">
                         Service Providers
                       </h1>
                     </span>
@@ -1754,15 +1834,21 @@ const Home = () => {
                       }}
                     >
                       <h3 className="para-font text-[13px] font-[500]">
-                        Your AI front desk handling bookings, leads, and nurturing client relationships..
+                        Your AI front desk handling bookings, leads, and
+                        nurturing client relationships..
                       </h3>
                     </span>
                   </WhiteBackground>
                 </div>
                 <div className="for-card bg-[#fff] mt-2 w-full px-[6px] py-[6px] rounded-[10px] border border-black [@media(max-width:600px)]:max-w-[320px]">
                   <div className="mob-upper-content hidden max-[800px]:flex w-full flex-col gap-2 text-center py-2 px-2">
-                      <h1 className="main-font text-[20px] font-[1000]">Service Providers</h1>
-                      <p className="para-font text-[14px] font-[500]">Your AI front desk handling bookings, leads, and nurturing client relationships.</p>
+                    <h1 className="main-font text-[20px] font-[800]">
+                      Service Providers
+                    </h1>
+                    <p className="para-font text-[14px] font-[500]">
+                      Your AI front desk handling bookings, leads, and nurturing
+                      client relationships.
+                    </p>
                   </div>
                   <img
                     src="/assets/landing-asset/assemble/who-card-3.png"
@@ -1777,7 +1863,6 @@ const Home = () => {
                 </div>
               </div>
             </PracticalCard>
-
           </CardsRow>
         </section>
 
@@ -1787,7 +1872,7 @@ const Home = () => {
           <FeaturesSection className="hidden [@media(max-width:900px)]:block">
             <BlackBackground>
               <span className="card-1 relative z-10 w-full h-fit">
-                <h1 className="para-font px-3">What can Sayy Do?</h1>
+                <h1 className="px-3">What can Sayy Do?</h1>
               </span>
             </BlackBackground>
             <div className="icon-container flex gap-1 sm:gap-2 justify-between sm:justify-center items-center mt-2 sm:mt-12">
@@ -1858,16 +1943,16 @@ const Home = () => {
                                    ? "bg-[#64FFB7]"
                                    : "bg-white"
                                } 
-                                before:content-[''] before:absolute before:bottom-0  xs:before:right-[-6px] before:w-0 before:h-0
+                                before:content-[''] before:absolute before:w-0 before:h-0
                                 before:border-l-[20px] before:border-r-[20px] before:border-b-[20px]
-                                before:border-l-transparent before:border-r-transparent 
+                                before:border-l-transparent before:border-r-transparent before:z-[0]
                                 ${
                                   feature.key === selectedFeature
-                                    ? "before:border-b-[#64FFB7] before:right-[2px] xs:before:right-[-6px] after:right-[-1px] xs:after:right-[-8px]"
-                                    : "before:border-b-white before:right-[2px] xs:before:right-[-6px] after:right-[-1px] xs:after:right-[-8px]"
-                                } before:z-[0]
+                                    ? "before:border-b-[#64FFB7] before:bottom-[0px] before:right-[0px] before:translate-y-[-0.01rem] xs:before:translate-y-[-0.01rem] before:translate-x-[-0.1rem] xs:before:translate-x-[0.25rem] after:bottom-[0px] after:right-[0] after:translate-x-[0.08rem] xs:after:translate-x-[0.4rem] after:translate-y-[0.05rem]"
+                                    : "before:border-b-white before:bottom-[0px] before:right-[0] before:translate-y-[-0.01rem] xs:before:translate-y-[-0.01rem] before:translate-x-[-0.1rem] xs:before:translate-x-[0.25rem] after:bottom-[0px] after:right-[0px] after:translate-x-[0.08rem] xs:after:translate-x-[0.4rem] after:translate-y-[0.05rem]"
+                                } 
 
-                                after:content-[''] after:absolute after:bottom-[-1px]  after:w-0 after:h-0
+                                after:content-[''] after:absolute after:w-0 after:h-0
                                 after:border-l-[22px] after:border-r-[22px] after:border-b-[22px]
                                 after:border-l-transparent after:border-r-transparent after:border-b-black after:z-[-1]
                           `}
@@ -1886,17 +1971,17 @@ const Home = () => {
                             </div>
                           )}
                           {/* mobile icon  */}
-                         <FeatureIcon
-                          className={`hidden [@media(max-width:900px)]:flex absolute -left-4 top-1/2 -translate-y-1/2
+                          <FeatureIcon
+                            className={`hidden [@media(max-width:900px)]:flex absolute -left-4 top-1/2 -translate-y-1/2
                             ${
                               feature.key === selectedFeature
                                 ? "bg-[#000] text-[#64FFB7]"
                                 : "bg-white text-[#000]"
                             }
                           `}
-                        >
-                          {featureIcons[idx]}
-                        </FeatureIcon>
+                          >
+                            {featureIcons[idx]}
+                          </FeatureIcon>
                         </FeatureListLabel>
                         <FeatureIcon
                           className={`flex [@media(max-width:900px)]:hidden
@@ -1924,14 +2009,12 @@ const Home = () => {
         </section>
 
         {/* Where all can I use my AI-mployee?  */}
-        <section className="practial-section relative w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw] py-16 max-[900px]:pb-0">
+        <section className="practial-section relative w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw] py-[6vh] max-[900px]:pb-0">
           <PlatformSection>
             <PlatformLeft className="left-side">
               <BlackBackground>
                 <span className="card-1 relative z-10 w-full h-fit">
-                  <h1 className="para-font px-3">
-                    Where all can I use my AI-mployee?
-                  </h1>
+                  <h1 className="px-3">Where all can I use my AI-mployee?</h1>
                 </span>
               </BlackBackground>
               <PlatformCardsRow className="">
@@ -1941,7 +2024,7 @@ const Home = () => {
                       <img
                         src="assets/landing-asset/platform/social.png"
                         alt="Link-in-Bio"
-                        className="object-contain w-20 sm:w-24"
+                        className="object-contain w-20 sm:w-22"
                       />
                     </PlatformIcon>
                     <div className="flex flex-col w-[80%] px-4">
@@ -1959,7 +2042,7 @@ const Home = () => {
                       <img
                         src="assets/landing-asset/platform/website.png"
                         alt="Link-in-Bio"
-                        className="object-contain w-20 sm:w-24"
+                        className="object-contain w-20 sm:w-22"
                       />
                     </PlatformIcon>
                     <div className="flex flex-col w-[80%] px-4">
@@ -1977,7 +2060,7 @@ const Home = () => {
                       <img
                         src="assets/landing-asset/platform/chatgpt.png"
                         alt="chatgpt"
-                        className="object-contain w-20 sm:w-24"
+                        className="object-contain w-20 sm:w-22"
                       />
                     </PlatformIcon>
                     <div className="flex flex-col w-[80%] px-4">
@@ -1998,6 +2081,7 @@ const Home = () => {
                     src="/assets/landing-asset/assemble/use-my-ai-1.png"
                     alt="Kifor Mascot"
                     className="mascot-img"
+                    width={250}
                   />
                 </AssembleCard>
                 <AssembleCard>
@@ -2005,6 +2089,7 @@ const Home = () => {
                     src="/assets/landing-asset/assemble/use-my-ai-2.png"
                     alt="Kifor Mascot"
                     className="mascot-img"
+                    width={220}
                   />
                 </AssembleCard>
                 <AssembleCard>
@@ -2012,6 +2097,7 @@ const Home = () => {
                     src="/assets/landing-asset/assemble/use-my-ai-3.png"
                     alt="Kifor Mascot"
                     className=""
+                    width={250}
                   />
                 </AssembleCard>
               </AssembleGrid>
@@ -2019,7 +2105,7 @@ const Home = () => {
           </PlatformSection>
         </section>
         {/* in mobile Phone  */}
-        <AssembleSection className="min-[901px]:hidden">
+        <AssembleSection className="min-[901px]:hidden  max-[900px]:mb-[6vh]">
           <AssembleGrid>
             <AssembleCard>
               <img
@@ -2028,7 +2114,7 @@ const Home = () => {
                 className="mascot-img"
               />
             </AssembleCard>
-            <AssembleCard className="hidden xs:flex">
+            <AssembleCard className="hidden sm:flex">
               <img
                 src="/assets/landing-asset/assemble/use-my-ai-2.png"
                 alt="Kifor Mascot"
@@ -2046,14 +2132,12 @@ const Home = () => {
         </AssembleSection>
 
         {/* So, how do I build my AI-mployee? */}
-        <section className="practial-section relative w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw] py-[6vh]">
+        <section className="practial-section relative w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw] pb-[6vh]">
           <BuildAgentSection>
             <article className="upper">
               <BlackBackground>
                 <span className="card-1 relative z-10 w-full h-fit">
-                  <h1 className="para-font px-3">
-                    So, how do I build my AI-mployee?
-                  </h1>
+                  <h1 className="px-3">So, how do I build my AI-mployee?</h1>
                 </span>
               </BlackBackground>
               <WhiteBackground className="ml-auto mr-1">
@@ -2067,21 +2151,21 @@ const Home = () => {
             </article>
 
             <article className="below-section h-[100%] bg-[#FDCDFF] relative w-full">
-              <div className="tab w-[103%] sm:w-[90%] mx-auto flex items-center justify-between px-4 py-2 bg-[#FDCDFF] border border-black rounded-full absolute -top-7 left-1/2 transform -translate-x-1/2">
-                <h1 className="main-font font-[1000] text-[18px]">
+              <div className="tab w-[103%] sm:w-[90%] mx-auto flex items-center justify-between px-2 py-1 bg-[#FDCDFF] border border-black rounded-full absolute -top-7 left-1/2 transform -translate-x-1/2">
+                <h1 className="main-font font-[800] text-[18px]">
                   Your AI, Your Way
                 </h1>
-                <div className="icons flex items-center gap-4">
-                  <span className="bg-[#fff] p-2 m-auto rounded-full border border-black">
-                    <User size={24}></User>
+                <div className="icons flex items-center gap-1">
+                  <span className="bg-[#fff] p-1 sm:p-2 m-auto rounded-full border border-black">
+                    <img src="/assets/icons/file-icon.svg" width={20} alt="" />
                   </span>
-                  <span className="bg-[#fff] p-2 m-auto rounded-full border border-black">
+                  <span className="bg-[#fff] p-1 sm:p-2 m-auto rounded-full border border-black">
                     <File size={24}></File>
                   </span>
                 </div>
               </div>
-              <div className="card-container">
-                <div className="card min:h-[300px] max:h-[600px] h-full bg-[#fff]">
+              <div className="card-container mt-4">
+                <div className="your-ai-card">
                   <div className="top-heading relative z-10">
                     <div className="green-card-title">
                       <span>
@@ -2090,16 +2174,14 @@ const Home = () => {
                     </div>
                   </div>
                   <div className="card-heading">
-                    <h1 className="main-font font-[1000] text-[22px]">
-                      Smart beyond limits
-                    </h1>
+                    <h1 className="">Smart beyond limits</h1>
                   </div>
                   <div className="content">
                     <div className="img">
                       <object
                         type="image/svg+xml"
                         data="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/web+anim-1+%40sdevc.svg"
-                        className="w-fit h-auto"
+                        className="w-[200px] sm:w-[300px] h-auto"
                       ></object>
                     </div>
                     <p className="para-font mt-4 font-[600] text-[14px] md:text-[16px]">
@@ -2108,7 +2190,7 @@ const Home = () => {
                     </p>
                   </div>
                 </div>
-                <div className="card min:h-[300px] max:h-[600px] h-full bg-[#fff]">
+                <div className="your-ai-card">
                   <div className="top-heading relative z-10">
                     <div className="green-card-title">
                       <span>
@@ -2117,8 +2199,8 @@ const Home = () => {
                     </div>
                   </div>
                   <div className="card-heading">
-                    <h1 className="main-font font-[1000] text-[22px]">
-                      Smart beyond limits
+                    <h1 className="">
+                      Selling like you would
                     </h1>
                   </div>
                   <div className="content">
@@ -2135,7 +2217,7 @@ const Home = () => {
                     </p>
                   </div>
                 </div>
-                <div className="card min:h-[300px] max:h-[600px] h-full bg-[#fff]">
+                <div className="your-ai-card">
                   <div className="top-heading relative z-10">
                     <div className="green-card-title">
                       <span>
@@ -2144,9 +2226,7 @@ const Home = () => {
                     </div>
                   </div>
                   <div className="card-heading">
-                    <h1 className="main-font font-[1000] text-[22px]">
-                      Smart beyond limits
-                    </h1>
+                    <h1 className="">Your brand’s extension</h1>
                   </div>
                   <div className="content">
                     <div className="img">
@@ -2173,26 +2253,27 @@ const Home = () => {
             <AppOverloadUpper>
               <BlackBackground>
                 <span className="card-1 relative z-10 w-full h-fit">
-                  <h1 className="para-font px-3">
+                  <h1 className="px-3">
                     Can I really run my entire business from One app?
                   </h1>
                 </span>
               </BlackBackground>
               <WhiteBackground className="ml-auto">
                 <span className="card-2 ml-auto w-full h-fit">
-                  <h2>
+                  <h2 className="font-[400]">
                     One word - SAYY YES! We are reimagining common business
                     tools under one umbrella. It’s time to stop switching tabs.
                   </h2>
-                  <h1 className="font-[1000]">Goodbye, App Overload!</h1>
+                  <h1 className="font-[700]">Goodbye, App Overload!</h1>
                 </span>
               </WhiteBackground>
               <BlackBackground>
                 <span className="relative z-10 w-full h-fit">
-                  <h1 className="para-font px-3">Replacing what tools?</h1>
+                  <h1 className="px-3">Replacing what tools?</h1>
                 </span>
               </BlackBackground>
             </AppOverloadUpper>
+
             <AppOverloadLower>
               <AppOverloadCardsRow>
                 <AppOverloadCard>
@@ -2204,9 +2285,7 @@ const Home = () => {
                       <img
                         src="/assets/landing-asset/goodbye/web.png"
                         alt="Website Builders"
-                        style={{
-                          height: 40,
-                        }}
+                        className="icon-img"
                       />
                     </AppOverloadIcon>
                   </AppOverloadCardTop>
@@ -2225,7 +2304,7 @@ const Home = () => {
                       <img
                         src="/assets/landing-asset/goodbye/calender.png"
                         alt="Scheduling Apps"
-                        style={{ height: 40 }}
+                        className="icon-img"
                       />
                     </AppOverloadIcon>
                   </AppOverloadCardTop>
@@ -2244,7 +2323,7 @@ const Home = () => {
                       <img
                         src="/assets/landing-asset/goodbye/chatbot.png"
                         alt="Chatbots"
-                        style={{ height: 40 }}
+                        className="icon-img"
                       />
                     </AppOverloadIcon>
                   </AppOverloadCardTop>
@@ -2263,7 +2342,7 @@ const Home = () => {
                       <img
                         src="/assets/landing-asset/goodbye/group.png"
                         alt="CRMs"
-                        style={{ height: 40 }}
+                        className="icon-img"
                       />
                     </AppOverloadIcon>
                   </AppOverloadCardTop>
@@ -2282,7 +2361,7 @@ const Home = () => {
                       <img
                         src="/assets/landing-asset/goodbye/link.png"
                         alt="Link-in-Bio Tools"
-                        style={{ height: 40 }}
+                        className="icon-img"
                       />
                     </AppOverloadIcon>
                   </AppOverloadCardTop>
@@ -2299,13 +2378,11 @@ const Home = () => {
         </section>
 
         {/* Extensive Integrations via MCP */}
-        <section className="practial-section w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw] py-16 ">
+        <section className="practial-section w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw] pt-[6vh] pb-[8vh] lg:pb-[12vh]">
           <IntegrationsSection>
             <BlackBackground>
               <span className="">
-                <h1 className="main-font px-3">
-                  Extensive Integrations via MCP
-                </h1>
+                <h1 className="px-3">Extensive Integrations via MCP</h1>
               </span>
             </BlackBackground>
             <WhiteBackground className="ml-auto">
@@ -2354,12 +2431,16 @@ const Home = () => {
                   <h1 className="[@media(max-width:800px)]:hidden">
                     Follow us
                   </h1>
-                  <SocialIcon title="X">X</SocialIcon>
-                  <SocialIcon title="LinkedIn">in</SocialIcon>
+                  <SocialIcon href="" title="X">
+                    <img src="/assets/icons/prime_twitter.png" alt="" />
+                  </SocialIcon>
+                  <SocialIcon title="LinkedIn">
+                    <Linkedin strokeWidth="2px" />
+                  </SocialIcon>
                 </FooterSocial>
                 <FooterLogo className="logo">
                   <img
-                    src="/assets/landing-asset/assemble/footer-logo.png"
+                    src="/assets/landing-asset/assemble/footer-logo.svg"
                     alt="footer logo"
                     className="[@media(max-width:800px)]:hidden"
                   />
@@ -2370,13 +2451,11 @@ const Home = () => {
               </FooterRight>
             </FooterUpper>
             <FooterBelow>
-              <span className="footer-card-1">
-                <img
-                  src="/assets/landing-asset/assemble/footer-card-1.png"
-                  alt="Kifor Mascot"
-                  className="mascot-img"
-                />
-              </span>
+              <img
+                src="/assets/landing-asset/assemble/footer-card-1.png"
+                alt="Kifor Mascot"
+                width={"100%"}
+              />
               <span className="footer-card-2">
                 <img
                   src="/assets/landing-asset/assemble/footer-card-2.png"
@@ -2408,6 +2487,20 @@ const Home = () => {
               <span className="footer-card-6">
                 <img
                   src="/assets/landing-asset/assemble/footer-card-6.png"
+                  alt="Kifor Mascot"
+                  className="mascot-img"
+                />
+              </span>
+              <span className="footer-card-7">
+                <img
+                  src="/assets/landing-asset/assemble/footer-card-7.png"
+                  alt="Kifor Mascot"
+                  className="mascot-img"
+                />
+              </span>
+              <span className="footer-card-8">
+                <img
+                  src="/assets/landing-asset/assemble/footer-card-8.png"
                   alt="Kifor Mascot"
                   className="mascot-img"
                 />
