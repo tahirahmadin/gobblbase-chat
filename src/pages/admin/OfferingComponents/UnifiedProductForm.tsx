@@ -89,14 +89,14 @@ type UnifiedProductFormProps = {
 };
 
 const digitalFormats = [
-  ".doc",
-  ".xls",
   ".pdf",
-  ".zip",
-  ".psd",
-  ".eps",
+  ".docx",
+  ".pptx",
+  ".mp3",
+  ".xls",
+  ".txt",
   ".svg",
-  ".mp4",
+  ".png",
 ];
 const sizeOptions = ["S", "M", "L", "XL"];
 const eventTypes = ["Event", "1:1 Session", "Workshop", "Webinar", "Other"];
@@ -551,13 +551,34 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       type="file"
                       className="hidden"
                       id="digital-upload-file"
-                      onChange={(e) =>
-                        setForm((f) => ({
-                          ...f,
-                          file: e.target.files?.[0] || null,
-                          fileName: e.target.files?.[0]?.name || "",
-                        }))
-                      }
+                      accept=".pdf,.docx,.pptx,.mp3,.xls,.txt,.svg,.png"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          // Check if file type is allowed
+                          const allowedTypes = [
+                            "application/pdf",
+                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                            "audio/mpeg",
+                            "application/vnd.ms-excel",
+                            "text/plain",
+                            "image/svg+xml",
+                            "image/png",
+                          ];
+                          if (!allowedTypes.includes(file.type)) {
+                            alert(
+                              "Please upload only PDF, DOCX, PPTX, MP3, XLS, TXT, SVG, or PNG files"
+                            );
+                            return;
+                          }
+                          setForm((f) => ({
+                            ...f,
+                            file: file,
+                            fileName: file.name,
+                          }));
+                        }
+                      }}
                       disabled={form.uploadType !== "upload"}
                     />
                     <label
