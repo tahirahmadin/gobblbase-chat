@@ -33,10 +33,10 @@ import BookingDashboardWrapper from "./pages/admin/BookingComponent/BookingDashb
 import Login from "./pages/admin/Login";
 import { useAdminStore } from "./store/useAdminStore";
 import CreateNewBot from "./pages/admin/CreateNewBot";
-import Plans from "./pages/admin/Plans";
+import Plans from "./pages/admin/TabsComponent/Account/Plans";
 import Billing from "./pages/admin/Billing";
-import Usage from "./pages/admin/Usage";
-import RescheduleBookingWrapper from "./components/chatbotComponents/chatbotBookingComponents/RescheduleBookingWrapper";
+import Usage from "./pages/admin/TabsComponent/Account/Usage";
+
 import Commerce from "./pages/admin/TabsComponent/Commerce/Commerce";
 import Operations from "./pages/admin/TabsComponent/Settings/Operations";
 import Home from "./pages/landing/Home";
@@ -46,6 +46,8 @@ import { Loader } from "lucide-react";
 import PaymentSuccessPage from "./pages/admin/PlanComponents/PaymentSuccessPage";
 import PaymentCancelPage from "./pages/admin/PlanComponents/PaymentCancelPage";
 import { useUserStore } from "./store/useUserStore";
+import StripePaymentConfig from "./pages/admin/TabsComponent/Account/Income";
+import RescheduleBookingWrapper from "./components/chatbotComponents/chatbotBookingComponents/RescheduleBookingWrapper";
 
 // Add type definition for window
 declare global {
@@ -148,6 +150,7 @@ function Dashboard() {
         <Route path="account/billing" element={<Billing />} />
         <Route path="account/plans" element={<Plans />} />
         <Route path="account/usage" element={<Usage />} />
+        <Route path="account/income" element={<StripePaymentConfig />} />
         <Route path="all-agents" element={<AllAgents />} />
         <Route path="*" element={<Navigate to="dashboard/profile" replace />} />
       </Routes>

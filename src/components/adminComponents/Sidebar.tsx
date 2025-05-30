@@ -89,6 +89,7 @@ const navItems: NavItem[] = [
       // { name: "Billing", path: "/admin/account/billing" },
       { name: "Plans", path: "/admin/account/plans" },
       { name: "Usage", path: "/admin/account/usage" },
+      { name: "Income", path: "/admin/account/income" },
     ],
   },
 ];

@@ -3,8 +3,8 @@ import {
   getPlans,
   subscribeToPlan,
   getStripeBillingSession,
-} from "../../lib/serverActions";
-import { useAdminStore } from "../../store/useAdminStore";
+} from "../../../../lib/serverActions";
+import { useAdminStore } from "../../../../store/useAdminStore";
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
 

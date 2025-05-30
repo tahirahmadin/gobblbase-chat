@@ -5,20 +5,51 @@ import {
   signUpClient,
   getEmailTemplates,
   updateEmailTemplates,
+  getClient,
 } from "../lib/serverActions";
 import { toast } from "react-hot-toast";
 import { AdminAgent } from "../types";
+
+interface ClientData {
+  paymentMethods: {
+    stripe: {
+      enabled: boolean;
+      isActivated: boolean;
+      accountId: string;
+    };
+    razorpay: {
+      enabled: boolean;
+      accountId: string;
+    };
+    usdt: {
+      enabled: boolean;
+      walletAddress: string;
+      chains: string[];
+    };
+    usdc: {
+      enabled: boolean;
+      walletAddress: string;
+      chains: string[];
+    };
+  };
+  availableCredits: number;
+  creditsPerMonth: number;
+  creditsPerMonthResetDate: string;
+  planId: string;
+}
 
 interface AdminState {
   // Admin data state
   adminId: string | null;
   adminEmail: string | null;
+  clientData: ClientData | null;
   isAdminLoggedIn: boolean;
   agents: AdminAgent[];
   isLoading: boolean;
   error: string | null;
   totalAgents: number;
   emailTemplates: EmailTemplatesResponse | null;
+
   setError: (error: string | null) => void;
   // Admin operations
   fetchAllAgents: () => Promise<void>;
@@ -83,8 +114,8 @@ export const useAdminStore = create<AdminState>()((set, get) => {
     error: null,
     totalAgents: 0,
     emailTemplates: null,
-    emailTemplatesLoading: false,
-    emailTemplatesError: null,
+
+    clientInfo: null,
 
     // Basic setters
     setError: (error) => set({ error }),
@@ -92,7 +123,7 @@ export const useAdminStore = create<AdminState>()((set, get) => {
     // Session management
     initializeSession: async () => {
       const storedEmail = localStorage.getItem("adminEmail");
-      console.log("storedEmail", storedEmail);
+
       if (!storedEmail) {
         set({ isAdminLoggedIn: false });
         return false;
@@ -103,7 +134,6 @@ export const useAdminStore = create<AdminState>()((set, get) => {
         const response = await signUpClient("google", storedEmail);
 
         if (response.error) {
-          console.error("Session restoration failed:", response.result);
           // Only clear session if it's an authentication error
           const errorMessage =
             typeof response.result === "string"
@@ -131,6 +161,10 @@ export const useAdminStore = create<AdminState>()((set, get) => {
           const adminId = result._id;
           const tempAgents = await fetchClientAgents(adminId);
 
+          // Fetch client information
+          const clientResponse = await getClient(adminId);
+
+          console.log("Client response:", clientResponse);
           set({
             adminId,
             adminEmail: result.signUpVia.handle,
@@ -139,6 +173,7 @@ export const useAdminStore = create<AdminState>()((set, get) => {
             agents: tempAgents,
             isLoading: false,
             error: null, // Clear any previous errors
+            clientData: clientResponse.error ? null : clientResponse,
           });
           return true;
         }
@@ -290,6 +325,7 @@ export const useAdminStore = create<AdminState>()((set, get) => {
         error: null,
         totalAgents: 0,
         emailTemplates: null,
+        clientData: null,
       });
 
       // Clear the stored email
