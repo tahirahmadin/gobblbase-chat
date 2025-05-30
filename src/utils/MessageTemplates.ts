@@ -52,7 +52,24 @@ export interface PricingInfo {
   sessionPrice: string;
   sessionName: string;
   organizationName?: string;
+  amount?: number; 
+  currency?: string; 
 }
+
+const extractAmount = (sessionPrice: string): number => {
+  if (!sessionPrice || sessionPrice.toLowerCase() === 'free') return 0;
+  const numericValue = parseFloat(sessionPrice.replace(/[^0-9.]/g, ''));
+  return isNaN(numericValue) ? 0 : numericValue;
+};
+
+const formatPrice = (pricingInfo: PricingInfo, globalCurrency: string): string => {
+  if (pricingInfo.isFreeSession) return "free";
+  
+  const amount = pricingInfo.amount || extractAmount(pricingInfo.sessionPrice);
+  const currency = pricingInfo.currency || globalCurrency || "USD";
+  
+  return amount > 0 ? `${amount} ${currency}` : "free";
+};
 
 // Utility function for selecting random unique messages
 export const getRandomUniqueMessage = (
@@ -88,14 +105,19 @@ export const getRandomProductUnavailableMessage = (): string =>
 export const getRandomContactIntroMessage = (): string => 
   getRandomUniqueMessage(contactIntroMessages, usedContactIntroIndices);
 
-// Generate booking intro messages based on pricing info
-export const getBookingIntroMessages = (pricingInfo: PricingInfo): string[] => {
+// Generate booking intro messages based on pricing info with dynamic currency
+export const getBookingIntroMessages = (
+  pricingInfo: PricingInfo, 
+  globalCurrency: string = "USD"
+): string[] => {
   const orgName = pricingInfo?.organizationName || "us";
   const sessionType = pricingInfo?.sessionName || "appointment";
-  const price = pricingInfo?.sessionPrice || "free session";
-  const isPriceMessage = pricingInfo?.isFreeSession
+  const formattedPrice = formatPrice(pricingInfo, globalCurrency);
+  
+  // Create dynamic price message
+  const isPriceMessage = pricingInfo?.isFreeSession || formattedPrice === "free"
     ? "This is completely free!"
-    : `The cost is ${price}.`;
+    : `The cost is ${formattedPrice}.`;
 
   return [
     `Great! You can schedule a ${sessionType} with ${orgName}. ${isPriceMessage} Please select a date and time that works for you:`,
@@ -106,5 +128,57 @@ export const getBookingIntroMessages = (pricingInfo: PricingInfo): string[] => {
   ];
 };
 
-export const getRandomBookingIntroMessage = (pricingInfo: PricingInfo): string => 
-  getRandomUniqueMessage(getBookingIntroMessages(pricingInfo), usedBookingIntroIndices);
+export const getRandomBookingIntroMessage = (
+  pricingInfo: PricingInfo, 
+  globalCurrency: string = "USD"
+): string => 
+  getRandomUniqueMessage(
+    getBookingIntroMessages(pricingInfo, globalCurrency), 
+    usedBookingIntroIndices
+  );
+
+export const getCurrencySpecificMessages = (
+  pricingInfo: PricingInfo,
+  globalCurrency: string = "USD"
+): {
+  freeMessages: string[];
+  paidMessages: string[];
+} => {
+  const orgName = pricingInfo?.organizationName || "us";
+  const sessionType = pricingInfo?.sessionName || "appointment";
+  const formattedPrice = formatPrice(pricingInfo, globalCurrency);
+
+  const freeMessages = [
+    `Excellent! You can schedule a complimentary ${sessionType} with ${orgName}. There's no charge for this session. Please select your preferred time:`,
+    `Great news! Our ${sessionType}s are offered at no cost. Simply choose a time that works best for you:`,
+    `Perfect! We're offering free ${sessionType}s with ${orgName}. Pick a convenient time from our availability:`,
+    `Wonderful! You can book a ${sessionType} with ${orgName} completely free of charge. Choose your preferred slot:`,
+    `Amazing! Our ${sessionType}s are complimentary. Just select a time that fits your schedule:`,
+  ];
+
+  const paidMessages = [
+    `Excellent! You can schedule a ${sessionType} with ${orgName} for ${formattedPrice}. Please select your preferred time and proceed with booking:`,
+    `Great! Our ${sessionType}s are available for ${formattedPrice}. Choose a convenient time and complete your booking:`,
+    `Perfect! You can book a ${sessionType} with ${orgName} for ${formattedPrice}. Select your preferred slot to get started:`,
+    `Wonderful! Our ${sessionType}s are priced at ${formattedPrice}. Pick a time that works for you and proceed with payment:`,
+    `Excellent! Book your ${sessionType} for ${formattedPrice}. Choose from our available time slots:`,
+  ];
+
+  return { freeMessages, paidMessages };
+};
+
+export const getRandomCurrencySpecificBookingMessage = (
+  pricingInfo: PricingInfo,
+  globalCurrency: string = "USD"
+): string => {
+  const { freeMessages, paidMessages } = getCurrencySpecificMessages(pricingInfo, globalCurrency);
+  const isFree = pricingInfo.isFreeSession || formatPrice(pricingInfo, globalCurrency) === "free";
+  
+  const messagesToUse = isFree ? freeMessages : paidMessages;
+  return getRandomUniqueMessage(messagesToUse, usedBookingIntroIndices);
+};
+
+export { 
+  formatPrice as formatBookingPrice,
+  extractAmount as extractPriceAmount 
+};

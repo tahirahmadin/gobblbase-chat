@@ -168,6 +168,7 @@ const Booking: React.FC<BookingProps> = ({
   const { activeBotData, activeBotId } = useBotConfig();
   const activeAgentId =
     propAgentId || agentIdFromUrl || activeBotId || activeBotData?.agentId;
+  const globalCurrency = activeBotData?.currency || "USD";
   const [timezones, setTimezones] = useState(DEFAULT_TIMEZONES);
   const [detectedTimezoneInList, setDetectedTimezoneInList] = useState(false);
   const [sessionType, setSessionType] = useState("Consultation");
@@ -235,8 +236,6 @@ const Booking: React.FC<BookingProps> = ({
   );
   const [isFree, setIsFree] = useState(false);
   const [priceAmount, setPriceAmount] = useState(0);
-  const [selectedCurrency, setSelectedCurrency] = useState("USD");
-  const [showCurrencies, setShowCurrencies] = useState(false);
 
   // Loading state
   const [isLoading, setIsLoading] = useState(false);
@@ -391,7 +390,6 @@ const Booking: React.FC<BookingProps> = ({
           if (settings.price) {
             setIsFree(settings.price.isFree);
             setPriceAmount(settings.price.amount || 0);
-            setSelectedCurrency(settings.price.currency || "USD");
           }
         }
       } catch (error) {
@@ -404,7 +402,7 @@ const Booking: React.FC<BookingProps> = ({
     if (isEditMode) {
       fetchSettings();
     }
-  }, [activeAgentId, isEditMode]);
+  }, [activeAgentId, isEditMode, , globalCurrency]);
 
   // Helper functions
   const toggleDayAvailability = (dayIndex: number) => {
@@ -450,11 +448,6 @@ const Booking: React.FC<BookingProps> = ({
         selected: loc.id === locationId,
       }))
     );
-  };
-
-  const selectCurrency = (currencyCode: string) => {
-    setSelectedCurrency(currencyCode);
-    setShowCurrencies(false);
   };
 
   const handlePriceAmountChange = (e) => {
@@ -813,7 +806,7 @@ const Booking: React.FC<BookingProps> = ({
       price: {
         isFree,
         amount: priceAmount,
-        currency: selectedCurrency,
+        currency: globalCurrency,
       },
     };
 
@@ -1847,6 +1840,23 @@ const Booking: React.FC<BookingProps> = ({
             <DollarSign className="h-5 w-5 text-gray-600 mr-2" />
             <h3 className="font-medium">Session Pricing</h3>
           </div>
+
+          {/* Display global currency info - read-only */}
+          <div className="mb-6 bg-blue-50 border border-blue-100 rounded-lg p-4">
+            <div className="flex items-center">
+              <div className="text-blue-500 mr-2">
+                <DollarSign className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-sm text-blue-800">
+                  <strong>Currency:</strong> {globalCurrency}
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  Currency is set globally and cannot be changed here. Contact admin to modify currency settings.
+                </p>
+              </div>
+            </div>
+          </div>
   
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1905,29 +1915,25 @@ const Booking: React.FC<BookingProps> = ({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Session Price
+                  Session Price ({globalCurrency})
                 </label>
                 <div className="mt-1 relative rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <span className="text-gray-500 text-sm">
-                      {CURRENCIES.find((c) => c.code === selectedCurrency)
-                        ?.symbol || "$"}
-                    </span>
-                  </div>
                   <input
                     type="text"
                     value={priceAmount || ""}
                     onChange={handlePriceAmountChange}
-                    className={`block w-full rounded-md border py-2 pl-8 pr-3 bg-white shadow-sm focus:outline-none sm:text-sm ${
+                    className={`block w-full rounded-md border py-2 pl-4 pr-16 bg-white shadow-sm focus:outline-none sm:text-sm ${
                       priceError 
                         ? "border-red-300 focus:border-red-500 focus:ring-red-500" 
                         : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                     }`}
                     placeholder="10"
                   />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <span className="text-gray-500 sm:text-sm">{globalCurrency}</span>
+                  </div>
                 </div>
                 
-                {/* Inline error message */}
                 {priceError && (
                   <p className="mt-1 text-sm text-red-600 flex items-center">
                     <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -1936,20 +1942,10 @@ const Booking: React.FC<BookingProps> = ({
                     {priceError}
                   </p>
                 )}
-                
-                <div className="mt-2">
-                  <select
-                    value={selectedCurrency}
-                    onChange={(e) => setSelectedCurrency(e.target.value)}
-                    className="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  >
-                    {CURRENCIES.map((currency) => (
-                      <option key={currency.code} value={currency.code}>
-                        {currency.name} ({currency.symbol})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+
+                <p className="text-sm text-gray-500 mt-2">
+                  Clients will be charged {priceAmount} {globalCurrency} for each session
+                </p>
               </div>
             </div>
           )}
