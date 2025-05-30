@@ -66,7 +66,7 @@ const formatPrice = (pricingInfo: PricingInfo, globalCurrency: string): string =
   if (pricingInfo.isFreeSession) return "free";
   
   const amount = pricingInfo.amount || extractAmount(pricingInfo.sessionPrice);
-  const currency = pricingInfo.currency || globalCurrency || "USD";
+  const currency = pricingInfo.currency || globalCurrency;
   
   return amount > 0 ? `${amount} ${currency}` : "free";
 };
@@ -105,10 +105,9 @@ export const getRandomProductUnavailableMessage = (): string =>
 export const getRandomContactIntroMessage = (): string => 
   getRandomUniqueMessage(contactIntroMessages, usedContactIntroIndices);
 
-// Generate booking intro messages based on pricing info with dynamic currency
 export const getBookingIntroMessages = (
   pricingInfo: PricingInfo, 
-  globalCurrency: string = "USD"
+  globalCurrency: string
 ): string[] => {
   const orgName = pricingInfo?.organizationName || "us";
   const sessionType = pricingInfo?.sessionName || "appointment";
@@ -130,7 +129,7 @@ export const getBookingIntroMessages = (
 
 export const getRandomBookingIntroMessage = (
   pricingInfo: PricingInfo, 
-  globalCurrency: string = "USD"
+  globalCurrency: string
 ): string => 
   getRandomUniqueMessage(
     getBookingIntroMessages(pricingInfo, globalCurrency), 
@@ -139,7 +138,7 @@ export const getRandomBookingIntroMessage = (
 
 export const getCurrencySpecificMessages = (
   pricingInfo: PricingInfo,
-  globalCurrency: string = "USD"
+  globalCurrency: string
 ): {
   freeMessages: string[];
   paidMessages: string[];
@@ -169,7 +168,7 @@ export const getCurrencySpecificMessages = (
 
 export const getRandomCurrencySpecificBookingMessage = (
   pricingInfo: PricingInfo,
-  globalCurrency: string = "USD"
+  globalCurrency: string
 ): string => {
   const { freeMessages, paidMessages } = getCurrencySpecificMessages(pricingInfo, globalCurrency);
   const isFree = pricingInfo.isFreeSession || formatPrice(pricingInfo, globalCurrency) === "free";

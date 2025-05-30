@@ -402,7 +402,7 @@ const Booking: React.FC<BookingProps> = ({
     if (isEditMode) {
       fetchSettings();
     }
-  }, [activeAgentId, isEditMode, , globalCurrency]);
+  }, [activeAgentId, isEditMode, globalCurrency]);
 
   // Helper functions
   const toggleDayAvailability = (dayIndex: number) => {

@@ -87,7 +87,7 @@ export default function PublicChat({
     pricingInfo,
     loadingPricing,
     handleBookingRequest,
-  } = useBookingLogic(currentConfig?.agentId, currentConfig?.sessionName);
+  } = useBookingLogic(currentConfig?.agentId, currentConfig?.sessionName, globalCurrency);
 
   const { handleProductRequest, hasProducts } = useProductsLogic(
     currentConfig?.agentId
