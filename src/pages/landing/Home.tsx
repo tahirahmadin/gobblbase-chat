@@ -115,9 +115,10 @@ const BlackBackground = styled.span`
   }
   span {
     width: fit-content;
-    font-size: clamp(0.9rem, 4vw, 1.2rem);
+    font-size: clamp(1.1rem, 4vw, 1.4rem);
+    font-family: "Lato", sans-serif;
     height: 100%;
-    padding: 2vh 2vw;
+    padding: 1.5vh 2vw;
     background: black;
     color: white;
     border-radius: 40px;
@@ -162,6 +163,9 @@ const WhiteBackground = styled.span`
     width: 95%;
   }
   span {
+    font-family: "DM Sans", sans-serif;
+    font-size: clamp(9px, 4vw, 16px);
+    font-weight: 600;
     background: white;
     width: fit-content;
     border: 1px solid black;
@@ -272,6 +276,8 @@ const CTAButton = styled.button`
   font-size: clamp(8px, 4vw, 16px);
   color: black;
   width: 100%;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 600;
   &::before {
     content: "";
     position: absolute;
@@ -486,8 +492,9 @@ const FeatureListLabel = styled.div`
   }
 `;
 
-const FeatureListH1 = styled.div`
-  font-size: 0.9rem;
+const FeatureListH1 = styled.h2`
+  font-family: "DM Sans", sans-serif;
+  font-size: clamp(15px, 4vw, 16px);
   font-weight: 600;
   color: #000000;
   text-align: right;
@@ -507,17 +514,22 @@ const FeatureIcon = styled.div`
     width: 48px;
     height: 48px;
   }
-  @media (max-width: 600px) {
+  @media (max-width: 400px) {
     width: 38px;
     height: 38px;
   }
 `;
 
 const FeatureListDesc = styled.div`
-  font-size: clamp(8px, 4vw, 14px);
+  font-family: "DM Sans", sans-serif;
+  font-size: clamp(9px, 4vw, 14px);
   color: #222;
-  font-weight: 400;
+  font-weight: 600;
   text-align: right;
+  white-space: nowrap;
+  @media (max-width: 900px) {
+    white-space: wrap;
+  }
 `;
 
 const FeaturesRight = styled.div`
@@ -1443,7 +1455,7 @@ const Home = () => {
                   alt="Kifor Logo"
                   className=""
                 />
-                <span className="flex flex-col items-end justify-end">
+                <span className="flex flex-col items-end justify-end md:mt-8">
                   <Headline>to your new Employee</Headline>
                   <img
                     src="/assets/landing-asset/assemble/underline.png"
@@ -1525,7 +1537,7 @@ const Home = () => {
                   </div>
                   <div className="relative z-10 mt-12">
                     <CTAButton onClick={() => navigate("/admin")}>
-                      LAUNCH YOUR FREE AGENT
+                      LAUNCH MY FREE AI-MPLOYEE 
                       <ChevronRight size={20} className="ml-2" />
                     </CTAButton>
                   </div>
@@ -1558,19 +1570,17 @@ const Home = () => {
           <PracticalSection>
             <BlackBackground>
               <span className="card-1 relative z-10 w-full h-fit">
-                <h1 className="para-font px-3">Sayy? What’s that?</h1>
+                <h1 className=" px-3">Sayy? What’s that?</h1>
               </span>
             </BlackBackground>
             <WhiteBackground
               style={{ width: "80%", marginLeft: "auto", marginRight: "2vw" }}
             >
               <span>
-                <h3 className="para-font text-[14px] font-[500]">
                   Imagine an AI that does the work of an entire team: selling
                   your services, supporting customers, capturing leads, and
                   managing operations – all through simple, intelligent
                   conversations, 24 hours a day. No coding skills needed.
-                </h3>
               </span>
             </WhiteBackground>
           </PracticalSection>
@@ -1580,13 +1590,14 @@ const Home = () => {
             <PracticalCard>
               <BlackBackground>
                 <span className="card-1 relative z-10 w-full h-fit">
-                  <h1 className="para-font px-3">Who is Sayy AI for?</h1>
+                    Who is Sayy AI for?
                 </span>
               </BlackBackground>
-              <div className="hidden max-[800px]:flex w-full justify-center mb-6">
-                <WhiteBackground className="">
-                  <span style={{ padding: "2vh 2vw", width: "98%" }}>
-                    <h3 className="para-font text-[16px] font-[800]">
+                  {/* for mobile */}
+              <div className="hidden w-full max-[800px]:flex w-full justify-center mb-6">
+                <WhiteBackground style={{ margin: "0 2vw", width: "100%" }} className="">
+                  <span style={{ padding: "2vh 2vw", width: "100%" }}>
+                    <h3 className="para-font text-[16px] font-[800] text-center z-10 relative">
                       Solopreneurs, E-Commerce & Service Providers
                     </h3>
                   </span>
@@ -1606,7 +1617,7 @@ const Home = () => {
                         marginRight: "20px",
                       }}
                     >
-                      <h1 className="main-font text-[20px] font-[1000]">
+                      <h1 className="main-font text-[20px] lg:text-[24px] font-[1000]">
                         Solopreneurs
                       </h1>
                     </span>
@@ -1630,10 +1641,12 @@ const Home = () => {
                     </span>
                   </WhiteBackground>
                 </div>
-                <div className="for-card bg-[#fff] mt-2 w-full px-[6px] py-[6px] rounded-[10px] border border-black">
+
+                <div className="for-card bg-[#fff] mt-2 w-full px-[6px] py-[6px] rounded-[10px] border border-black [@media(max-width:600px)]:max-w-[320px]">
+                   {/* for mobile */}
                   <div className="mob-upper-content hidden max-[800px]:flex w-full flex-col gap-2 text-center py-2 px-2">
                       <h1 className="main-font text-[20px] font-[1000]">Solopreneurs</h1>
-                      <p className="para-font text-[13px] font-[500]">The power of a full team working for you, without traditional hiring costs.</p>
+                      <p className="para-font text-[14px] font-[500]">The power of a full team working for you, without traditional hiring costs.</p>
                   </div>
                   <img
                     src="/assets/landing-asset/assemble/who-card-1.png"
@@ -1665,7 +1678,7 @@ const Home = () => {
                         marginRight: "20px",
                       }}
                     >
-                      <h1 className="main-font text-[20px] font-[1000]">
+                      <h1 className="main-font text-[20px] lg:text-[24px] font-[1000]">
                         E-Commerce
                       </h1>
                     </span>
@@ -1688,10 +1701,10 @@ const Home = () => {
                     </span>
                   </WhiteBackground>
                 </div>
-                <div className="for-card bg-[#fff] mt-2 w-full px-[6px] py-[6px] rounded-[10px] border border-black">
+                <div className="for-card bg-[#fff] mt-2 w-full px-[6px] py-[6px] rounded-[10px] border border-black [@media(max-width:600px)]:max-w-[320px]">
                   <div className="mob-upper-content hidden max-[800px]:flex w-full flex-col gap-2 text-center py-2 px-2">
                       <h1 className="main-font text-[20px] font-[1000]">E-Commerce</h1>
-                      <p className="para-font text-[13px] font-[500]">Your intelligent storefront guiding customers and closing sales 24x7.</p>
+                      <p className="para-font text-[14px] font-[500]">Your intelligent storefront guiding customers and closing sales 24x7.</p>
                   </div>
                   <img
                     src="/assets/landing-asset/assemble/who-card-2.png"
@@ -1723,7 +1736,7 @@ const Home = () => {
                         marginRight: "20px",
                       }}
                     >
-                      <h1 className="main-font text-[20px] font-[1000]">
+                      <h1 className="main-font text-[20px] lg:text-[24px] font-[1000]">
                         Service Providers
                       </h1>
                     </span>
@@ -1746,10 +1759,10 @@ const Home = () => {
                     </span>
                   </WhiteBackground>
                 </div>
-                <div className="for-card bg-[#fff] mt-2 w-full px-[6px] py-[6px] rounded-[10px] border border-black">
+                <div className="for-card bg-[#fff] mt-2 w-full px-[6px] py-[6px] rounded-[10px] border border-black [@media(max-width:600px)]:max-w-[320px]">
                   <div className="mob-upper-content hidden max-[800px]:flex w-full flex-col gap-2 text-center py-2 px-2">
                       <h1 className="main-font text-[20px] font-[1000]">Service Providers</h1>
-                      <p className="para-font text-[13px] font-[500]">Your AI front desk handling bookings, leads, and nurturing client relationships.</p>
+                      <p className="para-font text-[14px] font-[500]">Your AI front desk handling bookings, leads, and nurturing client relationships.</p>
                   </div>
                   <img
                     src="/assets/landing-asset/assemble/who-card-3.png"
@@ -1777,7 +1790,7 @@ const Home = () => {
                 <h1 className="para-font px-3">What can Sayy Do?</h1>
               </span>
             </BlackBackground>
-            <div className="icon-container flex gap-1 sm:gap-2 justify-center items-center mt-2 sm:mt-12">
+            <div className="icon-container flex gap-1 sm:gap-2 justify-between sm:justify-center items-center mt-2 sm:mt-12">
               {features.map((feature, idx) => (
                 <button
                   key={feature.key}
@@ -1845,16 +1858,16 @@ const Home = () => {
                                    ? "bg-[#64FFB7]"
                                    : "bg-white"
                                } 
-                                before:content-[''] before:absolute before:bottom-0 before:right-[4px] xs:before:right-[-10px] before:w-0 before:h-0
+                                before:content-[''] before:absolute before:bottom-0  xs:before:right-[-6px] before:w-0 before:h-0
                                 before:border-l-[20px] before:border-r-[20px] before:border-b-[20px]
                                 before:border-l-transparent before:border-r-transparent 
                                 ${
                                   feature.key === selectedFeature
-                                    ? "before:border-b-[#64FFB7]"
-                                    : "before:border-b-white"
+                                    ? "before:border-b-[#64FFB7] before:right-[2px] xs:before:right-[-6px] after:right-[-1px] xs:after:right-[-8px]"
+                                    : "before:border-b-white before:right-[2px] xs:before:right-[-6px] after:right-[-1px] xs:after:right-[-8px]"
                                 } before:z-[0]
 
-                                after:content-[''] after:absolute after:bottom-[-1px] after:right-[1px] xs:after:right-[-12px] after:w-0 after:h-0
+                                after:content-[''] after:absolute after:bottom-[-1px]  after:w-0 after:h-0
                                 after:border-l-[22px] after:border-r-[22px] after:border-b-[22px]
                                 after:border-l-transparent after:border-r-transparent after:border-b-black after:z-[-1]
                           `}
@@ -2290,7 +2303,7 @@ const Home = () => {
           <IntegrationsSection>
             <BlackBackground>
               <span className="">
-                <h1 className="par-font px-3">
+                <h1 className="main-font px-3">
                   Extensive Integrations via MCP
                 </h1>
               </span>
