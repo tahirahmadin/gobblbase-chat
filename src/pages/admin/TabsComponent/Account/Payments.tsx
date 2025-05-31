@@ -200,9 +200,9 @@ const Payments = () => {
     try {
       const result = await enableStripePayment(adminId);
       setIsStripeEnabled(true);
-      toast.success(result.message);
+      toast.success("Stripe payments enabled successfully");
     } catch (error: any) {
-      toast.error(error.message || "Failed to enable Stripe payments");
+      toast.error("Failed to enable Stripe payments");
     } finally {
       setIsLoadingStripe(false);
     }
@@ -237,7 +237,10 @@ const Payments = () => {
           <h2 className="text-xl font-bold text-black">Payment Methods</h2>
         </div>
 
-        <div className="space-y-6 mt-4 pb-20">
+        <div className="space-y-6 py-4 pb-20">
+          <div className="text-md font-semibold">
+            Currency & Preferred Method
+          </div>
           {/* Currency and Preferred Method Selection */}
           <div className="flex flex-col lg:flex-row lg:space-x-4 space-y-4 lg:space-y-0">
             <div>
@@ -279,64 +282,66 @@ const Payments = () => {
           </div>
 
           {/* Stripe Configuration */}
-          <div className="bg-white rounded-lg p-6 border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <h3 className="text-lg font-medium">Stripe Configuration</h3>
-                {isStripeEnabled && (
-                  <CheckCircle2 className="h-5 w-5 text-green-500" />
-                )}
+          <div>
+            <div className="bg-white rounded-lg py-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <h3 className="text-md font-semibold">Stripe</h3>
+                  {isStripeEnabled && (
+                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  )}
+                </div>
               </div>
-            </div>
 
-            {isStripeActive ? (
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3 text-sm text-gray-600">
-                  <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
-                  <p>
-                    You have successfully configured Stripe payments. Your
-                    account is fully set up and ready to accept payments from
-                    your customers.
-                  </p>
+              {isStripeActive ? (
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-3 text-sm text-gray-600">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
+                    <p>
+                      You have successfully configured Stripe payments. Your
+                      account is fully set up and ready to accept payments from
+                      your customers.
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ) : !isStripeEnabled ? (
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3 text-sm text-gray-600">
-                  <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5" />
-                  <p>
-                    Enable Stripe payments to start accepting credit card
-                    payments from your customers. You'll need to complete the
-                    KYC process after enabling Stripe.
-                  </p>
+              ) : !isStripeEnabled ? (
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-3 text-sm text-gray-600">
+                    <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5" />
+                    <p>
+                      Enable Stripe payments to start accepting credit card
+                      payments from your customers. You'll need to complete the
+                      KYC process after enabling Stripe.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleEnableStripe}
+                    disabled={isLoadingStripe}
+                    className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoadingStripe ? "Enabling..." : "Enable Stripe Payments"}
+                  </button>
                 </div>
-                <button
-                  onClick={handleEnableStripe}
-                  disabled={isLoadingStripe}
-                  className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoadingStripe ? "Enabling..." : "Enable Stripe Payments"}
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3 text-sm text-gray-600">
-                  <AlertCircle className="h-5 w-5 text-blue-500 mt-0.5" />
-                  <p>
-                    Stripe payments are enabled. Complete the KYC process to
-                    start accepting payments. This is required by Stripe to
-                    verify your business identity.
-                  </p>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-3 text-sm text-gray-600">
+                    <AlertCircle className="h-5 w-5 text-blue-500 mt-0.5" />
+                    <p>
+                      Stripe payments are enabled. Complete the KYC process to
+                      start accepting payments. This is required by Stripe to
+                      verify your business identity.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleProceedKYC}
+                    disabled={isLoadingStripe}
+                    className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoadingStripe ? "Loading..." : "Proceed with KYC"}
+                  </button>
                 </div>
-                <button
-                  onClick={handleProceedKYC}
-                  disabled={isLoadingStripe}
-                  className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoadingStripe ? "Loading..." : "Proceed with KYC"}
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Razorpay */}
@@ -373,9 +378,9 @@ const Payments = () => {
           </div> */}
 
           {/* Crypto Configuration */}
-          <div className="space-y-2">
+          <div className="space-y-2 py-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Crypto Payments</span>
+              <span className="text-md font-semibold">Crypto</span>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
