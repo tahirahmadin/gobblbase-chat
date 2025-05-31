@@ -507,7 +507,7 @@ const FeatureListH1 = styled.h2`
 const FeatureIcon = styled.div`
   width: 44px;
   height: 44px;
-  border: 2px solid #000000;
+  border: 1px solid #000000;
   border-radius: 50%;
   align-items: center;
   justify-content: center;
@@ -589,14 +589,24 @@ const FeatureImageBox = styled.div`
 `;
 
 // Add icons for each feature (use emoji or SVG placeholder for now)
-const featureIcons = [
-  <MessageCircle />, // Smart Recommendations
-  <ShoppingCart />, // Sell Products
-  <Calendar />, // Book Appointments
-  <Camera />, // Capture Leads
-  <CreditCard />, // Accept Payments
-  <Mail />, // Send Confirmations
-  <Plug />, // Integrates MCP Servers
+const FeatureIcons = [
+  "/assets/icons/black-message-icon.svg",
+  "/assets/icons/black-buy-icon.svg", // Sell Products
+  "/assets/icons/black-calendar-icon.svg", // Book Appointments
+  "/assets/icons/black-profile-icon.svg", // Capture Leads
+  "/assets/icons/black-creditcard-icon.svg", // Accept Payments
+  "/assets/icons/black-popup-icon.svg", // Send Confirmations
+  "/assets/icons/black-link-icon.svg" // Integrates MCP Servers
+];
+
+const selectedFeatureIcons = [
+  "/assets/icons/message-icon.svg",
+  "/assets/icons/buy-icon.svg", // Sell Products
+  "/assets/icons/calendar-icon.svg", // Book Appointments
+  "/assets/icons/profile-icon.svg", // Capture Leads
+  "/assets/icons/creditcard-icon.svg", // Accept Payments
+  "/assets/icons/popup-icon.svg", // Send Confirmations
+  "/assets/icons/link-icon.svg" // Integrates MCP Servers
 ];
 
 const PlatformSection = styled.section`
@@ -942,18 +952,18 @@ const AppOverloadCardsRow = styled.div`
   display: grid;
   grid-auto-flow: row;
   justify-content: center; /* Center the first row */
-  grid-template-columns: repeat(auto-fit, minmax(220px, max-content));
+  grid-template-columns: repeat(auto-fit, minmax(200px, max-content));
   gap: 12px;
   padding: 1vh 1vw;
   width: 100%;
   @media (max-width: 1400px) {
-    grid-template-columns: repeat(auto-fit, minmax(200px, max-content));
+    grid-template-columns: repeat(auto-fit, minmax(190px, max-content));
   }
   @media (max-width: 1400px) {
     grid-template-columns: repeat(auto-fit, minmax(180px, max-content));
   }
   @media (max-width: 1100px) {
-    grid-template-columns: repeat(auto-fit, minmax(200px, max-content));
+    grid-template-columns: repeat(auto-fit, minmax(180px, max-content));
   }
   @media (max-width: 450px) {
     gap: 8px;
@@ -965,8 +975,8 @@ const AppOverloadCard = styled.div`
   background: #fff;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
   overflow: hidden;
-  width: 280px;
-  height: 230px;
+  width: 220px;
+  height: 200px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -981,7 +991,7 @@ const AppOverloadCard = styled.div`
     width: 180px;
   }
   @media (max-width: 1100px) {
-    width: 200px;
+    width: 180px;
   }
   @media (max-width: 450px) {
     width: 250px;
@@ -1909,7 +1919,7 @@ const Home = () => {
                         }
                         `}
                   >
-                    {featureIcons[idx]}
+                   <img src={feature.key === selectedFeature ? selectedFeatureIcons[idx] : FeatureIcons[idx]} alt="" />
                   </FeatureIcon>
                 </button>
               ))}
@@ -1989,7 +1999,7 @@ const Home = () => {
                             }
                           `}
                           >
-                            {featureIcons[idx]}
+                            <img src={feature.key === selectedFeature ? selectedFeatureIcons[idx] : FeatureIcons[idx]} alt="" />
                           </FeatureIcon>
                         </FeatureListLabel>
                         <FeatureIcon
@@ -2000,8 +2010,9 @@ const Home = () => {
                                : "bg-white text-[#000]"
                            }
                           `}
-                        >
-                          {featureIcons[idx]}
+                        > 
+                        <img src={feature.key === selectedFeature ? selectedFeatureIcons[idx] : FeatureIcons[idx]} alt="" />
+                     
                         </FeatureIcon>
                       </FeatureListItem>
 
@@ -2428,7 +2439,7 @@ const Home = () => {
                     growth continuously.
                   </FooterSub>
                 </div>
-                <div className="relative z-10 mt-12 pr-4 [@media(max-width:800px)]:mx-auto">
+                <div className="relative z-10 mt-2 pr-4 [@media(max-width:800px)]:mx-auto">
                   <CTAButton onClick={() => navigate("/admin")}>
                     LAUNCH YOUR FREE AGENT
                     <ChevronRight size={20} className="ml-2" />
