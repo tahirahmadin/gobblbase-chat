@@ -402,9 +402,10 @@ const Payments = () => {
               </div>
               <div className="flex flex-wrap gap-2">
                 {[
-                  { id: "1", name: "Ethereum" },
-                  { id: "8453", name: "Base" },
-                  { id: "56", name: "BSC" },
+                  { id: "1", name: "USDT on Eth" },
+                  { id: "8453", name: "USDT on Base" },
+                  { id: "56", name: "USDT on BSC" },
+                  { id: "97", name: "USDT on BSC Testnet" },
                 ].map((chain) => (
                   <button
                     key={chain.id}
