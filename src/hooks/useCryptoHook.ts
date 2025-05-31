@@ -2,28 +2,14 @@ import { useState, useEffect } from "react";
 import { useAccount, useConnect, useDisconnect, useContractWrite } from "wagmi";
 import { injected } from "wagmi/connectors";
 import { parseEther } from "viem";
-import {
-  mainnet,
-  base,
-  bsc,
-  sepolia,
-  baseGoerli,
-  bscTestnet,
-} from "viem/chains";
 import toast from "react-hot-toast";
 
-// USDT token addresses for different chains (mainnet and testnet)
-const tokenAddresses: Record<string, Record<string, string>> = {
-  mainnet: {
-    "USDT on Eth": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-    "USDT on Base": "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
-    "USDT on BSC": "0x55d398326f99059fF775485246999027B3197955",
-  },
-  testnet: {
-    "USDT on Eth": "0x6f14C02Fc1F78322cFd7d707aB90f18baD3B54f5", // Sepolia USDT
-    "USDT on Base": "0x853154e2A5604E5F74f3f16836a970bB5D6BcA99", // Base Goerli USDT
-    "USDT on BSC": "0x7ef95a0FEE0Dd31b22626fA2e10Ee6A223F8a684", // BSC Testnet USDT
-  },
+// USDT token addresses for different chains
+const tokenAddresses: Record<string, string> = {
+  "USDT on Eth": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+  "USDT on Base": "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
+  "USDT on BSC": "0x55d398326f99059fF775485246999027B3197955",
+  "USDT on BSC Testnet": "0x7ef95a0FEE0Dd31b22626fA2e10Ee6A223F8a684",
 };
 
 // ERC20 token ABI for transfer function
@@ -53,7 +39,7 @@ const tokenABI = [
   },
 ] as const;
 
-// Chain parameters for network switching (mainnet and testnet)
+// Chain parameters for network switching
 const chainParams: Record<number, any> = {
   // Mainnet
   1: {
@@ -89,29 +75,6 @@ const chainParams: Record<number, any> = {
     rpcUrls: ["https://bsc-dataseed.binance.org"],
     blockExplorerUrls: ["https://bscscan.com"],
   },
-  // Testnet
-  11155111: {
-    chainId: "0xaa36a7",
-    chainName: "Sepolia",
-    nativeCurrency: {
-      name: "Sepolia Ether",
-      symbol: "SEP",
-      decimals: 18,
-    },
-    rpcUrls: ["https://rpc.sepolia.org"],
-    blockExplorerUrls: ["https://sepolia.etherscan.io"],
-  },
-  84531: {
-    chainId: "0x14a33",
-    chainName: "Base Goerli",
-    nativeCurrency: {
-      name: "Goerli Ether",
-      symbol: "ETH",
-      decimals: 18,
-    },
-    rpcUrls: ["https://goerli.base.org"],
-    blockExplorerUrls: ["https://goerli.basescan.org"],
-  },
   97: {
     chainId: "0x61",
     chainName: "BNB Smart Chain Testnet",
@@ -125,18 +88,12 @@ const chainParams: Record<number, any> = {
   },
 };
 
-// Chain ID mapping (mainnet and testnet)
-const chainIdMap: Record<string, Record<string, number>> = {
-  mainnet: {
-    "USDT on Eth": 1,
-    "USDT on Base": 8453,
-    "USDT on BSC": 56,
-  },
-  testnet: {
-    "USDT on Eth": 11155111, // Sepolia
-    "USDT on Base": 84531, // Base Goerli
-    "USDT on BSC": 97, // BSC Testnet
-  },
+// Chain ID mapping
+const chainIdMap: Record<string, number> = {
+  "USDT on Eth": 1,
+  "USDT on Base": 8453,
+  "USDT on BSC": 56,
+  "USDT on BSC Testnet": 97,
 };
 
 interface UseCryptoPaymentProps {
@@ -154,7 +111,6 @@ interface UseCryptoPaymentProps {
     transactionHash: string;
   }) => void;
   walletAddress: string;
-  isTestnet?: boolean; // New prop to toggle between testnet and mainnet
 }
 
 export function useCryptoPayment({
@@ -162,7 +118,6 @@ export function useCryptoPayment({
   onSuccess,
   onOrderDetails,
   walletAddress,
-  isTestnet = true, // Default to mainnet
 }: UseCryptoPaymentProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedChain, setSelectedChain] = useState<string | null>(null);
@@ -205,10 +160,20 @@ export function useCryptoPayment({
   // Handle chain selection and switching
   const handleChainSelect = async (chainName: string) => {
     setSelectedChain(chainName);
-    const chainId = chainIdMap[isTestnet ? "testnet" : "mainnet"][chainName];
+    const chainId = chainIdMap[chainName];
 
     if (chainId && window.ethereum) {
       try {
+        // Log current chain before switching
+        const currentChainId = await window.ethereum.request({
+          method: "eth_chainId",
+        });
+        console.log("Current chain before switch:", {
+          currentChainId: parseInt(currentChainId, 16),
+          targetChainId: chainId,
+          chainName,
+        });
+
         // First try to switch to the chain
         await window.ethereum.request({
           method: "wallet_switchEthereumChain",
@@ -216,13 +181,20 @@ export function useCryptoPayment({
         });
 
         // Verify the switch was successful
-        const currentChainId = await window.ethereum.request({
+        const newChainId = await window.ethereum.request({
           method: "eth_chainId",
         });
-        if (parseInt(currentChainId, 16) !== chainId) {
+        console.log("Chain after switch:", {
+          newChainId: parseInt(newChainId, 16),
+          expectedChainId: chainId,
+          chainName,
+        });
+
+        if (parseInt(newChainId, 16) !== chainId) {
           throw new Error("Failed to switch to the correct network");
         }
       } catch (error: any) {
+        console.error("Chain switch error:", error);
         if (error.code === 4902) {
           // Chain not added to wallet, add it
           const params = chainParams[chainId];
@@ -237,6 +209,12 @@ export function useCryptoPayment({
               const currentChainId = await window.ethereum.request({
                 method: "eth_chainId",
               });
+              console.log("Chain after adding:", {
+                currentChainId: parseInt(currentChainId, 16),
+                expectedChainId: chainId,
+                chainName,
+              });
+
               if (parseInt(currentChainId, 16) !== chainId) {
                 throw new Error("Failed to switch to the added network");
               }
@@ -279,31 +257,35 @@ export function useCryptoPayment({
       const currentChainId = await window.ethereum.request({
         method: "eth_chainId",
       });
-      const expectedChainId =
-        chainIdMap[isTestnet ? "testnet" : "mainnet"][selectedChain];
+      const expectedChainId = chainIdMap[selectedChain];
 
-      if (parseInt(currentChainId, 16) !== expectedChainId) {
-        toast.error(
-          `Please switch to ${isTestnet ? "testnet" : "mainnet"} network first`
-        );
+      console.log("Network verification:", {
+        currentChainId: parseInt(currentChainId, 16),
+        expectedChainId,
+        selectedChain,
+      });
+
+      // Convert both to numbers for comparison
+      const currentChainIdNum = parseInt(currentChainId, 16);
+
+      if (currentChainIdNum !== expectedChainId) {
+        toast.error(`Please switch to ${selectedChain} network first`);
         return;
       }
     }
 
     setIsSubmitting(true);
     try {
-      const contractAddress = tokenAddresses[isTestnet ? "testnet" : "mainnet"][
-        selectedChain
-      ] as `0x${string}`;
+      const contractAddress = tokenAddresses[selectedChain] as `0x${string}`;
       const totalAmount = product.price * (product.quantity || 1);
 
       // Log the transaction details for debugging
       console.log("Transaction Details:", {
-        network: isTestnet ? "testnet" : "mainnet",
-        chainId: chainIdMap[isTestnet ? "testnet" : "mainnet"][selectedChain],
+        chainId: chainIdMap[selectedChain],
         contractAddress,
         amount: totalAmount,
         recipient: walletAddress,
+        selectedChain,
       });
 
       await writeContract({
@@ -314,7 +296,7 @@ export function useCryptoPayment({
           walletAddress as `0x${string}`,
           parseEther(totalAmount.toString()),
         ],
-        chainId: chainIdMap[isTestnet ? "testnet" : "mainnet"][selectedChain],
+        chainId: chainIdMap[selectedChain],
       });
     } catch (error: any) {
       console.error("Transfer error:", error);
@@ -327,15 +309,19 @@ export function useCryptoPayment({
   // Add network change listener
   useEffect(() => {
     if (window.ethereum) {
-      const handleChainChanged = (chainId: string) => {
+      const handleChainChanged = async (chainId: string) => {
         const expectedChainId = selectedChain
-          ? chainIdMap[isTestnet ? "testnet" : "mainnet"][selectedChain]
+          ? chainIdMap[selectedChain]
           : null;
 
+        console.log("Chain changed:", {
+          newChainId: parseInt(chainId, 16),
+          expectedChainId,
+          selectedChain,
+        });
+
         if (expectedChainId && parseInt(chainId, 16) !== expectedChainId) {
-          toast.error(
-            `Please switch to ${isTestnet ? "testnet" : "mainnet"} network`
-          );
+          toast.error(`Please switch to ${selectedChain} network`);
         }
       };
 
@@ -344,7 +330,7 @@ export function useCryptoPayment({
         window.ethereum.removeListener("chainChanged", handleChainChanged);
       };
     }
-  }, [selectedChain, isTestnet]);
+  }, [selectedChain]);
 
   return {
     isConnected,
@@ -356,8 +342,6 @@ export function useCryptoPayment({
     handleChainSelect,
     handleSubmit,
     disconnect,
-    tokenAddresses: tokenAddresses[isTestnet ? "testnet" : "mainnet"],
-    isTestnet,
-    currentNetwork: isTestnet ? "testnet" : "mainnet",
+    tokenAddresses,
   };
 }
