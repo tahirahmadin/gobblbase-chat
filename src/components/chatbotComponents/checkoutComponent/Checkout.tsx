@@ -235,7 +235,7 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
               <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
                 Total Amount
               </div>
-              <div style={{ color: "#FFD700" }}>
+              <div style={{ color: theme.highlightColor }}>
                 {selectedProduct.price * (selectedProduct.quantity || 1)}{" "}
                 {activeBotData?.currency || "USD"}
               </div>
@@ -440,8 +440,8 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
                   onClick={handleContinueToPayment}
                   className="w-full p-3 rounded font-medium"
                   style={{
-                    backgroundColor: "#FFD700",
-                    color: "#000",
+                    backgroundColor: theme.highlightColor,
+                    color: theme.isDark ? "#000" : "#fff",
                   }}
                 >
                   {selectedProduct.priceType === "free"

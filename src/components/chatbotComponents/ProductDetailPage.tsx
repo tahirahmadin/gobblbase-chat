@@ -22,8 +22,6 @@ export default function ProductDetailPage({
   const { activeBotData } = useBotConfig();
 
   const [quantity, setQuantity] = useState(1);
-  const [eventDate, setEventDate] = useState("");
-  const [eventTime, setEventTime] = useState("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<any>(null);
@@ -58,9 +56,9 @@ export default function ProductDetailPage({
   // Update quantity when size changes
   useEffect(() => {
     if (selectedProduct?.quantityType === "variedSizes" && selectedSize) {
-      setQuantity(1);
+      setQuantity(maxQuantity > 0 ? 1 : 0);
     }
-  }, [selectedSize, selectedProduct?.quantityType]);
+  }, [selectedSize, selectedProduct?.quantityType, maxQuantity]);
 
   // Check if any payment method is enabled
   const availablePaymentMethods = useMemo(() => {
@@ -70,8 +68,7 @@ export default function ProductDetailPage({
     if (activeBotData.paymentMethods.stripe?.enabled) methods.push("stripe");
     if (activeBotData.paymentMethods.razorpay?.enabled)
       methods.push("razorpay");
-    if (activeBotData.paymentMethods.usdt?.enabled) methods.push("usdt");
-    if (activeBotData.paymentMethods.usdc?.enabled) methods.push("usdc");
+    if (activeBotData.paymentMethods.crypto?.enabled) methods.push("crypto");
 
     return methods;
   }, [activeBotData?.paymentMethods]);
@@ -162,6 +159,7 @@ export default function ProductDetailPage({
   const isBuyNowDisabled =
     (!isFreeProduct && !hasEnabledPaymentMethods) ||
     (selectedProduct?.quantityType === "variedSizes" && !selectedSize) ||
+    (selectedProduct?.quantityType === "variedSizes" && maxQuantity === 0) ||
     (selectedProduct?.type === "Event" &&
       selectedSlot &&
       (selectedSlot.seatType === "unlimited"
