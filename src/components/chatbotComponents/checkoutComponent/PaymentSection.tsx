@@ -54,10 +54,12 @@ interface PaymentSectionProps {
 type PaymentMethod = "stripe" | "razorpay" | "crypto";
 
 function StripePaymentForm({
+  theme,
   onSuccess,
   onOrderDetails,
   product,
 }: {
+  theme: any;
   onSuccess: () => void;
   onOrderDetails: (details: any) => void;
   product: PaymentSectionProps["product"];
@@ -124,8 +126,8 @@ function StripePaymentForm({
         disabled={isSubmitting || !stripe || !elements}
         className="w-full p-3 rounded font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-opacity duration-200"
         style={{
-          backgroundColor: "#FFD700",
-          color: "#000",
+          backgroundColor: theme.highlightColor,
+          color: theme.isDark ? "#000" : "#fff",
           opacity: isSubmitting ? 0.7 : 1,
         }}
       >
@@ -184,10 +186,12 @@ function RazorpayPaymentForm({
 }
 
 function CryptoPaymentForm({
+  theme,
   onSuccess,
   onOrderDetails,
   product,
 }: {
+  theme: any;
   onSuccess: () => void;
   onOrderDetails: (details: any) => void;
   product: PaymentSectionProps["product"];
@@ -315,8 +319,8 @@ function CryptoPaymentForm({
             disabled={isSubmitting || !selectedChain || isPending}
             className="w-full p-3 rounded font-medium flex items-center justify-center gap-2"
             style={{
-              backgroundColor: "#FFD700",
-              color: "#000",
+              backgroundColor: theme.highlightColor,
+              color: theme.isDark ? "#000" : "#fff",
               opacity: isSubmitting || !selectedChain || isPending ? 0.7 : 1,
             }}
           >
@@ -563,6 +567,7 @@ export function PaymentSection({
         return (
           <Elements stripe={stripePromise} options={{ clientSecret }}>
             <StripePaymentForm
+              theme={theme}
               onSuccess={onSuccess}
               onOrderDetails={onOrderDetails}
               product={product}
@@ -580,6 +585,7 @@ export function PaymentSection({
       case "crypto":
         return (
           <CryptoPaymentForm
+            theme={theme}
             onSuccess={onSuccess}
             onOrderDetails={onOrderDetails}
             product={product}
@@ -658,11 +664,17 @@ export function PaymentSection({
         {availablePaymentMethods.includes("stripe") && (
           <button
             onClick={() => setSelectedMethod("stripe")}
-            className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${
-              selectedMethod === "stripe"
-                ? "bg-yellow-500 text-black"
-                : "bg-gray-100 text-gray-600"
-            }`}
+            className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors `}
+            style={{
+              backgroundColor:
+                selectedMethod === "stripe" ? theme.highlightColor : "#bdbdbd",
+              color:
+                selectedMethod === "stripe"
+                  ? theme.isDark
+                    ? "#000"
+                    : "#fff"
+                  : "#000000",
+            }}
           >
             <CreditCard className="w-5 h-5" />
             <span>Credit Card</span>
@@ -672,11 +684,19 @@ export function PaymentSection({
         {availablePaymentMethods.includes("razorpay") && (
           <button
             onClick={() => setSelectedMethod("razorpay")}
-            className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${
-              selectedMethod === "razorpay"
-                ? "bg-yellow-500 text-black"
-                : "bg-gray-100 text-gray-600"
-            }`}
+            className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors`}
+            style={{
+              backgroundColor:
+                selectedMethod === "razorpay"
+                  ? theme.highlightColor
+                  : "#bdbdbd",
+              color:
+                selectedMethod === "razorpay"
+                  ? theme.isDark
+                    ? "#000"
+                    : "#fff"
+                  : "#000000",
+            }}
           >
             <Wallet className="w-5 h-5" />
             <span>Razorpay</span>
@@ -686,11 +706,17 @@ export function PaymentSection({
         {availablePaymentMethods.includes("crypto") && (
           <button
             onClick={() => setSelectedMethod("crypto")}
-            className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${
-              selectedMethod === "crypto"
-                ? "bg-yellow-500 text-black"
-                : "bg-gray-100 text-gray-600"
-            }`}
+            className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors`}
+            style={{
+              backgroundColor:
+                selectedMethod === "crypto" ? theme.highlightColor : "#bdbdbd",
+              color:
+                selectedMethod === "crypto"
+                  ? theme.isDark
+                    ? "#000"
+                    : "#fff"
+                  : "#000000",
+            }}
           >
             <Wallet className="w-5 h-5" />
             <span>Crypto (USDT)</span>
