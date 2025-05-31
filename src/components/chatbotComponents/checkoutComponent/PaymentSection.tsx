@@ -190,15 +190,26 @@ function CryptoPaymentForm({
   onSuccess,
   onOrderDetails,
   product,
+  shipping,
 }: {
   theme: any;
   onSuccess: () => void;
   onOrderDetails: (details: any) => void;
   product: PaymentSectionProps["product"];
+  shipping: PaymentSectionProps["shipping"];
 }) {
-  const { activeBotData } = useBotConfig();
+  const { activeBotData, activeBotId } = useBotConfig();
+  const { userId, userEmail, fetchUserDetails } = useUserStore();
   const walletAddress = activeBotData?.paymentMethods.crypto.walletAddress;
   const supportedChains = activeBotData?.paymentMethods.crypto.chains;
+
+  // Chain ID to display name mapping
+  const chainIdToName: Record<string, string> = {
+    "0x1": "USDT on Eth",
+    "0x2105": "USDT on Base",
+    "0x38": "USDT on BSC",
+    "0x61": "USDT on BSC Testnet",
+  };
 
   const {
     isConnected,
@@ -216,6 +227,10 @@ function CryptoPaymentForm({
     onSuccess,
     onOrderDetails,
     walletAddress: walletAddress || "",
+    activeBotId: activeBotId,
+    userId: userId,
+    userEmail: userEmail,
+    shipping,
   });
 
   return (
@@ -270,18 +285,18 @@ function CryptoPaymentForm({
                   Select Network
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {supportedChains?.map((chainName: string) => (
+                  {supportedChains?.map((chainId: string) => (
                     <button
-                      key={chainName}
+                      key={chainId}
                       type="button"
-                      onClick={() => handleChainSelect(chainName)}
+                      onClick={() => handleChainSelect(chainId)}
                       className={`px-3 py-1 text-sm rounded ${
-                        selectedChain === chainName
+                        selectedChain === chainId
                           ? "bg-yellow-500 text-black"
                           : "bg-gray-100 text-gray-600"
                       }`}
                     >
-                      {chainName}
+                      {chainIdToName[chainId] || chainId}
                     </button>
                   ))}
                 </div>
@@ -589,6 +604,7 @@ export function PaymentSection({
             onSuccess={onSuccess}
             onOrderDetails={onOrderDetails}
             product={product}
+            shipping={shipping}
           />
         );
       default:

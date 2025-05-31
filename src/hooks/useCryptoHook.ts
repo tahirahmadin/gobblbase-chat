@@ -1,15 +1,30 @@
 import { useState, useEffect } from "react";
-import { useAccount, useConnect, useDisconnect, useContractWrite } from "wagmi";
+import {
+  useAccount,
+  useConnect,
+  useDisconnect,
+  useContractWrite,
+  useWatchContractEvent,
+} from "wagmi";
 import { injected } from "wagmi/connectors";
-import { parseEther } from "viem";
+import { parseUnits } from "viem";
 import toast from "react-hot-toast";
+import { backendApiUrl } from "../utils/constants";
 
 // USDT token addresses for different chains
 const tokenAddresses: Record<string, string> = {
   "USDT on Eth": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
   "USDT on Base": "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
   "USDT on BSC": "0x55d398326f99059fF775485246999027B3197955",
-  "USDT on BSC Testnet": "0x7ef95a0FEE0Dd31b22626fA2e10Ee6A223F8a684",
+  "USDT on BSC Testnet": "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd",
+};
+
+// Token decimals for each chain
+const tokenDecimals: Record<string, number> = {
+  "USDT on Eth": 6,
+  "USDT on Base": 6,
+  "USDT on BSC": 18,
+  "USDT on BSC Testnet": 18,
 };
 
 // ERC20 token ABI for transfer function
@@ -39,10 +54,17 @@ const tokenABI = [
   },
 ] as const;
 
+// Reverse mapping for hex chain IDs to display names
+const chainIdToName: Record<string, string> = {
+  "0x1": "USDT on Eth",
+  "0x2105": "USDT on Base",
+  "0x38": "USDT on BSC",
+  "0x61": "USDT on BSC Testnet",
+};
+
 // Chain parameters for network switching
-const chainParams: Record<number, any> = {
-  // Mainnet
-  1: {
+const chainParams: Record<string, any> = {
+  "0x1": {
     chainId: "0x1",
     chainName: "Ethereum Mainnet",
     nativeCurrency: {
@@ -53,7 +75,7 @@ const chainParams: Record<number, any> = {
     rpcUrls: ["https://mainnet.infura.io/v3/"],
     blockExplorerUrls: ["https://etherscan.io"],
   },
-  8453: {
+  "0x2105": {
     chainId: "0x2105",
     chainName: "Base",
     nativeCurrency: {
@@ -64,7 +86,7 @@ const chainParams: Record<number, any> = {
     rpcUrls: ["https://mainnet.base.org"],
     blockExplorerUrls: ["https://basescan.org"],
   },
-  56: {
+  "0x38": {
     chainId: "0x38",
     chainName: "BNB Smart Chain",
     nativeCurrency: {
@@ -75,7 +97,7 @@ const chainParams: Record<number, any> = {
     rpcUrls: ["https://bsc-dataseed.binance.org"],
     blockExplorerUrls: ["https://bscscan.com"],
   },
-  97: {
+  "0x61": {
     chainId: "0x61",
     chainName: "BNB Smart Chain Testnet",
     nativeCurrency: {
@@ -88,19 +110,29 @@ const chainParams: Record<number, any> = {
   },
 };
 
-// Chain ID mapping
-const chainIdMap: Record<string, number> = {
-  "USDT on Eth": 1,
-  "USDT on Base": 8453,
-  "USDT on BSC": 56,
-  "USDT on BSC Testnet": 97,
-};
-
 interface UseCryptoPaymentProps {
   product: {
+    _id: string;
     price: number;
-    quantity?: number;
+    title: string;
+    description?: string;
+    images?: string[];
+    priceType?: string;
+    selectedSize?: string;
+    quantity: number;
+    sizeQuantity?: Record<string, number>;
     [key: string]: any;
+  };
+  shipping: {
+    name: string;
+    email: string;
+    phone: string;
+    country: string;
+    address1: string;
+    address2: string;
+    city: string;
+    zipcode: string;
+    saveDetails: boolean;
   };
   onSuccess: () => void;
   onOrderDetails: (details: {
@@ -109,8 +141,12 @@ interface UseCryptoPaymentProps {
     paymentMethod: string;
     paymentDate: string;
     transactionHash: string;
+    orderId?: string;
   }) => void;
   walletAddress: string;
+  activeBotId: string | null;
+  userId: string | null;
+  userEmail: string | null;
 }
 
 export function useCryptoPayment({
@@ -118,27 +154,118 @@ export function useCryptoPayment({
   onSuccess,
   onOrderDetails,
   walletAddress,
+  activeBotId,
+  userId,
+  userEmail,
+  shipping,
 }: UseCryptoPaymentProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedChain, setSelectedChain] = useState<string | null>(null);
+  const [txHash, setTxHash] = useState<`0x${string}` | null>(null);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   // Wagmi hooks
   const { address, isConnected } = useAccount();
   const { connectAsync } = useConnect();
   const { disconnect } = useDisconnect();
 
+  // Watch for transaction confirmation
+  useEffect(() => {
+    if (txHash) {
+      setIsConfirming(true);
+      const createOrder = async () => {
+        try {
+          // Call backend API to create order
+          const response = await fetch(
+            `${backendApiUrl}/product/createCryptoOrder`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                lineItems: [],
+                agentId: activeBotId,
+                userId: userId || null,
+                userEmail: userEmail || null,
+                amount: (product.price * (product.quantity || 1)) / 100,
+                currency: "USDT",
+                cart: [product],
+                shipping: shipping,
+                checkType: product.checkType,
+                checkQuantity: product.quantity,
+                txHash: txHash,
+                chainId: selectedChain,
+                stripeAccountId: "", // Crypto payments don't use Stripe
+              }),
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to create order");
+          }
+
+          const data = await response.json();
+          onOrderDetails({
+            product: product,
+            total: (product.price * (product.quantity || 1)) / 100,
+            paymentMethod: "crypto",
+            paymentDate: new Date().toLocaleDateString(),
+            transactionHash: txHash,
+            orderId: data.orderId,
+          });
+          onSuccess();
+        } catch (error: unknown) {
+          console.error("Order creation error:", error);
+          toast.error(
+            "Transaction confirmed but failed to create order. Please contact support."
+          );
+        } finally {
+          setIsConfirming(false);
+        }
+      };
+
+      // Wait for transaction confirmation
+      const checkConfirmation = async () => {
+        try {
+          const receipt = await window.ethereum.request({
+            method: "eth_getTransactionReceipt",
+            params: [txHash],
+          });
+
+          if (receipt && receipt.status === "0x1") {
+            await createOrder();
+          } else {
+            // Check again after 2 seconds
+            setTimeout(checkConfirmation, 2000);
+          }
+        } catch (error) {
+          console.error("Error checking transaction confirmation:", error);
+          toast.error("Failed to confirm transaction. Please try again.");
+          setIsConfirming(false);
+        }
+      };
+
+      checkConfirmation();
+    }
+  }, [
+    txHash,
+    activeBotId,
+    userId,
+    userEmail,
+    shipping,
+    product,
+    selectedChain,
+    onSuccess,
+    onOrderDetails,
+  ]);
+
   // Contract write hook
   const { writeContract, isPending } = useContractWrite({
     mutation: {
       onSuccess: (hash: `0x${string}`) => {
-        onOrderDetails({
-          product: product,
-          total: product.price * (product.quantity || 1),
-          paymentMethod: "crypto",
-          paymentDate: new Date().toLocaleDateString(),
-          transactionHash: hash,
-        });
-        onSuccess();
+        setTxHash(hash);
+        toast.success("Transaction sent! Waiting for confirmation...");
       },
       onError: (error: Error) => {
         console.error("Transfer error:", error);
@@ -158,9 +285,9 @@ export function useCryptoPayment({
   };
 
   // Handle chain selection and switching
-  const handleChainSelect = async (chainName: string) => {
-    setSelectedChain(chainName);
-    const chainId = chainIdMap[chainName];
+  const handleChainSelect = async (chainId: string) => {
+    const chainName = chainIdToName[chainId];
+    setSelectedChain(chainId);
 
     if (chainId && window.ethereum) {
       try {
@@ -169,66 +296,82 @@ export function useCryptoPayment({
           method: "eth_chainId",
         });
         console.log("Current chain before switch:", {
-          currentChainId: parseInt(currentChainId, 16),
+          currentChainId,
           targetChainId: chainId,
           chainName,
         });
 
+        // If already on the correct chain, no need to switch
+        if (currentChainId === chainId) {
+          console.log("Already on the correct network");
+          return;
+        }
+
         // First try to switch to the chain
-        await window.ethereum.request({
-          method: "wallet_switchEthereumChain",
-          params: [{ chainId: `0x${chainId.toString(16)}` }],
-        });
+        try {
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId }],
+          });
+        } catch (switchError: any) {
+          // If the chain is not added to the wallet, add it
+          if (switchError.code === 4902) {
+            console.log("Chain not added to wallet, adding it now...");
+            const params = chainParams[chainId];
+            if (params) {
+              try {
+                await window.ethereum.request({
+                  method: "wallet_addEthereumChain",
+                  params: [params],
+                });
+                // After adding, try switching again
+                await window.ethereum.request({
+                  method: "wallet_switchEthereumChain",
+                  params: [{ chainId }],
+                });
+              } catch (addError: any) {
+                console.error("Error adding chain:", addError);
+                throw new Error(
+                  `Failed to add ${chainName} network: ${addError.message}`
+                );
+              }
+            } else {
+              throw new Error(`Network parameters not found for ${chainName}`);
+            }
+          } else if (switchError.code === 4001) {
+            // User rejected the request
+            throw new Error("Please approve the network switch in your wallet");
+          } else {
+            throw new Error(
+              `Failed to switch to ${chainName}: ${switchError.message}`
+            );
+          }
+        }
 
         // Verify the switch was successful
         const newChainId = await window.ethereum.request({
           method: "eth_chainId",
         });
         console.log("Chain after switch:", {
-          newChainId: parseInt(newChainId, 16),
+          newChainId,
           expectedChainId: chainId,
           chainName,
         });
 
-        if (parseInt(newChainId, 16) !== chainId) {
-          throw new Error("Failed to switch to the correct network");
+        if (newChainId !== chainId) {
+          throw new Error(
+            `Failed to switch to ${chainName}. Please try again.`
+          );
         }
+
+        toast.success(`Successfully switched to ${chainName}`);
       } catch (error: any) {
         console.error("Chain switch error:", error);
-        if (error.code === 4902) {
-          // Chain not added to wallet, add it
-          const params = chainParams[chainId];
-          if (params) {
-            try {
-              await window.ethereum.request({
-                method: "wallet_addEthereumChain",
-                params: [params],
-              });
-
-              // Verify the chain was added and switched to
-              const currentChainId = await window.ethereum.request({
-                method: "eth_chainId",
-              });
-              console.log("Chain after adding:", {
-                currentChainId: parseInt(currentChainId, 16),
-                expectedChainId: chainId,
-                chainName,
-              });
-
-              if (parseInt(currentChainId, 16) !== chainId) {
-                throw new Error("Failed to switch to the added network");
-              }
-            } catch (addError) {
-              console.error("Failed to add chain:", addError);
-              toast.error("Failed to add network. Please try again.");
-              return;
-            }
-          }
-        } else {
-          console.error("Failed to switch chain:", error);
-          toast.error("Failed to switch network. Please try again.");
-          return;
-        }
+        toast.error(
+          error.message || "Failed to switch network. Please try again."
+        );
+        // Reset selected chain on error
+        setSelectedChain(null);
       }
     }
   };
@@ -257,50 +400,64 @@ export function useCryptoPayment({
       const currentChainId = await window.ethereum.request({
         method: "eth_chainId",
       });
-      const expectedChainId = chainIdMap[selectedChain];
 
       console.log("Network verification:", {
-        currentChainId: parseInt(currentChainId, 16),
-        expectedChainId,
-        selectedChain,
+        currentChainId,
+        expectedChainId: selectedChain,
+        chainName: chainIdToName[selectedChain],
       });
 
-      // Convert both to numbers for comparison
-      const currentChainIdNum = parseInt(currentChainId, 16);
-
-      if (currentChainIdNum !== expectedChainId) {
-        toast.error(`Please switch to ${selectedChain} network first`);
+      if (currentChainId !== selectedChain) {
+        toast.error(
+          `Please switch to ${chainIdToName[selectedChain]} network first`
+        );
         return;
       }
     }
 
     setIsSubmitting(true);
     try {
-      const contractAddress = tokenAddresses[selectedChain] as `0x${string}`;
-      const totalAmount = product.price * (product.quantity || 1);
+      const chainName = chainIdToName[selectedChain];
+      const contractAddress = tokenAddresses[chainName] as `0x${string}`;
+      const totalAmount = (product.price * (product.quantity || 1)) / 100;
+      const decimals = tokenDecimals[chainName];
 
       // Log the transaction details for debugging
       console.log("Transaction Details:", {
-        chainId: chainIdMap[selectedChain],
+        chainId: selectedChain,
         contractAddress,
         amount: totalAmount,
+        decimals,
         recipient: walletAddress,
-        selectedChain,
+        chainName,
       });
 
-      await writeContract({
+      // Prepare the transaction
+      const tx = {
         abi: tokenABI,
         address: contractAddress,
-        functionName: "transfer",
+        functionName: "transfer" as const,
         args: [
           walletAddress as `0x${string}`,
-          parseEther(totalAmount.toString()),
-        ],
-        chainId: chainIdMap[selectedChain],
-      });
+          parseUnits(totalAmount.toString(), decimals),
+        ] as const,
+        chainId: parseInt(selectedChain, 16),
+        gas: 100000n, // Set a reasonable gas limit
+      };
+
+      console.log("Sending transaction with params:", tx);
+      await writeContract(tx);
     } catch (error: any) {
       console.error("Transfer error:", error);
-      toast.error(error.message || "Transfer failed. Please try again.");
+      if (error.message?.includes("user rejected")) {
+        toast.error("Transaction was rejected. Please try again.");
+      } else if (error.message?.includes("insufficient funds")) {
+        toast.error(
+          "Insufficient funds for transaction. Please check your balance."
+        );
+      } else {
+        toast.error(error.message || "Transfer failed. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -310,18 +467,16 @@ export function useCryptoPayment({
   useEffect(() => {
     if (window.ethereum) {
       const handleChainChanged = async (chainId: string) => {
-        const expectedChainId = selectedChain
-          ? chainIdMap[selectedChain]
-          : null;
-
         console.log("Chain changed:", {
-          newChainId: parseInt(chainId, 16),
-          expectedChainId,
-          selectedChain,
+          newChainId: chainId,
+          expectedChainId: selectedChain,
+          chainName: selectedChain ? chainIdToName[selectedChain] : null,
         });
 
-        if (expectedChainId && parseInt(chainId, 16) !== expectedChainId) {
-          toast.error(`Please switch to ${selectedChain} network`);
+        if (selectedChain && chainId !== selectedChain) {
+          toast.error(
+            `Please switch to ${chainIdToName[selectedChain]} network`
+          );
         }
       };
 
@@ -337,6 +492,7 @@ export function useCryptoPayment({
     address,
     isSubmitting,
     isPending,
+    isConfirming,
     selectedChain,
     handleConnectWallet,
     handleChainSelect,

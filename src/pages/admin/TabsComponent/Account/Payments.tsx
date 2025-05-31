@@ -53,6 +53,7 @@ const Payments = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
   const [hasNextPage, setHasNextPage] = useState(false);
+  const [hasCryptoChanges, setHasCryptoChanges] = useState(false);
 
   // Payment method states
   const [stripeEnabled, setStripeEnabled] = useState(false);
@@ -91,8 +92,22 @@ const Payments = () => {
       setSelectedCryptoChains(clientData.paymentMethods.crypto.chains);
       setCurrency(clientData.currency || "USD");
       setPreferredMethod(clientData.preferredPaymentMethod || "stripe");
+      setHasCryptoChanges(false);
     }
   }, [clientData]);
+
+  // Add effect to track crypto changes
+  useEffect(() => {
+    if (clientData) {
+      const hasChanges =
+        cryptoEnabled !== clientData.paymentMethods.crypto.enabled ||
+        cryptoAddress !== clientData.paymentMethods.crypto.walletAddress ||
+        JSON.stringify(selectedCryptoChains) !==
+          JSON.stringify(clientData.paymentMethods.crypto.chains);
+
+      setHasCryptoChanges(hasChanges);
+    }
+  }, [cryptoEnabled, cryptoAddress, selectedCryptoChains, clientData]);
 
   useEffect(() => {
     if (activeBotData) {
@@ -137,13 +152,19 @@ const Payments = () => {
   };
 
   const handleChainToggle = (chainId: string) => {
-    if (selectedCryptoChains.includes(chainId)) {
+    // Convert any decimal chain ID to hex if needed
+    const hexChainId = chainId.startsWith("0x")
+      ? chainId
+      : `0x${parseInt(chainId).toString(16)}`;
+
+    if (selectedCryptoChains.includes(hexChainId)) {
       setSelectedCryptoChains(
-        selectedCryptoChains.filter((c: string) => c !== chainId)
+        selectedCryptoChains.filter((c: string) => c !== hexChainId)
       );
     } else {
-      setSelectedCryptoChains([...selectedCryptoChains, chainId]);
+      setSelectedCryptoChains([...selectedCryptoChains, hexChainId]);
     }
+    setHasCryptoChanges(true);
   };
 
   const handleEnableCrypto = async () => {
@@ -407,10 +428,10 @@ const Payments = () => {
               </div>
               <div className="flex flex-wrap gap-2">
                 {[
-                  { id: "1", name: "USDT on Eth" },
-                  { id: "8453", name: "USDT on Base" },
-                  { id: "56", name: "USDT on BSC" },
-                  { id: "97", name: "USDT on BSC Testnet" },
+                  { id: "0x1", name: "USDT on Eth" },
+                  { id: "0x2105", name: "USDT on Base" },
+                  { id: "0x38", name: "USDT on BSC" },
+                  { id: "0x61", name: "USDT on BSC Testnet" },
                 ].map((chain) => (
                   <button
                     key={chain.id}
@@ -433,9 +454,11 @@ const Payments = () => {
           <div className="flex justify-end mt-8">
             <button
               onClick={handleEnableCrypto}
-              disabled={isSaving}
+              disabled={!hasCryptoChanges || isSaving}
               className={`px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold transition-colors ${
-                isSaving ? "opacity-50 cursor-not-allowed" : ""
+                !hasCryptoChanges || isSaving
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
               }`}
             >
               {isSaving ? (

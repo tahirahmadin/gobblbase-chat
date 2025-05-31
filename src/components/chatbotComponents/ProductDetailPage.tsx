@@ -56,9 +56,9 @@ export default function ProductDetailPage({
   // Update quantity when size changes
   useEffect(() => {
     if (selectedProduct?.quantityType === "variedSizes" && selectedSize) {
-      setQuantity(1);
+      setQuantity(maxQuantity > 0 ? 1 : 0);
     }
-  }, [selectedSize, selectedProduct?.quantityType]);
+  }, [selectedSize, selectedProduct?.quantityType, maxQuantity]);
 
   // Check if any payment method is enabled
   const availablePaymentMethods = useMemo(() => {
@@ -159,6 +159,7 @@ export default function ProductDetailPage({
   const isBuyNowDisabled =
     (!isFreeProduct && !hasEnabledPaymentMethods) ||
     (selectedProduct?.quantityType === "variedSizes" && !selectedSize) ||
+    (selectedProduct?.quantityType === "variedSizes" && maxQuantity === 0) ||
     (selectedProduct?.type === "Event" &&
       selectedSlot &&
       (selectedSlot.seatType === "unlimited"
