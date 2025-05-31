@@ -46,7 +46,6 @@ import { Loader } from "lucide-react";
 import PaymentSuccessPage from "./pages/admin/PlanComponents/PaymentSuccessPage";
 import PaymentCancelPage from "./pages/admin/PlanComponents/PaymentCancelPage";
 import { useUserStore } from "./store/useUserStore";
-import StripePaymentConfig from "./pages/admin/TabsComponent/Account/Income";
 import RescheduleBookingWrapper from "./components/chatbotComponents/chatbotBookingComponents/RescheduleBookingWrapper";
 
 // Add type definition for window
@@ -150,7 +149,6 @@ function Dashboard() {
         <Route path="account/billing" element={<Billing />} />
         <Route path="account/plans" element={<Plans />} />
         <Route path="account/usage" element={<Usage />} />
-        <Route path="account/income" element={<StripePaymentConfig />} />
         <Route path="all-agents" element={<AllAgents />} />
         <Route path="*" element={<Navigate to="dashboard/profile" replace />} />
       </Routes>

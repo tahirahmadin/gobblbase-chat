@@ -169,19 +169,17 @@ export interface BotConfig {
   paymentMethods: {
     stripe: {
       enabled: boolean;
+      isActivated: boolean;
       accountId: string;
     };
     razorpay: {
       enabled: boolean;
       accountId: string;
+      isActivated: boolean;
     };
-    usdt: {
+    crypto: {
       enabled: boolean;
-      walletAddress: string;
-      chains: string[];
-    };
-    usdc: {
-      enabled: boolean;
+      isActivated: boolean;
       walletAddress: string;
       chains: string[];
     };

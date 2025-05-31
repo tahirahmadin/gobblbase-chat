@@ -21,17 +21,14 @@ interface ClientData {
       enabled: boolean;
       accountId: string;
     };
-    usdt: {
-      enabled: boolean;
-      walletAddress: string;
-      chains: string[];
-    };
-    usdc: {
+    crypto: {
       enabled: boolean;
       walletAddress: string;
       chains: string[];
     };
   };
+  currency: string;
+  preferredPaymentMethod: string;
   availableCredits: number;
   creditsPerMonth: number;
   creditsPerMonthResetDate: string;
@@ -68,6 +65,7 @@ interface AdminState {
   isAgentsLoaded: boolean;
   // Session management
   initializeSession: () => Promise<boolean>;
+  refetchClientData: () => Promise<void>;
 }
 
 // Add a type for the expected result
@@ -281,6 +279,14 @@ export const useAdminStore = create<AdminState>()((set, get) => {
       toast.error("Google login failed");
     },
 
+    refetchClientData: async () => {
+      const adminId = get().adminId;
+      if (!adminId) {
+        throw new Error("Admin ID is not set");
+      }
+      const clientData = await getClient(adminId);
+      set({ clientData });
+    },
     // Admin operations
     fetchAllAgents: async () => {
       try {

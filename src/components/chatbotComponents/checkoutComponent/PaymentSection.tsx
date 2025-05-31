@@ -11,23 +11,7 @@ import { useUserStore } from "../../../store/useUserStore";
 import toast from "react-hot-toast";
 import { CreditCard, Wallet, AlertCircle } from "lucide-react";
 import { backendApiUrl } from "../../../utils/constants";
-import { useAccount, useConnect, useDisconnect, useContractWrite } from "wagmi";
-import { injected } from "wagmi/connectors";
-import { parseEther } from "viem";
-import { mainnet, base, bsc } from "viem/chains";
-import { createConfig, http } from "wagmi";
-import { Hash, TransactionReceipt } from "viem";
 import { useCryptoPayment } from "../../../hooks/useCryptoHook";
-
-// Create wagmi config
-const config = createConfig({
-  chains: [mainnet, base, bsc],
-  transports: {
-    [mainnet.id]: http(),
-    [base.id]: http(),
-    [bsc.id]: http(),
-  },
-});
 
 interface PaymentSectionProps {
   theme: {
@@ -67,7 +51,7 @@ interface PaymentSectionProps {
   };
 }
 
-type PaymentMethod = "stripe" | "razorpay" | "usdt" | "usdc";
+type PaymentMethod = "stripe" | "razorpay" | "crypto";
 
 function StripePaymentForm({
   onSuccess,
@@ -202,17 +186,15 @@ function RazorpayPaymentForm({
 function CryptoPaymentForm({
   onSuccess,
   onOrderDetails,
-  type,
   product,
 }: {
   onSuccess: () => void;
   onOrderDetails: (details: any) => void;
-  type: "usdt" | "usdc";
   product: PaymentSectionProps["product"];
 }) {
   const { activeBotData } = useBotConfig();
-  const walletAddress = activeBotData?.paymentMethods[type]?.walletAddress;
-  const supportedChains = activeBotData?.paymentMethods[type]?.chains;
+  const walletAddress = activeBotData?.paymentMethods.crypto.walletAddress;
+  const supportedChains = activeBotData?.paymentMethods.crypto.chains;
 
   const {
     isConnected,
@@ -226,7 +208,6 @@ function CryptoPaymentForm({
     disconnect,
     tokenAddresses,
   } = useCryptoPayment({
-    type,
     product,
     onSuccess,
     onOrderDetails,
@@ -312,7 +293,7 @@ function CryptoPaymentForm({
                         : "#000",
                     }}
                   >
-                    Send {product.price} {type.toUpperCase()} to:
+                    Send {product.price * product.quantity} USDT to:
                   </p>
                   <p
                     className="font-mono text-sm break-all p-2 bg-gray-100 rounded"
@@ -375,11 +356,12 @@ export function PaymentSection({
     if (!activeBotData?.paymentMethods) return [];
 
     const methods = [];
-    if (activeBotData.paymentMethods.stripe?.enabled) methods.push("stripe");
-    if (activeBotData.paymentMethods.razorpay?.enabled)
+    if (activeBotData.paymentMethods.stripe?.isActivated)
+      methods.push("stripe");
+    if (activeBotData.paymentMethods.razorpay?.isActivated)
       methods.push("razorpay");
-    if (activeBotData.paymentMethods.usdt?.enabled) methods.push("usdt");
-    if (activeBotData.paymentMethods.usdc?.enabled) methods.push("usdc");
+    if (activeBotData.paymentMethods.crypto?.isActivated)
+      methods.push("crypto");
 
     return methods;
   }, [activeBotData?.paymentMethods]);
@@ -595,13 +577,11 @@ export function PaymentSection({
             product={product}
           />
         );
-      case "usdt":
-      case "usdc":
+      case "crypto":
         return (
           <CryptoPaymentForm
             onSuccess={onSuccess}
             onOrderDetails={onOrderDetails}
-            type={selectedMethod}
             product={product}
           />
         );
@@ -703,31 +683,17 @@ export function PaymentSection({
           </button>
         )}
 
-        {availablePaymentMethods.includes("usdt") && (
+        {availablePaymentMethods.includes("crypto") && (
           <button
-            onClick={() => setSelectedMethod("usdt")}
+            onClick={() => setSelectedMethod("crypto")}
             className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${
-              selectedMethod === "usdt"
+              selectedMethod === "crypto"
                 ? "bg-yellow-500 text-black"
                 : "bg-gray-100 text-gray-600"
             }`}
           >
             <Wallet className="w-5 h-5" />
-            <span>USDT</span>
-          </button>
-        )}
-
-        {availablePaymentMethods.includes("usdc") && (
-          <button
-            onClick={() => setSelectedMethod("usdc")}
-            className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${
-              selectedMethod === "usdc"
-                ? "bg-yellow-500 text-black"
-                : "bg-gray-100 text-gray-600"
-            }`}
-          >
-            <Wallet className="w-5 h-5" />
-            <span>USDC</span>
+            <span>Crypto (USDT)</span>
           </button>
         )}
       </div>

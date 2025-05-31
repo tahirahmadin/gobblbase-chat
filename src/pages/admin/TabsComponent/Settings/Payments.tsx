@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from "react";
-import {
-  ArrowRight,
-  Copy,
-  RefreshCw,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { RefreshCw, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useBotConfig } from "../../../../store/useBotConfig";
 import {
-  updateAgentPaymentSettings,
   getTransactions,
+  enableStripePayment,
+  completeStripeOnboarding,
+  updateClientPaymentSettings,
+  enableCryptoPayment,
 } from "../../../../lib/serverActions";
 import { toast } from "react-hot-toast";
+import { useAdminStore } from "../../../../store/useAdminStore";
 
 interface Transaction {
   _id: string;
@@ -47,8 +45,9 @@ interface Transaction {
 
 const Payments = () => {
   const { activeBotData, setRefetchBotData } = useBotConfig();
+  const { adminId, clientData, refetchClientData } = useAdminStore();
   const [currency, setCurrency] = useState("USD");
-  const [preferredMethod, setPreferredMethod] = useState("Stripe");
+  const [preferredMethod, setPreferredMethod] = useState("stripe");
   const [currentPage, setCurrentPage] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -60,34 +59,43 @@ const Payments = () => {
   const [stripeId, setStripeId] = useState("");
   const [razorpayEnabled, setRazorpayEnabled] = useState(false);
   const [razorpayId, setRazorpayId] = useState("");
-  const [usdtEnabled, setUsdtEnabled] = useState(false);
-  const [usdtAddress, setUsdtAddress] = useState("");
-  const [usdcEnabled, setUsdcEnabled] = useState(false);
-  const [usdcAddress, setUsdcAddress] = useState("");
+  const [cryptoEnabled, setCryptoEnabled] = useState(false);
+  const [cryptoAddress, setCryptoAddress] = useState("");
+  const [selectedCryptoChains, setSelectedCryptoChains] = useState<string[]>(
+    []
+  );
 
-  // Selected chains for crypto
-  const [selectedUsdtChains, setSelectedUsdtChains] = useState<string[]>([]);
-  const [selectedUsdcChains, setSelectedUsdcChains] = useState<string[]>([]);
+  const [isStripeEnabled, setIsStripeEnabled] = useState(false);
+  const [isStripeActive, setIsStripeActive] = useState(false);
+  const [isLoadingStripe, setIsLoadingStripe] = useState(false);
+
+  // Calculate pagination
+  const itemsPerPage = 5;
+  const totalPages = Math.ceil(transactions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentTransactions = transactions.slice(startIndex, endIndex);
+
+  useEffect(() => {
+    if (clientData) {
+      //Stripe States
+      setIsStripeEnabled(clientData.paymentMethods.stripe.enabled);
+      setIsStripeActive(clientData.paymentMethods.stripe.isActivated);
+
+      //Other Payment Methods States
+      setStripeId(clientData.paymentMethods.stripe.accountId);
+      setRazorpayEnabled(clientData.paymentMethods.razorpay.enabled);
+      setRazorpayId(clientData.paymentMethods.razorpay.accountId);
+      setCryptoEnabled(clientData.paymentMethods.crypto.enabled);
+      setCryptoAddress(clientData.paymentMethods.crypto.walletAddress);
+      setSelectedCryptoChains(clientData.paymentMethods.crypto.chains);
+      setCurrency(clientData.currency || "USD");
+      setPreferredMethod(clientData.preferredPaymentMethod || "stripe");
+    }
+  }, [clientData]);
 
   useEffect(() => {
     if (activeBotData) {
-      setCurrency(activeBotData.currency || "USD");
-      setPreferredMethod(activeBotData.preferredPaymentMethod || "Stripe");
-
-      // Initialize payment methods
-      if (activeBotData.paymentMethods) {
-        setStripeEnabled(activeBotData.paymentMethods.stripe.enabled);
-        setStripeId(activeBotData.paymentMethods.stripe.accountId);
-        setRazorpayEnabled(activeBotData.paymentMethods.razorpay.enabled);
-        setRazorpayId(activeBotData.paymentMethods.razorpay.accountId);
-        setUsdtEnabled(activeBotData.paymentMethods.usdt.enabled);
-        setUsdtAddress(activeBotData.paymentMethods.usdt.walletAddress);
-        setUsdcEnabled(activeBotData.paymentMethods.usdc.enabled);
-        setUsdcAddress(activeBotData.paymentMethods.usdc.walletAddress);
-        setSelectedUsdtChains(activeBotData.paymentMethods.usdt.chains);
-        setSelectedUsdcChains(activeBotData.paymentMethods.usdc.chains);
-      }
-
       // Fetch transactions
       fetchTransactions(currentPage);
     }
@@ -109,61 +117,16 @@ const Payments = () => {
     }
   };
 
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-  };
-
   const handleSave = async () => {
-    if (!activeBotData) {
-      toast.error("No agent selected");
-      return;
-    }
-
-    // Validate required fields for enabled payment methods
-    if (stripeEnabled && !stripeId) {
-      toast.error("Please enter Stripe Account ID");
-      return;
-    }
-    if (razorpayEnabled && !razorpayId) {
-      toast.error("Please enter Razorpay Account ID");
-      return;
-    }
-    if (usdtEnabled && !usdtAddress) {
-      toast.error("Please enter USDT Wallet Address");
-      return;
-    }
-    if (usdcEnabled && !usdcAddress) {
-      toast.error("Please enter USDC Wallet Address");
+    if (!adminId) {
+      toast.error("No adminId available");
       return;
     }
 
     try {
       setIsSaving(true);
-      await updateAgentPaymentSettings(activeBotData.agentId, {
-        currency,
-        preferredPaymentMethod: preferredMethod,
-        paymentMethods: {
-          stripe: {
-            enabled: stripeEnabled,
-            accountId: stripeEnabled ? stripeId : "",
-          },
-          razorpay: {
-            enabled: razorpayEnabled,
-            accountId: razorpayEnabled ? razorpayId : "",
-          },
-          usdt: {
-            enabled: usdtEnabled,
-            walletAddress: usdtEnabled ? usdtAddress : "",
-            chains: usdtEnabled ? selectedUsdtChains : [],
-          },
-          usdc: {
-            enabled: usdcEnabled,
-            walletAddress: usdcEnabled ? usdcAddress : "",
-            chains: usdcEnabled ? selectedUsdcChains : [],
-          },
-        },
-      });
-      setRefetchBotData();
+      await updateClientPaymentSettings(adminId, currency, preferredMethod);
+      refetchClientData();
       toast.success("Payment settings updated successfully");
     } catch (error: any) {
       console.error("Error updating payment settings:", error);
@@ -173,14 +136,53 @@ const Payments = () => {
     }
   };
 
-  const handleChainToggle = (chain: string, isUsdt: boolean) => {
-    const setChains = isUsdt ? setSelectedUsdtChains : setSelectedUsdcChains;
-    const currentChains = isUsdt ? selectedUsdtChains : selectedUsdcChains;
-
-    if (currentChains.includes(chain)) {
-      setChains(currentChains.filter((c) => c !== chain));
+  const handleChainToggle = (chainId: string) => {
+    if (selectedCryptoChains.includes(chainId)) {
+      setSelectedCryptoChains(
+        selectedCryptoChains.filter((c: string) => c !== chainId)
+      );
     } else {
-      setChains([...currentChains, chain]);
+      setSelectedCryptoChains([...selectedCryptoChains, chainId]);
+    }
+  };
+
+  const handleEnableCrypto = async () => {
+    if (!adminId) {
+      toast.error("No client selected");
+      return;
+    }
+
+    if (!cryptoAddress) {
+      toast.error("Please enter a wallet address");
+      return;
+    }
+
+    if (selectedCryptoChains.length === 0) {
+      toast.error("Please select at least one chain");
+      return;
+    }
+
+    try {
+      // Filter out any empty strings and ensure we only have valid chain IDs
+      const validChainIds = selectedCryptoChains.filter(
+        (id) => id && id.trim() !== ""
+      );
+
+      if (validChainIds.length === 0) {
+        toast.error("Please select at least one valid chain");
+        return;
+      }
+
+      const result = await enableCryptoPayment(
+        adminId,
+        cryptoEnabled,
+        cryptoAddress,
+        validChainIds
+      );
+      toast.success(result.message);
+      refetchClientData(); // Refresh client data to update UI
+    } catch (error: any) {
+      toast.error(error.message || "Failed to enable crypto payment");
     }
   };
 
@@ -188,12 +190,44 @@ const Payments = () => {
     setCurrentPage(newPage);
   };
 
-  // Calculate pagination
-  const itemsPerPage = 5;
-  const totalPages = Math.ceil(transactions.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentTransactions = transactions.slice(startIndex, endIndex);
+  const handleEnableStripe = async () => {
+    if (!adminId) {
+      toast.error("No client selected");
+      return;
+    }
+
+    setIsLoadingStripe(true);
+    try {
+      const result = await enableStripePayment(adminId);
+      setIsStripeEnabled(true);
+      toast.success(result.message);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to enable Stripe payments");
+    } finally {
+      setIsLoadingStripe(false);
+    }
+  };
+
+  const handleProceedKYC = async () => {
+    if (!adminId) {
+      toast.error("No client selected");
+      return;
+    }
+
+    setIsLoadingStripe(true);
+    try {
+      const result = await completeStripeOnboarding(adminId);
+      if (result) {
+        window.open(result, "_blank", "noopener,noreferrer");
+      } else {
+        throw new Error("Failed to get onboarding URL");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to start Stripe onboarding");
+    } finally {
+      setIsLoadingStripe(false);
+    }
+  };
 
   return (
     <div className="container flex flex-col lg:flex-row min-h-screen w-full bg-white">
@@ -219,6 +253,7 @@ const Payments = () => {
                 <option value="AED">AED</option>
                 <option value="EUR">EUR</option>
                 <option value="GBP">GBP</option>
+                <option value="GBP">INR</option>
               </select>
             </div>
             <div>
@@ -230,64 +265,78 @@ const Payments = () => {
                 onChange={(e) => setPreferredMethod(e.target.value)}
                 className="border border-gray-300 rounded px-3 py-2 w-full lg:w-32 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="Stripe" disabled={!stripeEnabled}>
+                <option value="stripe" disabled={!stripeEnabled}>
                   Stripe
                 </option>
-                <option value="Razorpay" disabled={!razorpayEnabled}>
+                <option value="razorpay" disabled={!razorpayEnabled}>
                   Razorpay
                 </option>
-                <option value="USDT" disabled={!usdtEnabled}>
-                  USDT
-                </option>
-                <option value="USDC" disabled={!usdcEnabled}>
-                  USDC
+                <option value="crypto" disabled={!cryptoEnabled}>
+                  Crypto
                 </option>
               </select>
             </div>
           </div>
 
-          {/* Stripe */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Stripe</span>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={stripeEnabled}
-                  onChange={(e) => setStripeEnabled(e.target.checked)}
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
-            <div
-              className={`bg-green-50 p-3 rounded-md relative ${
-                !stripeEnabled ? "opacity-50" : ""
-              }`}
-            >
-              <p className="text-xs text-gray-600 mb-2">
-                Paste your Stripe Seller ID & connect your existing account
-              </p>
-              <div className="text-xs font-mono bg-white p-2 rounded border border-green-200 break-all">
-                <input
-                  type="text"
-                  value={stripeId}
-                  onChange={(e) => setStripeId(e.target.value)}
-                  placeholder="Enter Stripe Account ID"
-                  className="w-full bg-transparent focus:outline-none"
-                  disabled={!stripeEnabled}
-                />
+          {/* Stripe Configuration */}
+          <div className="bg-white rounded-lg p-6 border border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <h3 className="text-lg font-medium">Stripe Configuration</h3>
+                {isStripeEnabled && (
+                  <CheckCircle2 className="h-5 w-5 text-green-500" />
+                )}
               </div>
-              <div className="absolute right-2 top-2 flex space-x-1">
+            </div>
+
+            {isStripeActive ? (
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3 text-sm text-gray-600">
+                  <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
+                  <p>
+                    You have successfully configured Stripe payments. Your
+                    account is fully set up and ready to accept payments from
+                    your customers.
+                  </p>
+                </div>
+              </div>
+            ) : !isStripeEnabled ? (
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3 text-sm text-gray-600">
+                  <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5" />
+                  <p>
+                    Enable Stripe payments to start accepting credit card
+                    payments from your customers. You'll need to complete the
+                    KYC process after enabling Stripe.
+                  </p>
+                </div>
                 <button
-                  onClick={() => setStripeId("")}
-                  className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
-                  disabled={!stripeEnabled}
+                  onClick={handleEnableStripe}
+                  disabled={isLoadingStripe}
+                  className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <RefreshCw className="w-3 h-3" />
+                  {isLoadingStripe ? "Enabling..." : "Enable Stripe Payments"}
                 </button>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3 text-sm text-gray-600">
+                  <AlertCircle className="h-5 w-5 text-blue-500 mt-0.5" />
+                  <p>
+                    Stripe payments are enabled. Complete the KYC process to
+                    start accepting payments. This is required by Stripe to
+                    verify your business identity.
+                  </p>
+                </div>
+                <button
+                  onClick={handleProceedKYC}
+                  disabled={isLoadingStripe}
+                  className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoadingStripe ? "Loading..." : "Proceed with KYC"}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Razorpay */}
@@ -323,129 +372,61 @@ const Payments = () => {
             </div>
           </div> */}
 
-          {/* USDT (Crypto) */}
+          {/* Crypto Configuration */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">USDT (Crypto)</span>
+              <span className="text-sm font-medium">Crypto Payments</span>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
                   className="sr-only peer"
-                  checked={usdtEnabled}
-                  onChange={(e) => setUsdtEnabled(e.target.checked)}
+                  checked={cryptoEnabled}
+                  onChange={(e) => setCryptoEnabled(e.target.checked)}
                 />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
-            <div className={`space-y-2 ${!usdtEnabled ? "opacity-50" : ""}`}>
+            <div className={`space-y-2 ${!cryptoEnabled ? "opacity-50" : ""}`}>
               <p className="text-xs text-gray-600">
                 Connect your wallet and select your accepted chains
               </p>
               <div className="flex">
                 <input
                   type="text"
-                  value={usdtAddress}
-                  onChange={(e) => setUsdtAddress(e.target.value)}
+                  value={cryptoAddress}
+                  onChange={(e) => setCryptoAddress(e.target.value)}
                   placeholder="Paste wallet address..."
                   className="flex-1 border border-gray-300 rounded-l px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={!usdtEnabled}
+                  disabled={!cryptoEnabled}
                 />
               </div>
               <div className="flex flex-wrap gap-2">
-                {["USDT on Eth", "USDT on Base", "USDT on BSC"].map((chain) => (
+                {[
+                  { id: "1", name: "Ethereum" },
+                  { id: "8453", name: "Base" },
+                  { id: "56", name: "BSC" },
+                ].map((chain) => (
                   <button
-                    key={chain}
-                    onClick={() => handleChainToggle(chain, true)}
-                    disabled={!usdtEnabled}
+                    key={chain.id}
+                    onClick={() => handleChainToggle(chain.id)}
+                    disabled={!cryptoEnabled}
                     className={`px-3 py-1 text-xs border rounded ${
-                      selectedUsdtChains.includes(chain)
+                      selectedCryptoChains.includes(chain.id)
                         ? "bg-blue-500 text-white border-blue-500"
                         : "border-gray-300 hover:bg-gray-50"
-                    } ${!usdtEnabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                    } ${!cryptoEnabled ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
-                    {chain}
+                    {chain.name}
                   </button>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* USDC (Crypto) */}
-          {/* <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">USDC (Crypto)</span>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={usdcEnabled}
-                  onChange={(e) => setUsdcEnabled(e.target.checked)}
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
-            <div
-              className={`bg-green-50 p-3 rounded-md relative ${
-                !usdcEnabled ? "opacity-50" : ""
-              }`}
-            >
-              <p className="text-xs text-gray-600 mb-2">
-                Connect your wallet and select your accepted chains
-              </p>
-              <div className="text-xs font-mono bg-white p-2 rounded border border-green-200 break-all">
-                <input
-                  type="text"
-                  value={usdcAddress}
-                  onChange={(e) => setUsdcAddress(e.target.value)}
-                  placeholder="Enter USDC Wallet Address"
-                  className="w-full bg-transparent focus:outline-none"
-                  disabled={!usdcEnabled}
-                />
-              </div>
-              <div className="absolute right-2 top-2 flex space-x-1">
-                <button
-                  onClick={() => handleCopy(usdcAddress)}
-                  className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
-                  disabled={!usdcEnabled}
-                >
-                  <Copy className="w-3 h-3" />
-                </button>
-                <button
-                  onClick={() => setUsdcAddress("")}
-                  className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
-                  disabled={!usdcEnabled}
-                >
-                  <RefreshCw className="w-3 h-3" />
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {[
-                  "USDC on Eth",
-                  "USDC on Base",
-                  "USDC on BSC",
-                  "USDC on Solana",
-                ].map((chain) => (
-                  <button
-                    key={chain}
-                    onClick={() => handleChainToggle(chain, false)}
-                    disabled={!usdcEnabled}
-                    className={`px-3 py-1 text-xs border rounded ${
-                      selectedUsdcChains.includes(chain)
-                        ? "bg-blue-500 text-white border-blue-500"
-                        : "border-gray-300 hover:bg-gray-50"
-                    } ${!usdcEnabled ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    {chain}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div> */}
-
-          {/* Save Button */}
+          {/* Enable Crypto Button */}
           <div className="flex justify-end mt-8">
             <button
-              onClick={handleSave}
+              onClick={handleEnableCrypto}
               disabled={isSaving}
               className={`px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold transition-colors ${
                 isSaving ? "opacity-50 cursor-not-allowed" : ""
@@ -454,10 +435,10 @@ const Payments = () => {
               {isSaving ? (
                 <div className="flex items-center space-x-2">
                   <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                  <span>Saving...</span>
+                  <span>Enabling...</span>
                 </div>
               ) : (
-                "SAVE"
+                "Enable Crypto"
               )}
             </button>
           </div>

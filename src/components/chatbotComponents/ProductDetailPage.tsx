@@ -22,8 +22,6 @@ export default function ProductDetailPage({
   const { activeBotData } = useBotConfig();
 
   const [quantity, setQuantity] = useState(1);
-  const [eventDate, setEventDate] = useState("");
-  const [eventTime, setEventTime] = useState("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<any>(null);
@@ -70,8 +68,7 @@ export default function ProductDetailPage({
     if (activeBotData.paymentMethods.stripe?.enabled) methods.push("stripe");
     if (activeBotData.paymentMethods.razorpay?.enabled)
       methods.push("razorpay");
-    if (activeBotData.paymentMethods.usdt?.enabled) methods.push("usdt");
-    if (activeBotData.paymentMethods.usdc?.enabled) methods.push("usdc");
+    if (activeBotData.paymentMethods.crypto?.enabled) methods.push("crypto");
 
     return methods;
   }, [activeBotData?.paymentMethods]);

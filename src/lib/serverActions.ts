@@ -1095,37 +1095,16 @@ export async function updateAgentBrain(
   }
 }
 
-export async function updateAgentPaymentSettings(
-  agentId: string,
-  settings: {
-    currency?: string;
-    preferredPaymentMethod?: string;
-    paymentMethods: {
-      stripe: {
-        enabled: boolean;
-        accountId: string;
-      };
-      razorpay: {
-        enabled: boolean;
-        accountId: string;
-      };
-      usdt: {
-        enabled: boolean;
-        walletAddress: string;
-        chains: string[];
-      };
-      usdc: {
-        enabled: boolean;
-        walletAddress: string;
-        chains: string[];
-      };
-    };
-  }
+export async function updateClientPaymentSettings(
+  clientId: string,
+  currency: string,
+  preferredMethod: string
 ): Promise<boolean> {
   try {
-    await axios.post(`${apiUrl}/client/updateAgentPaymentSettings`, {
-      agentId,
-      ...settings,
+    await axios.post(`${apiUrl}/client/updateCurrencyAndPreferredMethod`, {
+      clientId,
+      currency,
+      preferredMethod,
     });
     return true;
   } catch (error) {
@@ -1939,6 +1918,38 @@ export async function completeStripeOnboarding(
       error instanceof Error
         ? error.message
         : "Failed to complete Stripe onboarding"
+    );
+  }
+}
+
+export async function enableCryptoPayment(
+  clientId: string,
+  isEnabled: boolean,
+  walletAddress: string,
+  chainIds: string[]
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const response = await axios.post(`${apiUrl}/client/enableCryptoPayment`, {
+      clientId,
+      isEnabled,
+      walletAddress,
+      chainIds,
+    });
+
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+
+    return {
+      success: true,
+      message: "Crypto payments enabled successfully",
+    };
+  } catch (error) {
+    console.error("Error enabling crypto payments:", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Failed to enable crypto payments"
     );
   }
 }
