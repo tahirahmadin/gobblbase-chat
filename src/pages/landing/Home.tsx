@@ -1,22 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import {
-  Mail,
-  Calendar,
-  MessageCircle,
-  ShoppingCart,
-  Camera,
-  CreditCard,
-  Plug,
-  ChevronRight,
-  File,
-  User,
-  Menu,
-  X,
-  Twitter,
-  Linkedin,
-} from "lucide-react";
+import { ChevronRight, File, Menu, X, Linkedin } from "lucide-react";
 
 const Container = styled.div`
   font-family: "DM Sans", sans-serif;
@@ -266,7 +251,62 @@ const Subheadline = styled.div`
     margin-right: 0;
   }
 `;
-
+const buttonData = [
+  {
+    id: 0,
+    label: "Answer Queries",
+    defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.png",
+    activeBubbleImg: "/assets/landing-asset/assemble/pink-btn-bubble.png",
+    textColor: "#FF8FFF",
+    brainPart: "/assets/landing-asset/Brains/pink-brain-part.svg",
+    style: {top: "19.9%", left: "31.2%", width:"24.6%" , height: "12.8%"}
+  },
+  {
+    id: 1,
+    label: "Book Meetings",
+    defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.png",
+    activeBubbleImg: "/assets/landing-asset/assemble/green-btn-bubble.png",
+    textColor: "#CDFF6A",
+    brainPart: "/assets/landing-asset/Brains/green-brain-part.svg",
+    style: {top: "20%", right: "18.6%", width:"24.6%" , height: "12.8%"}
+  },
+  {
+    id: 3,
+    label: "Sell Products",
+    defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.png",
+    activeBubbleImg: "/assets/landing-asset/assemble/purple-btn-bubble.png",
+    textColor: "#766AFF",
+    brainPart: "/assets/landing-asset/Brains/purple-brain-part.svg",
+    style: {top: "19.29%", left: "40.75%", width:"18.2%" , height: "13%"}
+  },
+  {
+    id: 4,
+    label: "Collect Leads",
+    defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.png",
+    activeBubbleImg: "/assets/landing-asset/assemble/cyan-btn-bubble.png",
+    textColor: "#6AFFF0",
+    brainPart: "/assets/landing-asset/Brains/cyan-brain-part.svg",
+    style: {top: "23.2%", left: "31.7%", width:"18.2%" , height: "17.2%"}
+  },
+  {
+    id: 5,
+    label: "Offer Services",
+    defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.png",
+    activeBubbleImg: "/assets/landing-asset/assemble/orange-btn-bubble.png",
+    textColor: "#FF9D5C",
+    brainPart: "/assets/landing-asset/Brains/orange-brain-part.svg",
+    style: {top: "15.3%", left: "38%", width:"24%" , height: "10%"}
+  },
+  {
+    id: 6,
+    label: "Collect Payments",
+    defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.png",
+    activeBubbleImg: "/assets/landing-asset/assemble/red-btn-bubble.png",
+    textColor: "#FF6363",
+    brainPart: "/assets/landing-asset/Brains/red-brain-part.svg",
+    style: {top: "23.2%", right: "31.7%", width:"18.5%" , height: "17.2%"}
+  },
+];
 const CTAButton = styled.button`
   position: relative;
   display: flex;
@@ -596,7 +636,7 @@ const FeatureIcons = [
   "/assets/icons/black-profile-icon.svg", // Capture Leads
   "/assets/icons/black-creditcard-icon.svg", // Accept Payments
   "/assets/icons/black-popup-icon.svg", // Send Confirmations
-  "/assets/icons/black-link-icon.svg" // Integrates MCP Servers
+  "/assets/icons/black-link-icon.svg", // Integrates MCP Servers
 ];
 
 const selectedFeatureIcons = [
@@ -606,7 +646,7 @@ const selectedFeatureIcons = [
   "/assets/icons/profile-icon.svg", // Capture Leads
   "/assets/icons/creditcard-icon.svg", // Accept Payments
   "/assets/icons/popup-icon.svg", // Send Confirmations
-  "/assets/icons/link-icon.svg" // Integrates MCP Servers
+  "/assets/icons/link-icon.svg", // Integrates MCP Servers
 ];
 
 const PlatformSection = styled.section`
@@ -794,7 +834,7 @@ const BuildAgentSection = styled.section`
   .below-section {
     border-top: 1px solid black;
     .card-container {
-      margin-top: 3rem; 
+      margin-top: 3rem;
       display: grid;
       grid-auto-flow: row;
       justify-content: center; /* Center the first row */
@@ -803,9 +843,9 @@ const BuildAgentSection = styled.section`
       row-gap: 60px;
       padding: 8vh 2vw;
       width: 100%;
-        @media(max-width: 400px){
-          grid-template-columns: repeat(auto-fit, minmax(100%, max-content));
-        }
+      @media (max-width: 400px) {
+        grid-template-columns: repeat(auto-fit, minmax(100%, max-content));
+      }
       .your-ai-card {
         background: #fff;
         border-radius: 0;
@@ -816,10 +856,10 @@ const BuildAgentSection = styled.section`
         display: flex;
         flex-direction: column;
         padding: 0;
-        @media(max-width: 400px){
+        @media (max-width: 400px) {
           width: 100%;
         }
-        @media(max-width: 400px){
+        @media (max-width: 400px) {
           width: 100%;
         }
         .top-heading {
@@ -902,7 +942,7 @@ const BuildAgentSection = styled.section`
             font-family: "Lato", sans-serif;
             font-weight: 700;
             font-size: clamp(0.9rem, 4vw, 1.2rem);
-            @media(max-width: 600px){
+            @media (max-width: 600px) {
               text-align: right;
             }
           }
@@ -1396,6 +1436,8 @@ const FooterBelow = styled.div`
 
 const Home = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [selectedBrains, setSelectedBrains] = useState([0]);
+
   const [scrolled, setScrolled] = useState(false);
 
   const [selectedFeature, setSelectedFeature] = useState(features[0].key);
@@ -1403,6 +1445,15 @@ const Home = () => {
   const selected = features.find((f) => f.key === selectedFeature);
   const navigate = useNavigate();
 
+  const handleSelectBrain = (index) => {
+    if(index === 0) return;
+    if(selectedBrains.includes(index)){
+      setSelectedBrains(selectedBrains.filter((i) => i !== index));
+    } else {
+      setSelectedBrains([...selectedBrains, index].sort((a,b) => a-b));
+    }
+
+  }
   useEffect(() => {
     const handleScroll = () => {
       const isScrolled = window.scrollY > 10;
@@ -1542,66 +1593,31 @@ const Home = () => {
                   </span>
 
                   <div className="btns grid grid-cols-2 gap-x-4 gap-y-8 mt-4 place-items-center">
-                    <button className="relative inline-block">
-                      <img
-                        src="/assets/landing-asset/assemble/btn-bg-bubble.png"
-                        alt="bubble"
-                        className="block w-fit h-[40px] sm:h-[50px]"
-                      />
-                      <div className="para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px]">
-                        Answer Queries
-                      </div>
-                    </button>
-                    <button className="relative inline-block">
-                      <img
-                        src="/assets/landing-asset/assemble/btn-bg-bubble.png"
-                        alt="bubble"
-                        className="block w-fit h-[40px] sm:h-[50px]"
-                      />
-                      <div className="para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px]">
-                        Sell Products
-                      </div>
-                    </button>
-                    <button className="relative inline-block">
-                      <img
-                        src="/assets/landing-asset/assemble/btn-bg-bubble.png"
-                        alt="bubble"
-                        className="block w-fit h-[40px] sm:h-[50px]"
-                      />
-                      <div className="para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px]">
-                        Offer Services
-                      </div>
-                    </button>
-                    <button className="relative inline-block">
-                      <img
-                        src="/assets/landing-asset/assemble/btn-bg-bubble.png"
-                        alt="bubble"
-                        className="block w-fit h-[40px] sm:h-[50px]"
-                      />
-                      <div className="para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px]">
-                        Book Meetings
-                      </div>
-                    </button>
-                    <button className="relative inline-block">
-                      <img
-                        src="/assets/landing-asset/assemble/btn-bg-bubble.png"
-                        alt="bubble"
-                        className="block w-fit h-[40px] sm:h-[50px]"
-                      />
-                      <div className="para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px]">
-                        Collect Leads
-                      </div>
-                    </button>
-                    <button className="relative inline-block">
-                      <img
-                        src="/assets/landing-asset/assemble/btn-bg-bubble.png"
-                        alt="bubble"
-                        className="block w-fit h-[40px] sm:h-[50px]"
-                      />
-                      <div className="para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px]">
-                        Collect Payments
-                      </div>
-                    </button>
+                    {buttonData.map((btn, id) => {
+                      const isSelected = selectedBrains.includes(id);
+                      return (
+                        <button
+                          key={id}
+                          className="relative inline-block"
+                          onClick={() => handleSelectBrain(id)}
+                        >
+                          <img
+                            src={isSelected ? btn.activeBubbleImg : btn.defaultBubbleImg}
+                            alt="bubble"
+                            className="block w-fit h-[40px] sm:h-[50px]"
+                          />
+                          <div
+                            className={`para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px] transition-all duration-200`}
+                            style={{
+                              color: isSelected ? btn.textColor : "#fff",
+                              fontWeight: isSelected ? "600" : "400",
+                            }}
+                          >
+                            {btn.label}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                   <div className="relative z-10 mt-12">
                     <CTAButton onClick={() => navigate("/admin")}>
@@ -1614,10 +1630,49 @@ const Home = () => {
             </article>
             <article className="right-side lg:block w-[80%] lg:w-[50%] z-10 lg:mt-20 ">
               <div className="relative ">
-                <img
-                  src="/assets/landing-asset/assemble/hero-mascot.png"
-                  alt="Kifor Mascot"
-                />
+                <span className="relative">
+                    <img
+                      src="/assets/landing-asset/assemble/hero-mascot.png"
+                      alt="Kifor Mascot"
+                    />
+                    {buttonData.map((part, index) => (
+                      <div key={part.id} 
+                        style={{
+                          position: "absolute",
+                          top: part.style.top,
+                          left: part.style.left,
+                          right: part.style.right,
+                          width: part.style.width,
+                          height: part.style.height,
+                      }} 
+                      className={`transition-opacity duration-300 ${selectedBrains.includes(index)                                                                                          
+                      ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+                          <img src={part.brainPart} alt={part.label} className="w-fit h-full" />
+                      </div>
+                    ))}
+                    {/* left side parts  */}
+                    {/* <div className="absolute top-[15.3%] left-[38%] w-[24%] h-[10%]">                               
+                       <img src="/assets/landing-asset/Brains/orange-brain-part.svg" alt="" className="w-fit h-full"/>
+                    </div>
+                    <div className="absolute top-[20%] left-[24.8%] w-[24.6%] h-[12.8%]">                               
+                        <img src="/assets/landing-asset/Brains/pink-brain-part.svg" alt=""className="w-full h-full"/>
+                    </div>
+                    <div className="absolute top-[19.29%] left-[40.75%] w-[18.2%] h-[13%]">                               
+                       <img src="/assets/landing-asset/Brains/purple-brain-part.svg" alt="" className="w-fit h-full"/>
+                    </div>
+                    <div className="absolute top-[23.2%] left-[31.7%] w-[18.2%] h-[17.2%]">                               
+                        <img src="/assets/landing-asset/Brains/cyan-brain-part.svg" alt=""className="w-full h-full"/>
+                    </div> */}
+
+                  {/* right side parts  */}
+                    {/* <div className="absolute top-[20%] right-[25%] w-[24.6%] h-[12.8%]">                               
+                        <img src="/assets/landing-asset/Brains/green-brain-part.svg" alt=""className="w-full h-full"/>
+                    </div>
+                    <div className="absolute top-[23.2%] right-[31.7%] w-[18.5%] h-[17.2%]">                               
+                        <img src="/assets/landing-asset/Brains/red-brain-part.svg" alt=""className="w-full h-full"/>
+                    </div> */}
+
+                </span>
                 <div
                   style={{
                     background:
@@ -1649,24 +1704,6 @@ const Home = () => {
                 services, supporting customers, capturing leads, and managing
                 operations – all through simple, intelligent conversations, 24
                 hours a day. No coding skills needed.
-                {/* <div className="clip-path">
-                    
-                  </div>
-                  <div className="triangle">
-                    <svg
-                      width="100"
-                      height="50"
-                      viewBox="0 0 100 50"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <polygon points="50,0 0,50 100,50" fill="white" />
-
-                      <line x1="0" y1="50" x2="100" y2="50" stroke="black" stroke-width="1" />
-
-                      <line x1="50" y1="0" x2="100" y2="50" stroke="black" stroke-width="1" />
-                    </svg>
-
-                  </div> */}
               </span>
             </WhiteBackground>
           </PracticalSection>
@@ -1919,7 +1956,14 @@ const Home = () => {
                         }
                         `}
                   >
-                   <img src={feature.key === selectedFeature ? selectedFeatureIcons[idx] : FeatureIcons[idx]} alt="" />
+                    <img
+                      src={
+                        feature.key === selectedFeature
+                          ? selectedFeatureIcons[idx]
+                          : FeatureIcons[idx]
+                      }
+                      alt=""
+                    />
                   </FeatureIcon>
                 </button>
               ))}
@@ -1999,7 +2043,14 @@ const Home = () => {
                             }
                           `}
                           >
-                            <img src={feature.key === selectedFeature ? selectedFeatureIcons[idx] : FeatureIcons[idx]} alt="" />
+                            <img
+                              src={
+                                feature.key === selectedFeature
+                                  ? selectedFeatureIcons[idx]
+                                  : FeatureIcons[idx]
+                              }
+                              alt=""
+                            />
                           </FeatureIcon>
                         </FeatureListLabel>
                         <FeatureIcon
@@ -2010,9 +2061,15 @@ const Home = () => {
                                : "bg-white text-[#000]"
                            }
                           `}
-                        > 
-                        <img src={feature.key === selectedFeature ? selectedFeatureIcons[idx] : FeatureIcons[idx]} alt="" />
-                     
+                        >
+                          <img
+                            src={
+                              feature.key === selectedFeature
+                                ? selectedFeatureIcons[idx]
+                                : FeatureIcons[idx]
+                            }
+                            alt=""
+                          />
                         </FeatureIcon>
                       </FeatureListItem>
 
@@ -2219,9 +2276,7 @@ const Home = () => {
                     </div>
                   </div>
                   <div className="card-heading">
-                    <h1 className="">
-                      Selling like you would
-                    </h1>
+                    <h1 className="">Selling like you would</h1>
                   </div>
                   <div className="content">
                     <div className="img">
