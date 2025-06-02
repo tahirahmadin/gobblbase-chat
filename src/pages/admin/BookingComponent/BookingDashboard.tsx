@@ -331,47 +331,56 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
       }
 
       const meetingDate = new Date(meeting.date);
-      const now = new Date();
-      const currentDate = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate()
-      );
-      const meetingDateOnly = new Date(
+      const [startHours, startMinutes] = meeting.startTime.split(':').map(Number);
+      const [endHours, endMinutes] = meeting.endTime.split(':').map(Number);
+
+      const meetingStartDateTime = new Date(
         meetingDate.getFullYear(),
         meetingDate.getMonth(),
-        meetingDate.getDate()
+        meetingDate.getDate(),
+        startHours,
+        startMinutes
       );
 
-      if (activeTab === "upcoming") {
-        if (meetingDateOnly < currentDate) return false;
-      } else if (activeTab === "past") {
-        if (meetingDateOnly >= currentDate) return false;
-      }
+      const meetingEndDateTime = new Date(
+        meetingDate.getFullYear(),
+        meetingDate.getMonth(),
+        meetingDate.getDate(),
+        endHours,
+        endMinutes
+      );
 
+      const now = new Date();
+
+      if (activeTab === "upcoming") {
+        if (meetingEndDateTime <= now) return false;
+      } else if (activeTab === "past") {
+        if (meetingEndDateTime > now) return false;
+      }
+  
       if (filters.location && meeting.location !== filters.location) {
         return false;
       }
-
+  
       if (filters.status && meeting.status !== filters.status) {
         return false;
       }
-
+  
       if (filters.dateRange !== "all") {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-
+  
         if (filters.dateRange === "today") {
           const todayEnd = new Date(today);
           todayEnd.setHours(23, 59, 59, 999);
-          if (meetingDate < today || meetingDate > todayEnd) return false;
+          if (meetingEndDateTime < today || meetingStartDateTime > todayEnd) return false;
         } else if (filters.dateRange === "week") {
           const weekStart = new Date(today);
           weekStart.setDate(today.getDate() - today.getDay());
           const weekEnd = new Date(weekStart);
           weekEnd.setDate(weekStart.getDate() + 6);
           weekEnd.setHours(23, 59, 59, 999);
-          if (meetingDate < weekStart || meetingDate > weekEnd) return false;
+          if (meetingEndDateTime < weekStart || meetingStartDateTime > weekEnd) return false;
         } else if (filters.dateRange === "month") {
           const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
           const monthEnd = new Date(
@@ -380,21 +389,19 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
             0
           );
           monthEnd.setHours(23, 59, 59, 999);
-          if (meetingDate < monthStart || meetingDate > monthEnd) return false;
+          if (meetingEndDateTime < monthStart || meetingStartDateTime > monthEnd) return false;
         }
       }
-
+  
       return true;
     })
     .map((meeting) => {
-      // Create a shallow copy of the meeting object
       const updatedMeeting = { ...meeting };
-
-      // For past meetings tab, change status to "completed" if it was "confirmed"
+  
       if (activeTab === "past" && meeting.status === "confirmed") {
         updatedMeeting.status = "completed";
       }
-
+  
       return updatedMeeting;
     })
     .sort((a, b) => {

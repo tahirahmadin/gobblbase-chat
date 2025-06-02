@@ -87,7 +87,11 @@ export default function PublicChat({
     pricingInfo,
     loadingPricing,
     handleBookingRequest,
-  } = useBookingLogic(currentConfig?.agentId, currentConfig?.sessionName, globalCurrency);
+  } = useBookingLogic(
+    currentConfig?.agentId,
+    currentConfig?.sessionName,
+    globalCurrency
+  );
 
   const { handleProductRequest, hasProducts } = useProductsLogic(
     currentConfig?.agentId
@@ -400,6 +404,35 @@ export default function PublicChat({
                 ? `${currentConfig.name} | Sayy.ai chatbot`
                 : "Sayy.ai chatbot"}
             </title>
+            <meta
+              name="description"
+              content={`${currentConfig.bio} | Sayy.ai chatbot`}
+            />
+            <meta
+              property="og:title"
+              content={`${currentConfig.name} | Sayy.ai chatbot`}
+            />
+            <meta
+              property="og:description"
+              content={`${currentConfig.bio} | Sayy.ai chatbot`}
+            />
+            <meta property="og:image" content={currentConfig.logo} />
+            <meta
+              property="og:image:alt"
+              content={`${currentConfig.name} | Sayy.ai chatbot`}
+            />
+            <meta
+              property="og:url"
+              content={`https://sayy.ai/${currentConfig.username}`}
+            />
+            <meta
+              property="og:url"
+              content={`https://sayy.ai/${currentConfig.username}`}
+            />
+            <meta
+              property="og:url"
+              content={`https://sayy.ai/${currentConfig.username}`}
+            />
           </Helmet>
           <div
             className="w-full max-w-md shadow-2xl overflow-hidden flex flex-col relative"

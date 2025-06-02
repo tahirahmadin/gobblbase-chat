@@ -8,6 +8,7 @@ import {
   ChevronRight,
   ChevronDown,
   LayoutDashboard,
+  Bot,
 } from "lucide-react";
 import { useAdminStore } from "../../store/useAdminStore";
 import { useUserStore } from "../../store/useUserStore";
@@ -28,12 +29,18 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    name: "Agent Setup",
+    name: "Dashboard",
     icon: <LayoutDashboard className="w-5 h-5" />,
     path: "/admin/dashboard",
     expandable: true,
+    subItems: [{ name: "All Agents", path: "/admin/all-agents" }],
+  },
+  {
+    name: "Agent Setup",
+    icon: <Bot className="w-5 h-5" />,
+    path: "/admin/dashboard",
+    expandable: true,
     subItems: [
-      { name: "All Agents", path: "/admin/all-agents" },
       { name: "Profile", path: "/admin/dashboard/profile" },
       { name: "Brain/PDF", path: "/admin/dashboard/brain" },
       { name: "AI Model", path: "/admin/dashboard/ai-model" },
@@ -183,97 +190,21 @@ const Sidebar = () => {
 
   const isTabExpanded = (tabName: string) => expandedTabs.includes(tabName);
 
-  // Sidebar logic: if no agent selected, show only Agent Setup > All Agents
-  if (location.pathname === "/admin/all-agents") {
-    return (
-      <div className="w-64 bg-black min-h-screen text-white p-4 flex flex-col">
-        <div className="mb-8">
-          <h1 className="text-xl font-bold">Sayy.ai</h1>
-        </div>
-        <nav className="flex-1 space-y-2 overflow-y-auto">
-          <div className="space-y-1">
-            <button
-              onClick={() => toggleTab("Agent Setup")}
-              className={`w-full flex items-center justify-between px-4 py-2 rounded-lg transition-colors`}
-            >
-              <div className="flex items-center space-x-3">
-                <LayoutDashboard className="w-5 h-5" />
-                <span>Agent Setup</span>
-              </div>
-              <div className="text-gray-400">
-                {isTabExpanded("Agent Setup") ? (
-                  <ChevronDown className="w-4 h-4" />
-                ) : (
-                  <ChevronRight className="w-4 h-4" />
-                )}
-              </div>
-            </button>
-            {isTabExpanded("Agent Setup") && (
-              <div className="ml-4 pl-4 border-l border-gray-700 space-y-1">
-                <button
-                  onClick={() => navigate("/admin/all-agents")}
-                  className={`w-full flex items-center px-4 py-2 rounded-lg transition-colors ${
-                    location.pathname === "/admin/all-agents"
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-400 hover:bg-gray-800"
-                  }`}
-                >
-                  All Agents
-                </button>
-              </div>
-            )}
-          </div>
-        </nav>
-        <div className="space-y-2 pt-4 border-t border-gray-700">
-          <div className="relative inline-block">
-            <div className="absolute top-1 left-1 w-full h-full bg-black rounded"></div>
-            <div className="relative inline-block">
-              {/* Bottom layer for shadow effect */}
-              <div className="absolute top-1 left-1 w-full h-full border border-[#6aff97] "></div>
+  // Filter nav items based on current route
+  const filteredNavItems =
+    location.pathname === "/admin/all-agents"
+      ? navItems.filter(
+          (item) => item.name === "Dashboard" || item.name === "Account"
+        )
+      : navItems;
 
-              {/* Main button */}
-              <button
-                onClick={() => navigate("/admin/account/plans")}
-                className="relative bg-black text-white font-semibold px-4 py-2 border border-[#6aff97]"
-              >
-                Upgrade Plan
-              </button>
-            </div>
-          </div>
-          <div className="relative">
-            <button
-              className="w-full flex items-center space-x-3 px-4 py-2 text-gray-300 hover:bg-gray-800 rounded-lg"
-              onClick={() => setShowLogoutModal(true)}
-            >
-              <LogOut className="w-5 h-5" />
-              <span>Logout</span>
-            </button>
-            <LogoutModal
-              open={showLogoutModal}
-              onClose={() => setShowLogoutModal(false)}
-              onConfirm={() => {
-                userLogout();
-                adminLogout();
-                clearBotConfig();
-                navigate("/admin");
-              }}
-              email={adminEmail}
-              photo={activeBotData?.logo || null}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // If agent is selected, show full sidebar
   return (
-    <div className="w-64 bg-black h-screen text-white p-4 flex flex-col  overflow-y-auto">
+    <div className="w-64 bg-black h-screen text-white p-4 flex flex-col overflow-y-auto">
       <div className="mb-8">
         <h1 className="text-xl font-bold">Sayy.ai</h1>
       </div>
-      <nav className="flex-1 space-y-2 ">
-        {navItems.map((item) => (
+      <nav className="flex-1 space-y-2">
+        {filteredNavItems.map((item) => (
           <div key={item.name} className="space-y-1">
             <button
               onClick={() => {

@@ -216,12 +216,15 @@ function CryptoPaymentForm({
     address,
     isSubmitting,
     isPending,
+    isConfirming,
     selectedChain,
     handleConnectWallet,
     handleChainSelect,
     handleSubmit,
     disconnect,
     tokenAddresses,
+    orderStatus,
+    isPolling,
   } = useCryptoPayment({
     product,
     onSuccess,
@@ -232,6 +235,86 @@ function CryptoPaymentForm({
     userEmail: userEmail,
     shipping,
   });
+
+  // Loader and status UI for polling
+  if (isPolling && orderStatus === "pending") {
+    return (
+      <div className="flex flex-col items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-yellow-500 mb-4"></div>
+        <p
+          className="text-lg font-medium mb-2"
+          style={{ color: theme.isDark ? "#fff" : "#000" }}
+        >
+          Waiting for payment confirmation...
+        </p>
+        <p
+          className="text-sm"
+          style={{ color: theme.isDark ? "#ccc" : "#666" }}
+        >
+          This may take a few moments. Please do not close this window.
+        </p>
+      </div>
+    );
+  }
+  if (orderStatus === "succeeded") {
+    return (
+      <div className="flex flex-col items-center justify-center p-8">
+        <div className="h-10 w-10 mb-4 flex items-center justify-center bg-green-100 rounded-full">
+          <svg
+            className="w-6 h-6 text-green-600"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+        </div>
+        <p className="text-lg font-medium mb-2 text-green-700">
+          Payment Confirmed!
+        </p>
+        <p
+          className="text-sm text-center"
+          style={{ color: theme.isDark ? "#ccc" : "#666" }}
+        >
+          Your crypto payment was successful.
+        </p>
+      </div>
+    );
+  }
+  if (orderStatus === "failed") {
+    return (
+      <div className="flex flex-col items-center justify-center p-8">
+        <div className="h-10 w-10 mb-4 flex items-center justify-center bg-red-100 rounded-full">
+          <svg
+            className="w-6 h-6 text-red-600"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </div>
+        <p className="text-lg font-medium mb-2 text-red-700">Payment Failed</p>
+        <p
+          className="text-sm text-center"
+          style={{ color: theme.isDark ? "#ccc" : "#666" }}
+        >
+          Your crypto payment could not be confirmed. Please try again or
+          contact support.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

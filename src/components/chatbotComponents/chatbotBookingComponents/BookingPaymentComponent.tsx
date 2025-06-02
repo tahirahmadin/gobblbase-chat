@@ -13,6 +13,7 @@ import { CreditCard, Wallet } from "lucide-react";
 import { Theme } from "../../types";
 import { bookAppointment } from "../../../lib/serverActions";
 import { backendApiUrl } from "../../../utils/constants";
+import { useCryptoPayment } from "../../../hooks/useCryptoHook";
 
 interface BookingPaymentProps {
   theme: Theme;
@@ -37,13 +38,15 @@ interface BookingPaymentProps {
   };
 }
 
-type PaymentMethod = "stripe" | "razorpay" | "usdt" | "usdc";
+type PaymentMethod = "stripe" | "razorpay" | "crypto";
 
 function StripeBookingForm({
+  theme,
   onSuccess,
   bookingDetails,
   price,
 }: {
+  theme: any;
   onSuccess: () => void;
   bookingDetails: BookingPaymentProps["bookingDetails"];
   price: BookingPaymentProps["price"];
@@ -128,8 +131,8 @@ function StripeBookingForm({
         disabled={isSubmitting || !stripe || !elements}
         className="w-full p-3 rounded font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-opacity duration-200"
         style={{
-          backgroundColor: "#FFD700",
-          color: "#000",
+          backgroundColor: theme.highlightColor,
+          color: theme.isDark ? "#000" : "#fff",
           opacity: isSubmitting ? 0.7 : 1,
         }}
       >
@@ -147,10 +150,12 @@ function StripeBookingForm({
 }
 
 function RazorpayBookingForm({
+  theme,
   onSuccess,
   bookingDetails,
   price,
 }: {
+  theme: any;
   onSuccess: () => void;
   bookingDetails: BookingPaymentProps["bookingDetails"];
   price: BookingPaymentProps["price"];
@@ -205,8 +210,8 @@ function RazorpayBookingForm({
         disabled={isSubmitting}
         className="w-full p-3 rounded font-medium"
         style={{
-          backgroundColor: "#FFD700",
-          color: "#000",
+          backgroundColor: theme.highlightColor,
+          color: theme.isDark ? "#000" : "#fff",
           opacity: isSubmitting ? 0.7 : 1,
         }}
       >
@@ -224,28 +229,69 @@ function RazorpayBookingForm({
 }
 
 function CryptoBookingForm({
+  theme,
   onSuccess,
   bookingDetails,
-  type,
   price,
 }: {
+  theme: any;
   onSuccess: () => void;
   bookingDetails: BookingPaymentProps["bookingDetails"];
-  type: "usdt" | "usdc";
   price: BookingPaymentProps["price"];
 }) {
-  const { activeBotData } = useBotConfig();
-  const { isLoggedIn, userEmail } = useUserStore();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { activeBotData, activeBotId } = useBotConfig();
+  const { userId, userEmail, isLoggedIn } = useUserStore();
+  const walletAddress = activeBotData?.paymentMethods.crypto.walletAddress;
+  const supportedChains = activeBotData?.paymentMethods.crypto.chains;
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setIsSubmitting(true);
+  const chainIdToName: Record<string, string> = {
+    "0x1": "USDT on Eth",
+    "0x2105": "USDT on Base",
+    "0x38": "USDT on BSC",
+    "0x61": "USDT on BSC Testnet",
+  };
 
-    try {
-      const paymentId = `${type}_${Date.now()}`;
+  const bookingProduct = useMemo(() => ({
+    _id: `booking_${bookingDetails.businessId}_${Date.now()}`,
+    price: price.amount,
+    title: `Booking: ${bookingDetails.date} ${bookingDetails.startTime}`,
+    description: `Booking for ${bookingDetails.name} on ${bookingDetails.date}`,
+    quantity: 1,
+    checkType: "booking",
+    metadata: {
+      type: "booking",
+      bookingDetails: bookingDetails,
+    },
+  }), [bookingDetails, price.amount]);
 
-      await bookAppointment({
+
+  const shippingData = useMemo(() => ({
+    name: bookingDetails.name,
+    email: bookingDetails.email,
+    phone: bookingDetails.phone,
+    country: "US", 
+    address1: bookingDetails.location,
+    address2: "",
+    city: "",
+    zipcode: "",
+    saveDetails: false,
+  }), [bookingDetails]);
+
+  const {
+    isConnected,
+    address,
+    isSubmitting,
+    isPending,
+    selectedChain,
+    handleConnectWallet,
+    handleChainSelect,
+    handleSubmit: cryptoHandleSubmit,
+    disconnect,
+  } = useCryptoPayment({
+    product: bookingProduct,
+    onSuccess: () => {
+      // Handle booking-specific success
+      bookAppointment({
         agentId: bookingDetails.businessId,
         userId: isLoggedIn && userEmail ? userEmail : bookingDetails.email,
         email: bookingDetails.email,
@@ -257,73 +303,143 @@ function CryptoBookingForm({
         phone: bookingDetails.phone,
         notes: bookingDetails.notes || "",
         userTimezone: bookingDetails.userTimezone,
-        paymentId: paymentId,
-        paymentMethod: type.toUpperCase(),
+        paymentId: `crypto_${Date.now()}`,
+        paymentMethod: "USDT",
         paymentAmount: price.amount,
-        paymentCurrency: type.toUpperCase(),
+        paymentCurrency: "USDT",
+      }).then(() => {
+        toast.success("Booking confirmed!");
+        onSuccess();
+      }).catch((err) => {
+        console.error("Booking error:", err);
+        toast.error("Booking failed. Please try again.");
       });
-
-      toast.success("Booking confirmed!");
-      onSuccess();
-    } catch (error: any) {
-      console.error("Booking error:", error);
-      toast.error("Booking failed. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const walletAddress = activeBotData?.paymentMethods[type]?.walletAddress;
-  const chains = activeBotData?.paymentMethods[type]?.chains;
+    },
+    onOrderDetails: () => {}, // Not needed for bookings
+    walletAddress: walletAddress || "",
+    activeBotId: activeBotId,
+    userId: userId,
+    userEmail: userEmail,
+    shipping: shippingData,
+  });
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="p-4 rounded-lg border" style={{ borderColor: "#FFD700" }}>
-        <p
-          className="text-center mb-2"
-          style={{ color: activeBotData?.themeColors.isDark ? "#fff" : "#000" }}
+    <form onSubmit={cryptoHandleSubmit} className="space-y-4">
+      {!isConnected ? (
+        <button
+          type="button"
+          onClick={handleConnectWallet}
+          className="w-full p-3 rounded font-medium flex items-center justify-center gap-2"
+          style={{
+            backgroundColor: "#FFD700",
+            color: "#000",
+          }}
         >
-          Send {price.displayPrice} {type.toUpperCase()} to the following
-          address
-        </p>
-        <div className="mt-2 text-center">
-          <p
-            className="font-mono text-sm break-all"
-            style={{
-              color: activeBotData?.themeColors.isDark ? "#fff" : "#000",
-            }}
+          <Wallet className="w-5 h-5" />
+          Connect Wallet
+        </button>
+      ) : (
+        <>
+          <div
+            className="p-4 rounded-lg border"
+            style={{ borderColor: "#FFD700" }}
           >
-            {walletAddress}
-          </p>
-          <p
-            className="text-sm mt-2"
-            style={{
-              color: activeBotData?.themeColors.isDark ? "#fff" : "#000",
-            }}
-          >
-            Supported chains: {chains?.join(", ")}
-          </p>
-        </div>
-      </div>
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="w-full p-3 rounded font-medium"
-        style={{
-          backgroundColor: "#FFD700",
-          color: "#000",
-          opacity: isSubmitting ? 0.7 : 1,
-        }}
-      >
-        {isSubmitting ? (
-          <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>
-            Processing...
+            <div className="flex items-center justify-between mb-4">
+              <p
+                style={{
+                  color: activeBotData?.themeColors.isDark ? "#fff" : "#000",
+                }}
+              >
+                Connected: {address?.slice(0, 6)}...{address?.slice(-4)}
+              </p>
+              <button
+                type="button"
+                onClick={() => disconnect()}
+                className="text-sm underline"
+                style={{
+                  color: activeBotData?.themeColors.isDark ? "#fff" : "#000",
+                }}
+              >
+                Disconnect
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <p
+                  className="mb-2"
+                  style={{
+                    color: activeBotData?.themeColors.isDark ? "#fff" : "#000",
+                  }}
+                >
+                  Select Network
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {supportedChains?.map((chainId: string) => (
+                    <button
+                      key={chainId}
+                      type="button"
+                      onClick={() => handleChainSelect(chainId)}
+                      className={`px-3 py-1 text-sm rounded ${
+                        selectedChain === chainId
+                          ? "bg-yellow-500 text-black"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {chainIdToName[chainId] || chainId}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {selectedChain && (
+                <div>
+                  <p
+                    className="mb-2"
+                    style={{
+                      color: activeBotData?.themeColors.isDark
+                        ? "#fff"
+                        : "#000",
+                    }}
+                  >
+                    Send {price.displayPrice} USDT to:
+                  </p>
+                  <p
+                    className="font-mono text-sm break-all p-2 bg-gray-100 rounded"
+                    style={{
+                      color: activeBotData?.themeColors.isDark
+                        ? "#fff"
+                        : "#000",
+                    }}
+                  >
+                    {walletAddress}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
-        ) : (
-          "CONFIRM PAYMENT"
-        )}
-      </button>
+
+          <button
+            type="submit"
+            disabled={isSubmitting || !selectedChain || isPending}
+            className="w-full p-3 rounded font-medium flex items-center justify-center gap-2"
+            style={{
+              backgroundColor: theme.highlightColor,
+              color: theme.isDark ? "#000" : "#fff",
+              opacity: isSubmitting || !selectedChain || isPending ? 0.7 : 1,
+            }}
+          >
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black"></div>
+                Processing...
+              </>
+            ) : (
+              "CONFIRM PAYMENT"
+            )}
+          </button>
+        </>
+      )}
     </form>
   );
 }
@@ -343,6 +459,33 @@ export function BookingPaymentComponent({
   const [error, setError] = useState<string | null>(null);
   const [freeBookingLoading, setFreeBookingLoading] = useState(false);
   const [freeBookingError, setFreeBookingError] = useState<string | null>(null);
+
+  // Check if any payment method is enabled 
+  const availablePaymentMethods = useMemo(() => {
+    if (!activeBotData?.paymentMethods) return [];
+
+    const methods = [];
+    if (activeBotData.paymentMethods.stripe?.isActivated)
+      methods.push("stripe");
+    if (activeBotData.paymentMethods.razorpay?.isActivated)
+      methods.push("razorpay");
+    if (activeBotData.paymentMethods.crypto?.isActivated)
+      methods.push("crypto");
+
+    return methods;
+  }, [activeBotData?.paymentMethods]);
+
+  const hasEnabledPaymentMethods = availablePaymentMethods.length > 0;
+
+  // Auto-select first available payment method 
+  useEffect(() => {
+    if (
+      availablePaymentMethods.length > 0 &&
+      !availablePaymentMethods.includes(selectedMethod)
+    ) {
+      setSelectedMethod(availablePaymentMethods[0] as PaymentMethod);
+    }
+  }, [availablePaymentMethods, selectedMethod]);
 
   // Handle free booking
   const isFreeBooking = price?.amount === 0;
@@ -529,6 +672,7 @@ export function BookingPaymentComponent({
         return (
           <Elements stripe={stripePromise} options={{ clientSecret }}>
             <StripeBookingForm
+              theme={theme}
               onSuccess={onSuccess}
               bookingDetails={bookingDetails}
               price={price}
@@ -538,18 +682,18 @@ export function BookingPaymentComponent({
       case "razorpay":
         return (
           <RazorpayBookingForm
+            theme={theme}
             onSuccess={onSuccess}
             bookingDetails={bookingDetails}
             price={price}
           />
         );
-      case "usdt":
-      case "usdc":
+      case "crypto":
         return (
           <CryptoBookingForm
+            theme={theme}
             onSuccess={onSuccess}
             bookingDetails={bookingDetails}
-            type={selectedMethod}
             price={price}
           />
         );
@@ -636,6 +780,41 @@ export function BookingPaymentComponent({
     );
   }
 
+  // If no payment methods are enabled, show error message (same as PaymentSection)
+  if (!hasEnabledPaymentMethods) {
+    return (
+      <div className="p-4" style={{ paddingBottom: "100px" }}>
+        <div className="flex justify-between items-center mb-4">
+          <button
+            onClick={onBack}
+            className="flex items-center text-sm"
+            style={{ color: theme.mainLightColor }}
+          >
+            <span className="mr-1">←</span> BACK
+          </button>
+        </div>
+
+        <div
+          className="p-4 rounded-lg border border-red-300 bg-red-50 text-center"
+          style={{
+            backgroundColor: theme.isDark ? "#2d1b1b" : "#fef2f2",
+            borderColor: "#ef4444",
+            color: theme.isDark ? "#fca5a5" : "#dc2626",
+          }}
+        >
+          <div className="mb-2">
+            <span className="text-2xl">⚠️</span>
+          </div>
+          <h3 className="font-semibold mb-2">Payment Methods Not Available</h3>
+          <p className="text-sm">
+            No payment methods are currently enabled for this store. Please
+            contact the store administrator to enable payment options.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4" style={{ paddingBottom: "100px" }}>
       <div className="flex justify-between items-center mb-4">
@@ -652,61 +831,82 @@ export function BookingPaymentComponent({
         Pay with
       </h3>
 
-      {/* Payment Method Selection */}
+      {/* Payment Method Selection - Only show enabled methods (same logic as PaymentSection) */}
       <div className="flex gap-2 mb-4 pb-10">
-        {activeBotData?.paymentMethods?.stripe?.enabled && (
+        {availablePaymentMethods.includes("stripe") && (
           <button
             onClick={() => setSelectedMethod("stripe")}
-            className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${
-              selectedMethod === "stripe"
-                ? "bg-yellow-500 text-black"
-                : "bg-gray-100 text-gray-600"
-            }`}
+            className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors `}
+            style={{
+              backgroundColor:
+                selectedMethod === "stripe" ? theme.highlightColor : "#bdbdbd",
+              color:
+                selectedMethod === "stripe"
+                  ? theme.isDark
+                    ? "#000"
+                    : "#fff"
+                  : "#000000",
+            }}
           >
             <CreditCard className="w-5 h-5" />
             <span>Credit Card</span>
           </button>
         )}
-        {activeBotData?.paymentMethods?.razorpay?.enabled && (
+
+        {availablePaymentMethods.includes("razorpay") && (
           <button
             onClick={() => setSelectedMethod("razorpay")}
-            className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${
-              selectedMethod === "razorpay"
-                ? "bg-yellow-500 text-black"
-                : "bg-gray-100 text-gray-600"
-            }`}
+            className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors`}
+            style={{
+              backgroundColor:
+                selectedMethod === "razorpay"
+                  ? theme.highlightColor
+                  : "#bdbdbd",
+              color:
+                selectedMethod === "razorpay"
+                  ? theme.isDark
+                    ? "#000"
+                    : "#fff"
+                  : "#000000",
+            }}
           >
             <Wallet className="w-5 h-5" />
             <span>Razorpay</span>
           </button>
         )}
-        {activeBotData?.paymentMethods?.usdt?.enabled && (
+
+        {availablePaymentMethods.includes("crypto") && (
           <button
-            onClick={() => setSelectedMethod("usdt")}
-            className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${
-              selectedMethod === "usdt"
-                ? "bg-yellow-500 text-black"
-                : "bg-gray-100 text-gray-600"
-            }`}
+            onClick={() => setSelectedMethod("crypto")}
+            className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors`}
+            style={{
+              backgroundColor:
+                selectedMethod === "crypto" ? theme.highlightColor : "#bdbdbd",
+              color:
+                selectedMethod === "crypto"
+                  ? theme.isDark
+                    ? "#000"
+                    : "#fff"
+                  : "#000000",
+            }}
           >
             <Wallet className="w-5 h-5" />
-            <span>USDT</span>
-          </button>
-        )}
-        {activeBotData?.paymentMethods?.usdc?.enabled && (
-          <button
-            onClick={() => setSelectedMethod("usdc")}
-            className={`flex-1 p-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${
-              selectedMethod === "usdc"
-                ? "bg-yellow-500 text-black"
-                : "bg-gray-100 text-gray-600"
-            }`}
-          >
-            <Wallet className="w-5 h-5" />
-            <span>USDC</span>
+            <span>Crypto (USDT)</span>
           </button>
         )}
       </div>
+
+      {/* Show info about available payment methods (same as PaymentSection) */}
+      {hasEnabledPaymentMethods && (
+        <div
+          className="mb-4 text-sm"
+          style={{ color: theme.isDark ? "#ccc" : "#666" }}
+        >
+          {availablePaymentMethods.length === 1
+            ? `Only ${availablePaymentMethods[0].toUpperCase()} payment is available.`
+            : `${availablePaymentMethods.length} payment methods available.`}
+        </div>
+      )}
 
       {/* Booking Summary */}
       <div
