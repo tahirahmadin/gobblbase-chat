@@ -6,7 +6,7 @@ import {
 } from "../../../../lib/serverActions";
 import { useAdminStore } from "../../../../store/useAdminStore";
 import { toast } from "react-hot-toast";
-import { Loader2 } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import styled from "styled-components";
 const WhiteBackground = styled.span`
   display: flex;
@@ -107,12 +107,7 @@ const PurpleBackground = styled.span`
       border-right: 24px solid transparent;
       border-bottom: 24px solid #AEB8FF;
       z-index: 0;
-      @media (max-width: 600px) {
-        transform: translate(0.5rem, -0.05rem);
-        border-left: 28px solid transparent;
-        border-right: 28px solid transparent;
-        border-bottom: 28px solid #AEB8FF;
-      }
+      
     }
     &::after {
       content: "";
@@ -126,14 +121,128 @@ const PurpleBackground = styled.span`
       border-right: 30px solid transparent;
       border-bottom: 30px solid black;
       z-index: -4;
-      @media (max-width: 600px) {
-        transform: translate(0.65rem, 0);
-        border-left: 30px solid transparent;
-        border-right: 30px solid transparent;
-        border-bottom: 30px solid black;
-      }
+      
     }
   }
+`;
+const GreenBackground = styled.span`
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+  @media (max-width: 600px) {
+    padding: 1vh 0 1vh 0;
+  }
+  span {
+    width: fit-content;
+    font-family: "DM Sans", sans-serif;
+    font-size: clamp(9px, 4vw, 16px);
+    font-weight: 600;
+    height: 100%;
+    border: 1px solid black;
+    padding: 1.5vh 2vw;
+    background: #6AFF97;
+    color: black;
+    border-radius: 40px;
+    position: relative;
+    &::before {
+      content: "";
+      position: absolute;
+      transform: translate(0.5rem, 0.01rem);
+      bottom: 0px;
+      right: 0;
+      width: 0;
+      height: 0;
+      border-left: 24px solid transparent;
+      border-right: 24px solid transparent;
+      border-bottom: 24px solid #6AFF97;
+      z-index: 0;
+      
+    }
+    &::after {
+      content: "";
+      position: absolute;
+      transform: translate(0.6rem, 0.04rem);
+      bottom: 0px;
+      right: 0;
+      width: 0;
+      height: 0;
+      border-left: 30px solid transparent;
+      border-right: 30px solid transparent;
+      border-bottom: 30px solid black;
+      z-index: -4;
+    }
+  }
+`;
+
+
+const UpgradeButton = styled.button<{ current?: boolean; upgrading?: boolean; lowerTier?: boolean }>`
+  position: relative;
+  background: ${(props) =>
+    props.current
+      ? '#6AFF97' 
+      : props.upgrading
+      ? '#FFFC45' 
+      : props.lowerTier
+      ? '#000000' // yellow-300
+      : '#FFFC45'};
+
+  cursor: ${(props) =>
+    props.current ? 'default' : props.upgrading ? 'wait' : 'pointer'};
+  color: ${(props) =>
+    props.current
+      ? '#000'
+      : props.upgrading
+      ? '#000' 
+      : props.lowerTier
+      ? '#fff'
+      : '#000'}; 
+  padding: 0.6vh 1vw;
+  border: 2px solid black;
+  transition: background 0.3s;
+  font-size: clamp(8px, 4vw, 15px);
+  border-color: ${(props) =>
+    props.upgrading
+      ? '#000  '
+      : props.lowerTier
+      ? '#000'
+      : '#000'};
+
+  &:hover {
+    background: ${(props) =>
+      props.lowerTier
+        ? 'rgba(0, 0, 0, 0.8)' // yellow-400
+        : !props.current && !props.upgrading
+        ? 'rgba(255, 252, 69, 0.78)' // green-400
+        : ''};
+  }
+  &::before {
+    content: "";
+    position: absolute;
+    top: 5px;
+    right: -5px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #000000;
+    z-index: -1; // place it behind the button
+     background: ${(props) =>
+        props.current
+          ? '#6AFF97' // gray-300
+          : props.upgrading
+          ? '#FFFC45' // green-200
+          : props.lowerTier
+          ? '#white' // yellow-300
+          : '#FFFC45'}; // green-300
+  }
+  @media (max-width: 600px) {
+    min-width: 100px;
+  }
+  &:disabled {
+    cursor: not-allowed;
+  }
+
 `;
 interface PlanData {
   id: string;
@@ -285,9 +394,12 @@ const Plans = () => {
 
     return currentPlan.totalPrice > plan.totalPrice;
   };
-
+  const [selectedPlain, setSelectedPlain] = useState(filteredPlans[0]);
+  const getPlanDisplayName = (name: string): string => {
+    return name.replace("(YEARLY)", "");
+  };
   return (
-    <div className="p-6 overflow-auto h-full w-full">
+    <div className="py-6 sm:p-6 overflow-auto h-full w-full">
       <div className="flex flex-row justify-between items-center gap-4 mb-8 flex-col lg:flex-row">
          <div className="heading-content text-black w-full px-4 sm:px-0 [@media(max-width:600px)]:flex [@media(max-width:600px)]:flex-col [@media(max-width:600px)]:items-center [@media(max-width:600px)]:text-center ">
               <WhiteBackground >
@@ -295,10 +407,34 @@ const Plans = () => {
                   <h2 className="main-font relative z-10 font-[800] text-[1.2rem]">Plans & Pricing</h2> 
                 </span>
               </WhiteBackground>
-                <p className="para-font text-[0.8rem] font-[400] mt-4 [@media(min-width:601px)]:w-[70%]">Maximize your business potential with Sayy - everything you need to grow your business, the AI way.</p>
+                <p className="para-font text-[1rem] font-[400] mt-4 [@media(min-width:601px)]:w-[70%]">Maximize your business potential with Sayy - everything <br /> you need to grow your business, the AI way.</p>
           </div>
+            
+            {/* btns in mobile  */}
+            <div className="btns hidden [@media(max-width:600px)]:flex gap-2 py-4">
+                {filteredPlans.map((plan) => { 
+                    const displayName = getPlanDisplayName(plan.name);
+                  return (
+                    <button key={plan.id}   
+                        onClick={() => {
+                        const el = document.getElementById(`plan-${plan.id}`);
+                        if (el) {
+                          el.scrollIntoView({ behavior: "smooth", block: "center" });
+                        }
+                        setSelectedPlain(plan);
+                      }}
+                    className="para-font bg-[#C1CFFF] min-w-[60px] px-2 py-1 rounded-md border border-black text-black text-[14px] font-bold">
+                        {displayName}
+                    </button>
+                  )
+                } ) }
+            </div>
 
-        <div className="flex items-center gap-2">
+            {/* line in mobile  */}
+            <div className="line hidden [@media(max-width:600px)]:block h-[2px] bg-black w-full relative"></div>
+
+
+        <div className="flex items-center gap-2 flex-col xs:flex-row">
           <button
             className="px-4 py-1 rounded-2xl border border-purple-600 font-semibold whitespace-nowrap bg-black text-white hover:bg-purple-700 transition-colors duration-200 focus:outline-none"
             onClick={async () => {
@@ -359,90 +495,112 @@ const Plans = () => {
           {filteredPlans.map((plan) => {
             // Extract "Everything in ..." pill and features
             const pillFeature = plan.features.find((f) =>
-              f.startsWith("Everything in")
+              f.startsWith("everything in")
             );
             const features = plan.features.filter(
-              (f) => !f.startsWith("Everything in")
+              (f) => !f.startsWith("everything in")
             );
 
             return (
               <div
                 id={`plan-${plan.id}`}
                 key={plan.id}
-                className="flex flex-col items-center border bg-[#D4DEFF] border-black px-6 pb-8 min-h-[600px] relative"
+                className={`flex flex-col items-center mx-10 sm:mx-0 gap-1 px-2 sm:px-4 py-8 min-h-[600px] relative ${isCurrentPlanAnyRecurrence(plan) ? "bg-[#CEFFDC] border-2 border-[#6AFF97] drop-shadow-[0_9px_9px_rgba(0,0,0,0.4)]" : "bg-[#D4DEFF] border border-black"}`}
               >
+                {isCurrentPlanAnyRecurrence(plan)  && (
+                  <span className="para-font font-[600] text-[#6AFF97] absolute -top-1 -left-4 bg-black px-2 py-1 rounded-full rotate-[-20deg]">Current Plan</span>
+                )}
                 {/* Header */}
-                  <div className="w-full flex flex-col items-center mt-2 py-2 mb-2 ">
-                      <PurpleBackground>
+                <div className="w-full flex flex-col items-center mt-2 py-2 mb-2 ">
+                    { isCurrentPlanAnyRecurrence(plan) ? (
+                      <GreenBackground>
                           <span style={{width: "80%", padding:"1vh 2vw", margin: "0 auto"}}>
-                            <h1 className="relative z-10 text-center">{plan.type}</h1>
+                            <h1 className="relative z-10 text-center text-[1.3rem]">{plan.type}</h1>
                         </span>
+                      </GreenBackground>
+                    ) : (
+                        <PurpleBackground>
+                          <span className="flex items-center justify-center gap-4" style={{width: "80%", padding:"1vh 2vw", margin: "0 auto"}}>
+                            <h1 className="relative z-10 text-center text-[1.3rem]">{plan.type}</h1>
+                            {plan.type === "PRO" && (
+                              <h3 className="bg-white border border-[#0017A9] text-[#0017A9] text-sm font-semibold px-2 py-[2px] rounded-full">
+                                Popular
+                              </h3>
+                            )}
+                         </span>
                       </PurpleBackground>
-                  </div>
+                    ) }
+                      
+                </div>
+
                 {/* Price */}
-                <div className="text-4xl font-bold text-black">
+                <div className="para-font text-[2rem] font-bold text-black">
                   {plan.price === 0 ? "$0" : `$${plan.price}`}
                 </div>
-                <div className="text-gray-600 mb-4 text-base">per month</div>
+
+                <div className="para-font text-gray-600 mb-4 text-base">per month</div>
 
                 {/* Upgrade Button */}
-                <button
-                  disabled={
-                    isCurrentPlanAnyRecurrence(plan) || isUpgrading(plan.id)
-                  }
-                  onClick={() => handleUpgrade(plan.id)}
-                  className={`w-full px-6 py-2 font-bold rounded-lg uppercase mb-4 shadow border
-                    ${
-                      isCurrentPlanAnyRecurrence(plan)
-                        ? "bg-gray-300 text-gray-600 cursor-default"
-                        : isUpgrading(plan.id)
-                        ? "bg-green-200 text-black border-green-700 cursor-wait"
-                        : isLowerTierPlan(plan)
-                        ? "bg-yellow-300 hover:bg-yellow-400 text-black border-yellow-700"
-                        : "bg-green-300 hover:bg-green-400 text-black border-green-700"
+                <div className="relative z-10">
+                  <UpgradeButton
+                    current={isCurrentPlanAnyRecurrence(plan)}
+                    upgrading={isUpgrading(plan.id)}
+                    lowerTier={isLowerTierPlan(plan)}
+
+                    disabled={
+                      isCurrentPlanAnyRecurrence(plan) || isUpgrading(plan.id)
                     }
-                  `}
-                >
-                  {isCurrentPlanAnyRecurrence(plan) ? (
-                    "CURRENT PLAN"
-                  ) : isUpgrading(plan.id) ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      {isLowerTierPlan(plan)
-                        ? "Downgrading..."
-                        : "Upgrading..."}
-                    </span>
-                  ) : isLowerTierPlan(plan) ? (
-                    "DOWNGRADE"
-                  ) : (
-                    "UPGRADE"
-                  )}
-                </button>
+                    onClick={() => handleUpgrade(plan.id)}
+                    className={`w-full font-bold uppercase w-[180px]`}
+                  >
+                    {isCurrentPlanAnyRecurrence(plan) ? (
+                      "CURRENT PLAN"
+                    ) : isUpgrading(plan.id) ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        {isLowerTierPlan(plan)
+                          ? "Downgrading..."
+                          : "Upgrading..."}
+                      </span>
+                    ) : isLowerTierPlan(plan) ? (
+                      "DOWNGRADE"
+                    ) : (
+                      "UPGRADE"
+                    )}
+                  </UpgradeButton>
+                </div>
 
                 {/* Divider */}
-                <div className="w-full bg-black my-2 h-[3px]"></div>
+                {isCurrentPlanAnyRecurrence(plan) ? (
+                  <div className="w-full bg-[#000000] my-2 h-[3px] my-8"></div>
+                ) : (
+                  <div className="w-full bg-[#AEB8FF] my-2 h-[3px] my-8"></div>
+                ) }
+                  
 
                 {/* Pill - separated and with extra margin */}
                 {pillFeature && (
-                  <div className="bg-white w-full flex justify-center mb-4">
-                    <span className="flex items-center gap-1 bg-white rounded-full px-6 py-2 text-base font-medium text-black shadow-lg border border-gray-200">
-                      Everything in
-                      <span className="font-bold ml-1">
-                        {pillFeature.match(/in\s+(\w+)/)?.[1]}
+                    <div className=" w-full flex justify-center mb-4">
+                      <span className="flex items-center whitespace-nowrap gap-1 bg-[#EAEFFF] rounded-full px-6 py-1 text-base font-medium text-black shadow-lg border border-gray-200">
+                        Everything in
+                        <span className="font-bold ml-1 text-sm">
+                          {pillFeature.match(/in\s+(\w+)/)?.[1]}
+                        </span>
+                        <span className="text-lg font-bold text-vl-600 ml-1">
+                          +
+                        </span>
                       </span>
-                      <span className="text-lg font-bold text-blue-600 ml-1">
-                        +
-                      </span>
-                    </span>
-                  </div>
-                )}
+                    </div>
+                  )}
 
                 {/* Features */}
                 <div className="w-full flex flex-col gap-2 mt-2">
                   {features.map((feature, idx) => (
                     <div key={idx} className="flex items-start gap-2">
-                      <span className="mt-0.5 text-md text-black">✔️</span>
-                      <span className="text-base text-black text-sm leading-tight">
+                      <span className="bg-white border-text-md text-black rounded-full p-[2px] border border-[#000000]">
+                          <Check size={18} style={{strokeWidth: "4px"}}/>
+                        </span>
+                      <span className="para-font text-[16px]">
                         {feature}
                       </span>
                     </div>

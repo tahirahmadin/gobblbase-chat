@@ -40,12 +40,12 @@ const UpgradeButton = styled.button`
     background:rgba(255, 252, 69, 0.74);
   }
 `;
-const Navbar = styled.nav<{ $scrolled: boolean }>`
+const Navbar = styled.nav`
     top; 1px;
     z-index: 111111;
     position: fixed;
     width: 100%;
-    background: ${({ $scrolled }) => ($scrolled ? "#140065" : "transparent")};
+    background: #000000;
     `;
 const Header = styled.header`
   padding: 2vh 2vw;
@@ -218,12 +218,7 @@ const PurpleBackground = styled.span`
       border-right: 24px solid transparent;
       border-bottom: 24px solid #AEB8FF;
       z-index: 0;
-      @media (max-width: 600px) {
-        transform: translate(0.5rem, -0.05rem);
-        border-left: 28px solid transparent;
-        border-right: 28px solid transparent;
-        border-bottom: 28px solid #AEB8FF;
-      }
+     
     }
     &::after {
       content: "";
@@ -237,12 +232,7 @@ const PurpleBackground = styled.span`
       border-right: 30px solid transparent;
       border-bottom: 30px solid black;
       z-index: -4;
-      @media (max-width: 600px) {
-        transform: translate(0.65rem, 0);
-        border-left: 30px solid transparent;
-        border-right: 30px solid transparent;
-        border-bottom: 30px solid black;
-      }
+      
     }
   }
 `;
@@ -523,20 +513,9 @@ interface Plan {
   ];
 const Pricing = () => {
     const [menuOpen, setMenuOpen] = useState(false);
-    const [scrolled, setScrolled] = useState(false);
     const navigate = useNavigate();
 
-     const [selectedPlain, setSelectedPlain] = useState(plans[0].id);
-
-   useEffect(() => {
-      const handleScroll = () => {
-        const isScrolled = window.scrollY > 10;
-        setScrolled(isScrolled);
-      };
-  
-      window.addEventListener("scroll", handleScroll);
-      return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
+    const [selectedPlain, setSelectedPlain] = useState(plans[0].id);
   
     useEffect(() => {
       if (menuOpen) {
@@ -561,7 +540,7 @@ const Pricing = () => {
 
   return (
     <Container>
-        <Navbar $scrolled={scrolled}>
+        <Navbar>
           <Header
             style={{
               background: menuOpen ? "#140065" : "transparent",
@@ -647,7 +626,7 @@ const Pricing = () => {
                   <h2 className="main-font relative z-10 font-[800] text-[1.2rem]">Plans & Pricing</h2> 
                 </span>
               </WhiteBackground>
-                <p className="para-font text-[0.8rem] font-[400] mt-4 [@media(min-width:601px)]:w-[70%]">Maximize your business potential with Sayy - everything you need to grow your business, the AI way.</p>
+                <p className="para-font text-[1rem] font-[500] mt-4 [@media(min-width:601px)]:w-[70%]">Maximize your business potential with Sayy - everything <br /> you need to grow your business, the AI way.</p>
             </div>
 
              {/* btns in mobile  */}
@@ -726,7 +705,7 @@ const Pricing = () => {
                   </div>
 
                   {/* Price */}
-                  <div className="text-4xl font-bold text-black">
+                  <div className="para-font text-[1rem] font-bold text-black">
                     {plan[
                       billing === "monthly" ? "monthlyPrice" : "yearlyPrice"
                     ] === 0
@@ -772,7 +751,7 @@ const Pricing = () => {
                         <span className="font-bold ml-1 text-sm">
                           {pillFeature.match(/in\s+(\w+)/)?.[1]}
                         </span>
-                        <span className="text-lg font-bold text-blue-600 ml-1">
+                        <span className="text-lg font-bold text-vl-600 ml-1">
                           +
                         </span>
                       </span>

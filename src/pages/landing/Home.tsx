@@ -13,9 +13,8 @@ const Container = styled.div`
 const Navbar = styled.nav<{ $scrolled: boolean }>`
     top; 1px;
     z-index: 111111;
-    position: fixed;
+    position: absolute;
     width: 100%;
-    background: ${({ $scrolled }) => ($scrolled ? "#140065" : "transparent")};
     `;
 const Header = styled.header`
   padding: 2vh 2vw;
@@ -150,8 +149,8 @@ const WhiteBackground = styled.span`
 
   span {
     font-family: "DM Sans", sans-serif;
-    font-size: clamp(9px, 4vw, 16px);
-    font-weight: 600;
+    font-size: 1rem;
+    font-weight: 400;
     background: white;
     border: 1px solid black;
     width: fit-content;
@@ -255,8 +254,8 @@ const buttonData = [
   {
     id: 0,
     label: "Answer Queries",
-    defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.png",
-    activeBubbleImg: "/assets/landing-asset/assemble/pink-btn-bubble.png",
+    defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.svg",
+    activeBubbleImg: "/assets/landing-asset/assemble/pink-btn-bubble.svg",
     textColor: "#FF8FFF",
     brainPart: "/assets/landing-asset/Brains/pink-brain-part.svg",
     style: {top: "19.9%", left: "31.2%", width:"24.6%" , height: "12.8%"}
@@ -264,8 +263,8 @@ const buttonData = [
   {
     id: 1,
     label: "Book Meetings",
-    defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.png",
-    activeBubbleImg: "/assets/landing-asset/assemble/green-btn-bubble.png",
+    defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.svg",
+    activeBubbleImg: "/assets/landing-asset/assemble/green-btn-bubble.svg",
     textColor: "#CDFF6A",
     brainPart: "/assets/landing-asset/Brains/green-brain-part.svg",
     style: {top: "20%", right: "18.6%", width:"24.6%" , height: "12.8%"}
@@ -273,8 +272,8 @@ const buttonData = [
   {
     id: 3,
     label: "Sell Products",
-    defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.png",
-    activeBubbleImg: "/assets/landing-asset/assemble/purple-btn-bubble.png",
+    defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.svg",
+    activeBubbleImg: "/assets/landing-asset/assemble/purple-btn-bubble.svg",
     textColor: "#766AFF",
     brainPart: "/assets/landing-asset/Brains/purple-brain-part.svg",
     style: {top: "19.29%", left: "40.75%", width:"18.2%" , height: "13%"}
@@ -282,8 +281,8 @@ const buttonData = [
   {
     id: 4,
     label: "Collect Leads",
-    defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.png",
-    activeBubbleImg: "/assets/landing-asset/assemble/cyan-btn-bubble.png",
+    defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.svg",
+    activeBubbleImg: "/assets/landing-asset/assemble/cyan-btn-bubble.svg",
     textColor: "#6AFFF0",
     brainPart: "/assets/landing-asset/Brains/cyan-brain-part.svg",
     style: {top: "23.2%", left: "31.7%", width:"18.2%" , height: "17.2%"}
@@ -291,8 +290,8 @@ const buttonData = [
   {
     id: 5,
     label: "Offer Services",
-    defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.png",
-    activeBubbleImg: "/assets/landing-asset/assemble/orange-btn-bubble.png",
+    defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.svg",
+    activeBubbleImg: "/assets/landing-asset/assemble/orange-btn-bubble.svg",
     textColor: "#FF9D5C",
     brainPart: "/assets/landing-asset/Brains/orange-brain-part.svg",
     style: {top: "15.3%", left: "38%", width:"24%" , height: "10%"}
@@ -300,8 +299,8 @@ const buttonData = [
   {
     id: 6,
     label: "Collect Payments",
-    defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.png",
-    activeBubbleImg: "/assets/landing-asset/assemble/red-btn-bubble.png",
+    defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.svg",
+    activeBubbleImg: "/assets/landing-asset/assemble/red-btn-bubble.svg",
     textColor: "#FF6363",
     brainPart: "/assets/landing-asset/Brains/red-brain-part.svg",
     style: {top: "23.2%", right: "31.7%", width:"18.5%" , height: "17.2%"}
@@ -566,9 +565,9 @@ const FeatureIcon = styled.div`
 
 const FeatureListDesc = styled.div`
   font-family: "DM Sans", sans-serif;
-  font-size: clamp(9px, 4vw, 14px);
+  font-size: 1rem;
   color: #222;
-  font-weight: 600;
+  font-weight: 400;
   text-align: right;
   white-space: nowrap;
   @media (max-width: 900px) {
@@ -776,8 +775,9 @@ const PlatformCardTitle = styled.h3`
 `;
 
 const PlatformCardDesc = styled.p`
-  font-size: clamp(12px, 4vw, 16px);
-  font-weight: 500;
+  font-family: "DM Sans", sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
   color: #212121;
   padding: 0 4vw 0 00;
   @media (max-width: 900px) {
@@ -1331,8 +1331,9 @@ const FooterHeadline = styled.h2`
 `;
 
 const FooterSub = styled.p`
-  font-size: 0.85rem;
-  font-weight: 500;
+ font-family: "DM Sans", sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
   color: #e6eaff;
   margin-bottom: 8px;
 `;
@@ -1567,7 +1568,7 @@ const Home = () => {
                 alt=""
               />
             </div>
-            <article className="left-side w-[100%] lg:w-[70%] z-10">
+            <article className="left-side w-[100%] lg:w-[fit-content] z-10">
               <div className="headline flex gap-4 flex-col items-center lg:flex-row">
                 <img
                   src="/assets/landing-asset/assemble/homepage-logo.svg"
@@ -1628,8 +1629,8 @@ const Home = () => {
                 </div>
               </Subheadline>
             </article>
-            <article className="right-side lg:block w-[80%] lg:w-[50%] z-10 lg:mt-20 ">
-              <div className="relative ">
+            <article className="right-side lg:block w-[80%] lg:w-[40%] z-10 lg:mt-16 ">
+              <div className="relative">
                 <span className="relative">
                     <img
                       src="/assets/landing-asset/assemble/hero-mascot.png"
@@ -1650,28 +1651,6 @@ const Home = () => {
                           <img src={part.brainPart} alt={part.label} className="w-fit h-full" />
                       </div>
                     ))}
-                    {/* left side parts  */}
-                    {/* <div className="absolute top-[15.3%] left-[38%] w-[24%] h-[10%]">                               
-                       <img src="/assets/landing-asset/Brains/orange-brain-part.svg" alt="" className="w-fit h-full"/>
-                    </div>
-                    <div className="absolute top-[20%] left-[24.8%] w-[24.6%] h-[12.8%]">                               
-                        <img src="/assets/landing-asset/Brains/pink-brain-part.svg" alt=""className="w-full h-full"/>
-                    </div>
-                    <div className="absolute top-[19.29%] left-[40.75%] w-[18.2%] h-[13%]">                               
-                       <img src="/assets/landing-asset/Brains/purple-brain-part.svg" alt="" className="w-fit h-full"/>
-                    </div>
-                    <div className="absolute top-[23.2%] left-[31.7%] w-[18.2%] h-[17.2%]">                               
-                        <img src="/assets/landing-asset/Brains/cyan-brain-part.svg" alt=""className="w-full h-full"/>
-                    </div> */}
-
-                  {/* right side parts  */}
-                    {/* <div className="absolute top-[20%] right-[25%] w-[24.6%] h-[12.8%]">                               
-                        <img src="/assets/landing-asset/Brains/green-brain-part.svg" alt=""className="w-full h-full"/>
-                    </div>
-                    <div className="absolute top-[23.2%] right-[31.7%] w-[18.5%] h-[17.2%]">                               
-                        <img src="/assets/landing-asset/Brains/red-brain-part.svg" alt=""className="w-full h-full"/>
-                    </div> */}
-
                 </span>
                 <div
                   style={{
@@ -1699,7 +1678,7 @@ const Home = () => {
             <WhiteBackground
               style={{ width: "80%", marginLeft: "auto", marginRight: "0" }}
             >
-              <span>
+              <span className="para-font mt-4 font-[400] text-[1rem]">
                 Imagine an AI that does the work of an entire team: selling your
                 services, supporting customers, capturing leads, and managing
                 operations – all through simple, intelligent conversations, 24
@@ -1759,7 +1738,7 @@ const Home = () => {
                         marginRight: "20px",
                       }}
                     >
-                      <h3 className="para-font text-[13px] font-[500]">
+                      <h3 className="para-font text-[0.9rem] font-[400]">
                         The power of a full team working for you, without
                         traditional hiring costs.
                       </h3>
@@ -1773,7 +1752,7 @@ const Home = () => {
                     <h1 className="main-font text-[20px] font-[800]">
                       Solopreneurs
                     </h1>
-                    <p className="para-font text-[14px] font-[500]">
+                    <p className="para-font text-[0.9rem] font-[400]">
                       The power of a full team working for you, without
                       traditional hiring costs.
                     </p>
@@ -1825,7 +1804,7 @@ const Home = () => {
                         marginRight: "20px",
                       }}
                     >
-                      <h3 className="para-font text-[13px] font-[500]">
+                      <h3 className="para-font text-[0.9rem] font-[400]">
                         Your intelligent storefront guiding customers and
                         closing sales 24x7.
                       </h3>
@@ -1837,7 +1816,7 @@ const Home = () => {
                     <h1 className="main-font text-[20px] font-[800]">
                       E-Commerce
                     </h1>
-                    <p className="para-font text-[14px] font-[500]">
+                    <p className="para-font text-[0.9rem] font-[400]">
                       Your intelligent storefront guiding customers and closing
                       sales 24x7.
                     </p>
@@ -1889,7 +1868,7 @@ const Home = () => {
                         marginRight: "20px",
                       }}
                     >
-                      <h3 className="para-font text-[13px] font-[500]">
+                      <h3 className="para-font text-[0.9rem] font-[400]">
                         Your AI front desk handling bookings, leads, and
                         nurturing client relationships..
                       </h3>
@@ -1901,7 +1880,7 @@ const Home = () => {
                     <h1 className="main-font text-[20px] font-[800]">
                       Service Providers
                     </h1>
-                    <p className="para-font text-[14px] font-[500]">
+                    <p className="para-font text-[0.9rem] font-[400]">
                       Your AI front desk handling bookings, leads, and nurturing
                       client relationships.
                     </p>
@@ -2219,10 +2198,8 @@ const Home = () => {
               </BlackBackground>
               <WhiteBackground className="ml-auto mr-1">
                 <span className="card-2 ml-auto w-full h-fit">
-                  <h2>
                     Train your AI-mployee’s intelligence and personality to
                     talk, think, and sell like you. No code needed.
-                  </h2>
                 </span>
               </WhiteBackground>
             </article>
@@ -2335,10 +2312,8 @@ const Home = () => {
               </BlackBackground>
               <WhiteBackground className="ml-auto">
                 <span className="card-2 ml-auto w-full h-fit">
-                  <h2 className="font-[400]">
                     One word - SAYY YES! We are reimagining common business
                     tools under one umbrella. It’s time to stop switching tabs.
-                  </h2>
                   <h1 className="font-[700]">Goodbye, App Overload!</h1>
                 </span>
               </WhiteBackground>
@@ -2462,11 +2437,9 @@ const Home = () => {
             </BlackBackground>
             <WhiteBackground className="ml-auto">
               <span className="">
-                <h2>
                   Convert any API into a feature packed selling machine. Make
                   your agents powerful by integrating 200+ apps using Model
                   Context Protocol (MCP).
-                </h2>
               </span>
             </WhiteBackground>
             <IntegrationsGrid>
