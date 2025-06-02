@@ -278,7 +278,7 @@ function CryptoPaymentForm({
           Payment Confirmed!
         </p>
         <p
-          className="text-sm"
+          className="text-sm text-center"
           style={{ color: theme.isDark ? "#ccc" : "#666" }}
         >
           Your crypto payment was successful.
@@ -306,7 +306,7 @@ function CryptoPaymentForm({
         </div>
         <p className="text-lg font-medium mb-2 text-red-700">Payment Failed</p>
         <p
-          className="text-sm"
+          className="text-sm text-center"
           style={{ color: theme.isDark ? "#ccc" : "#666" }}
         >
           Your crypto payment could not be confirmed. Please try again or

@@ -469,7 +469,7 @@ export function useCryptoPayment({
             `${backendApiUrl}/product/getOrderPaymentStatus/?orderId=${orderId}`
           );
           const json = await res.json();
-          if (json?.result?.result === "succeeded") {
+          if (json?.result === "succeeded") {
             setOrderStatus("succeeded");
             setIsPolling(false);
             onOrderDetails({
@@ -481,7 +481,7 @@ export function useCryptoPayment({
               orderId: orderId,
             });
             onSuccess();
-          } else if (json?.result?.result === "failed") {
+          } else if (json?.result === "failed") {
             setOrderStatus("failed");
             setIsPolling(false);
             toast.error("Order payment failed.");
