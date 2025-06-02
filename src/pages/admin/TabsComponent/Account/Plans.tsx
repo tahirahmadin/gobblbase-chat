@@ -7,7 +7,134 @@ import {
 import { useAdminStore } from "../../../../store/useAdminStore";
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
+import styled from "styled-components";
+const WhiteBackground = styled.span`
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 60%;
+  position: relative;
+  z-index: 10;
+ width: fit-content;
 
+  span {
+    font-family: "DM Sans", sans-serif;
+    font-size: clamp(9px, 4vw, 16px);
+    font-weight: 600;
+    background: white;
+    border: 1px solid black;
+    width: fit-content;
+    height: 100%;
+    width: 100%;
+    color: black;
+    padding: 4vh 2vw;
+    border-radius: 60px;
+    @media (max-width: 600px) {
+      border-radius: 30px;
+      padding: 2vh 2vw 2vh 6vw;
+    }
+    &::before {
+      content: "";
+      position: absolute;
+      transform: translate(-0.4rem, -0.05rem);
+      bottom: 0px;
+      left: 0;
+      width: 0;
+      height: 0;
+      border-left: 24px solid transparent;
+      border-right: 24px solid transparent;
+      border-bottom: 24px solid white;
+      z-index: 0;
+      @media (max-width: 600px) {
+        transform: translate(-0.5rem, -0.05rem);
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 28px solid white;
+      }
+    }
+    &::after {
+      content: "";
+      position: absolute;
+      transform: translate(-0.5rem, 0rem);
+      bottom: 0px;
+      left: 0;
+      width: 0;
+      height: 0;
+      border-left: 30px solid transparent;
+      border-right: 30px solid transparent;
+      border-bottom: 30px solid black;
+      z-index: -4;
+      @media (max-width: 600px) {
+        transform: translate(-0.65rem, 0);
+        border-left: 30px solid transparent;
+        border-right: 30px solid transparent;
+        border-bottom: 30px solid black;
+      }
+    }
+  }
+`;
+const PurpleBackground = styled.span`
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+  @media (max-width: 600px) {
+    padding: 1vh 0 1vh 0;
+  }
+  span {
+    width: fit-content;
+    font-family: "DM Sans", sans-serif;
+    font-size: clamp(9px, 4vw, 16px);
+    font-weight: 600;
+    height: 100%;
+    border: 1px solid black;
+    padding: 1.5vh 2vw;
+    background: #AEB8FF;
+    color: black;
+    border-radius: 40px;
+    position: relative;
+    &::before {
+      content: "";
+      position: absolute;
+      transform: translate(0.5rem, 0.01rem);
+      bottom: 0px;
+      right: 0;
+      width: 0;
+      height: 0;
+      border-left: 24px solid transparent;
+      border-right: 24px solid transparent;
+      border-bottom: 24px solid #AEB8FF;
+      z-index: 0;
+      @media (max-width: 600px) {
+        transform: translate(0.5rem, -0.05rem);
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 28px solid #AEB8FF;
+      }
+    }
+    &::after {
+      content: "";
+      position: absolute;
+      transform: translate(0.6rem, 0.04rem);
+      bottom: 0px;
+      right: 0;
+      width: 0;
+      height: 0;
+      border-left: 30px solid transparent;
+      border-right: 30px solid transparent;
+      border-bottom: 30px solid black;
+      z-index: -4;
+      @media (max-width: 600px) {
+        transform: translate(0.65rem, 0);
+        border-left: 30px solid transparent;
+        border-right: 30px solid transparent;
+        border-bottom: 30px solid black;
+      }
+    }
+  }
+`;
 interface PlanData {
   id: string;
   name: string;
@@ -162,10 +289,18 @@ const Plans = () => {
   return (
     <div className="p-6 overflow-auto h-full w-full">
       <div className="flex flex-row justify-between items-center gap-4 mb-8 flex-col lg:flex-row">
-        <h2 className="text-2xl font-bold text-left">Plans & Pricing</h2>
+         <div className="heading-content text-black w-full px-4 sm:px-0 [@media(max-width:600px)]:flex [@media(max-width:600px)]:flex-col [@media(max-width:600px)]:items-center [@media(max-width:600px)]:text-center ">
+              <WhiteBackground >
+                <span style={{width: "fit-content", padding:"1vh 2vw"}}>
+                  <h2 className="main-font relative z-10 font-[800] text-[1.2rem]">Plans & Pricing</h2> 
+                </span>
+              </WhiteBackground>
+                <p className="para-font text-[0.8rem] font-[400] mt-4 [@media(min-width:601px)]:w-[70%]">Maximize your business potential with Sayy - everything you need to grow your business, the AI way.</p>
+          </div>
+
         <div className="flex items-center gap-2">
           <button
-            className="px-4 py-2 rounded-2xl border border-purple-600 font-semibold bg-black text-white hover:bg-purple-700 transition-colors duration-200 focus:outline-none"
+            className="px-4 py-1 rounded-2xl border border-purple-600 font-semibold whitespace-nowrap bg-black text-white hover:bg-purple-700 transition-colors duration-200 focus:outline-none"
             onClick={async () => {
               if (!adminId) return;
               try {
@@ -182,30 +317,30 @@ const Plans = () => {
           >
             {billingLoading ? (
               <span className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" /> Loading Billing...
+                <Loader2 className="h-3 w-4 animate-spin" /> Loading Billing...
               </span>
             ) : (
               "Billing History"
             )}
           </button>
-          <div className="flex items-center">
+          <div className="flex items-center rounded-full border shadow-[inset_0_4px_4px_0_rgba(0,0,0,0.4)] [@media(max-width:600px)]:my-6 ">
             <button
-              className={`px-4 py-2 rounded-l-full border border-blue-600 font-semibold focus:outline-none transition-colors duration-200 ${
-                billing === "monthly"
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-blue-600"
-              }`}
+              className={`px-4 py-1 rounded-full w-[100px] font-semibold focus:outline-none transition-colors duration-200 ${
+                  billing === "monthly"
+                    ? "bg-blue-600 text-white border-2 border-black"
+                    : "bg-transparent text-[#656565] border-[none]"
+                }`}
               onClick={() => setBilling("monthly")}
               disabled={upgradingPlanId !== null}
             >
               Monthly
             </button>
             <button
-              className={`px-4 py-2 rounded-r-full border border-blue-600 font-semibold focus:outline-none transition-colors duration-200 ${
-                billing === "yearly"
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-blue-600"
-              }`}
+              className={`px-4 py-1 w-[100px] rounded-full font-[400] focus:outline-none transition-colors duration-200 ${
+                  billing === "yearly"
+                    ? "bg-blue-600 text-white border-2 border-black"
+                    : "bg-transparent text-[#656565] border-[none]"
+                }`}
               onClick={() => setBilling("yearly")}
               disabled={upgradingPlanId !== null}
             >
@@ -220,7 +355,7 @@ const Plans = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-8">
           {filteredPlans.map((plan) => {
             // Extract "Everything in ..." pill and features
             const pillFeature = plan.features.find((f) =>
@@ -232,18 +367,20 @@ const Plans = () => {
 
             return (
               <div
+                id={`plan-${plan.id}`}
                 key={plan.id}
-                className="flex flex-col items-center rounded-[32px] border-2 bg-blue-50 border-blue-200 px-6 pb-8 min-h-[600px] relative"
+                className="flex flex-col items-center border bg-[#D4DEFF] border-black px-6 pb-8 min-h-[600px] relative"
               >
                 {/* Header */}
-                <div className="w-full flex flex-col items-center rounded-[32px] bg-[#cfd7fa] mt-2 py-2 mb-2">
-                  <span className="text-lg font-bold tracking-wide uppercase">
-                    {plan.type}
-                  </span>
-                </div>
-
+                  <div className="w-full flex flex-col items-center mt-2 py-2 mb-2 ">
+                      <PurpleBackground>
+                          <span style={{width: "80%", padding:"1vh 2vw", margin: "0 auto"}}>
+                            <h1 className="relative z-10 text-center">{plan.type}</h1>
+                        </span>
+                      </PurpleBackground>
+                  </div>
                 {/* Price */}
-                <div className="text-4xl font-extrabold">
+                <div className="text-4xl font-bold text-black">
                   {plan.price === 0 ? "$0" : `$${plan.price}`}
                 </div>
                 <div className="text-gray-600 mb-4 text-base">per month</div>

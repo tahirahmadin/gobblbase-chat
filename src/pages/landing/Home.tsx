@@ -1435,9 +1435,9 @@ const FooterBelow = styled.div`
 `;
 
 const Home = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
   const [selectedBrains, setSelectedBrains] = useState([0]);
-
+  
+  const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   const [selectedFeature, setSelectedFeature] = useState(features[0].key);
@@ -1445,7 +1445,7 @@ const Home = () => {
   const selected = features.find((f) => f.key === selectedFeature);
   const navigate = useNavigate();
 
-  const handleSelectBrain = (index) => {
+  const handleSelectBrain = (index: number) => {
     if(index === 0) return;
     if(selectedBrains.includes(index)){
       setSelectedBrains(selectedBrains.filter((i) => i !== index));
