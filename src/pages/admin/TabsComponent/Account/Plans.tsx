@@ -107,12 +107,7 @@ const PurpleBackground = styled.span`
       border-right: 24px solid transparent;
       border-bottom: 24px solid #AEB8FF;
       z-index: 0;
-      @media (max-width: 600px) {
-        transform: translate(0.5rem, -0.05rem);
-        border-left: 28px solid transparent;
-        border-right: 28px solid transparent;
-        border-bottom: 28px solid #AEB8FF;
-      }
+      
     }
     &::after {
       content: "";
@@ -126,12 +121,7 @@ const PurpleBackground = styled.span`
       border-right: 30px solid transparent;
       border-bottom: 30px solid black;
       z-index: -4;
-      @media (max-width: 600px) {
-        transform: translate(0.65rem, 0);
-        border-left: 30px solid transparent;
-        border-right: 30px solid transparent;
-        border-bottom: 30px solid black;
-      }
+      
     }
   }
 `;
@@ -169,12 +159,7 @@ const GreenBackground = styled.span`
       border-right: 24px solid transparent;
       border-bottom: 24px solid #6AFF97;
       z-index: 0;
-      @media (max-width: 600px) {
-        transform: translate(0.5rem, -0.05rem);
-        border-left: 28px solid transparent;
-        border-right: 28px solid transparent;
-        border-bottom: 28px solid #000000;
-      }
+      
     }
     &::after {
       content: "";
@@ -188,12 +173,6 @@ const GreenBackground = styled.span`
       border-right: 30px solid transparent;
       border-bottom: 30px solid black;
       z-index: -4;
-      @media (max-width: 600px) {
-        transform: translate(0.65rem, 0);
-        border-left: 30px solid transparent;
-        border-right: 30px solid transparent;
-        border-bottom: 30px solid black;
-      }
     }
   }
 `;
@@ -415,9 +394,12 @@ const Plans = () => {
 
     return currentPlan.totalPrice > plan.totalPrice;
   };
-
+  const [selectedPlain, setSelectedPlain] = useState(filteredPlans[0]);
+  const getPlanDisplayName = (name: string): string => {
+    return name.replace("(YEARLY)", "");
+  };
   return (
-    <div className="p-6 overflow-auto h-full w-full">
+    <div className="py-6 sm:p-6 overflow-auto h-full w-full">
       <div className="flex flex-row justify-between items-center gap-4 mb-8 flex-col lg:flex-row">
          <div className="heading-content text-black w-full px-4 sm:px-0 [@media(max-width:600px)]:flex [@media(max-width:600px)]:flex-col [@media(max-width:600px)]:items-center [@media(max-width:600px)]:text-center ">
               <WhiteBackground >
@@ -427,8 +409,32 @@ const Plans = () => {
               </WhiteBackground>
                 <p className="para-font text-[1rem] font-[400] mt-4 [@media(min-width:601px)]:w-[70%]">Maximize your business potential with Sayy - everything <br /> you need to grow your business, the AI way.</p>
           </div>
+            
+            {/* btns in mobile  */}
+            <div className="btns hidden [@media(max-width:600px)]:flex gap-2 py-4">
+                {filteredPlans.map((plan) => { 
+                    const displayName = getPlanDisplayName(plan.name);
+                  return (
+                    <button key={plan.id}   
+                        onClick={() => {
+                        const el = document.getElementById(`plan-${plan.id}`);
+                        if (el) {
+                          el.scrollIntoView({ behavior: "smooth", block: "center" });
+                        }
+                        setSelectedPlain(plan);
+                      }}
+                    className="para-font bg-[#C1CFFF] min-w-[60px] px-2 py-1 rounded-md border border-black text-black text-[14px] font-bold">
+                        {displayName}
+                    </button>
+                  )
+                } ) }
+            </div>
 
-        <div className="flex items-center gap-2">
+            {/* line in mobile  */}
+            <div className="line hidden [@media(max-width:600px)]:block h-[2px] bg-black w-full relative"></div>
+
+
+        <div className="flex items-center gap-2 flex-col xs:flex-row">
           <button
             className="px-4 py-1 rounded-2xl border border-purple-600 font-semibold whitespace-nowrap bg-black text-white hover:bg-purple-700 transition-colors duration-200 focus:outline-none"
             onClick={async () => {
@@ -499,7 +505,7 @@ const Plans = () => {
               <div
                 id={`plan-${plan.id}`}
                 key={plan.id}
-                className={`flex flex-col items-center gap-1 px-4 py-8 min-h-[600px] relative ${isCurrentPlanAnyRecurrence(plan) ? "bg-[#CEFFDC] border-2 border-[#6AFF97] drop-shadow-[0_9px_9px_rgba(0,0,0,0.4)]" : "bg-[#D4DEFF] border border-black"}`}
+                className={`flex flex-col items-center mx-10 sm:mx-0 gap-1 px-2 sm:px-4 py-8 min-h-[600px] relative ${isCurrentPlanAnyRecurrence(plan) ? "bg-[#CEFFDC] border-2 border-[#6AFF97] drop-shadow-[0_9px_9px_rgba(0,0,0,0.4)]" : "bg-[#D4DEFF] border border-black"}`}
               >
                 {isCurrentPlanAnyRecurrence(plan)  && (
                   <span className="para-font font-[600] text-[#6AFF97] absolute -top-1 -left-4 bg-black px-2 py-1 rounded-full rotate-[-20deg]">Current Plan</span>

@@ -218,12 +218,7 @@ const PurpleBackground = styled.span`
       border-right: 24px solid transparent;
       border-bottom: 24px solid #AEB8FF;
       z-index: 0;
-      @media (max-width: 600px) {
-        transform: translate(0.5rem, -0.05rem);
-        border-left: 28px solid transparent;
-        border-right: 28px solid transparent;
-        border-bottom: 28px solid #AEB8FF;
-      }
+     
     }
     &::after {
       content: "";
@@ -237,12 +232,7 @@ const PurpleBackground = styled.span`
       border-right: 30px solid transparent;
       border-bottom: 30px solid black;
       z-index: -4;
-      @media (max-width: 600px) {
-        transform: translate(0.65rem, 0);
-        border-left: 30px solid transparent;
-        border-right: 30px solid transparent;
-        border-bottom: 30px solid black;
-      }
+      
     }
   }
 `;
@@ -525,7 +515,7 @@ const Pricing = () => {
     const [menuOpen, setMenuOpen] = useState(false);
     const navigate = useNavigate();
 
-     const [selectedPlain, setSelectedPlain] = useState(plans[0].id);
+    const [selectedPlain, setSelectedPlain] = useState(plans[0].id);
   
     useEffect(() => {
       if (menuOpen) {
