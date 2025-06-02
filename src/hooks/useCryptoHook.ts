@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   useAccount,
   useConnect,
@@ -16,7 +16,7 @@ const tokenAddresses: Record<string, string> = {
   "USDT on Eth": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
   "USDT on Base": "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
   "USDT on BSC": "0x55d398326f99059fF775485246999027B3197955",
-  "USDT on BSC Testnet": "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd",
+  "USDT on BSC Testnet": "0xeD24FC36d5Ee211Ea25A80239Fb8C4Cfd80f12Ee",
 };
 
 // Token decimals for each chain
@@ -163,6 +163,12 @@ export function useCryptoPayment({
   const [selectedChain, setSelectedChain] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<`0x${string}` | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [orderStatus, setOrderStatus] = useState<
+    "pending" | "succeeded" | "failed" | null
+  >(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [isPolling, setIsPolling] = useState(false);
+  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
 
   // Wagmi hooks
   const { address, isConnected } = useAccount();
@@ -206,15 +212,11 @@ export function useCryptoPayment({
           }
 
           const data = await response.json();
-          onOrderDetails({
-            product: product,
-            total: (product.price * (product.quantity || 1)) / 100,
-            paymentMethod: "crypto",
-            paymentDate: new Date().toLocaleDateString(),
-            transactionHash: txHash,
-            orderId: data.orderId,
-          });
-          onSuccess();
+          console.log("OrderId data:", data);
+          setOrderId(data.result.orderId);
+          setOrderStatus("pending");
+          setIsPolling(true);
+          console.log("OrderId set:", data.result.orderId);
         } catch (error: unknown) {
           console.error("Order creation error:", error);
           toast.error(
@@ -301,12 +303,6 @@ export function useCryptoPayment({
           chainName,
         });
 
-        // If already on the correct chain, no need to switch
-        if (currentChainId === chainId) {
-          console.log("Already on the correct network");
-          return;
-        }
-
         // First try to switch to the chain
         try {
           await window.ethereum.request({
@@ -316,35 +312,17 @@ export function useCryptoPayment({
         } catch (switchError: any) {
           // If the chain is not added to the wallet, add it
           if (switchError.code === 4902) {
-            console.log("Chain not added to wallet, adding it now...");
             const params = chainParams[chainId];
             if (params) {
-              try {
-                await window.ethereum.request({
-                  method: "wallet_addEthereumChain",
-                  params: [params],
-                });
-                // After adding, try switching again
-                await window.ethereum.request({
-                  method: "wallet_switchEthereumChain",
-                  params: [{ chainId }],
-                });
-              } catch (addError: any) {
-                console.error("Error adding chain:", addError);
-                throw new Error(
-                  `Failed to add ${chainName} network: ${addError.message}`
-                );
-              }
+              await window.ethereum.request({
+                method: "wallet_addEthereumChain",
+                params: [params],
+              });
             } else {
-              throw new Error(`Network parameters not found for ${chainName}`);
+              throw new Error("Network parameters not found");
             }
-          } else if (switchError.code === 4001) {
-            // User rejected the request
-            throw new Error("Please approve the network switch in your wallet");
           } else {
-            throw new Error(
-              `Failed to switch to ${chainName}: ${switchError.message}`
-            );
+            throw switchError;
           }
         }
 
@@ -359,19 +337,14 @@ export function useCryptoPayment({
         });
 
         if (newChainId !== chainId) {
-          throw new Error(
-            `Failed to switch to ${chainName}. Please try again.`
-          );
+          throw new Error("Failed to switch to the correct network");
         }
-
-        toast.success(`Successfully switched to ${chainName}`);
       } catch (error: any) {
         console.error("Chain switch error:", error);
         toast.error(
           error.message || "Failed to switch network. Please try again."
         );
-        // Reset selected chain on error
-        setSelectedChain(null);
+        return;
       }
     }
   };
@@ -487,6 +460,51 @@ export function useCryptoPayment({
     }
   }, [selectedChain]);
 
+  // Polling for order payment status
+  useEffect(() => {
+    if (isPolling && orderId) {
+      const pollStatus = async () => {
+        try {
+          const res = await fetch(
+            `${backendApiUrl}/product/getOrderPaymentStatus/?orderId=${orderId}`
+          );
+          const json = await res.json();
+          if (json?.result?.result === "succeeded") {
+            setOrderStatus("succeeded");
+            setIsPolling(false);
+            onOrderDetails({
+              product: product,
+              total: (product.price * (product.quantity || 1)) / 100,
+              paymentMethod: "crypto",
+              paymentDate: new Date().toLocaleDateString(),
+              transactionHash: txHash!,
+              orderId: orderId,
+            });
+            onSuccess();
+          } else if (json?.result?.result === "failed") {
+            setOrderStatus("failed");
+            setIsPolling(false);
+            toast.error("Order payment failed.");
+          } else {
+            setOrderStatus("pending");
+          }
+        } catch (e) {
+          // Optionally handle error
+        }
+      };
+      pollStatus();
+      pollingInterval.current = setInterval(pollStatus, 3000);
+      return () => {
+        if (pollingInterval.current) clearInterval(pollingInterval.current);
+      };
+    }
+    return () => {
+      if (pollingInterval.current) clearInterval(pollingInterval.current);
+    };
+  }, [isPolling, orderId]);
+
+  console.log("Polling useEffect:", { isPolling, orderId });
+
   return {
     isConnected,
     address,
@@ -499,5 +517,7 @@ export function useCryptoPayment({
     handleSubmit,
     disconnect,
     tokenAddresses,
+    orderStatus,
+    isPolling,
   };
 }
