@@ -46,8 +46,8 @@ import { Loader } from "lucide-react";
 import PaymentSuccessPage from "./pages/admin/PlanComponents/PaymentSuccessPage";
 import PaymentCancelPage from "./pages/admin/PlanComponents/PaymentCancelPage";
 import { useUserStore } from "./store/useUserStore";
-import StripePaymentConfig from "./pages/admin/TabsComponent/Account/Income";
 import RescheduleBookingWrapper from "./components/chatbotComponents/chatbotBookingComponents/RescheduleBookingWrapper";
+import Payments from "./pages/admin/TabsComponent/Account/Payments";
 
 // Add type definition for window
 declare global {
@@ -125,7 +125,7 @@ function Dashboard() {
         <Route path="dashboard/welcome" element={<WelcomeText />} />
         <Route path="dashboard/prompts" element={<Prompts />} />
         <Route path="operations" element={<Operations />} />
-        <Route path="operations/payments" element={<Operations />} />
+
         <Route path="operations/integrations" element={<Operations />} />
         <Route path="operations/embed" element={<Operations />} />
         <Route path="operations/orders" element={<Operations />} />
@@ -147,10 +147,9 @@ function Dashboard() {
         <Route path="commerce/policies" element={<Policies />} />
         <Route path="crm/chat-logs" element={<ChatLogs />} />
         <Route path="crm/leads" element={<CustomerLeads />} />
-        <Route path="account/billing" element={<Billing />} />
+        <Route path="account/payments" element={<Payments />} />
         <Route path="account/plans" element={<Plans />} />
         <Route path="account/usage" element={<Usage />} />
-        <Route path="account/income" element={<StripePaymentConfig />} />
         <Route path="all-agents" element={<AllAgents />} />
         <Route path="*" element={<Navigate to="dashboard/profile" replace />} />
       </Routes>

@@ -1,5 +1,4 @@
 import { useLocation } from "react-router-dom";
-import Payments from "./Payments";
 import Integrations from "../Integrations";
 import Embed from "./Embed";
 import Orders from "./Orders";
@@ -22,7 +21,6 @@ const Operations = () => {
     if (currentPath.includes("/operations/email")) {
       return <EmailTemplates />;
     }
-    return <Payments />;
   };
 
   return (
