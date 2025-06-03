@@ -941,6 +941,30 @@ export const getTransactions = async (
   }
 };
 
+export const payOutStripe = async (clientId: string) => {
+  try {
+    const response = await axios.post(`${apiUrl}/client/payOut`, { clientId });
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      return {
+        error: true,
+        result:
+          error.response?.data?.result ||
+          error.message ||
+          "Failed to cash out via Stripe",
+      };
+    }
+    return {
+      error: true,
+      result:
+        error instanceof Error
+          ? error.message
+          : "Failed to cash out via Stripe",
+    };
+  }
+};
+
 export async function getUserDetails(userId: string): Promise<UserDetails> {
   try {
     const response = await axios.get(

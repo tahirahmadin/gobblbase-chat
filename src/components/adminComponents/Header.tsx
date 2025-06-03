@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Eye } from "lucide-react";
 import { useBotConfig } from "../../store/useBotConfig";
 import { useAdminStore } from "../../store/useAdminStore";
 import { Link, useNavigate } from "react-router-dom";
@@ -48,8 +48,6 @@ const Header = () => {
       className="bg-white border-b border-gray-200 shadow-lg z-10"
       style={{ backgroundColor: "#eaefff" }}
     >
-      {console.log("clientData")}
-      {console.log(clientData)}
       <div className="flex justify-between items-center px-6 py-2">
         <div className="flex items-center  pl-[40px] md:pl-0">
           <div className="relative" ref={dropdownRef}>
@@ -134,25 +132,31 @@ const Header = () => {
             <div className="relative inline-block">
               <div className="absolute top-1 left-1 w-full h-full bg-[#6aff97] rounded"></div>
             </div>
-            <div
-              className="flex items-center space-y-1 px-2 py-1 rounded-lg ] truncate w-[120px] xs:w-[100%] text-sm font-medium text-gray-700 shadow-md"
-              style={{
-                backgroundColor: "#effdf4",
-              }}
-            >
-              <div className="truncate max:w-[100%] ">
-                <div className="truncate  text-xs text-black font-semibold hyphens-auto">
-                  {adminEmail}
-                </div>
+            <div className="truncate  text-xs text-black  hyphens-auto hidden md:block">
+              {adminEmail}
+            </div>
+
+            <div className="truncate max:w-[100%] ">
               <a
                 href={`https://Sayy.ai/${activeBotData?.username}`}
                 target="_blank"
               >
-                <div className="text-xs lg:text-sm text-[#1C4ED8]">
-                  Visit agent
+                <div className="relative inline-block">
+                  <div className="absolute top-1 left-1 w-full h-full bg-[#6aff97] rounded"></div>
+                  <div className="relative inline-block">
+                    {/* Bottom layer for shadow effect */}
+                    <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
+
+                    {/* Main button */}
+                    <button
+                      onClick={() => navigate("/admin/dashboard/create-bot")}
+                      className="relative bg-[#6aff97] text-black font-semibold px-4 py-2 border border-black flex items-center gap-2"
+                    >
+                      <Eye className="w-5 h-5" /> View Agent
+                    </button>
+                  </div>
                 </div>
               </a>
-              </div>
             </div>
           </div>
         </div>

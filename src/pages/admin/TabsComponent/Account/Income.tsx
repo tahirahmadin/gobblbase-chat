@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { RefreshCw } from "lucide-react";
 import { useBotConfig } from "../../../../store/useBotConfig";
-import { getTransactions } from "../../../../lib/serverActions";
+import { getTransactions, payOutStripe } from "../../../../lib/serverActions";
 import { toast } from "react-hot-toast";
 import { useAdminStore } from "../../../../store/useAdminStore";
 
@@ -38,11 +38,12 @@ interface Transaction {
 
 const Income = () => {
   const { activeBotData } = useBotConfig();
-  const { clientData } = useAdminStore();
+  const { clientData, adminId } = useAdminStore();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
+  const [isCashoutLoading, setIsCashoutLoading] = useState(false);
 
   // Pagination
   const itemsPerPage = 5;
@@ -76,18 +77,38 @@ const Income = () => {
     setCurrentPage(newPage);
   };
 
+  const handleStripeCashout = async () => {
+    if (!adminId) return;
+    setIsCashoutLoading(true);
+    try {
+      const res = await payOutStripe(adminId);
+      if (res.error) {
+        toast.error(res.result || "Cashout failed");
+      } else {
+        toast.success("Cashout successful!");
+        // Optionally refresh balance here
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Cashout failed");
+    } finally {
+      setIsCashoutLoading(false);
+    }
+  };
+
   // Dummy chart data for now
   const chartLabels = [
     "Jan 1",
-    "Jan 1",
-    "Jan 1",
-    "Jan 1",
-    "Jan 1",
-    "Jan 1",
-    "Jan 1",
-    "Jan 1",
-    "Jan 1",
-    "Jan 1",
+    "Feb 1",
+    "Mar 1",
+    "Apr 1",
+    "May 1",
+    "Jun 1",
+    "Jul 1",
+    "Aug 1",
+    "Sep 1",
+    "Oct 1",
+    "Nov 1",
+    "Dec 1",
   ];
 
   return (
@@ -121,22 +142,39 @@ const Income = () => {
           <div className="font-semibold text-base mb-2">
             Available for Cashout
           </div>
-          <div className="text-3xl font-bold mb-2">$0.00</div>
+          <div className="text-3xl font-bold mb-2">
+            {clientData?.payoutBalance?.pending / 100} {clientData?.currency}
+          </div>
           <div className="flex flex-col gap-2">
             <div className="flex justify-between items-center">
-              <span className="font-medium">Stripe</span>
-              <span className="font-bold">$0.00</span>
-              <button className="ml-2 px-4 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm font-semibold">
-                CASH OUT
-              </button>
+              <span className="font-medium">Available</span>
+              <span className="font-bold">
+                {" "}
+                {clientData?.payoutBalance?.available
+                  ? clientData?.payoutBalance?.available / 100
+                  : 0}{" "}
+                {clientData?.currency}
+              </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="font-medium">Razorpay</span>
-              <span className="font-bold">$0.00</span>
-              <button className="ml-2 px-4 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm font-semibold">
-                CASH OUT
-              </button>
+              <span className="font-medium">Pending</span>
+              <span className="font-bold">
+                {" "}
+                {clientData?.payoutBalance?.pending / 100}{" "}
+                {clientData?.currency}
+              </span>
             </div>
+          </div>
+          <div>
+            <button
+              className="px-4 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleStripeCashout}
+              disabled={
+                clientData?.payoutBalance?.available === 0 || isCashoutLoading
+              }
+            >
+              {isCashoutLoading ? "Processing..." : "CASH OUT"}
+            </button>
           </div>
         </div>
       </div>

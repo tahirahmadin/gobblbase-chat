@@ -16,18 +16,16 @@ interface ClientData {
       enabled: boolean;
       isActivated: boolean;
       accountId: string;
-      reasons: string[];
+      reasons;
     };
     razorpay: {
       enabled: boolean;
       accountId: string;
-      reasons: string[];
     };
     crypto: {
       enabled: boolean;
       walletAddress: string;
       chains: string[];
-      reasons: string[];
     };
   };
   currency: string;
@@ -36,6 +34,10 @@ interface ClientData {
   creditsPerMonth: number;
   creditsPerMonthResetDate: string;
   planId: string;
+  payoutBalance: {
+    available: number;
+    pending: number;
+  };
 }
 
 interface AdminState {
