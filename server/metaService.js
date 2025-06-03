@@ -12,7 +12,7 @@ export async function getBotMeta(username) {
     );
     const botConfig = await response.json();
 
-    if (!botConfig || !botConfig.data) {
+    if (!botConfig || !botConfig.data.result) {
       return {
         title: "Sayy.ai – AI Chatbot Platform",
         description:
@@ -22,7 +22,7 @@ export async function getBotMeta(username) {
       };
     }
 
-    const botData = botConfig.data;
+    const botData = botConfig.data.result;
 
     return {
       title: `${botData.name || "AI Chatbot"} | Sayy.ai chatbot`,
