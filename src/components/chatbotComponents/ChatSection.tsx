@@ -7,6 +7,119 @@ import BookingManagementComponent from "./chatbotBookingComponents/BookingManage
 import ChatProductDisplay from "./ChatProductDisplay";
 import ReactMarkdown from "react-markdown";
 
+interface ClickableMessageTextProps {
+  content: string;
+  theme: Theme;
+  onFeatureClick: (featureText: string) => void;
+  isLoading?: boolean;
+}
+
+const ClickableMessageText: React.FC<ClickableMessageTextProps> = ({
+  content,
+  theme,
+  onFeatureClick,
+  isLoading = false
+}) => {
+  const clickableFeatures = [
+    "booking appointments",
+    "browsing our products", 
+    "contacting us"
+  ];
+
+  const handleFeatureClick = (feature: string) => {
+    if (!isLoading) {
+      onFeatureClick(`I need help with ${feature}`);
+    }
+  };
+
+  const renderTextWithBubbles = (text: string) => {
+    let parts: (string | JSX.Element)[] = [text];
+
+    clickableFeatures.forEach((feature, index) => {
+      const newParts: (string | JSX.Element)[] = [];
+      
+      parts.forEach((part, partIndex) => {
+        if (typeof part === 'string') {
+          const segments = part.split(feature);
+          
+          for (let i = 0; i < segments.length; i++) {
+            if (i > 0) {
+              newParts.push(
+                <span
+                  key={`${index}-${partIndex}-${i}`}
+                  onClick={() => handleFeatureClick(feature)}
+                  className="feature-bubble-inline"
+                  style={{
+                    background: `linear-gradient(135deg, ${theme.mainLightColor}, ${theme.mainDarkColor})`,
+                    color: '#ffffff',
+                    padding: '0px 3px',
+                    borderRadius: '4px',
+                    cursor: isLoading ? 'not-allowed' : 'pointer',
+                    display: 'inline',
+                    margin: '0',
+                    fontSize: '0.9em',
+                    fontWeight: '600',
+                    boxShadow: '0 0.5px 1px rgba(0,0,0,0.1)',
+                    transition: 'all 0.15s ease',
+                    opacity: isLoading ? 0.7 : 1,
+                    textShadow: 'none',
+                    border: 'none',
+                    textDecoration: 'none',
+                    whiteSpace: 'nowrap',
+                    verticalAlign: 'baseline',
+                    lineHeight: '1',
+                    wordBreak: 'keep-all',
+                    position: 'relative'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isLoading) {
+                      e.currentTarget.style.background = `linear-gradient(135deg, ${theme.mainDarkColor}, ${theme.mainLightColor})`;
+                      e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.15)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isLoading) {
+                      e.currentTarget.style.background = `linear-gradient(135deg, ${theme.mainLightColor}, ${theme.mainDarkColor})`;
+                      e.currentTarget.style.boxShadow = '0 0.5px 1px rgba(0,0,0,0.1)';
+                    }
+                  }}
+                >
+                  {feature}
+                </span>
+              );
+            }
+            
+            if (segments[i]) {
+              newParts.push(segments[i]);
+            }
+          }
+        } else {
+          newParts.push(part);
+        }
+      });
+      
+      parts = newParts;
+    });
+
+    return parts;
+  };
+
+  return (
+    <div 
+      className="prose prose-sm max-w-none [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0 [&>blockquote]:m-0 [&>pre]:m-0 [&>*]:text-inherit prose-headings:text-inherit prose-ul:text-inherit prose-li:text-inherit prose-li:marker:text-inherit prose-strong:text-inherit"
+      style={{ 
+        color: !theme.isDark ? "black" : "white", 
+        fontSize: 13,
+        lineHeight: 1.4,
+        wordSpacing: 'normal',
+        letterSpacing: 'normal'
+      }}
+    >
+      {renderTextWithBubbles(content)}
+    </div>
+  );
+};
+
 interface ChatSectionProps {
   theme: Theme;
   messages: ChatMessage[];
@@ -22,6 +135,7 @@ interface ChatSectionProps {
   };
   isBookingConfigured?: boolean;
   setActiveScreen?: (screen: "about" | "chat" | "browse") => void;
+  onFeatureClick?: (featureText: string) => void; 
 }
 
 export default function ChatSection({
@@ -33,7 +147,17 @@ export default function ChatSection({
   currentConfig,
   isBookingConfigured = true,
   setActiveScreen,
+  onFeatureClick, 
 }: ChatSectionProps) {
+  const hasClickableFeatures = (content: string): boolean => {
+    const clickableFeatures = [
+      "booking appointments",
+      "browsing our products", 
+      "contacting us"
+    ];
+    return clickableFeatures.some(feature => content.includes(feature));
+  };
+
   // Separate messages by type
   const welcomeAndFeatureMessages = messages.filter(
     msg => (msg.type === "welcome" || msg.id === "1" || 
@@ -50,14 +174,26 @@ export default function ChatSection({
   );
 
   // Render a message without animation
-  const renderInstantMessage = (msg: ChatMessage) => (
-    <div className="prose prose-sm max-w-none [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0 [&>blockquote]:m-0 [&>pre]:m-0 [&>*]:text-inherit prose-headings:text-inherit prose-ul:text-inherit prose-li:text-inherit prose-li:marker:text-inherit prose-strong:text-inherit"
-      style={{ color: !theme.isDark ? "black" : "white", fontSize: 13 }}>
-      <ReactMarkdown>{msg.content}</ReactMarkdown>
-    </div>
-  );
+  const renderInstantMessage = (msg: ChatMessage) => {
+    if (msg.sender === "agent" && hasClickableFeatures(msg.content) && onFeatureClick) {
+      return (
+        <ClickableMessageText
+          content={msg.content}
+          theme={theme}
+          onFeatureClick={onFeatureClick}
+          isLoading={isLoading}
+        />
+      );
+    }
 
-  // Render a regular message with possible animation
+    return (
+      <div className="prose prose-sm max-w-none [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0 [&>blockquote]:m-0 [&>pre]:m-0 [&>*]:text-inherit prose-headings:text-inherit prose-ul:text-inherit prose-li:text-inherit prose-li:marker:text-inherit prose-strong:text-inherit"
+        style={{ color: !theme.isDark ? "black" : "white", fontSize: 13 }}>
+        <ReactMarkdown>{msg.content}</ReactMarkdown>
+      </div>
+    );
+  };
+
   const renderMessage = (msg: ChatMessage) => {
     if (msg.sender === "agent") {
       // Component types
@@ -105,7 +241,17 @@ export default function ChatSection({
         );
       }
       
-      // Regular text message with animation
+      if (hasClickableFeatures(msg.content) && onFeatureClick) {
+        return (
+          <ClickableMessageText
+            content={msg.content}
+            theme={theme}
+            onFeatureClick={onFeatureClick}
+            isLoading={isLoading}
+          />
+        );
+      }
+      
       return (
         <StreamingText
           text={msg.content}
@@ -117,7 +263,6 @@ export default function ChatSection({
         />
       );
     } else {
-      // User message
       return (
         <div style={{ color: !theme.isDark ? "black" : "white", fontSize: 13 }}>
           {msg.content}
@@ -126,7 +271,6 @@ export default function ChatSection({
     }
   };
 
-  // Create a message container with appropriate styling
   const createMessageContainer = (msg: ChatMessage, content: React.ReactNode) => {
     const isSpecialLayout = msg.sender === "agent" && 
       ["booking-calendar", "booking-management", "products-display", "contact-form"].includes(msg.type || "");

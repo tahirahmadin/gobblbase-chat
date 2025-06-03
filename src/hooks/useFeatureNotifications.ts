@@ -5,7 +5,6 @@ import { ChatMessage } from "../types";
 const featureNotificationMessages = [
   "I can help you with {{features}}.",
   "I'm here to help with {{features}}.",
-  "My capabilities include {{features}}.",
 ];
 
 export interface UseFeatureNotificationsReturn {
@@ -63,7 +62,7 @@ export function useFeatureNotifications(
     }
     
     if (checkFeature(customerLeadFlag)) {
-      features.push("contacting us directly");
+      features.push("contacting us");
     }
     
     if (checkFeature(isQueryable)) {
