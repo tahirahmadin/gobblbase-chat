@@ -254,7 +254,7 @@ const Payments = () => {
   return (
     <div className="container flex flex-col lg:flex-row min-h-screen w-full bg-white">
       {/* Payment Methods Configuration */}
-      <div className="w-full lg:w-1/2 p-4 lg:p-6 overflow-y-auto lg:h-screen min-h-[50vh]">
+      <div className="w-full lg:w-2/3 p-4 lg:p-6 overflow-y-auto lg:h-screen min-h-[50vh]">
         <div className="bg-white pb-4 z-10">
           <h2 className="text-xl font-bold text-black">Payment Methods</h2>
         </div>
