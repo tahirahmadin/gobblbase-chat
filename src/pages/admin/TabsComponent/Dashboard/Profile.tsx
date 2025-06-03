@@ -5,6 +5,7 @@ import {
   updateAgentUsername,
   updateAgentNameAndBio,
   updatePromotionalBanner,
+  submitWhatsapp,
 } from "../../../../lib/serverActions";
 import { useBotConfig } from "../../../../store/useBotConfig";
 import toast from "react-hot-toast";
@@ -15,6 +16,7 @@ import SocialMediaSection from "./SocialMediaSection";
 import CustomLinksSection from "./CustomLinksSection";
 import styled from "styled-components";
 import { useAdminStore } from "../../../../store/useAdminStore";
+import { FaWhatsapp } from "react-icons/fa";
 const Lable = styled.label`
   position: relative;
   width: 35px;
@@ -152,6 +154,46 @@ const Profile = () => {
     promotionalBanner !== originalPromoBanner ||
     isPromoBannerEnabled !== originalPromoBannerEnabled;
 
+  // WhatsApp state
+  const [whatsappCountryCode, setWhatsappCountryCode] = useState("+971");
+  const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [isSavingWhatsapp, setIsSavingWhatsapp] = useState(false);
+  // Track last saved values
+  const [savedWhatsappCountryCode, setSavedWhatsappCountryCode] =
+    useState("+971");
+  const [savedWhatsappNumber, setSavedWhatsappNumber] = useState("");
+
+  // WhatsApp handler
+  const handleSaveWhatsapp = async () => {
+    if (!activeBotId) {
+      toast.error("No agent selected");
+      return;
+    }
+    if (!whatsappNumber.match(/^\d{6,15}$/)) {
+      toast.error("Enter a valid phone number");
+      return;
+    }
+    setIsSavingWhatsapp(true);
+    const success = await submitWhatsapp(
+      activeBotId,
+      whatsappCountryCode,
+      whatsappNumber
+    );
+    setIsSavingWhatsapp(false);
+    if (success) {
+      toast.success("WhatsApp number saved");
+      setSavedWhatsappCountryCode(whatsappCountryCode);
+      setSavedWhatsappNumber(whatsappNumber);
+    } else {
+      toast.error("Failed to save WhatsApp number");
+    }
+  };
+
+  // Only enable button if there is a change
+  const hasWhatsappChanged =
+    whatsappCountryCode !== savedWhatsappCountryCode ||
+    whatsappNumber !== savedWhatsappNumber;
+
   useEffect(() => {
     if (activeBotData?.logo) {
       if (agentPicture === activeBotData?.logo) {
@@ -193,6 +235,9 @@ const Profile = () => {
       // Calculate and set smartness level
       const newSmartnessLevel = calculateSmartnessLevel(activeBotData);
       setSmartnessLevel(newSmartnessLevel);
+
+      setWhatsappCountryCode(activeBotData.whatsappNumber.countryCode);
+      setWhatsappNumber(activeBotData.whatsappNumber.number);
     }
   }, [activeBotData]);
 
@@ -728,6 +773,70 @@ const Profile = () => {
                   </Button>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* WhatsApp Redirect Section */}
+          <div className="pr-4">
+            <div className="flex items-center space-x-3 mb-2">
+              <h1 className="main-font block text-md md:text-xl font-medium text-[#000000]">
+                Redirect conversations to Whatsapp
+              </h1>
+            </div>
+            <div className="flex items-center space-x-2 mt-2 w-full">
+              {/* WhatsApp icon (replace with SVG if available) */}
+              <span className="w-8 h-8 flex items-center justify-center">
+                <span className="text-xl">
+                  <FaWhatsapp />
+                </span>
+              </span>
+              {/* Country code dropdown/input */}
+              <select
+                value={whatsappCountryCode}
+                onChange={(e) => setWhatsappCountryCode(e.target.value)}
+                className="border border-[#7D7D7D] rounded px-2 py-2 text-sm focus:outline-none"
+                style={{ minWidth: 80 }}
+              >
+                <option value="+971">+971</option>
+                <option value="+91">+91</option>
+                <option value="+1">+1</option>
+                <option value="+44">+44</option>
+                <option value="+61">+61</option>
+                <option value="+92">+92</option>
+                <option value="+880">+880</option>
+                <option value="+966">+966</option>
+                <option value="+20">+20</option>
+                <option value="+234">+234</option>
+                <option value="other">Other</option>
+              </select>
+              {/* Phone number input */}
+              <input
+                type="text"
+                value={whatsappNumber}
+                onChange={(e) =>
+                  setWhatsappNumber(e.target.value.replace(/\D/g, ""))
+                }
+                placeholder="Enter WhatsApp number"
+                className="w-full px-3 py-2 border border-[#7D7D7D] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                maxLength={15}
+              />
+              {/* Save button */}
+              <Button
+                onClick={handleSaveWhatsapp}
+                disabled={
+                  isSavingWhatsapp || !whatsappNumber || !hasWhatsappChanged
+                }
+                style={{ background: "#6aff97", color: "#000", minWidth: 100 }}
+              >
+                {isSavingWhatsapp ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                    <span>Saving...</span>
+                  </div>
+                ) : (
+                  "SAVE"
+                )}
+              </Button>
             </div>
           </div>
 

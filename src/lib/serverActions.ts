@@ -1972,3 +1972,33 @@ export async function enableCryptoPayment(
     );
   }
 }
+
+/**
+ * Submit WhatsApp number for an agent
+ * @param agentId string
+ * @param countryCode string (e.g. '+971')
+ * @param number string (phone number without country code)
+ * @returns Promise<boolean>
+ */
+export async function submitWhatsapp(
+  agentId: string,
+  countryCode: string,
+  number: string
+): Promise<boolean> {
+  try {
+    const response = await axios.post(`${apiUrl}/client/updateWhatsappNumber`, {
+      agentId,
+      whatsappNumber: {
+        countryCode,
+        number,
+      },
+    });
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+    return true;
+  } catch (error) {
+    console.error("Error submitting WhatsApp number:", error);
+    return false;
+  }
+}
