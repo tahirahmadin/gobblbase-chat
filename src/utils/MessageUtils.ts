@@ -151,7 +151,7 @@ export const containsContactKeywords = (text: string): boolean => {
     "speak to a person", "talk to a representative",
     "speak to a representative", "talk to support", "speak to support",
     "need help from a person", "real person", "leave feedback",
-    "submit feedback", "send a message to", "contacting us directly"
+    "submit feedback", "send a message to", "contacting us"
   ];
 
   const lowerText = text.toLowerCase();

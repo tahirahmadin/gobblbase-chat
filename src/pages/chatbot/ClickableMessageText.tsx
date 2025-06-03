@@ -21,7 +21,7 @@ const ClickableMessageText: React.FC<ClickableMessageTextProps> = ({
   const clickableFeatures = [
     "booking appointments",
     "browsing our products", 
-    "contacting us directly"
+    "contacting us"
   ];
 
   const handleFeatureClick = (feature: string) => {
@@ -129,7 +129,6 @@ const ClickableMessageDemo = () => {
   const sampleMessages = [
     "I'm here to help with booking appointments, browsing our products, and answering questions about our knowledge base.",
     "I can help you with booking appointments.",
-    "My capabilities include booking appointments, browsing our products, and contacting us directly.",
     "Feel free to ask about booking appointments or browsing our products!"
   ];
 
@@ -163,7 +162,7 @@ const ClickableMessageDemo = () => {
       <div className="mt-4 bg-gray-800 text-white p-3 rounded-lg">
         <div className="text-sm text-gray-300 mb-2">Dark Theme:</div>
         <ClickableMessageText
-          content="I'm here to help with booking appointments, browsing our products, and contacting us directly."
+          content="I'm here to help with booking appointments, browsing our products, and contacting us."
           theme={{
             ...demoTheme,
             isDark: true,

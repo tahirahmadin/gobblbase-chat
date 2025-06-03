@@ -412,7 +412,7 @@ export default function PublicChat({
     // Extract the feature type from the message
     const isBookingRequest = featureText.includes("booking appointments");
     const isProductRequest = featureText.includes("browsing our products");
-    const isContactRequest = featureText.includes("contacting us directly");
+    const isContactRequest = featureText.includes("contacting us");
   
     // Process contact requests first (including lead collection)
     if (isContactRequest) {
@@ -497,7 +497,7 @@ export default function PublicChat({
     const clickableFeatures = [
       "booking appointments",
       "browsing our products", 
-      "contacting us directly"
+      "contacting us"
     ];
     return clickableFeatures.some(feature => content.includes(feature));
   };

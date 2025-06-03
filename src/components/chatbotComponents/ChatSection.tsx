@@ -23,7 +23,7 @@ const ClickableMessageText: React.FC<ClickableMessageTextProps> = ({
   const clickableFeatures = [
     "booking appointments",
     "browsing our products", 
-    "contacting us directly"
+    "contacting us"
   ];
 
   const handleFeatureClick = (feature: string) => {
@@ -48,37 +48,39 @@ const ClickableMessageText: React.FC<ClickableMessageTextProps> = ({
                 <span
                   key={`${index}-${partIndex}-${i}`}
                   onClick={() => handleFeatureClick(feature)}
-                  className="feature-highlight-inline"
+                  className="feature-bubble-inline"
                   style={{
-                    background: `linear-gradient(135deg, ${theme.mainLightColor}22, ${theme.mainDarkColor}33)`,
-                    color: theme.mainLightColor,
-                    padding: '1px 2px',
-                    borderRadius: '3px',
+                    background: `linear-gradient(135deg, ${theme.mainLightColor}, ${theme.mainDarkColor})`,
+                    color: '#ffffff',
+                    padding: '0px 3px',
+                    borderRadius: '4px',
                     cursor: isLoading ? 'not-allowed' : 'pointer',
                     display: 'inline',
                     margin: '0',
-                    fontSize: 'inherit',
-                    fontWeight: '700',
-                    boxShadow: 'none',
-                    transition: 'all 0.2s ease',
+                    fontSize: '0.9em',
+                    fontWeight: '600',
+                    boxShadow: '0 0.5px 1px rgba(0,0,0,0.1)',
+                    transition: 'all 0.15s ease',
                     opacity: isLoading ? 0.7 : 1,
                     textShadow: 'none',
-                    border: `1px solid ${theme.mainLightColor}44`,
+                    border: 'none',
                     textDecoration: 'none',
                     whiteSpace: 'nowrap',
                     verticalAlign: 'baseline',
-                    lineHeight: 'inherit'
+                    lineHeight: '1',
+                    wordBreak: 'keep-all',
+                    position: 'relative'
                   }}
                   onMouseEnter={(e) => {
                     if (!isLoading) {
-                      e.currentTarget.style.background = `linear-gradient(135deg, ${theme.mainLightColor}44, ${theme.mainDarkColor}55)`;
-                      e.currentTarget.style.color = theme.isDark ? '#ffffff' : theme.mainDarkColor;
+                      e.currentTarget.style.background = `linear-gradient(135deg, ${theme.mainDarkColor}, ${theme.mainLightColor})`;
+                      e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.15)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isLoading) {
-                      e.currentTarget.style.background = `linear-gradient(135deg, ${theme.mainLightColor}22, ${theme.mainDarkColor}33)`;
-                      e.currentTarget.style.color = theme.mainLightColor;
+                      e.currentTarget.style.background = `linear-gradient(135deg, ${theme.mainLightColor}, ${theme.mainDarkColor})`;
+                      e.currentTarget.style.boxShadow = '0 0.5px 1px rgba(0,0,0,0.1)';
                     }
                   }}
                 >
@@ -103,8 +105,16 @@ const ClickableMessageText: React.FC<ClickableMessageTextProps> = ({
   };
 
   return (
-    <div className="prose prose-sm max-w-none [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0 [&>blockquote]:m-0 [&>pre]:m-0 [&>*]:text-inherit prose-headings:text-inherit prose-ul:text-inherit prose-li:text-inherit prose-li:marker:text-inherit prose-strong:text-inherit"
-      style={{ color: !theme.isDark ? "black" : "white", fontSize: 13 }}>
+    <div 
+      className="prose prose-sm max-w-none [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0 [&>blockquote]:m-0 [&>pre]:m-0 [&>*]:text-inherit prose-headings:text-inherit prose-ul:text-inherit prose-li:text-inherit prose-li:marker:text-inherit prose-strong:text-inherit"
+      style={{ 
+        color: !theme.isDark ? "black" : "white", 
+        fontSize: 13,
+        lineHeight: 1.4,
+        wordSpacing: 'normal',
+        letterSpacing: 'normal'
+      }}
+    >
       {renderTextWithBubbles(content)}
     </div>
   );
@@ -143,7 +153,7 @@ export default function ChatSection({
     const clickableFeatures = [
       "booking appointments",
       "browsing our products", 
-      "contacting us directly"
+      "contacting us"
     ];
     return clickableFeatures.some(feature => content.includes(feature));
   };
@@ -163,7 +173,7 @@ export default function ChatSection({
            msg.sender !== "agent"
   );
 
-
+  // Render a message without animation
   const renderInstantMessage = (msg: ChatMessage) => {
     if (msg.sender === "agent" && hasClickableFeatures(msg.content) && onFeatureClick) {
       return (
@@ -184,7 +194,6 @@ export default function ChatSection({
     );
   };
 
-  // Render a regular message with possible animation
   const renderMessage = (msg: ChatMessage) => {
     if (msg.sender === "agent") {
       // Component types
@@ -243,7 +252,6 @@ export default function ChatSection({
         );
       }
       
-      // Regular text message with animation
       return (
         <StreamingText
           text={msg.content}
@@ -255,7 +263,6 @@ export default function ChatSection({
         />
       );
     } else {
-      // User message
       return (
         <div style={{ color: !theme.isDark ? "black" : "white", fontSize: 13 }}>
           {msg.content}
@@ -264,7 +271,6 @@ export default function ChatSection({
     }
   };
 
-  // Create a message container with appropriate styling
   const createMessageContainer = (msg: ChatMessage, content: React.ReactNode) => {
     const isSpecialLayout = msg.sender === "agent" && 
       ["booking-calendar", "booking-management", "products-display", "contact-form"].includes(msg.type || "");
