@@ -942,7 +942,7 @@ function HeaderSection({
                 activeScreen === "browse" ? theme.highlightColor : "#bfbfbf",
             }}
           />{" "}
-          BROWSE
+          PRODUCTS
         </button>
       </div>
 

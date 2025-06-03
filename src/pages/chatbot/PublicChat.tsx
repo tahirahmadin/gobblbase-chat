@@ -404,9 +404,22 @@ export default function PublicChat({
                 ? `${currentConfig.name} | Sayy.ai chatbot`
                 : "Sayy.ai chatbot"}
             </title>
+
+            {/* Primary Meta Tags */}
+            <meta
+              name="title"
+              content={`${currentConfig.name} | Sayy.ai chatbot`}
+            />
             <meta
               name="description"
-              content={`${currentConfig.bio} | Sayy.ai chatbot`}
+              content={currentConfig.bio || "Chat with our AI assistant"}
+            />
+
+            {/* Open Graph / Facebook */}
+            <meta property="og:type" content="website" />
+            <meta
+              property="og:url"
+              content={`https://sayy.ai/${currentConfig.username}`}
             />
             <meta
               property="og:title"
@@ -414,24 +427,40 @@ export default function PublicChat({
             />
             <meta
               property="og:description"
-              content={`${currentConfig.bio} | Sayy.ai chatbot`}
+              content={currentConfig.bio || "Chat with our AI assistant"}
             />
             <meta property="og:image" content={currentConfig.logo} />
+            <meta property="og:image:width" content="1200" />
+            <meta property="og:image:height" content="630" />
+            <meta property="og:site_name" content="Sayy.ai" />
+
+            {/* Twitter */}
+            <meta name="twitter:card" content="summary_large_image" />
             <meta
-              property="og:image:alt"
+              name="twitter:url"
+              content={`https://sayy.ai/${currentConfig.username}`}
+            />
+            <meta
+              name="twitter:title"
               content={`${currentConfig.name} | Sayy.ai chatbot`}
             />
             <meta
-              property="og:url"
-              content={`https://sayy.ai/${currentConfig.username}`}
+              name="twitter:description"
+              content={currentConfig.bio || "Chat with our AI assistant"}
             />
+            <meta name="twitter:image" content={currentConfig.logo} />
+
+            {/* Additional Meta Tags */}
             <meta
-              property="og:url"
-              content={`https://sayy.ai/${currentConfig.username}`}
+              name="viewport"
+              content="width=device-width, initial-scale=1.0"
             />
-            <meta
-              property="og:url"
-              content={`https://sayy.ai/${currentConfig.username}`}
+            <meta name="theme-color" content={theme.mainLightColor} />
+
+            {/* Prevent duplicate meta tags */}
+            <link
+              rel="canonical"
+              href={`https://sayy.ai/${currentConfig.username}`}
             />
           </Helmet>
           <div
