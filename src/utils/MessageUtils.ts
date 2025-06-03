@@ -69,7 +69,7 @@ export const containsNewBookingKeywords = (text: string): boolean => {
     "schedule appointment", "schedule meeting", "schedule call",
     "make an appointment", "make a meeting", "reservation",
     "make reservation", "create reservation", "do a booking",
-    "do booking",
+    "do booking", "booking appointments"
   ];
 
   const lowerText = text.toLowerCase();
@@ -151,7 +151,7 @@ export const containsContactKeywords = (text: string): boolean => {
     "speak to a person", "talk to a representative",
     "speak to a representative", "talk to support", "speak to support",
     "need help from a person", "real person", "leave feedback",
-    "submit feedback", "send a message to",
+    "submit feedback", "send a message to", "contacting us"
   ];
 
   const lowerText = text.toLowerCase();

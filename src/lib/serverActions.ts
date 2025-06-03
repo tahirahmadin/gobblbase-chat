@@ -941,6 +941,30 @@ export const getTransactions = async (
   }
 };
 
+export const payOutStripe = async (clientId: string) => {
+  try {
+    const response = await axios.post(`${apiUrl}/client/payOut`, { clientId });
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      return {
+        error: true,
+        result:
+          error.response?.data?.result ||
+          error.message ||
+          "Failed to cash out via Stripe",
+      };
+    }
+    return {
+      error: true,
+      result:
+        error instanceof Error
+          ? error.message
+          : "Failed to cash out via Stripe",
+    };
+  }
+};
+
 export async function getUserDetails(userId: string): Promise<UserDetails> {
   try {
     const response = await axios.get(
@@ -1870,17 +1894,21 @@ export async function updateCustomHandles(
   }
 }
 
-export async function enableStripePayment(clientId: string): Promise<boolean> {
+export async function enableStripePayment(
+  clientId: string,
+  isStripeEnabled: boolean
+): Promise<boolean> {
   try {
     const response = await axios.post(`${apiUrl}/client/enableStripePayment`, {
       clientId,
+      enabled: isStripeEnabled,
     });
 
     if (response.data.error) {
       throw new Error(response.data.error);
     }
 
-    return true;
+    return response.data.result;
   } catch (error) {
     console.error("Error enabling Stripe payments:", error);
     throw new Error(
@@ -1946,5 +1974,35 @@ export async function enableCryptoPayment(
         ? error.message
         : "Failed to enable crypto payments"
     );
+  }
+}
+
+/**
+ * Submit WhatsApp number for an agent
+ * @param agentId string
+ * @param countryCode string (e.g. '+971')
+ * @param number string (phone number without country code)
+ * @returns Promise<boolean>
+ */
+export async function submitWhatsapp(
+  agentId: string,
+  countryCode: string,
+  number: string
+): Promise<boolean> {
+  try {
+    const response = await axios.post(`${apiUrl}/client/updateWhatsappNumber`, {
+      agentId,
+      whatsappNumber: {
+        countryCode,
+        number,
+      },
+    });
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+    return true;
+  } catch (error) {
+    console.error("Error submitting WhatsApp number:", error);
+    return false;
   }
 }

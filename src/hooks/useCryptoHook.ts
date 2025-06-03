@@ -16,7 +16,7 @@ const tokenAddresses: Record<string, string> = {
   "USDT on Eth": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
   "USDT on Base": "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
   "USDT on BSC": "0x55d398326f99059fF775485246999027B3197955",
-  "USDT on BSC Testnet": "0xeD24FC36d5Ee211Ea25A80239Fb8C4Cfd80f12Ee",
+  "USDT on BSC Testnet": "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd",
 };
 
 // Token decimals for each chain

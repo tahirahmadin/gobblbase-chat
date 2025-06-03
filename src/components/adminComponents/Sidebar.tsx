@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
   Briefcase,
   Package,
@@ -93,6 +93,7 @@ const navItems: NavItem[] = [
     expandable: true,
     subItems: [
       // { name: "Billing", path: "/admin/account/billing" },
+      { name: "Income", path: "/admin/account/income" },
       { name: "Payments", path: "/admin/account/payments" },
       { name: "Plans", path: "/admin/account/plans" },
       { name: "Usage", path: "/admin/account/usage" },
@@ -200,8 +201,14 @@ const Sidebar = () => {
 
   return (
     <div className="w-64 bg-black h-screen text-white p-4 flex flex-col overflow-y-auto">
-      <div className="mb-8">
-        <h1 className="text-xl font-bold">Sayy.ai</h1>
+      <div className="mb-8 flex justify-center">
+        <Link to="/">
+          <img
+            src="https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/logo_black.svg"
+            alt="Sayy.ai"
+            className="h-12"
+          />
+        </Link>
       </div>
       <nav className="flex-1 space-y-2">
         {filteredNavItems.map((item) => (

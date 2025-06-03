@@ -123,6 +123,10 @@ export interface BotConfig {
   username: string;
   name: string;
   bio: string;
+  whatsappNumber: {
+    countryCode: string;
+    number: string;
+  };
   socials: {
     instagram: string;
     tiktok: string;

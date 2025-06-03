@@ -48,6 +48,7 @@ import PaymentCancelPage from "./pages/admin/PlanComponents/PaymentCancelPage";
 import { useUserStore } from "./store/useUserStore";
 import RescheduleBookingWrapper from "./components/chatbotComponents/chatbotBookingComponents/RescheduleBookingWrapper";
 import Payments from "./pages/admin/TabsComponent/Account/Payments";
+import Income from "./pages/admin/TabsComponent/Account/Income";
 
 // Add type definition for window
 declare global {
@@ -148,6 +149,7 @@ function Dashboard() {
         <Route path="crm/chat-logs" element={<ChatLogs />} />
         <Route path="crm/leads" element={<CustomerLeads />} />
         <Route path="account/payments" element={<Payments />} />
+        <Route path="account/income" element={<Income />} />
         <Route path="account/plans" element={<Plans />} />
         <Route path="account/usage" element={<Usage />} />
         <Route path="all-agents" element={<AllAgents />} />
