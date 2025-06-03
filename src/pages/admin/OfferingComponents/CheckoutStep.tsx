@@ -1,7 +1,39 @@
 import React, { useEffect, useState } from "react";
 import { useBotConfig } from "../../../store/useBotConfig";
 import { useAdminStore } from "../../../store/useAdminStore";
+import styled from "styled-components";
+const Button = styled.button`
+  position: relative;
+  background: #6aff97;
+  padding: 0.6vh 1vw;
+  border: 2px solid black;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: clamp(8px, 4vw, 16px);
+  min-width: 120px;
 
+  &::before {
+    content: "";
+    position: absolute;
+    transform: translate(6px, 6px);
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #000000;
+    z-index: -1;
+    background: #6aff97;
+  }
+
+  &:disabled {
+    background: #6aff97;
+    cursor: not-allowed;
+    color: black;
+  }
+  &:disabled::before {
+    background: #d6ffe0;
+  }
+`;
 interface EmailTemplate {
   subText: string;
   isActive: boolean;
@@ -117,7 +149,7 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
             </div>
           )}
           {localTemplate && (
-            <div className="bg-blue-50 border border-blue-300 rounded-lg p-4">
+            <div className="bg-[#FFFFFF] border border-black rounded-lg p-4">
               <div className="mb-2 text-gray-700 font-semibold">
                 {localTemplate.subText}
               </div>
@@ -129,13 +161,13 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
                   type="text"
                   value={localTemplate.subject}
                   onChange={(e) => handleInputChange("subject", e.target.value)}
-                  className="w-full border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-xs lg:text-sm"
+                  className="w-full bg-[#DFDFDF] px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-xs lg:text-sm"
                 />
               </div>
               <div className="mb-2">
                 <label className="block text-sm font-medium mb-1">Body</label>
 
-                <div className="border border-blue-300 rounded-md bg-white">
+                <div className="bg-[#DFDFDF]">
                   <div className="p-3">
                     <div className="mb-4">
                       <div className="whitespace-pre-line text-gray-700 mb-2 text-xs lg:text-sm">
@@ -165,26 +197,26 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-4 mt-2">
-                <button
-                  className="mx-auto bg-green-300 hover:bg-green-400 text-green-900 font-semibold px-6 py-1 rounded shadow"
+              <div className="flex items-center justify-center gap-4 mt-2 z-10 relative">
+                <Button
+                  className=""
                   onClick={handleSave}
                   disabled={saving}
                 >
                   {saving ? "Saving..." : "Save Email"}
-                </button>
+                </Button>
               </div>
             </div>
           )}
         </div>
       </div>
-      <div className="flex justify-end mt-8">
-        <button
-          className="bg-green-500 hover:bg-green-600 text-white rounded px-8 py-2 font-semibold shadow"
+      <div className="flex justify-end mt-8 relative z-10">
+        <Button
+          className=""
           onClick={onNext}
         >
           NEXT
-        </button>
+        </Button>
       </div>
     </div>
   );

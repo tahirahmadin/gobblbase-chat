@@ -14,7 +14,7 @@ const Commerce = () => {
   };
 
   return (
-    <div className="container min-h-screen w-screen lg:w-full">
+    <div className="min-h-screen w-full lg:w-full">
       <div>{renderContent()}</div>
     </div>
   );
