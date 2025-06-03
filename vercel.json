@@ -1,8 +1,19 @@
 {
-  "rewrites": [
+  "version": 2,
+  "functions": {
+    "api/[[...path]].ts": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/api/[[...path]].ts"
     }
   ],
   "headers": [
