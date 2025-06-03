@@ -312,6 +312,15 @@ const Payments = () => {
                     <CheckCircle2 className="h-5 w-5 text-green-500" />
                   )}
                 </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={isStripeEnabled}
+                    onChange={(e) => setIsStripeEnabled(e.target.checked)}
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
               </div>
 
               {isStripeActive ? (
@@ -335,13 +344,6 @@ const Payments = () => {
                       KYC process after enabling Stripe.
                     </p>
                   </div>
-                  <button
-                    onClick={handleEnableStripe}
-                    disabled={isLoadingStripe}
-                    className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isLoadingStripe ? "Enabling..." : "Enable Stripe Payments"}
-                  </button>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -353,6 +355,23 @@ const Payments = () => {
                       verify your business identity.
                     </p>
                   </div>
+                  {clientData?.paymentMethods?.stripe?.reasons &&
+                    clientData.paymentMethods.stripe.reasons.length > 0 && (
+                      <div className="mt-4 p-4 bg-red-50 rounded-lg">
+                        <h4 className="text-sm font-semibold text-red-700 mb-2">
+                          KYC Requirements:
+                        </h4>
+                        <ul className="list-disc list-inside space-y-1">
+                          {clientData.paymentMethods.stripe.reasons.map(
+                            (reason: string, index: number) => (
+                              <li key={index} className="text-sm text-red-600">
+                                {reason}
+                              </li>
+                            )
+                          )}
+                        </ul>
+                      </div>
+                    )}
                   <button
                     onClick={handleProceedKYC}
                     disabled={isLoadingStripe}
@@ -471,126 +490,6 @@ const Payments = () => {
               )}
             </button>
           </div>
-        </div>
-      </div>
-
-      {/* Payments Log */}
-      <div className="w-full lg:w-1/2 bg-blue-500 p-4 lg:p-6 overflow-y-auto lg:h-screen min-h-[50vh] hidden lg:block">
-        <div className="z-10 bg-blue-500 pb-4">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-white">Payments Log</h2>
-            <button
-              onClick={() => fetchTransactions(currentPage)}
-              disabled={isLoadingTransactions}
-              className="p-2 bg-white rounded-full hover:bg-gray-100 disabled:opacity-50"
-            >
-              <RefreshCw
-                className={`w-4 h-4 ${
-                  isLoadingTransactions ? "animate-spin" : ""
-                }`}
-              />
-            </button>
-          </div>
-        </div>
-
-        <div className="w-full max-w-full max-h-[calc(100vh-220px)] overflow-y-auto rounded-lg">
-          {isLoadingTransactions ? (
-            <div className="flex justify-center items-center h-40">
-              <div className="animate-spin h-8 w-8 border-4 border-white border-t-transparent rounded-full"></div>
-            </div>
-          ) : transactions.length === 0 ? (
-            <div className="text-center text-white py-8">
-              <p>No transactions found</p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {transactions.map((transaction) => {
-                const item = transaction.items[0] || {};
-                return (
-                  <div
-                    key={transaction._id}
-                    className="bg-white rounded-lg p-5 shadow-sm border border-gray-200 flex flex-col gap-2"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-semibold text-base text-gray-900 mb-1">
-                          {transaction.shipping?.name || "Customer Name"}
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          {transaction.userEmail}
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          Ph :{" "}
-                          <span className="font-mono">
-                            {transaction.shipping?.phone}
-                          </span>
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-gray-400 mb-1">
-                          {new Date(transaction.createdAt).toLocaleDateString()}{" "}
-                          &nbsp;
-                          {new Date(transaction.createdAt).toLocaleTimeString(
-                            [],
-                            { hour: "2-digit", minute: "2-digit" }
-                          )}
-                        </p>
-                        <a className="text-blue-500 text-sm font-semibold cursor-pointer">
-                          {transaction.totalAmount / 100} {transaction.currency}
-                        </a>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Paid via{" "}
-                          {transaction.paymentMethod === "FIAT"
-                            ? "Stripe"
-                            : transaction.paymentMethod}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-end mt-2">
-                      <a className="text-blue-600 text-sm font-medium cursor-pointer">
-                        {item.title || "Product Name"}
-                      </a>
-                      <div className="flex flex-row items-center gap-4">
-                        <div className="text-xs text-gray-500">
-                          Qty: {item.quantity || "XX"}
-                        </div>
-                        <div className="text-base font-semibold text-gray-800">
-                          {transaction.currency} {item.price}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-end mt-1">
-                      <div className="flex flex-col items-end">
-                        Total Amount
-                      </div>
-                      <div className="text-base font-semibold text-gray-800">
-                        {transaction.currency} {transaction.totalAmount / 100}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Pagination Controls */}
-        <div className="mt-4 flex justify-center items-center space-x-2">
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1 || isLoadingTransactions}
-            className="px-3 py-1 rounded border border-white text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Previous
-          </button>
-          <span className="text-sm text-white">Page {currentPage}</span>
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={!hasNextPage || isLoadingTransactions}
-            className="px-3 py-1 rounded border border-white text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next
-          </button>
         </div>
       </div>
     </div>
