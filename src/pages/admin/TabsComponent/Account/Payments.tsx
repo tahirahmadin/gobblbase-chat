@@ -219,8 +219,9 @@ const Payments = () => {
 
     setIsLoadingStripe(true);
     try {
-      const result = await enableStripePayment(adminId);
-      setIsStripeEnabled(true);
+      const result = await enableStripePayment(adminId, !isStripeEnabled);
+      setIsStripeEnabled(result);
+      refetchClientData();
       toast.success("Stripe payments enabled successfully");
     } catch (error: any) {
       toast.error("Failed to enable Stripe payments");
@@ -244,7 +245,7 @@ const Payments = () => {
         throw new Error("Failed to get onboarding URL");
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to start Stripe onboarding");
+      toast.error("Failed to start Stripe onboarding");
     } finally {
       setIsLoadingStripe(false);
     }
@@ -277,7 +278,7 @@ const Payments = () => {
                 <option value="AED">AED</option>
                 <option value="EUR">EUR</option>
                 <option value="GBP">GBP</option>
-                <option value="GBP">INR</option>
+                <option value="INR">INR</option>
               </select>
             </div>
             <div>
@@ -301,6 +302,14 @@ const Payments = () => {
               </select>
             </div>
           </div>
+          <div className="flex justify-start items-center">
+            <button
+              onClick={handleSave}
+              className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Save
+            </button>
+          </div>
 
           {/* Stripe Configuration */}
           <div>
@@ -317,7 +326,7 @@ const Payments = () => {
                     type="checkbox"
                     className="sr-only peer"
                     checked={isStripeEnabled}
-                    onChange={(e) => setIsStripeEnabled(e.target.checked)}
+                    onChange={(e) => handleEnableStripe()}
                   />
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>

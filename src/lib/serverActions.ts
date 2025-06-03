@@ -1894,17 +1894,21 @@ export async function updateCustomHandles(
   }
 }
 
-export async function enableStripePayment(clientId: string): Promise<boolean> {
+export async function enableStripePayment(
+  clientId: string,
+  isStripeEnabled: boolean
+): Promise<boolean> {
   try {
     const response = await axios.post(`${apiUrl}/client/enableStripePayment`, {
       clientId,
+      enabled: isStripeEnabled,
     });
 
     if (response.data.error) {
       throw new Error(response.data.error);
     }
 
-    return true;
+    return response.data.result;
   } catch (error) {
     console.error("Error enabling Stripe payments:", error);
     throw new Error(

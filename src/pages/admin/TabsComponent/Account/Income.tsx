@@ -143,7 +143,7 @@ const Income = () => {
             Available for Cashout
           </div>
           <div className="text-3xl font-bold mb-2">
-            {clientData?.payoutBalance?.pending / 100} {clientData?.currency}
+            {clientData?.payoutBalance?.pending / 100} USD
           </div>
           <div className="flex flex-col gap-2">
             <div className="flex justify-between items-center">
@@ -153,15 +153,14 @@ const Income = () => {
                 {clientData?.payoutBalance?.available
                   ? clientData?.payoutBalance?.available / 100
                   : 0}{" "}
-                {clientData?.currency}
+                USD
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="font-medium">Pending</span>
               <span className="font-bold">
                 {" "}
-                {clientData?.payoutBalance?.pending / 100}{" "}
-                {clientData?.currency}
+                {clientData?.payoutBalance?.pending / 100} USD
               </span>
             </div>
           </div>
