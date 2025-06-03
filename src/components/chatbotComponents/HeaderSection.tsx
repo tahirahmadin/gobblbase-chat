@@ -23,6 +23,7 @@ import {
 } from "../../lib/serverActions";
 import RescheduleFlowComponent from "./chatbotBookingComponents/RescheduleFlowComponent";
 import { PERSONALITY_OPTIONS } from "../../utils/constants";
+import { FaWhatsapp } from "react-icons/fa";
 
 declare global {
   interface Window {
@@ -781,6 +782,12 @@ function HeaderSection({
     </div>
   );
 
+  const getWhatsAppNumber = () => {
+    let countryCodeWithoutPlus =
+      currentConfig.whatsappNumber.countryCode.replace("+", "");
+    return `${countryCodeWithoutPlus}${currentConfig.whatsappNumber.number}`;
+  };
+
   return (
     <div className="flex flex-col">
       {/* Top Header */}
@@ -829,12 +836,27 @@ function HeaderSection({
                 >
                   <History className="h-5 w-5" />
                 </button> */}
+                <a
+                  target="_blank"
+                  href={`https://api.whatsapp.com/send?phone=${getWhatsAppNumber()}`}
+                >
+                  <button
+                    className="p-2 rounded-full hover:bg-opacity-10 hover:bg-white"
+                    style={{
+                      backgroundColor: !theme.isDark ? "white" : "black",
+                      color: theme.highlightColor,
+                      border: `2px solid ${theme.isDark ? "white" : "black"}`,
+                    }}
+                  >
+                    <FaWhatsapp className="h-5 w-5" />
+                  </button>
+                </a>
                 <button
                   className="p-2 rounded-full hover:bg-opacity-10 hover:bg-white"
                   style={{
-                    backgroundColor: theme.highlightColor,
-                    color: !theme.isDark ? "white" : "black",
-                    border: "2px solid #ffffff",
+                    backgroundColor: !theme.isDark ? "white" : "black",
+                    color: theme.highlightColor,
+                    border: `2px solid ${theme.isDark ? "white" : "black"}`,
                   }}
                   onClick={() => setShowUserMenu(!showUserMenu)}
                 >
