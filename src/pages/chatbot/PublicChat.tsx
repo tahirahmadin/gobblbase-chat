@@ -406,17 +406,15 @@ export default function PublicChat({
             </title>
             <meta
               name="description"
-              content={currentConfig.bio || "Chat with our AI assistant"}
+              content={`${currentConfig.bio} | Sayy.ai chatbot`}
             />
-
-            {/* Open Graph Meta Tags */}
             <meta
               property="og:title"
               content={`${currentConfig.name} | Sayy.ai chatbot`}
             />
             <meta
               property="og:description"
-              content={currentConfig.bio || "Chat with our AI assistant"}
+              content={`${currentConfig.bio} | Sayy.ai chatbot`}
             />
             <meta property="og:image" content={currentConfig.logo} />
             <meta
@@ -427,10 +425,6 @@ export default function PublicChat({
               property="og:url"
               content={`https://sayy.ai/${currentConfig.username}`}
             />
-            <meta property="og:type" content="website" />
-            <meta property="og:site_name" content="Sayy.ai" />
-
-            {/* Twitter Card Meta Tags */}
             <meta name="twitter:card" content="summary_large_image" />
             <meta
               name="twitter:title"
@@ -438,20 +432,9 @@ export default function PublicChat({
             />
             <meta
               name="twitter:description"
-              content={currentConfig.bio || "Chat with our AI assistant"}
+              content={`${currentConfig.bio} | Sayy.ai chatbot`}
             />
             <meta name="twitter:image" content={currentConfig.logo} />
-            <meta
-              name="twitter:image:alt"
-              content={`${currentConfig.name} | Sayy.ai chatbot`}
-            />
-
-            {/* Additional Meta Tags */}
-            <meta
-              name="viewport"
-              content="width=device-width, initial-scale=1.0"
-            />
-            <meta name="theme-color" content={theme.mainLightColor} />
           </Helmet>
           <div
             className="w-full max-w-md shadow-2xl overflow-hidden flex flex-col relative"
