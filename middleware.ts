@@ -1,14 +1,24 @@
 export const config = {
-  runtime: "edge",
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - assets (static files)
+     * - favicon.ico (favicon file)
+     */
+    "/((?!api|assets|favicon.ico).*)",
+  ],
 };
 
-export default async function handler(req: Request) {
-  const url = new URL(req.url);
+export default async function middleware(request: Request) {
+  const url = new URL(request.url);
   const path = url.pathname;
 
-  // If it's not a bot URL, pass through to the main app
-  if (!path || path === "/" || path.startsWith("/api/")) {
-    return fetch(url.toString());
+  // If it's the root path or an API path, skip
+  if (path === "/" || path.startsWith("/api/")) {
+    return new Response(null, {
+      status: 200,
+    });
   }
 
   try {
@@ -85,6 +95,7 @@ export default async function handler(req: Request) {
     console.error("Error:", error);
   }
 
-  // If anything fails, just return the main app
-  return fetch(url.toString());
+  return new Response(null, {
+    status: 200,
+  });
 }
