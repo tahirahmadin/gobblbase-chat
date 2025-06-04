@@ -155,7 +155,7 @@ const Income = () => {
                 className="bg-white rounded shadow px-8 py-2 min-w-[220px] w-full flex items-center justify-end"
                 style={{ boxShadow: "0 4px 12px #0001" }}
               >
-                <span className="text-5xl font-bold tracking-tight">
+                <span className="text-4xl font-bold tracking-tight">
                   $
                   {clientData?.payoutBalance?.available
                     ? (clientData.payoutBalance.available / 100).toFixed(2)
