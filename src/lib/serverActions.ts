@@ -308,13 +308,10 @@ export async function signUpClient(
   handle: string
 ): Promise<SignUpClientResponse> {
   try {
-    console.log("Making signUpClient request with:", { via, handle });
     const response = await axios.post(`${apiUrl}/client/signupClient`, {
       via,
       handle,
     });
-
-    console.log("SignUpClient raw response:", response);
 
     if (!response.data) {
       throw new Error("No data received from server");
