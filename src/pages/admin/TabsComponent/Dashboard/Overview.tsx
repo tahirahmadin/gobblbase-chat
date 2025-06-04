@@ -159,7 +159,7 @@ const Overview = () => {
               <div className="relative z-10">
                 <Button
                   onClick={() => {
-                    navigate("admin/account/plans");
+                    navigate("/admin/account/plans");
                   }}
                   style={{
                     background: "#6aff97",
