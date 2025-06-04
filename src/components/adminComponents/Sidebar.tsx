@@ -203,7 +203,7 @@ const Sidebar = () => {
   return (
     <div className="w-64 bg-black h-screen text-white p-4 flex flex-col overflow-y-auto">
       <div className="mb-8 flex justify-center">
-        <Link to="/">
+        <Link to="/admin/dashboard/overview">
           <img
             src="https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/logo_black.svg"
             alt="Sayy.ai"
