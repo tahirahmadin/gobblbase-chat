@@ -3,6 +3,12 @@ import { useBotConfig } from "../../../../store/useBotConfig";
 import { PERSONALITY_OPTIONS } from "../../../../utils/constants";
 import styled from "styled-components";
 
+const timeButton = [
+  { id: "Income", value: "1D" },
+  { id: "Orders Received", value: "7D" },
+  { id: "Credits Used", value: "30D" },
+  { id: "Leads", value: "Custom" },
+];
 const analytics = [
   { label: "Income", value: "$21.00" },
   { label: "Orders Received", value: "123" },
@@ -14,11 +20,11 @@ const analytics = [
 const Button = styled.button`
   position: relative;
   background: #4d65ff;
-  padding: 0.6vh 1vw;
+  padding: 0.2vh 1vw;
   border: 2px solid black;
   cursor: pointer;
   transition: background 0.3s;
-  font-size: clamp(8px, 4vw, 16px);
+  font-size: clamp(8px, 4vw, 15px);
   color: white;
   &::before {
     content: "";
@@ -45,8 +51,11 @@ const Button = styled.button`
 `;
 
 const Overview = () => {
-  const { activeBotId, activeBotData } = useBotConfig();
+  const [selectedLabel, setSelectedLabel] =  useState(analytics[0]?.label || "");
+  const [selectedButton, setSelectedButton] =  useState(timeButton[0]?.id || "");
 
+
+  const { activeBotId, activeBotData } = useBotConfig();
   const [agentPicture, setAgentPicture] = useState<string | null>(null);
   useEffect(() => {
     if (activeBotData?.logo) {
@@ -72,9 +81,9 @@ const Overview = () => {
     }
   }, [activeBotData]);
   return (
-    <div className="p-6">
+    <div className="overflow-scroll h-[100%]">
       {/* Top Section: Agent Info and Plan */}
-      <div className="flex gap-6 mb-6 items-start justify-between">
+      <div className="p-6 flex flex-col sm:flex-row sm:items-end lg:items-start xl:items-end gap-6 sm:gap-2 md:gap-6 mb-6 items-start justify-between">
         <div>
           {/* Profile Image Upload */}
           <div className="flex items-center pb-2 gap-4">
@@ -87,147 +96,139 @@ const Overview = () => {
             </div>
             <div className="font-semibold text-lg">Agent Name</div>
           </div>
-          <div className="flex flex-row gap-2 mt-3">
-            <div className="flex flex-row justify-between items-center gap-4 border border-gray-400 rounded-lg px-3 py-5">
-              <div className="  text-xs flex flex-col items-start justify-center ">
-                <span className="text-gray-500 font-semibold text-sm">
+          <div className="flex flex-col lg:flex-row gap-2 mt-3">
+            {/* cuurent plan  */}
+            <div className="flex justify-between items-center gap-16 border border-gray-400 rounded-lg px-3 py-3">
+              <div className="text-xs flex flex-col items-start justify-center">
+                <span className="whitespace-nowrap text-gray-500 font-semibold text-sm">
                   Current Plan
                 </span>
                 <span className="font-medium text-lg">Solo</span>
               </div>
-
-              <Button
-                onClick={null}
-                style={{
-                  background: "#6aff97",
-                  color: "#000",
-                  minWidth: 100,
-                  height: 40,
-                }}
-              >
-                Upgrade
-              </Button>
+              <div className="relative z-10">
+                <Button
+                  onClick={null}
+                  style={{
+                    background: "#6aff97",
+                    color: "#000",
+                    minWidth: 100,
+                  }}
+                >
+                  Upgrade
+                </Button>
+              </div>
             </div>
-            <div className="flex flex-row justify-between items-center gap-4 border border-gray-400 rounded-lg px-3 py-5">
+            {/* payments setup  */}
+            <div className="flex justify-between items-center gap-16 border border-gray-400 rounded-lg px-3 py-3">
               <div className="  text-xs flex flex-col items-start justify-center ">
-                <span className="text-gray-500 font-semibold text-sm">
+                <span className="whitespace-nowrap text-gray-500 font-semibold text-sm">
                   Payments Setup
                 </span>
                 <span className="font-medium text-lg">Stripe</span>
               </div>
+                  <div className="relative z-10">
+                    <Button
+                      onClick={null}
+                      style={{
+                        background: "#6aff97",
+                        color: "#000",
+                        minWidth: 100,
+                      }}
+                    >
+                      Modify
+                    </Button>
+                  </div>
+            </div>
+          </div>
+        </div>
 
-              <Button
-                onClick={null}
-                style={{
-                  background: "#6aff97",
-                  color: "#000",
-                  minWidth: 100,
-                  height: 40,
-                }}
-              >
+        <div className="flex gap-4 lg:flex-col xl:flex-row w-full sm:w-fit">
+          <div className="flex flex-col items-center bg-[#EAEFFF] rounded-lg px-4 py-8 sm:py-4 min-w-36 w-full sm:w-fit">
+            <div className="relative w-12 h-12 flex items-center justify-center">
+                <svg className="absolute top-[-1.5px] left-[-2px]" width="52" height="52" viewBox="0 0 71 71" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <g filter="url(#filter0_d_5068_3436)">
+                    <rect x="9.27344" y="9.53906" width="50.1885" height="50.1885" rx="25.0943" fill="white"/>
+                    <rect x="9.77344" y="10.0391" width="49.1885" height="49.1885" rx="24.5943" stroke="black"/>
+                  </g>
+                  <path d="M34.8312 6.60821C53.8154 8.29096 61.9708 22.7212 62.4349 36.7213" stroke="#4D65FF" stroke-width="5" stroke-linecap="round"/>
+                  <g filter="url(#filter1_d_5068_3436)">
+                  <rect x="3.5" y="3.76562" width="61.7356" height="61.7356" rx="30.8678" stroke="black"/>
+                  </g>
+              </svg>
+              <span className="text-sm font-semibold z-10">25%</span>
+            </div>
+            <div className="text-xs text-black my-2 text-center ">
+              Agent Smartness
+            </div>
+            <div className="relative z-10">
+              <Button style={{
+                    background: "#6aff97",
+                    color: "#000",
+                  }}>
+                Smarten
+              </Button>
+            </div>
+          </div>
+          <div className="flex flex-col items-center bg-[#EAEFFF] rounded-lg px-4 py-8 sm:py-4 min-w-36 w-full sm:w-fit">
+            <div className="relative w-12 h-12 flex items-center justify-center">
+                <svg className="absolute top-[-1.5px] left-[-2px]" width="52" height="52" viewBox="0 0 71 71" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <g filter="url(#filter0_d_5068_3436)">
+                    <rect x="9.27344" y="9.53906" width="50.1885" height="50.1885" rx="25.0943" fill="white"/>
+                    <rect x="9.77344" y="10.0391" width="49.1885" height="49.1885" rx="24.5943" stroke="black"/>
+                  </g>
+                  <path d="M34.8312 6.60821C53.8154 8.29096 61.9708 22.7212 62.4349 36.7213" stroke="#4D65FF" stroke-width="5" stroke-linecap="round"/>
+                  <g filter="url(#filter1_d_5068_3436)">
+                  <rect x="3.5" y="3.76562" width="61.7356" height="61.7356" rx="30.8678" stroke="black"/>
+                  </g>
+              </svg>
+              <span className="text-sm font-semibold z-10">25%</span>
+            </div>
+            <div className="text-xs text-black my-2 text-center">Brain Capacity</div>
+            <div className="relative z-10">
+              <Button style={{
+                    background: "#6aff97",
+                    color: "#000",
+                  }}>
                 Modify
               </Button>
             </div>
           </div>
         </div>
-
-        <div className="flex gap-4">
-          <div className="flex flex-col items-center bg-white border border-gray-200 rounded p-4 w-36">
-            <div className="relative w-12 h-12 flex items-center justify-center">
-              <svg className="absolute top-0 left-0" width="48" height="48">
-                <circle
-                  cx="24"
-                  cy="24"
-                  r="20"
-                  stroke="#e5e7eb"
-                  strokeWidth="4"
-                  fill="none"
-                />
-                <circle
-                  cx="24"
-                  cy="24"
-                  r="20"
-                  stroke="#4d65ff"
-                  strokeWidth="4"
-                  fill="none"
-                  strokeDasharray="125.6"
-                  strokeDashoffset="94.2"
-                />
-              </svg>
-              <span className="text-lg font-semibold">25%</span>
-            </div>
-            <div className="text-xs text-gray-500 mb-2 text-center ">
-              Agent Smartness
-            </div>
-            <button className="bg-[#6aff97] border border-black rounded px-2 py-1 text-xs font-semibold mt-2">
-              Smarten
-            </button>
-          </div>
-          <div className="flex flex-col items-center bg-white border border-gray-200 rounded p-4 w-32">
-            <div className="relative w-12 h-12 flex items-center justify-center">
-              <svg className="absolute top-0 left-0" width="48" height="48">
-                <circle
-                  cx="24"
-                  cy="24"
-                  r="20"
-                  stroke="#e5e7eb"
-                  strokeWidth="4"
-                  fill="none"
-                />
-                <circle
-                  cx="24"
-                  cy="24"
-                  r="20"
-                  stroke="#4d65ff"
-                  strokeWidth="4"
-                  fill="none"
-                  strokeDasharray="125.6"
-                  strokeDashoffset="94.2"
-                />
-              </svg>
-              <span className="text-lg font-semibold">25%</span>
-            </div>
-            <div className="text-xs text-gray-500 mb-2">Brain Capacity</div>
-            <button className="bg-[#6aff97] border border-black rounded px-2 py-1 text-xs font-semibold mt-2">
-              Modify
-            </button>
-          </div>
-        </div>
       </div>
       {/* Analytics Section */}
-      <div className="bg-[#e9edfc] rounded-xl p-6">
-        {/* <div className="flex gap-2 mb-4">
-          <button className="bg-black text-white px-4 py-1 rounded font-semibold">
-            1d
-          </button>
-          <button className="bg-white border border-gray-300 px-4 py-1 rounded font-semibold">
-            7d
-          </button>
-          <button className="bg-white border border-gray-300 px-4 py-1 rounded font-semibold">
-            30d
-          </button>
-          <button className="bg-white border border-gray-300 px-4 py-1 rounded font-semibold">
-            Custom
-          </button>
-        </div> */}
+      <div className="p-6 bg-[#e9edfc] sm:rounded-xl">
+        <div className="flex gap-2 mb-4 justify-center sm:justify-start">
+              {timeButton.map((timeBtn) => (
+                <button key={timeBtn.id} className={`px-4 py-1 rounded font-semibold rounded-lg
+                      ${selectedButton === timeBtn.id ? "bg-black text-[#AEB8FF]" : "bg-transparent border border-black text-black"}
+                  `}
+                  onClick={() => setSelectedButton(timeBtn.id)}
+                  >
+                  {timeBtn.value}
+                </button>
+              ))}
+            </div>
         <div className="mb-4 font-semibold text-lg">Your Analytics</div>
-        <div className="flex gap-4 mb-6 flex-wrap">
+        <div className="flex gap-4 mb-6 flex-wrap ">
           {analytics.map((item) => (
             <div
               key={item.label}
-              className="bg-[#bfcfff] rounded-lg px-6 py-4 flex flex-col items-center min-w-[160px]"
+              onClick={() => setSelectedLabel(item.label)}
+             className={`rounded-lg px-6 py-4 flex flex-col items-center min-w-[160px] w-full xs:w-fit cursor-pointer transition-colors border
+                ${selectedLabel === item.label ? "bg-[#AEB8FF] border-[#4D65FF]" : "bg-[#D4DEFF] border-[#AEB8FF]"}`}
             >
-              <div className="text-2xl font-bold">{item.value}</div>
-              <div className="text-xs text-gray-700 mt-1">{item.label}</div>
+              <div className="text-2xl font-semibold">{item.value}</div>
+              <div className="text-xs text-black mt-1">{item.label}</div>
             </div>
           ))}
         </div>
         {/* Chart Placeholder */}
-        <div className="bg-white rounded border border-gray-300 h-56 flex items-center justify-center">
+        <div className="bg-white rounded border border-gray-300 h-56  flex items-center justify-center">
           <span className="text-gray-400">[Analytics Chart]</span>
         </div>
       </div>
     </div>
+    
   );
 };
 
