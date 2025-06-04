@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { useUserStore } from "../../store/useUserStore";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAdminStore } from "../../store/useAdminStore";
 import CreateNewBot from "./CreateNewBot";
 import styled from "styled-components";
@@ -300,9 +300,13 @@ const Login: React.FC = () => {
     <div className="min-h-screen bg-[#aeb4f7] flex flex-col">
       {/* Black top strip */}
       <div className="w-full py-2 px-4 flex items-center">
-        <span className="text-black text-lg font-bold tracking-tight">
-          Sayy
-        </span>
+        <Link to="/admin/dashboard/overview">
+          <img
+            src="https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/logo_black.svg"
+            alt="Sayy.ai"
+            className="h-12"
+          />
+        </Link>
       </div>
       {/* Centered content */}
       <div className="flex-1 flex items-center justify-center z-10 relative">

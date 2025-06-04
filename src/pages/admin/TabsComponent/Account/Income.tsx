@@ -142,48 +142,89 @@ const Income = () => {
           </div>
         </div>
         {/* Cashout */}
-        <div className="w-full lg:w-80 bg-[#F3F5FF] rounded-lg shadow p-4 sm:p-6 flex flex-col gap-3 sm:gap-4">
-          <div className="font-semibold text-sm sm:text-base mb-2">
-            Available for Cashout
-          </div>
-          <div className="text-2xl sm:text-3xl font-bold mb-2">
-            {clientData?.payoutBalance?.pending
-              ? (clientData.payoutBalance.pending / 100).toFixed(2)
-              : "0.00"}{" "}
-            USD
-          </div>
-          <div className="flex flex-col gap-2">
-            <div className="flex justify-between items-center">
-              <span className="font-medium text-sm sm:text-base">
-                Available
-              </span>
-              <span className="font-bold text-sm sm:text-base">
-                {clientData?.payoutBalance?.available
-                  ? (clientData.payoutBalance.available / 100).toFixed(2)
-                  : "0.00"}{" "}
-                USD
-              </span>
+        <div className="w-full lg:w-[540px] bg-[#F3F5FF] rounded-lg shadow p-4 sm:p-6 flex flex-col gap-6 border border-blue-400 mx-auto">
+          {/* Top Row: Label and Main Balance */}
+          <div className="flex flex-row items-start justify-between mb-2">
+            <div className="font-semibold text-[22px] leading-8 min-w-[150px]">
+              Available for
+              <br />
+              Cashout
             </div>
-            <div className="flex justify-between items-center">
-              <span className="font-medium text-sm sm:text-base">Pending</span>
-              <span className="font-bold text-sm sm:text-base">
-                {clientData?.payoutBalance?.pending
-                  ? (clientData.payoutBalance.pending / 100).toFixed(2)
-                  : "0.00"}{" "}
-                USD
-              </span>
+            <div className="relative flex flex-col items-center">
+              <div
+                className="bg-white rounded shadow px-8 py-2 min-w-[220px] w-full flex items-center justify-end"
+                style={{ boxShadow: "0 4px 12px #0001" }}
+              >
+                <span className="text-4xl font-bold tracking-tight">
+                  $
+                  {clientData?.payoutBalance?.available
+                    ? (clientData.payoutBalance.available / 100).toFixed(2)
+                    : "0.00"}
+                </span>
+              </div>
             </div>
           </div>
+
+          {/* Stripe Section */}
           <div>
-            <button
-              className="w-full sm:w-auto px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={handleStripeCashout}
-              disabled={
-                clientData?.payoutBalance?.available === 0 || isCashoutLoading
-              }
-            >
-              {isCashoutLoading ? "Processing..." : "CASH OUT"}
-            </button>
+            <div className="font-semibold text-lg mb-2">Stripe</div>
+            <div className="border border-black rounded p-3 bg-[#F3F5FF] mb-2">
+              <div className="flex flex-row items-center justify-between gap-2">
+                <div className="flex flex-col items-start min-w-[120px]">
+                  <span className="text-base">Available Bal.</span>
+                  <span className="text-3xl font-bold">
+                    $
+                    {clientData?.payoutBalance?.available
+                      ? (clientData.payoutBalance.available / 100).toFixed(2)
+                      : "0.00"}
+                  </span>
+                </div>
+                <div className="flex flex-col items-start min-w-[120px]">
+                  <span className="text-base">Pending Bal.</span>
+                  <span className="text-3xl font-bold">
+                    $
+                    {clientData?.payoutBalance?.pending
+                      ? (clientData.payoutBalance.pending / 100).toFixed(2)
+                      : "0.00"}
+                  </span>
+                </div>
+                <button
+                  className="relative px-4 py-2 bg-[#6EFFA0] border-2 border-black rounded text-lg font-semibold hover:bg-[#4eea7a] transition-all shadow-none"
+                  style={{ boxShadow: "4px 4px 0 0 #222" }}
+                  onClick={handleStripeCashout}
+                  disabled={
+                    clientData?.payoutBalance?.available === 0 ||
+                    isCashoutLoading
+                  }
+                >
+                  {isCashoutLoading ? "Processing..." : "CASH OUT"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Razorpay Section */}
+          <div>
+            <div className="font-semibold text-lg mb-2">Razorpay</div>
+            <div className="border border-black rounded p-2 bg-[#F3F5FF]">
+              <div className="flex flex-row items-center justify-between gap-2">
+                <div className="flex flex-col items-start min-w-[120px]">
+                  <span className="text-base">Available Bal.</span>
+                  <span className="text-3xl font-bold">$0.00</span>
+                </div>
+                <div className="flex flex-col items-start min-w-[120px]">
+                  <span className="text-base">Pending Bal.</span>
+                  <span className="text-3xl font-bold">$0.00</span>
+                </div>
+                <button
+                  className="relative px-4 py-2 bg-[#6EFFA0] border-2 border-black rounded text-lg font-semibold shadow-none"
+                  style={{ boxShadow: "4px 4px 0 0 #222" }}
+                  disabled
+                >
+                  CASH OUT
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

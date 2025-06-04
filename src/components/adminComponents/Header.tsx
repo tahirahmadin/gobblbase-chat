@@ -149,7 +149,7 @@ const Header = () => {
 
                     {/* Main button */}
                     <button
-                      onClick={() => navigate("/admin/dashboard/create-bot")}
+                      disabled={!activeBotId}
                       className="relative bg-[#6aff97] text-black font-semibold px-4 py-2 border border-black flex items-center gap-2"
                     >
                       <Eye className="w-5 h-5" /> View Agent

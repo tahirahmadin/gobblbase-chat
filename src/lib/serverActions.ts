@@ -120,6 +120,7 @@ interface PlanData {
   recurrence: string;
   description: string;
   isCurrentPlan: boolean;
+  features: string[];
 }
 
 export async function extractContentFromURL(
@@ -1285,7 +1286,9 @@ export async function saveCustomerLead(
 
 export async function getPlans(clientId: string): Promise<PlanData[]> {
   try {
-    const response = await axios.get(`${apiUrl}/client/getPlans/${clientId}`);
+    const response = await axios.get(
+      `${apiUrl}/client/getPlans?clientId=${clientId}`
+    );
 
     if (response.data.error) {
       throw new Error("Failed to fetch plans");

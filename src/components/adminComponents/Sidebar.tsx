@@ -180,6 +180,11 @@ const Sidebar = () => {
   const { adminEmail } = useAdminStore();
   const { activeBotData } = useBotConfig();
 
+  // If we're on the All Agents page, don't render the sidebar
+  if (location.pathname === "/admin/all-agents") {
+    return null;
+  }
+
   const toggleTab = (tabName: string) => {
     localStorage.removeItem("editingProduct");
 

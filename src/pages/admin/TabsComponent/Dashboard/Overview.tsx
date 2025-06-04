@@ -187,17 +187,21 @@ const Overview = () => {
                   Payments Setup
                 </span>
                 <span className="font-medium text-lg">
-                  {[
-                    clientData?.paymentMethods.stripe.isActivated &&
-                      clientData?.paymentMethods.stripe.enabled &&
-                      "Stripe",
-                    clientData?.paymentMethods.crypto.enabled &&
-                      clientData?.paymentMethods.crypto.walletAddress &&
-                      "Crypto",
-                    clientData?.paymentMethods.razorpay.enabled && "Razorpay",
-                  ]
-                    .filter(Boolean)
-                    .join(", ")}
+                  {(() => {
+                    const activeMethods = [
+                      clientData?.paymentMethods.stripe.isActivated &&
+                        clientData?.paymentMethods.stripe.enabled &&
+                        "Stripe",
+                      clientData?.paymentMethods.crypto.enabled &&
+                        clientData?.paymentMethods.crypto.walletAddress &&
+                        "Crypto",
+                      clientData?.paymentMethods.razorpay.enabled && "Razorpay",
+                    ].filter(Boolean);
+
+                    if (activeMethods.length === 0) return "None";
+                    if (activeMethods.length > 1) return "MULTIPLE";
+                    return activeMethods[0];
+                  })()}
                 </span>
               </div>
               <div className="relative z-10">
