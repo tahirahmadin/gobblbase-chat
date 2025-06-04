@@ -128,6 +128,7 @@ const Payment: React.FC<PaymentProps> = ({
   const { items, getTotalPrice } = useCartStore();
   const { activeBotId, activeBotData } = useBotConfig();
   const { userId, userEmail } = useUserStore();
+  const clientId = activeBotData?.clientId;
 
   let stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY, {
     stripeAccount: activeBotData?.stripeAccountId,
@@ -160,6 +161,7 @@ const Payment: React.FC<PaymentProps> = ({
                 quantity: item.quantity,
               })),
               agentId: activeBotId,
+              clientId: clientId,
               userId: userId,
               userEmail: userEmail,
               cart: items.map((item) => ({

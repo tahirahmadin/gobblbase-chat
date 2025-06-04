@@ -147,6 +147,7 @@ interface UseCryptoPaymentProps {
   activeBotId: string | null;
   userId: string | null;
   userEmail: string | null;
+  clientId: string | null;
 }
 
 export function useCryptoPayment({
@@ -158,6 +159,7 @@ export function useCryptoPayment({
   userId,
   userEmail,
   shipping,
+  clientId,
 }: UseCryptoPaymentProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedChain, setSelectedChain] = useState<string | null>(null);
@@ -185,6 +187,7 @@ export function useCryptoPayment({
               },
               body: JSON.stringify({
                 lineItems: [],
+                clientId: clientId,
                 agentId: activeBotId,
                 userId: userId || null,
                 userEmail: userEmail || null,
