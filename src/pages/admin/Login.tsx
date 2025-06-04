@@ -119,7 +119,7 @@ const Login: React.FC = () => {
     if (isAdminLoggedIn) {
       if (agents.length > 0) {
         console.log("Redirecting to profile...");
-        navigate("/admin/dashboard/profile", { replace: true });
+        navigate("/admin/dashboard/overview", { replace: true });
       } else {
         console.log("No agents found, showing CreateNewBot");
         return;

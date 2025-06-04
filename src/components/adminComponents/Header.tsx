@@ -40,7 +40,7 @@ const Header = () => {
     setIsDropdownOpen(false);
     //To remove localStorage data of product in edit mode
     localStorage.removeItem("editingProduct");
-    navigate("/admin/dashboard/profile");
+    navigate("/admin/dashboard/overview");
   };
 
   return (

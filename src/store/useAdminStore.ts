@@ -16,7 +16,7 @@ interface ClientData {
       enabled: boolean;
       isActivated: boolean;
       accountId: string;
-      reasons;
+      reasons: string[];
     };
     razorpay: {
       enabled: boolean;
@@ -202,11 +202,8 @@ export const useAdminStore = create<AdminState>()((set, get) => {
     // Complex actions
     handleGoogleLoginSuccess: async (credentialResponse: any) => {
       try {
-        console.log("Received credential response:", credentialResponse);
-
         // Get user info from the response
         const userInfo = credentialResponse.userInfo;
-        console.log("User info:", userInfo);
 
         if (!userInfo || !userInfo.email) {
           throw new Error("Invalid user info received from Google");
@@ -215,13 +212,7 @@ export const useAdminStore = create<AdminState>()((set, get) => {
         // Store email in localStorage for session management
         localStorage.setItem("adminEmail", userInfo.email);
 
-        // Call the signUpClient API
-        console.log("Calling signUpClient with:", {
-          via: "google",
-          email: userInfo.email,
-        });
         const response = await signUpClient("google", userInfo.email);
-        console.log("SignUpClient response:", response);
 
         if (response.error) {
           console.error("Signup failed with error:", response.result);

@@ -17,7 +17,7 @@ const AllAgents: React.FC = () => {
 
   const handleEdit = async (agentId: string) => {
     await setActiveBotId(agentId);
-    navigate("/admin/dashboard/profile");
+    navigate("/admin/dashboard/overview");
   };
 
   const handleDelete = async (agentId: string) => {

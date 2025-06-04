@@ -11,7 +11,7 @@ import { useUserStore } from "../../../store/useUserStore";
 import toast from "react-hot-toast";
 import { CreditCard, Wallet } from "lucide-react";
 import { Theme } from "../../types";
-import { bookAppointment } from "../../../lib/serverActions";
+import { bookAppointment, updateClientBillingDetails } from "../../../lib/serverActions";
 import { backendApiUrl } from "../../../utils/constants";
 import { useCryptoPayment } from "../../../hooks/useCryptoHook";
 
@@ -241,6 +241,7 @@ function CryptoBookingForm({
 }) {
   const { activeBotData, activeBotId } = useBotConfig();
   const { userId, userEmail, isLoggedIn } = useUserStore();
+  const clientId = activeBotData?.clientId;
   const walletAddress = activeBotData?.paymentMethods.crypto.walletAddress;
   const supportedChains = activeBotData?.paymentMethods.crypto.chains;
 
@@ -257,6 +258,7 @@ function CryptoBookingForm({
     title: `Booking: ${bookingDetails.date} ${bookingDetails.startTime}`,
     description: `Booking for ${bookingDetails.name} on ${bookingDetails.date}`,
     quantity: 1,
+    type: "booking",
     checkType: "booking",
     metadata: {
       type: "booking",
@@ -321,6 +323,7 @@ function CryptoBookingForm({
     userId: userId,
     userEmail: userEmail,
     shipping: shippingData,
+    clientId: clientId,
   });
 
   return (
@@ -453,6 +456,7 @@ export function BookingPaymentComponent({
 }: BookingPaymentProps) {
   const { activeBotId, activeBotData } = useBotConfig();
   const { userId, userEmail, isLoggedIn } = useUserStore();
+  const clientId = activeBotData?.clientId;
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("stripe");
   const [isLoading, setIsLoading] = useState(false);
@@ -560,6 +564,7 @@ export function BookingPaymentComponent({
           price: price.amount,
           title: `Booking: ${bookingDetails.date} ${bookingDetails.startTime}`,
           description: `Booking for ${bookingDetails.name} on ${bookingDetails.date}`,
+          type: "booking",
           metadata: {
             type: "booking",
             bookingDetails: bookingDetails,
@@ -575,6 +580,7 @@ export function BookingPaymentComponent({
             },
             body: JSON.stringify({
               cart: [bookingAsProduct],
+              clientId: clientId,
               agentId: activeBotId || bookingDetails.businessId,
               userId: userId || bookingDetails.email,
               userEmail: userEmail || bookingDetails.email,
