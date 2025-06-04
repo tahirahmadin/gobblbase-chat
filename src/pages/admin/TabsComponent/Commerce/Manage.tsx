@@ -152,8 +152,8 @@ const Manage = () => {
   };
 
   return (
-    <div className="w-[100vw] lg:w-full overflow-x-hidden pr-4 p-2 lg:p-4">
-      <div className="flex justify-between items-center mb-6 ">
+    <div className="w-[100vw] lg:w-full overflow-x-hidden ">
+      <div className="flex justify-between items-center mb-6 pr-4 p-2 lg:p-6">
         <h1 className="text-xl lg:text-2xl font-semibold text-gray-900">
           Manage Offerings
         </h1>
@@ -164,7 +164,7 @@ const Manage = () => {
           Add New +
         </button>
       </div>
-      <div className="flex gap-1 lg:gap-2 mb-4 max-w-screen lg:w-full">
+      <div className="flex gap-1 lg:gap-2 mb-4 max-w-screen lg:w-full pr-4 p-2 lg:px-6">
         {TABS.map((t) => (
           <button
             key={t.value}
@@ -179,7 +179,7 @@ const Manage = () => {
           </button>
         ))}
       </div>
-      <div className="bg-white rounded-lg border border-gray-200 p-0 lg:w-full">
+      <div className="bg-white rounded-lg border border-gray-200 p-0 lg:w-full ">
         <div className="overflow-x-auto">
           <div className="max-h-[calc(100vh-250px)] overflow-y-auto">
             <table className="w-full min-w-[500px]">
