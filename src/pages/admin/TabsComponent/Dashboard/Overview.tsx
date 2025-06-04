@@ -178,7 +178,7 @@ const Overview = () => {
                   Payments Setup
                 </span>
                 <span className="font-medium text-lg">
-                  {clientData?.paymentMethods.stripe.enabled
+                  {clientData?.paymentMethods.stripe.isActivated
                     ? "Stripe"
                     : "None"}
                 </span>
