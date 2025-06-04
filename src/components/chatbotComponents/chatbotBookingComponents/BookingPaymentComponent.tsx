@@ -257,6 +257,7 @@ function CryptoBookingForm({
     title: `Booking: ${bookingDetails.date} ${bookingDetails.startTime}`,
     description: `Booking for ${bookingDetails.name} on ${bookingDetails.date}`,
     quantity: 1,
+    type: "booking",
     checkType: "booking",
     metadata: {
       type: "booking",
@@ -560,6 +561,7 @@ export function BookingPaymentComponent({
           price: price.amount,
           title: `Booking: ${bookingDetails.date} ${bookingDetails.startTime}`,
           description: `Booking for ${bookingDetails.name} on ${bookingDetails.date}`,
+          type: "booking",
           metadata: {
             type: "booking",
             bookingDetails: bookingDetails,
