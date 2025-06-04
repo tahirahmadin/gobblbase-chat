@@ -178,9 +178,17 @@ const Overview = () => {
                   Payments Setup
                 </span>
                 <span className="font-medium text-lg">
-                  {clientData?.paymentMethods.stripe.isActivated
-                    ? "Stripe"
-                    : "None"}
+                  {[
+                    clientData?.paymentMethods.stripe.isActivated &&
+                      clientData?.paymentMethods.stripe.enabled &&
+                      "Stripe",
+                    clientData?.paymentMethods.crypto.enabled &&
+                      clientData?.paymentMethods.crypto.walletAddress &&
+                      "Crypto",
+                    clientData?.paymentMethods.razorpay.enabled && "Razorpay",
+                  ]
+                    .filter(Boolean)
+                    .join(", ")}
                 </span>
               </div>
               <div className="relative z-10">
