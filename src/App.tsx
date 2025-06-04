@@ -49,6 +49,7 @@ import { useUserStore } from "./store/useUserStore";
 import RescheduleBookingWrapper from "./components/chatbotComponents/chatbotBookingComponents/RescheduleBookingWrapper";
 import Payments from "./pages/admin/TabsComponent/Account/Payments";
 import Income from "./pages/admin/TabsComponent/Account/Income";
+import Overview from "./pages/admin/TabsComponent/Dashboard/Overview";
 
 // Add type definition for window
 declare global {
@@ -101,7 +102,7 @@ function Dashboard() {
   // Redirect to profile only on initial load
   useEffect(() => {
     if (hasInitialized && isAdminLoggedIn && location.pathname === "/admin") {
-      navigate("/admin/dashboard/profile");
+      navigate("/admin/dashboard/overview");
     }
   }, [hasInitialized, isAdminLoggedIn, location.pathname, navigate]);
 
@@ -118,7 +119,9 @@ function Dashboard() {
   return (
     <AdminLayout>
       <Routes>
+        <Route path="dashboard/overview" element={<Overview />} />
         <Route path="dashboard/profile" element={<Profile />} />
+
         <Route path="dashboard/brain" element={<Brain />} />
         <Route path="dashboard/ai-model" element={<AiModel />} />
         <Route path="dashboard/voice" element={<Voice />} />
@@ -153,6 +156,7 @@ function Dashboard() {
         <Route path="account/plans" element={<Plans />} />
         <Route path="account/usage" element={<Usage />} />
         <Route path="all-agents" element={<AllAgents />} />
+        <Route path="dashboard/overview" element={<Overview />} />
         <Route path="*" element={<Navigate to="dashboard/profile" replace />} />
       </Routes>
     </AdminLayout>
