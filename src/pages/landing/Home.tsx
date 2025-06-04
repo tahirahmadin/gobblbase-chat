@@ -258,7 +258,7 @@ const buttonData = [
     activeBubbleImg: "/assets/landing-asset/assemble/pink-btn-bubble.svg",
     textColor: "#FF8FFF",
     brainPart: "/assets/landing-asset/Brains/pink-brain-part.svg",
-    style: {top: "19.9%", left: "31.2%", width:"24.6%" , height: "12.8%"}
+    style: { top: "19.9%", left: "31.2%", width: "24.6%", height: "12.8%" },
   },
   {
     id: 1,
@@ -267,7 +267,7 @@ const buttonData = [
     activeBubbleImg: "/assets/landing-asset/assemble/green-btn-bubble.svg",
     textColor: "#CDFF6A",
     brainPart: "/assets/landing-asset/Brains/green-brain-part.svg",
-    style: {top: "20%", right: "18.6%", width:"24.6%" , height: "12.8%"}
+    style: { top: "20%", right: "18.6%", width: "24.6%", height: "12.8%" },
   },
   {
     id: 3,
@@ -276,7 +276,7 @@ const buttonData = [
     activeBubbleImg: "/assets/landing-asset/assemble/purple-btn-bubble.svg",
     textColor: "#766AFF",
     brainPart: "/assets/landing-asset/Brains/purple-brain-part.svg",
-    style: {top: "19.29%", left: "40.75%", width:"18.2%" , height: "13%"}
+    style: { top: "19.29%", left: "40.75%", width: "18.2%", height: "13%" },
   },
   {
     id: 4,
@@ -285,7 +285,7 @@ const buttonData = [
     activeBubbleImg: "/assets/landing-asset/assemble/cyan-btn-bubble.svg",
     textColor: "#6AFFF0",
     brainPart: "/assets/landing-asset/Brains/cyan-brain-part.svg",
-    style: {top: "23.2%", left: "31.7%", width:"18.2%" , height: "17.2%"}
+    style: { top: "23.2%", left: "31.7%", width: "18.2%", height: "17.2%" },
   },
   {
     id: 5,
@@ -294,7 +294,7 @@ const buttonData = [
     activeBubbleImg: "/assets/landing-asset/assemble/orange-btn-bubble.svg",
     textColor: "#FF9D5C",
     brainPart: "/assets/landing-asset/Brains/orange-brain-part.svg",
-    style: {top: "15.3%", left: "38%", width:"24%" , height: "10%"}
+    style: { top: "15.3%", left: "38%", width: "24%", height: "10%" },
   },
   {
     id: 6,
@@ -303,7 +303,7 @@ const buttonData = [
     activeBubbleImg: "/assets/landing-asset/assemble/red-btn-bubble.svg",
     textColor: "#FF6363",
     brainPart: "/assets/landing-asset/Brains/red-brain-part.svg",
-    style: {top: "23.2%", right: "31.7%", width:"18.5%" , height: "17.2%"}
+    style: { top: "23.2%", right: "31.7%", width: "18.5%", height: "17.2%" },
   },
 ];
 const CTAButton = styled.button`
@@ -1331,7 +1331,7 @@ const FooterHeadline = styled.h2`
 `;
 
 const FooterSub = styled.p`
- font-family: "DM Sans", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 1rem;
   font-weight: 400;
   color: #e6eaff;
@@ -1437,24 +1437,40 @@ const FooterBelow = styled.div`
 
 const Home = () => {
   const [selectedBrains, setSelectedBrains] = useState([0]);
-  
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   const [selectedFeature, setSelectedFeature] = useState(features[0].key);
+  // Track if user manually selected a feature
+  const [userSelected, setUserSelected] = useState(false);
 
   const selected = features.find((f) => f.key === selectedFeature);
   const navigate = useNavigate();
 
+  // Auto-advance feature section every 3 seconds
+  useEffect(() => {
+    if (userSelected) {
+      // If user manually selected, reset flag and skip this interval
+      setUserSelected(false);
+      return;
+    }
+    const currentIdx = features.findIndex((f) => f.key === selectedFeature);
+    const nextIdx = (currentIdx + 1) % features.length;
+    const timer = setTimeout(() => {
+      setSelectedFeature(features[nextIdx].key);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [selectedFeature, userSelected]);
+
   const handleSelectBrain = (index: number) => {
-    if(index === 0) return;
-    if(selectedBrains.includes(index)){
+    if (index === 0) return;
+    if (selectedBrains.includes(index)) {
       setSelectedBrains(selectedBrains.filter((i) => i !== index));
     } else {
-      setSelectedBrains([...selectedBrains, index].sort((a,b) => a-b));
+      setSelectedBrains([...selectedBrains, index].sort((a, b) => a - b));
     }
-
-  }
+  };
   useEffect(() => {
     const handleScroll = () => {
       const isScrolled = window.scrollY > 10;
@@ -1603,7 +1619,11 @@ const Home = () => {
                           onClick={() => handleSelectBrain(id)}
                         >
                           <img
-                            src={isSelected ? btn.activeBubbleImg : btn.defaultBubbleImg}
+                            src={
+                              isSelected
+                                ? btn.activeBubbleImg
+                                : btn.defaultBubbleImg
+                            }
                             alt="bubble"
                             className="block w-fit h-[40px] sm:h-[50px]"
                           />
@@ -1632,25 +1652,34 @@ const Home = () => {
             <article className="right-side lg:block w-[80%] lg:w-[40%] z-10 lg:mt-16 ">
               <div className="relative">
                 <span className="relative">
-                    <img
-                      src="/assets/landing-asset/assemble/hero-mascot.png"
-                      alt="Kifor Mascot"
-                    />
-                    {buttonData.map((part, index) => (
-                      <div key={part.id} 
-                        style={{
-                          position: "absolute",
-                          top: part.style.top,
-                          left: part.style.left,
-                          right: part.style.right,
-                          width: part.style.width,
-                          height: part.style.height,
-                      }} 
-                      className={`transition-opacity duration-300 ${selectedBrains.includes(index)                                                                                          
-                      ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
-                          <img src={part.brainPart} alt={part.label} className="w-fit h-full" />
-                      </div>
-                    ))}
+                  <img
+                    src="/assets/landing-asset/assemble/hero-mascot.png"
+                    alt="Kifor Mascot"
+                  />
+                  {buttonData.map((part, index) => (
+                    <div
+                      key={part.id}
+                      style={{
+                        position: "absolute",
+                        top: part.style.top,
+                        left: part.style.left,
+                        right: part.style.right,
+                        width: part.style.width,
+                        height: part.style.height,
+                      }}
+                      className={`transition-opacity duration-300 ${
+                        selectedBrains.includes(index)
+                          ? "opacity-100"
+                          : "opacity-0 pointer-events-none"
+                      }`}
+                    >
+                      <img
+                        src={part.brainPart}
+                        alt={part.label}
+                        className="w-fit h-full"
+                      />
+                    </div>
+                  ))}
                 </span>
                 <div
                   style={{
@@ -1672,7 +1701,7 @@ const Home = () => {
           <PracticalSection>
             <BlackBackground>
               <span className="card-1 relative z-10 w-full h-fit">
-                <h1 className="px-3">Sayy? What’s that?</h1>
+                <h1 className="px-3">Sayy? What's that?</h1>
               </span>
             </BlackBackground>
             <WhiteBackground
@@ -1924,6 +1953,7 @@ const Home = () => {
                         block: "center",
                       });
                     setSelectedFeature(feature.key);
+                    setUserSelected(true); // <-- add this
                   }}
                 >
                   <FeatureIcon
@@ -1976,7 +2006,10 @@ const Home = () => {
                     >
                       <FeatureListItem
                         selected={selectedFeature === feature.key}
-                        onClick={() => setSelectedFeature(feature.key)}
+                        onClick={() => {
+                          setSelectedFeature(feature.key);
+                          setUserSelected(true);
+                        }}
                       >
                         <FeatureListLabel
                           className={`w-full pl-4 pr-3 py-4
@@ -2198,8 +2231,8 @@ const Home = () => {
               </BlackBackground>
               <WhiteBackground className="ml-auto mr-1">
                 <span className="card-2 ml-auto w-full h-fit">
-                    Train your AI-mployee’s intelligence and personality to
-                    talk, think, and sell like you. No code needed.
+                  Train your AI-mployee's intelligence and personality to talk,
+                  think, and sell like you. No code needed.
                 </span>
               </WhiteBackground>
             </article>
@@ -2239,7 +2272,7 @@ const Home = () => {
                       ></object>
                     </div>
                     <p className="para-font mt-4 font-[400] text-[1rem]">
-                      Smarten up your Agent’s brain with files, catalogs, social
+                      Smarten up your Agent's brain with files, catalogs, social
                       links and all information related to your business.
                     </p>
                   </div>
@@ -2278,7 +2311,7 @@ const Home = () => {
                     </div>
                   </div>
                   <div className="card-heading">
-                    <h1 className="">Your brand’s extension</h1>
+                    <h1 className="">Your brand's extension</h1>
                   </div>
                   <div className="content">
                     <div className="img">
@@ -2312,8 +2345,8 @@ const Home = () => {
               </BlackBackground>
               <WhiteBackground className="ml-auto">
                 <span className="card-2 ml-auto w-full h-fit">
-                    One word - SAYY YES! We are reimagining common business
-                    tools under one umbrella. It’s time to stop switching tabs.
+                  One word - SAYY YES! We are reimagining common business tools
+                  under one umbrella. It's time to stop switching tabs.
                   <h1 className="font-[700]">Goodbye, App Overload!</h1>
                 </span>
               </WhiteBackground>
@@ -2437,9 +2470,9 @@ const Home = () => {
             </BlackBackground>
             <WhiteBackground className="ml-auto">
               <span className="">
-                  Convert any API into a feature packed selling machine. Make
-                  your agents powerful by integrating 200+ apps using Model
-                  Context Protocol (MCP).
+                Convert any API into a feature packed selling machine. Make your
+                agents powerful by integrating 200+ apps using Model Context
+                Protocol (MCP).
               </span>
             </WhiteBackground>
             <IntegrationsGrid>
@@ -2493,7 +2526,7 @@ const Home = () => {
                     className="[@media(max-width:800px)]:hidden"
                   />
                   <p className="hidden [@media(max-width:800px)]:block">
-                    © 2025 Sayy AI
+                    © 2025 Sayy AI
                   </p>
                 </FooterLogo>
               </FooterRight>

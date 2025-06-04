@@ -260,3 +260,12 @@ export interface UserDetails {
     zipcode: string;
   };
 }
+
+export interface AnalyticsData {
+  bookingsReceived: number;
+  dailyIncome: Record<string, number>;
+  leadsReceived: number;
+  ordersReceived: number;
+  totalIncome: number;
+  planId: string;
+}

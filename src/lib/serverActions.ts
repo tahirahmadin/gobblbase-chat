@@ -1,6 +1,7 @@
 import axios from "axios";
 import {
   AdminAgent,
+  AnalyticsData,
   CreateNewAgentResponse,
   Theme,
   UserDetails,
@@ -307,13 +308,10 @@ export async function signUpClient(
   handle: string
 ): Promise<SignUpClientResponse> {
   try {
-    console.log("Making signUpClient request with:", { via, handle });
     const response = await axios.post(`${apiUrl}/client/signupClient`, {
       via,
       handle,
     });
-
-    console.log("SignUpClient raw response:", response);
 
     if (!response.data) {
       throw new Error("No data received from server");
@@ -1969,11 +1967,13 @@ export async function enableCryptoPayment(
     };
   } catch (error) {
     console.error("Error enabling crypto payments:", error);
-    throw new Error(
-      error instanceof Error
-        ? error.message
-        : "Failed to enable crypto payments"
-    );
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to enable crypto payments",
+    };
   }
 }
 
@@ -2004,5 +2004,31 @@ export async function submitWhatsapp(
   } catch (error) {
     console.error("Error submitting WhatsApp number:", error);
     return false;
+  }
+}
+
+/**
+ * Fetch analytics for a given clientId
+ * @param clientId string
+ * @returns Promise<AnalyticsData>
+ */
+export async function getClientAnalytics(
+  clientId: string
+): Promise<AnalyticsData> {
+  try {
+    const response = await axios.get(`${apiUrl}/client/getAnalytics`, {
+      params: { clientId },
+    });
+
+    if (response.data.error) {
+      throw new Error(response.data.result || "Failed to fetch analytics");
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching analytics:", error);
+    throw new Error(
+      error instanceof Error ? error.message : "Failed to fetch analytics data"
+    );
   }
 }
