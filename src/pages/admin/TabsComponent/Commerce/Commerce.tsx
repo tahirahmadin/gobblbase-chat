@@ -14,7 +14,7 @@ const Commerce = () => {
   };
 
   return (
-    <div className="min-h-screen w-full lg:w-full">
+    <div className="min-h-screen w-full lg:w-full overflow-y-scroll h-[100%]">
       <div>{renderContent()}</div>
     </div>
   );
