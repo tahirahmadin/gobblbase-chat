@@ -200,6 +200,7 @@ function CryptoPaymentForm({
 }) {
   const { activeBotData, activeBotId } = useBotConfig();
   const { userId, userEmail, fetchUserDetails } = useUserStore();
+  const clientId = activeBotData?.clientId;
   const walletAddress = activeBotData?.paymentMethods.crypto.walletAddress;
   const supportedChains = activeBotData?.paymentMethods.crypto.chains;
 
@@ -234,6 +235,7 @@ function CryptoPaymentForm({
     userId: userId,
     userEmail: userEmail,
     shipping,
+    clientId: clientId,
   });
 
   // Loader and status UI for polling
@@ -446,6 +448,7 @@ export function PaymentSection({
 }: PaymentSectionProps) {
   const { activeBotId, activeBotData } = useBotConfig();
   const { userId, userEmail, fetchUserDetails } = useUserStore();
+  const clientId = activeBotData?.clientId;
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("stripe");
   const [isLoading, setIsLoading] = useState(false);
@@ -497,6 +500,7 @@ export function PaymentSection({
           body: JSON.stringify({
             lineItems: [],
             agentId: activeBotId,
+            clientId: clientId,
             userId: userId,
             userEmail: userEmail,
             amount: 0,
@@ -576,6 +580,7 @@ export function PaymentSection({
             body: JSON.stringify({
               cart: [product],
               agentId: activeBotId,
+              clientId: clientId,
               userId: userId,
               userEmail: userEmail,
               stripeAccountId: activeBotData.paymentMethods.stripe.accountId,
