@@ -16,7 +16,7 @@ interface ClientData {
       enabled: boolean;
       isActivated: boolean;
       accountId: string;
-      reasons;
+      reasons: string[];
     };
     razorpay: {
       enabled: boolean;

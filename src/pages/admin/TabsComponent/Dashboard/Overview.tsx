@@ -55,11 +55,10 @@ const Overview = () => {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [cardData, setCardData] = useState<any>(null);
 
   const navigate = useNavigate();
   const { activeBotId, activeBotData } = useBotConfig();
-  const { adminId } = useAdminStore();
+  const { adminId, clientData } = useAdminStore();
   const [agentPicture, setAgentPicture] = useState<string | null>(null);
 
   useEffect(() => {
@@ -178,7 +177,11 @@ const Overview = () => {
                 <span className="whitespace-nowrap text-gray-500 font-semibold text-sm">
                   Payments Setup
                 </span>
-                <span className="font-medium text-lg">Stripe</span>
+                <span className="font-medium text-lg">
+                  {clientData?.paymentMethods.stripe.enabled
+                    ? "Stripe"
+                    : "None"}
+                </span>
               </div>
               <div className="relative z-10">
                 <Button
