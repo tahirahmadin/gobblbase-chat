@@ -648,7 +648,7 @@ const CreateNewBot: React.FC = () => {
 
         // Set the new bot as active and navigate
         setActiveBotId(response.result.agentId);
-        navigate("/admin/dashboard/profile");
+        navigate("/admin/dashboard/overview");
       } else {
         toast.error("Failed to create agent");
       }

@@ -41,6 +41,7 @@ const navItems: NavItem[] = [
     path: "/admin/dashboard",
     expandable: true,
     subItems: [
+      { name: "Overview", path: "/admin/dashboard/overview" },
       { name: "Profile", path: "/admin/dashboard/profile" },
       { name: "Brain/PDF", path: "/admin/dashboard/brain" },
       { name: "AI Model", path: "/admin/dashboard/ai-model" },
