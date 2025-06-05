@@ -168,7 +168,11 @@ const LogoutModal = ({
   );
 };
 
-const Sidebar = () => {
+interface SidebarProps {
+  onClose?: () => void;
+}
+
+const Sidebar = ({ onClose }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [expandedTabs, setExpandedTabs] = useState<string[]>([]);
@@ -205,6 +209,14 @@ const Sidebar = () => {
         )
       : navItems;
 
+  const handleTabClick = (path: string) => {
+    navigate(path);
+    // Close sidebar on mobile when a tab is clicked
+    if (onClose) {
+      onClose();
+    }
+  };
+
   return (
     <div className="w-64 bg-black h-screen text-white p-4 flex flex-col overflow-y-auto">
       <div className="mb-8 flex justify-center">
@@ -224,7 +236,7 @@ const Sidebar = () => {
                 if (item.expandable) {
                   toggleTab(item.name);
                 } else {
-                  navigate(item.path);
+                  handleTabClick(item.path);
                 }
               }}
               className={`w-full flex items-center justify-between px-4 py-2 rounded-lg transition-colors ${
@@ -252,7 +264,7 @@ const Sidebar = () => {
                 {item.subItems?.map((subItem) => (
                   <button
                     key={subItem.path}
-                    onClick={() => navigate(subItem.path)}
+                    onClick={() => handleTabClick(subItem.path)}
                     className={`w-full flex items-center px-4 py-2 rounded-lg transition-colors ${
                       location.pathname === subItem.path
                         ? "bg-blue-600 text-white"

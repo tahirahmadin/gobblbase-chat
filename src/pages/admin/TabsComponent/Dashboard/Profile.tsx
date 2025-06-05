@@ -236,8 +236,12 @@ const Profile = () => {
       const newSmartnessLevel = calculateSmartnessLevel(activeBotData);
       setSmartnessLevel(newSmartnessLevel);
 
+      // Initialize WhatsApp values
       setWhatsappCountryCode(activeBotData.whatsappNumber.countryCode);
       setWhatsappNumber(activeBotData.whatsappNumber.number);
+      // Initialize saved WhatsApp values
+      setSavedWhatsappCountryCode(activeBotData.whatsappNumber.countryCode);
+      setSavedWhatsappNumber(activeBotData.whatsappNumber.number);
     }
   }, [activeBotData]);
 
