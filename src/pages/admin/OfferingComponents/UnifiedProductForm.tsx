@@ -822,6 +822,29 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       </Button>
                     </div>
                   </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="uploadType"
+                      value="redirect"
+                      checked={form.uploadType === "redirect"}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, uploadType: e.target.value }))
+                      }
+                      className="accent-green-500 w-5 h-5"
+                    />
+                    <span>Redirect to URL</span>
+                    <input
+                      type="text"
+                      className="ml-2 border border-gray-300 rounded p-1 bg-white"
+                      placeholder="http://"
+                      value={form.fileUrl || ""}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, fileUrl: e.target.value }))
+                      }
+                      disabled={form.uploadType !== "redirect"}
+                    />
+                  </label>
                   {/* Status line */}
                   <div className="mt-2 text-sm">
                     {form.uploadType === "upload" && (
@@ -855,7 +878,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                             )}
                           </div>
                         )}
-                        {/* {form.uploadType === "upload" &&
+                        {form.uploadType === "upload" &&
                           editMode &&
                           form.fileUrl && (
                             <a
@@ -866,7 +889,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                             >
                               View attachment
                             </a>
-                          )} */}
+                          )}
                       </>
                     )}
                   </div>

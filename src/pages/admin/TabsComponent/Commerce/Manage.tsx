@@ -298,7 +298,7 @@ const Manage = () => {
                       <td className="py-1.5 px-2 text-sm rounded-l-[12px] text-center">
                         {p.productId}
                       </td>
-                      <td className="py-1.5 px-2 text-sm text-center w-fit">
+                      <td className="py-1.5 px-2 text-sm text-center justify-start w-fit">
                         <div className="flex items-center gap-1.5 justify-center">
                           <img
                             src={
