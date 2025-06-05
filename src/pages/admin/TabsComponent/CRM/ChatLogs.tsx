@@ -80,7 +80,7 @@ const ChatLogs = () => {
       <h2 className="text-lg font-semibold mb-4 px-4 md:px-0">Chat Logs</h2>
       <div className="flex flex-col md:flex-row bg-white rounded-lg shadow p-2 md:p-4 h-[calc(100vh-12rem)] max-h-[800px] md:max-h-none w-full">
         {/* Left: Chat Sessions */}
-        <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r pb-4 md:pb-0 pr-0 md:pr-4 flex flex-col h-[40vh] md:h-full">
+        <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r pb-4 md:pb-0 pr-0 md:pr-4 flex flex-col h-[40vh] md:h-full bg-[#D4DEFF]">
           {isLoading ? (
             <div className="flex justify-center items-center h-full">
               Loading...
@@ -92,8 +92,8 @@ const ChatLogs = () => {
               No chats found
             </div>
           ) : (
-            <div className="flex flex-col h-full">
-              <div className="flex-1  space-y-2 min-h-0 px-2">
+            <div className="flex flex-col h-full ">
+              <div className="flex-1  space-y-2 min-h-0 px-2 ">
                 {paginatedSessions.map((session) => (
                   <div
                     key={session._id}

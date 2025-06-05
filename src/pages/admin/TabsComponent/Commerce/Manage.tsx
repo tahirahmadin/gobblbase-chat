@@ -267,7 +267,7 @@ const Manage = () => {
                   <th className="py-1.5 px-2 text-left text-sm rounded-l-[12px] text-center">
                     CODE
                   </th>
-                  <th className="py-1.5 px-2 text-left text-sm text-center">
+                  <th className="py-1.5 px-2 text-left text-sm ">
                     ITEM NAME
                   </th>
                   <th className="py-1.5 px-2 text-left text-sm text-center">
@@ -298,8 +298,8 @@ const Manage = () => {
                       <td className="py-1.5 px-2 text-sm rounded-l-[12px] text-center">
                         {p.productId}
                       </td>
-                      <td className="py-1.5 px-2 text-sm text-center justify-start w-fit">
-                        <div className="flex items-center gap-1.5 justify-center">
+                      <td className="py-1.5 px-2 text-sm text-left">
+                        <div className="flex items-center gap-1.5 justify-start ">
                           <img
                             src={
                               p.images[0] ||
