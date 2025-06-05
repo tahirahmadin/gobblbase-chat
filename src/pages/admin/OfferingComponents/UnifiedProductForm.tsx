@@ -404,8 +404,9 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                 setErrors((prev) => ({ ...prev, title: undefined }));
               }
             }}
-            className={`w-full border ${errors.title ? "border-red-500" : "border-[#7d7d7d]"
-              } px-2 py-1 mt-1 mb-1 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white`}
+            className={`w-full border ${
+              errors.title ? "border-red-500" : "border-[#7d7d7d]"
+            } px-2 py-1 mt-1 mb-1 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white`}
             placeholder={`Type ${getTitle()} title...`}
           />
           <div className="flex justify-between">
@@ -423,8 +424,9 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                 setErrors((prev) => ({ ...prev, category: undefined }));
               }
             }}
-            className={`w-full border ${errors.category ? "border-red-500" : "border-[#7d7d7d]"
-              } px-2 py-1 mt-1 mb-1 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white`}
+            className={`w-full border ${
+              errors.category ? "border-red-500" : "border-[#7d7d7d]"
+            } px-2 py-1 mt-1 mb-1 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white`}
             placeholder="Type the category..."
           />
           <div className="flex justify-between">
@@ -475,10 +477,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                   <button
                     key={eventType}
                     type="button"
-                    className={`px-3 py-1 rounded border text-xs font-semibold transition-colors duration-150 ${form.eventType === eventType
+                    className={`px-3 py-1 rounded border text-xs font-semibold transition-colors duration-150 ${
+                      form.eventType === eventType
                         ? "bg-indigo-500 text-white border-indigo-600"
                         : "bg-white text-gray-700 border-gray-300 hover:bg-indigo-100"
-                      }`}
+                    }`}
                     onClick={() =>
                       setForm((f) => ({
                         ...f,
@@ -506,8 +509,9 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                   setErrors((prev) => ({ ...prev, description: undefined }));
                 }
               }}
-              className={`w-full border ${errors.description ? "border-red-500" : "border-[#7d7d7d]"
-                } px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white`}
+              className={`w-full border ${
+                errors.description ? "border-red-500" : "border-[#7d7d7d]"
+              } px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white`}
               placeholder="Describe your offering..."
               rows={4}
               maxLength={300}
@@ -750,10 +754,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       {/* Custom Circle Visual */}
                       <div
                         className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
-                        ${form.uploadType === "upload"
+                        ${
+                          form.uploadType === "upload"
                             ? "bg-[#CEFFDC]"
                             : "bg-[#CDCDCD]"
-                          }
+                        }
                           `}
                       >
                         {form.uploadType === "upload" && (
@@ -800,10 +805,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       />
                       <label
                         htmlFor="digital-upload-file"
-                        className={`border-2 whitespace-nowrap border-dashed border-gray-300 rounded px-2 py-1 bg-gray-50 cursor-pointer ${form.uploadType !== "upload"
+                        className={`border-2 whitespace-nowrap border-dashed border-gray-300 rounded px-2 py-1 bg-gray-50 cursor-pointer ${
+                          form.uploadType !== "upload"
                             ? "opacity-50 cursor-not-allowed"
                             : ""
-                          }`}
+                        }`}
                       >
                         Drag & Drop File
                       </label>
@@ -893,10 +899,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       {/* Custom Circle Visual */}
                       <div
                         className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
-                        ${form.locationType === "online"
+                        ${
+                          form.locationType === "online"
                             ? "bg-[#CEFFDC]"
                             : "bg-[#CDCDCD]"
-                          }
+                        }
                           `}
                       >
                         {form.locationType === "online" && (
@@ -914,16 +921,20 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                         value="offline"
                         checked={form.locationType === "offline"}
                         onChange={(e) =>
-                          setForm((f) => ({ ...f, locationType: e.target.value }))
+                          setForm((f) => ({
+                            ...f,
+                            locationType: e.target.value,
+                          }))
                         }
                         className="hidden"
                       />
                       <div
                         className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
-                        ${form.locationType === "offline"
+                        ${
+                          form.locationType === "offline"
                             ? "bg-[#CEFFDC]"
                             : "bg-[#CDCDCD]"
-                          }
+                        }
                           `}
                       >
                         {form.locationType === "offline" && (
@@ -945,7 +956,6 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                     <div className="text-xs text-gray-500 ml-2">
                       {(form.address || "").length}/50
                     </div>
-
                   </label>
                 </div>
               </div>
@@ -957,12 +967,13 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
             <article className="event">
               <label className="font-semibold block">Set Slots</label>
               <div className="border border-[#7D7D7D] rounded-lg p-4">
-
                 <div className="text-xs text-gray-500 mb-2">
                   Timezone: {userTimeZone}
                 </div>
                 {errors.slots && (
-                  <div className="text-xs text-red-500 mb-2">{errors.slots}</div>
+                  <div className="text-xs text-red-500 mb-2">
+                    {errors.slots}
+                  </div>
                 )}
 
                 <article className="relative flex flex-col gap-20">
@@ -975,7 +986,9 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                           onClick={() => {
                             setForm((f) => ({
                               ...f,
-                              slots: (f.slots || []).filter((_, i) => i !== index),
+                              slots: (f.slots || []).filter(
+                                (_, i) => i !== index
+                              ),
                             }));
                           }}
                         >
@@ -1000,10 +1013,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                                   })
                                 }
                                 dateFormat="MM/dd/yyyy"
-                                className={`border p-2 ${errors.slotDetails?.[index]?.date
+                                className={`border p-2 ${
+                                  errors.slotDetails?.[index]?.date
                                     ? "border-red-500"
                                     : "border-[#7d7d7d]"
-                                  } text-xs`}
+                                } text-xs`}
                                 placeholderText="Select date"
                                 minDate={new Date()}
                                 isClearable
@@ -1016,22 +1030,20 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                             </div>
                           </div>
                         </div>
-                              {errors.slotDetails?.[index]?.date && (
-                                <div className="text-xs text-red-500">
-                                  {errors.slotDetails[index].date}
-                                </div>
-                              )}
+                        {errors.slotDetails?.[index]?.date && (
+                          <div className="text-xs text-red-500">
+                            {errors.slotDetails[index].date}
+                          </div>
+                        )}
                         {/* start end time  */}
                         <div className="flex flex-col items-end gap-2">
-                          
                           <div className="flex items-center gap-2 lg:flex-col lg:items-start xl:flex-row xl:items-center">
-                            <span className="text-xs font-semibold">
-                              Start
-                            </span>
+                            <span className="text-xs font-semibold">Start</span>
                             <div className="start-time flex items-center w-full">
-                              
                               <DatePicker
-                                selected={slot.start ? new Date(slot.start) : null}
+                                selected={
+                                  slot.start ? new Date(slot.start) : null
+                                }
                                 onChange={(time: Date | null) =>
                                   setForm((f) => {
                                     const slots = [...(f.slots || [])];
@@ -1039,7 +1051,9 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                                       ...slots[index],
                                       start: time,
                                       end:
-                                        time && slot.end && time > new Date(slot.end)
+                                        time &&
+                                        slot.end &&
+                                        time > new Date(slot.end)
                                           ? null
                                           : slot.end,
                                     };
@@ -1051,10 +1065,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                                 timeIntervals={15}
                                 timeCaption="Time"
                                 dateFormat="h:mm aa"
-                                className={`border ${errors.slotDetails?.[index]?.start
+                                className={`border ${
+                                  errors.slotDetails?.[index]?.start
                                     ? "border-red-500"
                                     : "border-[#7d7d7d]"
-                                  } p-2  w-24 text-xs`}
+                                } p-2  w-24 text-xs`}
                                 placeholderText="Select time"
                                 isClearable
                                 showPopperArrow={false}
@@ -1070,19 +1085,15 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                                 <ChevronDown size={20} />
                               </div>
                             </div>
-                            
-
                           </div>
-                            {errors.slotDetails?.[index]?.start && (
-                                <div className="text-xs text-red-500">
-                                  {errors.slotDetails[index].start}
-                                </div>
-                              )}
+                          {errors.slotDetails?.[index]?.start && (
+                            <div className="text-xs text-red-500">
+                              {errors.slotDetails[index].start}
+                            </div>
+                          )}
                           {/* end time  */}
                           <div className="flex items-center gap-2 lg:flex-col lg:items-start xl:flex-row xl:items-center">
-                            <span className="text-xs font-semibold">
-                              End
-                            </span>
+                            <span className="text-xs font-semibold">End</span>
                             <div className="date flex items-center w-full">
                               <DatePicker
                                 selected={slot.end ? new Date(slot.end) : null}
@@ -1101,10 +1112,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                                 timeIntervals={15}
                                 timeCaption="Time"
                                 dateFormat="h:mm aa"
-                                className={`border ${errors.slotDetails?.[index]?.end
+                                className={`border ${
+                                  errors.slotDetails?.[index]?.end
                                     ? "border-red-500"
                                     : "border-[#7d7d7d]"
-                                  }  p-2  w-24 text-xs`}
+                                }  p-2  w-24 text-xs`}
                                 placeholderText="Select time"
                                 isClearable
                                 showPopperArrow={false}
@@ -1123,14 +1135,13 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                               <div className="calender-icon bg-[#AEB8FF] border border-[#7d7d7d] border-l-transparent px-2 py-[6px]">
                                 <ChevronDown size={20} />
                               </div>
-                              
                             </div>
                           </div>
                           {errors.slotDetails?.[index]?.end && (
-                                <div className="text-xs text-red-500">
-                                  {errors.slotDetails[index].end}
-                                </div>
-                              )}
+                            <div className="text-xs text-red-500">
+                              {errors.slotDetails[index].end}
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="mb-2 text-sm font-semibold">
@@ -1158,10 +1169,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                           {/* Custom Circle Visual */}
                           <div
                             className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
-                          ${slot.seatType === "unlimited"
-                                ? "bg-[#CEFFDC]"
-                                : "bg-[#CDCDCD]"
-                              }
+                          ${
+                            slot.seatType === "unlimited"
+                              ? "bg-[#CEFFDC]"
+                              : "bg-[#CDCDCD]"
+                          }
                             `}
                           >
                             {slot.seatType === "unlimited" && (
@@ -1172,37 +1184,38 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                         </label>
                         <label className="flex items-center gap-2 lg:flex-col lg:items-start xl:flex-row xl:items-center">
                           <span className="flex items-center gap-2">
-                              <input
-                                type="radio"
-                                name={`seatType-${index}`}
-                                value="limited"
-                                checked={slot.seatType === "limited"}
-                                onChange={() =>
-                                  setForm((f) => {
-                                    const slots = [...(f.slots || [])];
-                                    slots[index] = {
-                                      ...slots[index],
-                                      seatType: "limited",
-                                    };
-                                    return { ...f, slots };
-                                  })
-                                }
-                                className="hidden"
-                              />
-                              {/* Custom Circle Visual */}
-                              <div
-                                className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
-                              ${slot.seatType === "limited"
-                                    ? "bg-[#CEFFDC]"
-                                    : "bg-[#CDCDCD]"
-                                  }
+                            <input
+                              type="radio"
+                              name={`seatType-${index}`}
+                              value="limited"
+                              checked={slot.seatType === "limited"}
+                              onChange={() =>
+                                setForm((f) => {
+                                  const slots = [...(f.slots || [])];
+                                  slots[index] = {
+                                    ...slots[index],
+                                    seatType: "limited",
+                                  };
+                                  return { ...f, slots };
+                                })
+                              }
+                              className="hidden"
+                            />
+                            {/* Custom Circle Visual */}
+                            <div
+                              className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
+                              ${
+                                slot.seatType === "limited"
+                                  ? "bg-[#CEFFDC]"
+                                  : "bg-[#CDCDCD]"
+                              }
                                 `}
-                              >
-                                {slot.seatType === "limited" && (
-                                  <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]" />
-                                )}
-                              </div>
-                              <span className="font-medium ">Limited Seats</span>
+                            >
+                              {slot.seatType === "limited" && (
+                                <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]" />
+                              )}
+                            </div>
+                            <span className="font-medium ">Limited Seats</span>
                           </span>
                           <input
                             type="text"
@@ -1249,16 +1262,16 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                                 e.preventDefault();
                               }
                             }}
-                            className={`border ${errors.slotDetails?.[index]?.seats
+                            className={`border ${
+                              errors.slotDetails?.[index]?.seats
                                 ? "border-red-500"
                                 : "border-[#7d7d7d]"
-                              } p-2 text-sm`}
+                            } p-2 text-sm`}
                             disabled={slot.seatType !== "limited"}
                           />
                         </label>
                       </div>
                     </div>
-
                   ))}
                 </article>
               </div>
@@ -1314,10 +1327,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       {/* Custom Circle Visual */}
                       <div
                         className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
-                        ${form.quantityType === "unlimited"
+                        ${
+                          form.quantityType === "unlimited"
                             ? "bg-[#CEFFDC]"
                             : "bg-[#CDCDCD]"
-                          }
+                        }
                           `}
                       >
                         {form.quantityType === "unlimited" && (
@@ -1346,10 +1360,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                         {/* Custom Circle Visual */}
                         <div
                           className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
-                                  ${form.quantityType === "oneSize"
-                              ? "bg-[#CEFFDC]"
-                              : "bg-[#CDCDCD]"
-                            }
+                                  ${
+                                    form.quantityType === "oneSize"
+                                      ? "bg-[#CEFFDC]"
+                                      : "bg-[#CDCDCD]"
+                                  }
                                     `}
                         >
                           {form.quantityType === "oneSize" && (
@@ -1398,10 +1413,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                             e.preventDefault();
                           }
                         }}
-                        className={`border ${errors.quantity
+                        className={`border ${
+                          errors.quantity
                             ? "border-red-500"
                             : "border-[#7D7D7D]"
-                          } w-full p-2 w-24 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-300`}
+                        } w-full p-2 w-24 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-300`}
                         placeholder="Enter quantity"
                         disabled={form.quantityType !== "oneSize"}
                       />
@@ -1425,9 +1441,10 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                         {/* Custom Circle Visual */}
                         <div
                           className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
-                            ${form.quantityType === "variedSizes"
-                              ? "bg-[#CEFFDC]"
-                              : "bg-[#CDCDCD]"
+                            ${
+                              form.quantityType === "variedSizes"
+                                ? "bg-[#CEFFDC]"
+                                : "bg-[#CDCDCD]"
                             }
                               `}
                         >
@@ -1447,10 +1464,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                           >
                             <button
                               type="button"
-                              className={`border px-2 py-2 text-xs font-semibold w-fit ${form.variedSizes?.includes(size)
+                              className={`border px-2 py-2 text-xs font-semibold w-fit ${
+                                form.variedSizes?.includes(size)
                                   ? "bg-indigo-200 border-indigo-500 font-bold"
                                   : "bg-white border-gray-300"
-                                }`}
+                              }`}
                               onClick={() => {
                                 if (form.quantityType !== "variedSizes") return;
                                 setForm((f) => {
@@ -1481,10 +1499,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                             </button>
                             <input
                               type="number"
-                              className={`border ${errors.variedQuantities?.[size]
+                              className={`border ${
+                                errors.variedQuantities?.[size]
                                   ? "border-red-500"
                                   : "border-l-[#7D7D7D]"
-                                }  px-2 py-2 w-16 text-center text-xs bg-white w-full`}
+                              }  px-2 py-2 w-16 text-center text-xs bg-white w-full`}
                               placeholder="XXXXX"
                               value={form.variedQuantities?.[size] || ""}
                               onChange={(e) => {
@@ -1566,10 +1585,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       {/* Custom Circle Visual */}
                       <div
                         className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
-                                ${form.quantityType === "unlimited"
-                            ? "bg-[#CEFFDC]"
-                            : "bg-[#CDCDCD]"
-                          }
+                                ${
+                                  form.quantityType === "unlimited"
+                                    ? "bg-[#CEFFDC]"
+                                    : "bg-[#CDCDCD]"
+                                }
                                   `}
                       >
                         {form.quantityType === "unlimited" && (
@@ -1597,10 +1617,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                         {/* Custom Circle Visual */}
                         <div
                           className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
-                        ${form.quantityType === "oneSize"
-                              ? "bg-[#CEFFDC]"
-                              : "bg-[#CDCDCD]"
-                            }
+                        ${
+                          form.quantityType === "oneSize"
+                            ? "bg-[#CEFFDC]"
+                            : "bg-[#CDCDCD]"
+                        }
                           `}
                         >
                           {form.quantityType === "oneSize" && (
@@ -1648,10 +1669,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                             e.preventDefault();
                           }
                         }}
-                        className={`border ${errors.quantity
+                        className={`border ${
+                          errors.quantity
                             ? "border-red-500"
                             : "border-[#7D7D7D]"
-                          } w-full p-2 w-24 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-300`}
+                        } w-full p-2 w-24 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-300`}
                         placeholder="Enter quantity"
                         disabled={form.quantityType !== "oneSize"}
                       />
@@ -1679,10 +1701,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                   {/* Custom Circle Visual */}
                   <div
                     className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
-                            ${form.priceType === "free"
-                        ? "bg-[#CEFFDC]"
-                        : "bg-[#CDCDCD]"
-                      }
+                            ${
+                              form.priceType === "free"
+                                ? "bg-[#CEFFDC]"
+                                : "bg-[#CDCDCD]"
+                            }
                     `}
                   >
                     {form.priceType === "free" && (
@@ -1693,33 +1716,34 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                 </label>
                 <label className="flex items-center gap-2 lg:flex-col lg:items-start xl:flex-row xl:items-center">
                   <span className="flex items-center gap-2">
-                      <input
-                          type="radio"
-                          name="priceType"
-                          value="paid"
-                          checked={form.priceType === "paid"}
-                          onChange={(e) =>
-                            setForm((f) => ({ ...f, priceType: e.target.value }))
-                          }
-                          className="hidden"
-                        />
-                        {/* Custom Circle Visual */}
-                        <div
-                          className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
-                                  ${form.priceType === "paid"
-                              ? "bg-[#CEFFDC]"
-                              : "bg-[#CDCDCD]"
-                            }
+                    <input
+                      type="radio"
+                      name="priceType"
+                      value="paid"
+                      checked={form.priceType === "paid"}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, priceType: e.target.value }))
+                      }
+                      className="hidden"
+                    />
+                    {/* Custom Circle Visual */}
+                    <div
+                      className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
+                                  ${
+                                    form.priceType === "paid"
+                                      ? "bg-[#CEFFDC]"
+                                      : "bg-[#CDCDCD]"
+                                  }
                           `}
-                        >
-                          {form.priceType === "paid" && (
-                            <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]" />
-                          )}
-                        </div>
+                    >
+                      {form.priceType === "paid" && (
+                        <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]" />
+                      )}
+                    </div>
 
-                        <span>USD</span>
+                    <span>{activeBotData?.currency}</span>
                   </span>
-                  
+
                   <div className="border-[#7d7d7d] flex border overflow-hidden">
                     <input
                       type="number"
@@ -1741,8 +1765,9 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                           e.preventDefault();
                         }
                       }}
-                      className={`${errors.price ? "border-red-500" : ""
-                        }  pl-1 w-32`}
+                      className={`${
+                        errors.price ? "border-red-500" : ""
+                      }  pl-1 w-32`}
                       placeholder="999999.99"
                       disabled={form.priceType !== "paid"}
                     />
@@ -1772,8 +1797,9 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                 <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
                   <ChevronDown
                     size={20}
-                    className={`text-[#000000] stroke-[3px] transition-transform ${isOpen ? "rotate-180" : ""
-                      }`}
+                    className={`text-[#000000] stroke-[3px] transition-transform ${
+                      isOpen ? "rotate-180" : ""
+                    }`}
                   />
                 </div>
 
@@ -1786,8 +1812,9 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                           setForm((f) => ({ ...f, cta: label }));
                           setIsOpen(false);
                         }}
-                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${form.cta === label ? "bg-[#AEB8FF]" : ""
-                          }`}
+                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                          form.cta === label ? "bg-[#AEB8FF]" : ""
+                        }`}
                       >
                         {label}
                       </button>
