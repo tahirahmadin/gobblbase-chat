@@ -571,7 +571,11 @@ export default function PublicChat({
                       isFreeSession: pricingInfo.isFreeSession,
                     }}
                     isBookingConfigured={isBookingConfigured}
-                    setActiveScreen={setActiveScreen}
+                    setActiveScreen={
+                      setActiveScreen as (
+                        screen: "chat" | "browse" | "book"
+                      ) => void
+                    }
                   />
                 </div>
               )}
