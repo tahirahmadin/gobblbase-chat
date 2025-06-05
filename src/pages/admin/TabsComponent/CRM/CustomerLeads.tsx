@@ -5,6 +5,7 @@ import {
 } from "../../../../lib/serverActions";
 import { useBotConfig } from "../../../../store/useBotConfig";
 import toast from "react-hot-toast";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const PAGE_SIZE = 8;
 
@@ -76,57 +77,55 @@ const CustomerLeads = () => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row lg:p-8 min-h-[450px] h-full overflow-y-auto">
+    <div className="flex flex-col lg:flex-row p-4 gap-4">
       {/* Left Panel */}
-      <div className="w-full lg:w-80 lg:mr-8 flex flex-col mb-2 lg:mb-0 p-4">
-        <h2 className="text-lg font-bold text-black mb-2">Customer Leads</h2>
+      <div className="w-full lg:w-[30%] lg:mr-8 flex flex-col mb-2 lg:mb-0 p-4">
+        <h2 className="text-[2rem] font-bold text-black mb-2">Customer Leads</h2>
         <p className="text-sm text-black font-medium mb-6">
           Set up your contact form and collect inbound leads from visitors
         </p>
-        <div className="flex items-center mb-6">
+        <div className="flex items-center justify-between mb-6 px-4 bg-[#EAEFFF] rounded-[14px]">
           <button
-            className={`w-40 h-12 rounded-full text-lg font-medium shadow border border-gray-200 transition-all bg-blue-100 text-black`}
+            className={`h-12 rounded-full text-lg font-medium border border-gray-200 transition-all~ text-black`}
             style={{ outline: "none" }}
           >
             Contact Form
           </button>
-          <label className="ml-4 relative inline-flex items-center cursor-pointer">
+          <label className="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"
               checked={formEnabled}
               onChange={handleFormToggle}
-              className="sr-only peer"
+              className="sr-only peer "
               disabled={isUpdating}
             />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-green-400 transition-all"></div>
+            <div className="w-11 h-6 bg-gray-200 border border-black peer-focus:outline-none rounded-full peer peer-checked:bg-green-400 transition-all"></div>
             <div
-              className={`absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
+              className={`absolute border border-black left-0.0 top-0.0 w-6 h-6 rounded-full bg-white shadow transition-transform duration-200 ${
                 formEnabled ? "translate-x-5" : ""
               }`}
             ></div>
           </label>
         </div>
         <div>
-          <h3 className="text-md font-semibold mb-0 lg:mb-2">
+          <h3 className="text-md font-semibold">
             Contact Form Fields
           </h3>
-          <p className="text-xs text-gray-800 mb-2 lg:mb-4">
+          <p className="text-sm text-gray-800 mb-2 lg:mb-4">
             Select your desired categories. All selected fields will be
             compulsory.
           </p>
           <div className="space-y-3">
-            <label className="flex items-center cursor-pointer">
-              <span
-                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-all ${
-                  fields.name
-                    ? "bg-green-200 border-green-500"
-                    : "bg-gray-100 border-gray-300"
-                }`}
+            <label className="flex items-center gap-2 cursor-pointer">
+              <div
+                className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
+                        ${fields.name ? "bg-[#CEFFDC]" : "bg-[#CDCDCD]"}
+                          `}
               >
                 {fields.name && (
-                  <span className="w-3 h-3 bg-green-600 rounded-full"></span>
+                  <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]" />
                 )}
-              </span>
+              </div>
               <span className="text-base">Name</span>
               <input
                 type="checkbox"
@@ -135,18 +134,16 @@ const CustomerLeads = () => {
                 className="hidden"
               />
             </label>
-            <label className="flex items-center cursor-pointer">
-              <span
-                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-all ${
-                  fields.email
-                    ? "bg-green-200 border-green-500"
-                    : "bg-gray-100 border-gray-300"
-                }`}
+            <label className="flex items-center gap-2 cursor-pointer">
+              <div
+                className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
+                        ${fields.email ? "bg-[#CEFFDC]" : "bg-[#CDCDCD]"}
+                          `}
               >
                 {fields.email && (
-                  <span className="w-3 h-3 bg-green-600 rounded-full"></span>
+                  <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]" />
                 )}
-              </span>
+              </div>
               <span className="text-base">Email Address</span>
               <input
                 type="checkbox"
@@ -155,18 +152,16 @@ const CustomerLeads = () => {
                 className="hidden"
               />
             </label>
-            <label className="flex items-center cursor-pointer">
-              <span
-                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-all ${
-                  fields.phone
-                    ? "bg-green-200 border-green-500"
-                    : "bg-gray-100 border-gray-300"
-                }`}
+            <label className="flex items-center gap-2 cursor-pointer">
+              <div
+                className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
+                        ${fields.phone ? "bg-[#CEFFDC]" : "bg-[#CDCDCD]"}
+                          `}
               >
                 {fields.phone && (
-                  <span className="w-3 h-3 bg-green-600 rounded-full"></span>
+                  <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]" />
                 )}
-              </span>
+              </div>
               <span className="text-base">Phone Number</span>
               <input
                 type="checkbox"
@@ -175,18 +170,16 @@ const CustomerLeads = () => {
                 className="hidden"
               />
             </label>
-            <label className="flex items-center cursor-pointer">
-              <span
-                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-all ${
-                  fields.queryMessage
-                    ? "bg-green-200 border-green-500"
-                    : "bg-gray-100 border-gray-300"
-                }`}
+            <label className="flex items-center gap-2 cursor-pointer">
+              <div
+                className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
+                        ${fields.queryMessage ? "bg-[#CEFFDC]" : "bg-[#CDCDCD]"}
+                          `}
               >
                 {fields.queryMessage && (
-                  <span className="w-3 h-3 bg-green-600 rounded-full"></span>
+                  <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]" />
                 )}
-              </span>
+              </div>
               <span className="text-base">Query Message</span>
               <input
                 type="checkbox"
@@ -199,10 +192,10 @@ const CustomerLeads = () => {
         </div>
       </div>
       {/* Right Panel */}
-      <div className="flex-1 w-screen lg:w-full px-4 sm:px-0">
+      <div className="flex-1 w-screen lg:w-[70%] px-4 sm:px-0 overflow-y-auto">
         <h2 className="text-lg font-semibold mb-4">Form Responses</h2>
 
-        <div className="bg-white rounded-xl shadow overflow-hidden w-full">
+        <div className="overflow-hidden w-full">
           {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
@@ -214,10 +207,10 @@ const CustomerLeads = () => {
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
+                <table className="border-separate border-spacing-y-2 w-[95%] mx-auto">
                   <thead>
                     <tr className="bg-black text-white text-xs lg:text-base">
-                      <th className="py-2 px-2 lg:py-3 lg:px-6 text-left font-medium rounded-tl-xl">
+                      <th className="py-2 px-2 lg:py-3 lg:px-6 text-left font-medium rounded-l-xl">
                         NAME
                       </th>
                       <th className="py-2 px-2 lg:py-3 lg:px-6 text-left font-medium">
@@ -226,18 +219,24 @@ const CustomerLeads = () => {
                       <th className="py-2 px-2 lg:py-3 lg:px-6 text-left font-medium">
                         PHONE NUMBER
                       </th>
-                      <th className="py-2 px-2 lg:py-3 lg:px-6 text-left font-medium rounded-tr-xl">
+                      <th className="py-2 px-2 lg:py-3 lg:px-6 text-left font-medium rounded-r-xl">
                         QUERY MESSAGE
                       </th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody style={{
+                    boxShadow: "0 0 0 1px black",
+                    }}
+                    className="mx-4 overflow-x-auto rounded-xl">
                     {paginatedLeads.map((lead, idx) => (
                       <tr
                         key={idx}
-                        className="bg-blue-50 text-[9px] lg:text-base border-b border-blue-100 last:border-b-0"
+                        className={` py-3 border border-black rounded-xl text-[9px] lg:text-base
+                            ${idx % 2 === 0 ? "bg-[#D4DEFF]" : "bg-[#EAEFFF]"
+                            }
+                          `}
                       >
-                        <td className="py-2 px-2 lg:py-3 lg:px-6">
+                        <td className="py-2 px-2 lg:py-3 lg:px-6 rounded-l-xl">
                           {lead.name}
                         </td>
                         <td className="py-2 px-2 lg:py-3 lg:px-6 ">
@@ -246,47 +245,52 @@ const CustomerLeads = () => {
                         <td className="py-2 px-2 lg:py-3 lg:px-6">
                           {lead.phone}
                         </td>
-                        <td className="py-2 px-2 lg:py-3 lg:px-6">
+                        <td className="py-2 px-2 lg:py-3 lg:px-6 rounded-r-xl">
                           {lead.queryMessage}
                         </td>
-                      </tr>
+                      </tr> 
                     ))}
+                    <tr>
+                      <td colSpan={4}>
+                        {/* Pagination */}
+                        <div className="flex justify-center items-center gap-4 py-4">
+                          <button
+                            className="w-8 h-8 flex bg-[#4D65FF] items-center justify-center rounded-full text-white disabled:bg-[#CDCDCD]"
+                            disabled={page === 1}
+                            onClick={() => setPage(page - 1)}
+                          >
+                            <ChevronLeft size={20} style={{strokeWidth: "4px"}} />
+                          </button>
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                            (p) => (
+                              <button
+                                key={p}
+                                className={`para-font w-8 h-8 flex items-center justify-center rounded-md font-semibold transition-all ${
+                                  page === p
+                                    ? "bg-white text-black border-2 border-black"
+                                    : "text-[#4D65FF] hover:bg-blue-50"
+                                }`}
+                                onClick={() => setPage(p)}
+                              >
+                                {p}
+                              </button>
+                            )
+                          )}
+                          <button
+                            className="w-8 h-8 flex bg-[#4D65FF] items-center justify-center rounded-full text-white disabled:bg-[#CDCDCD]"
+                            disabled={page === totalPages}
+                            onClick={() => setPage(page + 1)}
+                          >
+                            <ChevronRight size={20} style={{strokeWidth: "4px"}} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
 
-              {/* Pagination */}
-              <div className="flex justify-center items-center py-4 bg-white border-t border-gray-200">
-                <button
-                  className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 border border-gray-200 mr-2 disabled:opacity-50"
-                  disabled={page === 1}
-                  onClick={() => setPage(page - 1)}
-                >
-                  &#60;
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (p) => (
-                    <button
-                      key={p}
-                      className={`w-8 h-8 flex items-center justify-center rounded-full mx-1 text-base font-medium border transition-all ${
-                        page === p
-                          ? "bg-blue-600 text-white border-blue-600"
-                          : "bg-white text-blue-600 border-blue-200 hover:bg-blue-50"
-                      }`}
-                      onClick={() => setPage(p)}
-                    >
-                      {p}
-                    </button>
-                  )
-                )}
-                <button
-                  className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 border border-gray-200 ml-2 disabled:opacity-50"
-                  disabled={page === totalPages}
-                  onClick={() => setPage(page + 1)}
-                >
-                  &#62;
-                </button>
-              </div>
+              
             </>
           )}
         </div>

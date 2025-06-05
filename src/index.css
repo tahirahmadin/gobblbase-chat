@@ -63,3 +63,22 @@
   font-family: "Itim", cursive;
   font-style: normal;
 }
+.scrollbar-custom::-webkit-scrollbar {
+  width: 30px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background-color: #4D65FF;
+  border-radius: 200px;
+  box-shadow: 0px 9px 4px 0px rgba(0, 0, 0, 0.25); /* Your custom shadow */
+}
+
+/* Optional: for Firefox */
+.scrollbar-custom {
+  scrollbar-width: 20px;
+  scrollbar-color: #4D65FF transparent;
+}
