@@ -546,6 +546,7 @@ const Prompts = () => {
           }}
         >
           <PublicChat
+            screenName="chat"
             previewConfig={previewConfig || activeBotData}
             chatHeight={null}
             isPreview={true}

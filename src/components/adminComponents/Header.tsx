@@ -182,6 +182,9 @@ const Header = () => {
                     <button
                       disabled={!activeBotId}
                       className="relative bg-[#6aff97] text-black font-semibold px-4 py-2 border border-black flex items-center gap-2"
+                      style={{
+                        cursor: isAllAgentsPage ? "not-allowed" : "pointer",
+                      }}
                     >
                       <Eye className="w-5 h-5" /> View Agent
                     </button>

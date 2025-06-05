@@ -222,7 +222,6 @@ const Payments = () => {
       const result = await enableStripePayment(adminId, !isStripeEnabled);
       setIsStripeEnabled(result);
       refetchClientData();
-      toast.success("Stripe payments enabled successfully");
     } catch (error: any) {
       toast.error("Failed to enable Stripe payments");
     } finally {

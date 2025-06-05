@@ -395,7 +395,7 @@ export function useCryptoPayment({
     try {
       const chainName = chainIdToName[selectedChain];
       const contractAddress = tokenAddresses[chainName] as `0x${string}`;
-      const totalAmount = (product.price * (product.quantity || 1)) / 100;
+      const totalAmount = product.price * (product.quantity || 1);
       const decimals = tokenDecimals[chainName];
 
       // Log the transaction details for debugging

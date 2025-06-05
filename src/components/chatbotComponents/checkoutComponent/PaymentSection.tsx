@@ -449,7 +449,7 @@ export function PaymentSection({
   shipping,
 }: PaymentSectionProps) {
   const { activeBotId, activeBotData } = useBotConfig();
-  const { clientData, adminId } = useAdminStore();
+
   const { userId, userEmail, fetchUserDetails } = useUserStore();
 
   const [clientSecret, setClientSecret] = useState<string | null>(null);

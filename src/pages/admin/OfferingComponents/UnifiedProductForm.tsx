@@ -1471,6 +1471,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                               ...f,
                               quantityType: e.target.value,
                               quantityUnlimited: false,
+                              variedSizes: ["S"],
                             }))
                           }
                           className="hidden"
