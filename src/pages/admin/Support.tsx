@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Send, Circle } from "lucide-react";
+import { getAdminChatLogs, updateAdminChatLog } from "../../lib/serverActions";
+import { useUserStore } from "../../store/useUserStore";
 
 interface Message {
   id: number;
@@ -9,49 +11,81 @@ interface Message {
 }
 
 const Support = () => {
+  const { userId } = useUserStore();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
 
-  // Simulate online status
+  // Fetch admin chat logs on mount
   useEffect(() => {
-    const interval = setInterval(() => {
-      setIsOnline(Math.random() > 0.1); // 90% chance of being online
-    }, 30000); // Check every 30 seconds
-
-    return () => clearInterval(interval);
+    const fetchLogs = async () => {
+      try {
+        const messages = await getAdminChatLogs();
+        // Assume data is an array of logs, flatten userLogs if needed
+        let allMessages: Message[] = [];
+        messages.forEach((log: any) => {
+          if (Array.isArray(log.userLogs)) {
+            allMessages = allMessages.concat(
+              log.userLogs.map((msg: any, idx: number) => ({
+                id: Date.now() + idx + Math.random(),
+                text: msg.content,
+                sender: msg.role === "agent" ? "support" : "user",
+                timestamp: new Date(msg.timestamp),
+              }))
+            );
+          }
+        });
+        setMessages(allMessages);
+      } catch (err) {
+        // Optionally show error
+      }
+    };
+    fetchLogs();
   }, []);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !userId) return;
 
-    // Add user message
+    // Add user message optimistically
     const userMessage: Message = {
       id: Date.now(),
       text: newMessage,
       sender: "user",
       timestamp: new Date(),
     };
-
     setMessages((prev) => [...prev, userMessage]);
     setNewMessage("");
-
-    // Show typing indicator
     setIsTyping(true);
 
-    // Simulate support response (replace with actual API call)
-    setTimeout(() => {
+    try {
+      await updateAdminChatLog({
+        newUserLog: [
+          {
+            role: "user",
+            content: userMessage.text,
+            timestamp: userMessage.timestamp.toISOString(),
+          },
+        ],
+        userId: userId,
+      });
+      // Simulate support response (replace with actual API call if needed)
+      setTimeout(() => {
+        setIsTyping(false);
+        const supportMessage: Message = {
+          id: Date.now() + 1,
+          text: "Thank you for your message. Our support team will get back to you shortly.",
+          sender: "support",
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, supportMessage]);
+        // Optionally, also call updateAdminChatLog for support reply
+      }, 2000);
+    } catch (err) {
       setIsTyping(false);
-      const supportMessage: Message = {
-        id: Date.now() + 1,
-        text: "Thank you for your message. Our support team will get back to you shortly.",
-        sender: "support",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, supportMessage]);
-    }, 2000);
+      // Optionally show error
+    }
   };
 
   const formatTimestamp = (date: Date) => {
