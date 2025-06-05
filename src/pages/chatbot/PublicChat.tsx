@@ -10,6 +10,7 @@ import ChatSection from "../../components/chatbotComponents/ChatSection";
 import InputSection from "../../components/chatbotComponents/InputSection";
 import AboutSection from "../../components/chatbotComponents/AboutSection";
 import BrowseSection from "../../components/chatbotComponents/BrowseSection";
+import BotNotFound from "../../components/chatbotComponents/BotNotFound";
 import { useBookingLogic } from "../../hooks/useBookingLogic";
 import { useProductsLogic } from "../../hooks/useProductsLogic";
 import { useContactLogic } from "../../hooks/useContactLogic";
@@ -36,6 +37,7 @@ export default function PublicChat({
     activeBotData,
     isLoading: isConfigLoading,
     fetchBotData,
+    error: botConfigError,
   } = useBotConfig();
   const globalCurrency = activeBotData?.currency || "USD";
   const { initializeSession } = useUserStore();
@@ -390,6 +392,26 @@ export default function PublicChat({
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin h-12 w-12 border-t-2 border-blue-500 rounded-full"></div>
+      </div>
+    );
+  }
+
+  // Show BotNotFound component if there's an error fetching bot config
+  if (botConfigError && !isPreview) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <div
+          className="w-full h-full max-w-md shadow-2xl overflow-hidden flex flex-col relative"
+          style={{
+            height: previewConfig
+              ? chatHeight
+                ? chatHeight
+                : 620
+              : `${viewportHeight}px`,
+          }}
+        >
+          <BotNotFound theme={theme} />
+        </div>
       </div>
     );
   }
