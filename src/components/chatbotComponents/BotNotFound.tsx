@@ -35,10 +35,10 @@ export default function BotNotFound({ theme }: BotNotFoundProps) {
           />
         </div>
       </div>
-      <h1 className="main-font text-3xl font-bold mb-6">Bot Not Found</h1>
+      <h1 className="main-font text-3xl font-bold mb-6">Agent not found</h1>
       <p className="para-font text-xl max-w-sm mx-auto mb-12">
-        The bot you're looking for doesn't exist. Would you like to create your
-        own?
+        The agent you're looking for doesn't exist. Would you like to create
+        your own?
       </p>
       <Link
         to="/"
@@ -50,7 +50,7 @@ export default function BotNotFound({ theme }: BotNotFoundProps) {
           boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
         }}
       >
-        Create Your Bot
+        Create Your Agent
       </Link>
     </div>
   );
