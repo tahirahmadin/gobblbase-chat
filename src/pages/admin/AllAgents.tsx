@@ -1,33 +1,105 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAdminStore } from "../../store/useAdminStore";
 import { AdminAgent } from "../../types";
 import { useNavigate } from "react-router-dom";
 import { useBotConfig } from "../../store/useBotConfig";
 import { PERSONALITY_OPTIONS } from "../../utils/constants";
+import {
+  Delete,
+  DeleteIcon,
+  LucideDelete,
+  Trash,
+  Trash2,
+  X,
+} from "lucide-react";
 
 const placeholderAvatar = "/assets/voice/expert.png";
+
+// Delete Confirmation Modal Component
+const DeleteConfirmationModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  agentName,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  agentName: string;
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 relative">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+        >
+          <X className="w-5 h-5" />
+        </button>
+        <h3 className="text-xl font-semibold mb-4">Delete Agent</h3>
+        <p className="text-gray-600 mb-6">
+          Are you sure you want to delete{" "}
+          <span className="font-semibold">{agentName}</span>? This action cannot
+          be undone.
+        </p>
+        <div className="flex justify-end space-x-4">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-gray-600 hover:text-gray-800"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const AllAgents: React.FC = () => {
   const { agents, totalAgents, deleteAgent, fetchAllAgents, isLoading } =
     useAdminStore();
-  const { setActiveBotId } = useBotConfig();
+  const { setActiveBotId, activeBotId } = useBotConfig();
   const navigate = useNavigate();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [agentToDelete, setAgentToDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   const handleEdit = async (agentId: string) => {
     await setActiveBotId(agentId);
     navigate("/admin/dashboard/overview");
   };
 
-  const handleDelete = async (agentId: string) => {
-    setDeletingId(agentId);
+  const handleDeleteClick = (agentId: string, agentName: string) => {
+    setAgentToDelete({ id: agentId, name: agentName });
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!agentToDelete) return;
+
     try {
-      await deleteAgent(agentId);
+      await deleteAgent(agentToDelete.id);
       await fetchAllAgents();
+      if (activeBotId === agentToDelete.id) {
+        setActiveBotId(null);
+      }
+    } catch (error) {
+      console.error("Error deleting agent:", error);
     } finally {
-      setDeletingId(null);
-      setPendingDeleteId(null);
+      setIsDeleteModalOpen(false);
+      setAgentToDelete(null);
     }
   };
 
@@ -68,8 +140,17 @@ const AllAgents: React.FC = () => {
         {agents.map((agent: AdminAgent) => (
           <div
             key={agent.agentId}
-            className="bg-[#eaefff] rounded-lg flex flex-col items-center px-8 py-6"
+            className="relative bg-[#eaefff] rounded-lg flex flex-col items-center px-8 py-6"
           >
+            <div className="absolute top-2 right-2">
+              <Trash2
+                className="w-6 h-6 text-red-500 cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteClick(agent.agentId, agent.name || "Agent Name");
+                }}
+              />
+            </div>
             <img
               src={getPersonalityImage(agent)}
               alt="Agent Avatar"
@@ -94,24 +175,7 @@ const AllAgents: React.FC = () => {
                     disabled={isLoading || deletingId === agent.agentId}
                     className="relative bg-[#AEB8FF] text-black font-regular px-4 py-2 border border-black text-sm"
                   >
-                    EDIT
-                  </button>
-                </div>
-              </div>
-
-              <div className="relative inline-block">
-                <div className="absolute top-1 left-1 w-full h-full bg-[#ffffff] rounded"></div>
-                <div className="relative inline-block">
-                  {/* Bottom layer for shadow effect */}
-                  <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
-
-                  {/* Main button */}
-                  <button
-                    onClick={() => setPendingDeleteId(agent.agentId)}
-                    disabled={isLoading || deletingId === agent.agentId}
-                    className="relative bg-[#ffffff] text-black font-regular px-4 py-2 border border-black text-sm"
-                  >
-                    {deletingId === agent.agentId ? "DELETING..." : "DELETE"}
+                    SELECT AGENT
                   </button>
                 </div>
               </div>
@@ -119,44 +183,16 @@ const AllAgents: React.FC = () => {
           </div>
         ))}
       </div>
-      {pendingDeleteId && (
-        <div className="border border-red-400 p-6 rounded mt-8">
-          <h3 className="text-black mb-2 text-md font-semibold">
-            Warning: Permanent Deletion
-          </h3>
-          <p className="mb-4 text-black text-sm">
-            Deleting your agent will permanently remove all related data and
-            configurations. This action is irreversible.
-            <br />
-            Are you certain you want to proceed with deletion?
-          </p>
 
-          <div className="flex flex-row justify-end gap-2">
-            <div className="relative inline-block">
-              <div className="absolute top-1 left-1 w-full h-full bg-red-500 rounded"></div>
-              <div className="relative inline-block">
-                {/* Bottom layer for shadow effect */}
-                <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
-
-                {/* Main button */}
-                <button
-                  onClick={async () => {
-                    if (pendingDeleteId) {
-                      await handleDelete(pendingDeleteId);
-                    }
-                  }}
-                  disabled={isLoading || deletingId === pendingDeleteId}
-                  className="relative bg-red-500 text-black font-semibold px-4 py-2 border border-black"
-                >
-                  {deletingId === pendingDeleteId
-                    ? "DELETING..."
-                    : "DELETE AGENT"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setAgentToDelete(null);
+        }}
+        onConfirm={handleDeleteConfirm}
+        agentName={agentToDelete?.name || ""}
+      />
     </div>
   );
 };

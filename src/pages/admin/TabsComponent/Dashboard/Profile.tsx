@@ -797,17 +797,16 @@ const Profile = () => {
                 className="border border-[#7D7D7D] rounded px-2 py-2 text-sm focus:outline-none"
                 style={{ minWidth: 80 }}
               >
-                <option value="+971">+971</option>
-                <option value="+91">+91</option>
                 <option value="+1">+1</option>
+                <option value="+20">+20</option>
                 <option value="+44">+44</option>
                 <option value="+61">+61</option>
+                <option value="+91">+91</option>
                 <option value="+92">+92</option>
+                <option value="+234">+234</option>
                 <option value="+880">+880</option>
                 <option value="+966">+966</option>
-                <option value="+20">+20</option>
-                <option value="+234">+234</option>
-                <option value="other">Other</option>
+                <option value="+971">+971</option>
               </select>
               {/* Phone number input */}
               <input
@@ -821,22 +820,28 @@ const Profile = () => {
                 maxLength={15}
               />
               {/* Save button */}
-              <Button
-                onClick={handleSaveWhatsapp}
-                disabled={
-                  isSavingWhatsapp || !whatsappNumber || !hasWhatsappChanged
-                }
-                style={{ background: "#6aff97", color: "#000", minWidth: 100 }}
-              >
-                {isSavingWhatsapp ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                    <span>Saving...</span>
-                  </div>
-                ) : (
-                  "SAVE"
-                )}
-              </Button>
+              <div className="flex justify-end relative z-10">
+                <Button
+                  onClick={handleSaveWhatsapp}
+                  disabled={
+                    isSavingWhatsapp || !whatsappNumber || !hasWhatsappChanged
+                  }
+                  className={` ${
+                    isSavingWhatsapp || !whatsappNumber || !hasWhatsappChanged
+                      ? " cursor-not-allowed"
+                      : ""
+                  }`}
+                >
+                  {isSavingWhatsapp ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      <span>Saving...</span>
+                    </div>
+                  ) : (
+                    "Save"
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
 

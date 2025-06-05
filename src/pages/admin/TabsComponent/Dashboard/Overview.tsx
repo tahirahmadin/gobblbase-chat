@@ -6,6 +6,7 @@ import { getClientAnalytics } from "../../../../lib/serverActions";
 import { useAdminStore } from "../../../../store/useAdminStore";
 import { AnalyticsData } from "../../../../types";
 import { useNavigate } from "react-router-dom";
+import { calculateSmartnessLevel } from "../../../../utils/helperFn";
 
 const timeButton = [
   { id: "Income", value: "1D" },
@@ -60,6 +61,7 @@ const Overview = () => {
   const { activeBotId, activeBotData } = useBotConfig();
   const { adminId, clientData } = useAdminStore();
   const [agentPicture, setAgentPicture] = useState<string | null>(null);
+  const [smartnessLevel, setSmartnessLevel] = useState(0);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -101,6 +103,13 @@ const Overview = () => {
           "https://t4.ftcdn.net/jpg/08/04/36/29/360_F_804362990_0n7bGLz9clMBi5ajG52k8OAUQTneMbj4.jpg"
         );
       }
+    }
+  }, [activeBotData]);
+
+  useEffect(() => {
+    if (activeBotData) {
+      const newSmartnessLevel = calculateSmartnessLevel(activeBotData);
+      setSmartnessLevel(newSmartnessLevel);
     }
   }, [activeBotData]);
 
@@ -178,17 +187,21 @@ const Overview = () => {
                   Payments Setup
                 </span>
                 <span className="font-medium text-lg">
-                  {[
-                    clientData?.paymentMethods.stripe.isActivated &&
-                      clientData?.paymentMethods.stripe.enabled &&
-                      "Stripe",
-                    clientData?.paymentMethods.crypto.enabled &&
-                      clientData?.paymentMethods.crypto.walletAddress &&
-                      "Crypto",
-                    clientData?.paymentMethods.razorpay.enabled && "Razorpay",
-                  ]
-                    .filter(Boolean)
-                    .join(", ")}
+                  {(() => {
+                    const activeMethods = [
+                      clientData?.paymentMethods.stripe.isActivated &&
+                        clientData?.paymentMethods.stripe.enabled &&
+                        "Stripe",
+                      clientData?.paymentMethods.crypto.enabled &&
+                        clientData?.paymentMethods.crypto.walletAddress &&
+                        "Crypto",
+                      clientData?.paymentMethods.razorpay.enabled && "Razorpay",
+                    ].filter(Boolean);
+
+                    if (activeMethods.length === 0) return "None";
+                    if (activeMethods.length > 1) return "MULTIPLE";
+                    return activeMethods[0];
+                  })()}
                 </span>
               </div>
               <div className="relative z-10">
@@ -255,7 +268,9 @@ const Overview = () => {
                   />
                 </g>
               </svg>
-              <span className="text-sm font-semibold z-10">25%</span>
+              <span className="text-sm font-semibold z-10">
+                {smartnessLevel}%
+              </span>
             </div>
             <div className="text-xs text-black my-2 text-center ">
               Agent Smartness
@@ -319,7 +334,9 @@ const Overview = () => {
                   />
                 </g>
               </svg>
-              <span className="text-sm font-semibold z-10">25%</span>
+              <span className="text-sm font-semibold z-10">
+                {smartnessLevel}%
+              </span>
             </div>
             <div className="text-xs text-black my-2 text-center">
               Brain Capacity
