@@ -50,6 +50,7 @@ import RescheduleBookingWrapper from "./components/chatbotComponents/chatbotBook
 import Payments from "./pages/admin/TabsComponent/Account/Payments";
 import Income from "./pages/admin/TabsComponent/Account/Income";
 import Overview from "./pages/admin/TabsComponent/Dashboard/Overview";
+import Support from "./pages/admin/Support";
 
 // Add type definition for window
 declare global {
@@ -156,6 +157,7 @@ function Dashboard() {
         <Route path="account/plans" element={<Plans />} />
         <Route path="account/usage" element={<Usage />} />
         <Route path="all-agents" element={<AllAgents />} />
+        <Route path="support" element={<Support />} />
         <Route path="dashboard/overview" element={<Overview />} />
         <Route path="*" element={<Navigate to="dashboard/profile" replace />} />
       </Routes>

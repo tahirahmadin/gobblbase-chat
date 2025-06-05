@@ -9,6 +9,7 @@ import {
   ChevronDown,
   LayoutDashboard,
   Bot,
+  Headphones,
 } from "lucide-react";
 import { useAdminStore } from "../../store/useAdminStore";
 import { useUserStore } from "../../store/useUserStore";
@@ -99,6 +100,11 @@ const navItems: NavItem[] = [
       { name: "Plans", path: "/admin/account/plans" },
       { name: "Usage", path: "/admin/account/usage" },
     ],
+  },
+  {
+    name: "Support",
+    icon: <Headphones className="w-5 h-5" />,
+    path: "/admin/support",
   },
 ];
 
