@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   Calendar,
   Clock,
@@ -42,6 +42,8 @@ import { useBotConfig } from "../../../store/useBotConfig";
 import { LoginCard } from "../otherComponents/LoginCard"; 
 import { BookingPaymentComponent } from "./BookingPaymentComponent";
 import toast from "react-hot-toast";
+import { formatTimezone, isValidTimezone, getUserTimezone, getTimezoneDifference } from "../../../utils/timezoneUtils";
+import { DateTime } from 'luxon';
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -160,6 +162,34 @@ const getUserCountry = (): string => {
   return timezoneToCountry[timezone] || 'US'; // Default to US if not found
 };
 
+const getConsistentDateString = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const LoadingSkeleton = ({ theme }: { theme: any }) => (
+  <div className="space-y-4 animate-pulse p-4">
+    <div className="flex justify-between items-center mb-4">
+      <div className="h-4 bg-gray-200 rounded w-20"></div>
+      <div className="h-4 bg-gray-200 rounded w-32"></div>
+    </div>
+    
+    <div className="space-y-3">
+      <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+      <div className="h-8 bg-gray-200 rounded"></div>
+      <div className="h-8 bg-gray-200 rounded"></div>
+      <div className="h-32 bg-gray-200 rounded"></div>
+    </div>
+    
+    <div className="flex justify-end">
+      <div className="h-10 bg-gray-200 rounded w-24"></div>
+    </div>
+  </div>
+);
+
 const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   businessId: propId,
   serviceName = "Session Description",
@@ -200,7 +230,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [unavailableDates, setUnavailableDates] = useState<Record<string, UnavailableDate>>({});
   const [userTimezone, setUserTimezone] = useState<string>(
-    Intl.DateTimeFormat().resolvedOptions().timeZone
+    getUserTimezone() 
   );
   const [businessTimezone, setBusinessTimezone] = useState<string>("UTC");
   const [paymentError, setPaymentError] = useState<string | null>(null);
@@ -282,14 +312,13 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   }, [isLoggedIn, userEmail]);
   
   // Format price for display
-  const formatPrice = (priceSettings?: PriceSettings): string => {
+  const formatPrice = useCallback((priceSettings?: PriceSettings): string => {
     if (!priceSettings) return "Free";
     if (priceSettings.isFree) return "Free";
-    
     return `${priceSettings.amount} ${globalCurrency}`;
-  };
+  }, [globalCurrency]);
   
-  const validateEmail = (value: string): boolean => {
+  const validateEmail = useCallback((value: string): boolean => {
     if (!value) {
       setEmailError("Email is required");
       return false;
@@ -300,16 +329,16 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     }
     setEmailError("");
     return true;
-  };
+  }, []);
   
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setEmail(value);
     validateEmail(value);
     setTimeout(() => {
       setIsFormValid(validateForm());
     }, 0);
-  };
+  }, [validateForm, validateEmail]);
   
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
@@ -378,20 +407,47 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     if (!businessId) return;
     
     setLoadingAvailability(true);
+    setAvailabilityDebug('');
+    
     try {
-      // Get availability from API
+      console.log('🔍 Fetching availability for business:', businessId);
       const availability = await getDayWiseAvailability(businessId, userTimezone);
       
-      // Check if the API returned the expected format
+      console.log('📥 API Response:', availability);
+      
       if (typeof availability === 'object' && availability !== null) {
-        setDayWiseAvailability(availability);
+        // Normalize all date keys to YYYY-MM-DD format
+        const normalizedAvailability = {};
+        Object.entries(availability).forEach(([dateStr, isAvailable]) => {
+          let normalizedDate = dateStr;
+          
+          // Handle different date formats that might come from API
+          if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            normalizedDate = dateStr; // Already correct format
+          } else if (dateStr.match(/^\d{2}-[A-Z]{3}-\d{4}$/)) {
+            // Convert DD-MMM-YYYY to YYYY-MM-DD
+            const [day, month, year] = dateStr.split('-');
+            const monthMap = {
+              'JAN': '01', 'FEB': '02', 'MAR': '03', 'APR': '04', 'MAY': '05', 'JUN': '06',
+              'JUL': '07', 'AUG': '08', 'SEP': '09', 'OCT': '10', 'NOV': '11', 'DEC': '12'
+            };
+            normalizedDate = `${year}-${monthMap[month]}-${day}`;
+          }
+          
+          normalizedAvailability[normalizedDate] = Boolean(isAvailable);
+        });
+        
+        console.log('✅ Normalized availability:', normalizedAvailability);
+        setDayWiseAvailability(normalizedAvailability);
       } else {
-        console.error("Unexpected availability format:", availability);
-        setAvailabilityDebug("Error: Unexpected availability data format");
+        console.error("Invalid availability response:", availability);
+        setAvailabilityDebug("Invalid API response format");
+        setDayWiseAvailability({});
       }
     } catch (error) {
-      console.error("Failed to fetch day-wise availability:", error);
-      setAvailabilityDebug("Error fetching availability data");
+      console.error("Error fetching availability:", error);
+      setAvailabilityDebug(`Error: ${error.message}`);
+      setDayWiseAvailability({});
     } finally {
       setLoadingAvailability(false);
     }
@@ -419,7 +475,12 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
         setSettings(data);
 
         if (data.timezone) {
-          setBusinessTimezone(data.timezone);
+          if (isValidTimezone(data.timezone)) {
+            setBusinessTimezone(data.timezone);
+          } else {
+            console.warn('Invalid business timezone:', data.timezone);
+            setBusinessTimezone('UTC');
+          }
         }
 
         // Get pricing data from settings
@@ -449,7 +510,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     };
 
     loadSettings();
-  }, [businessId, , globalCurrency]);
+  }, [businessId, globalCurrency]);
 
   useEffect(() => {
     if (settings?.locations?.length) {
@@ -457,92 +518,26 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     }
   }, [settings]);
 
-  const convertTimeToBusinessTZ = (time: string, date: Date): string => {
-    const [hours, minutes] = time.split(":").map(Number);
-    const userDate = new Date(date);
-    userDate.setHours(hours, minutes, 0, 0);
-    const options: Intl.DateTimeFormatOptions = {
-      hour: "numeric",
-      minute: "numeric",
-      hour12: false,
-      timeZone: businessTimezone,
-    };
-
-    const businessTime = new Intl.DateTimeFormat("en-US", options).format(
-      userDate
-    );
-    return businessTime.replace(/\s/g, "").padStart(5, "0");
-  };
-
-  const convertTimeToUserTZ = (time: string, date: Date): string => {
-    const [hours, minutes] = time.split(":").map(Number);
-    const businessDate = new Date(date);
-    const dateStr = businessDate.toISOString().split("T")[0];
-    const timeStr = `${hours.toString().padStart(2, "0")}:${minutes
-      .toString()
-      .padStart(2, "0")}:00`;
-    const dateTimeStr = `${dateStr}T${timeStr}`;
-    const tzDate = new Date(dateTimeStr);
-    const options: Intl.DateTimeFormatOptions = {
-      hour: "numeric",
-      minute: "numeric",
-      hour12: false,
-      timeZone: userTimezone,
-    };
-
-    const userTime = new Intl.DateTimeFormat("en-US", options).format(tzDate);
-    return userTime.replace(/\s/g, "").padStart(5, "0");
-  };
-
-  const formatTimezone = (tz: string): string => {
-    try {
-      const date = new Date();
-      const options: Intl.DateTimeFormatOptions = {
-        timeZone: tz,
-        timeZoneName: "short",
-      };
-      const tzName =
-        new Intl.DateTimeFormat("en-US", options)
-          .formatToParts(date)
-          .find((part) => part.type === "timeZoneName")?.value || tz;
-
-      return tzName;
-    } catch (e) {
-      return tz;
+  useEffect(() => {
+    const detectedTimezone = getUserTimezone();
+    if (detectedTimezone !== userTimezone) {
+      console.log('Updating user timezone from', userTimezone, 'to', detectedTimezone);
+      setUserTimezone(detectedTimezone);
     }
+  }, []);
+
+  const getTimezoneDifferenceDisplay = (): string => {
+    return getTimezoneDifference(userTimezone, businessTimezone);
   };
-
-  const getTimezoneDifference = (): string => {
-    if (businessTimezone === userTimezone) return "same timezone";
-
-    const now = new Date();
-    const userOffset = -now.getTimezoneOffset();
-    const businessDate = new Date(
-      now.toLocaleString("en-US", { timeZone: businessTimezone })
-    );
-    const businessOffset =
-      businessDate.getTimezoneOffset() +
-      (now.getTime() - businessDate.getTime()) / 60000;
-
-    const diffHours = (userOffset - businessOffset) / 60;
-
-    if (diffHours === 0) return "same time";
-
-    const diffFormatted = Math.abs(diffHours).toFixed(1).replace(/\.0$/, "");
-    return diffHours > 0
-      ? `${diffFormatted} hour${Math.abs(diffHours) !== 1 ? "s" : ""} ahead`
-      : `${diffFormatted} hour${Math.abs(diffHours) !== 1 ? "s" : ""} behind`;
-  };
+  
 
   const daysInMonth = (y: number, m: number) => new Date(y, m + 1, 0).getDate();
   const firstWeekday = (y: number, m: number) => new Date(y, m, 1).getDay();
 
   const isBeforeToday = (d: Date) => {
-    const check = new Date(d);
-    check.setHours(0, 0, 0, 0);
-    const t = new Date(now);
-    t.setHours(0, 0, 0, 0);
-    return check < t;
+    const today = DateTime.now().setZone(userTimezone).startOf('day');
+    const checkDate = DateTime.fromJSDate(d).setZone(userTimezone).startOf('day');
+    return checkDate < today;
   };
 
   const fmtMonthYear = (d: Date) =>
@@ -586,110 +581,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     return `${hr}:${m.toString().padStart(2, "0")} ${ap}`;
   };
 
-  const hasModifiedHours = (date: Date): boolean => {
-    if (!settings) return false;
-
-    const apiDate = fmtApiDate(date);
-    const unavailableDate = unavailableDates[apiDate];
-
-    return unavailableDate && unavailableDate.allDay === false;
-  };
-
-  const generateSlotsFromTimeWindow = (
-    startTime: string,
-    endTime: string,
-    meetingDuration: number,
-    bufferTime: number,
-    date: Date
-  ): Slot[] => {
-    const slots: Slot[] = [];
-
-    const [startHour, startMinute] = startTime.split(":").map(Number);
-    const [endHour, endMinute] = endTime.split(":").map(Number);
-
-    const startMins = startHour * 60 + startMinute;
-    const endMins = endHour * 60 + endMinute;
-    const slotDuration = meetingDuration + bufferTime;
-    for (
-      let slotStart = startMins;
-      slotStart + meetingDuration <= endMins;
-      slotStart += slotDuration
-    ) {
-      const slotEnd = slotStart + meetingDuration;
-
-      const formatTimeString = (mins: number) => {
-        const hours = Math.floor(mins / 60);
-        const minutes = mins % 60;
-        return `${hours.toString().padStart(2, "0")}:${minutes
-          .toString()
-          .padStart(2, "0")}`;
-      };
-
-      const businessSlotStart = formatTimeString(slotStart);
-      const businessSlotEnd = formatTimeString(slotEnd);
-
-      const userSlotStart = convertTimeToUserTZ(businessSlotStart, date);
-      const userSlotEnd = convertTimeToUserTZ(businessSlotEnd, date);
-
-      slots.push({
-        startTime: userSlotStart,
-        endTime: userSlotEnd,
-        available: true,
-      });
-    }
-
-    return slots;
-  };
-
-  const generateTimeSlots = (date: Date): Slot[] => {
-    if (!settings) return [];
-
-    const meetingDuration = settings.meetingDuration || 45;
-    const bufferTime = settings.bufferTime || 10;
-    const apiDate = fmtApiDate(date);
-    const dateEntry = unavailableDates[apiDate];
-
-    if (dateEntry && dateEntry.allDay === false) {
-      return generateSlotsFromTimeWindow(
-        dateEntry.startTime,
-        dateEntry.endTime,
-        meetingDuration,
-        bufferTime,
-        date
-      );
-    }
-
-    const dayName = new Intl.DateTimeFormat("en-US", {
-      weekday: "long",
-    }).format(date);
-    const dayRule = settings.availability.find((rule) => rule.day === dayName);
-
-    if (dayRule && dayRule.available && dayRule.timeSlots.length > 0) {
-      let allSlots: Slot[] = [];
-
-      dayRule.timeSlots.forEach((window) => {
-        const windowSlots = generateSlotsFromTimeWindow(
-          window.startTime,
-          window.endTime,
-          meetingDuration,
-          bufferTime,
-          date
-        );
-        allSlots = [...allSlots, ...windowSlots];
-      });
-
-      return allSlots;
-    }
-
-    return generateSlotsFromTimeWindow(
-      "09:00",
-      "17:00",
-      meetingDuration,
-      bufferTime,
-      date
-    );
-  };
-
   const prevMonth = () =>
     setCurrentMonth((d) => {
       const x = new Date(d);
@@ -703,89 +594,81 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       return x;
     });
 
-    const isDateFullyUnavailable = (date: Date): boolean => {
-      // Before today check
+    const isDateFullyUnavailable = (date) => {
       if (isBeforeToday(date)) {
         return true;
       }
-  
-      // Format date string for availability check
-      const dateStr = date.toISOString().split('T')[0];
+    
+      const dateStr = getConsistentDateString(date);
       
-      // Check day-wise availability from backend - explicitly check for false
-      if (dayWiseAvailability[dateStr] === false) {
-        return true;
+      // PRIORITY 1: API day-wise availability (highest priority)
+      if (dayWiseAvailability.hasOwnProperty(dateStr)) {
+        const apiAvailability = dayWiseAvailability[dateStr];
+        console.log(`🎯 Date ${dateStr} API availability:`, apiAvailability);
+        
+        // If API says false, it's unavailable
+        if (apiAvailability === false) {
+          return true;
+        }
+        // If API says true, it's available (override other rules)
+        if (apiAvailability === true) {
+          return false;
+        }
       }
-      
-      // Only continue with other checks if day-wise isn't explicitly false
-      if (!settings) return false;
-  
+    
+      // PRIORITY 2: Date-specific overrides from settings
       const apiDate = fmtApiDate(date);
       const unavailableDate = unavailableDates[apiDate];
-  
       if (unavailableDate && unavailableDate.allDay === true) {
         return true;
       }
-  
-      const dayName = new Intl.DateTimeFormat("en-US", {
-        weekday: "long",
-      }).format(date);
+    
+      // PRIORITY 3: Weekly availability rules
+      if (!settings) return false;
+      
+      const dayName = DateTime.fromJSDate(date).setZone(userTimezone).toFormat('cccc');
       const dayRule = settings.availability.find((rule) => rule.day === dayName);
-  
-      // Check if the day is marked as unavailable (like Sunday)
       if (dayRule && !dayRule.available) {
         return true;
       }
       
-      // If we get here and the date is explicitly marked as available in the dayWiseAvailability
-      if (dayWiseAvailability[dateStr] === true) {
-        return false;
-      }
-      
-      // Default behavior - let the date be available unless explicitly ruled out
       return false;
     };
 
-    const selectDate = async (d: Date) => {
+    const selectDate = async (d) => {
       setSelectedDate(d);
       setStep("time");
       setLoadingSlots(true);
     
       const apiDate = fmtApiDate(d);
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = getConsistentDateString(d);
+      
+      console.log(`🎯 Selecting date: ${dateStr} (API: ${apiDate})`);
       
       try {
-        try {
-          const raw = await getAvailableSlots(
-            businessId,
-            apiDate,
-            userTimezone
-          );
-    
-          if (raw && raw.length > 0) {
-            const userSlots = raw.map((slot) => ({
-              ...slot,
-              available: true,
-            }));
-            setSlots(userSlots);
-          } else {
-            if (dayWiseAvailability[dateStr] !== false) {
-              setDayWiseAvailability(prev => ({
-                ...prev,
-                [dateStr]: false
-              }));
-            }
-            
-            setSlots([]);
-          }
-        } catch (e) {
-          console.error("Error fetching slots from API:", e);
-          // Error handling - set empty slots
+        const slots = await getAvailableSlots(businessId, apiDate, userTimezone);
+        
+        console.log(`⏰ Slots for ${dateStr}:`, slots);
+        
+        if (slots && slots.length > 0) {
+          setSlots(slots.map(slot => ({ ...slot, available: true })));
+        } else {
+          console.log(`❌ No slots for ${dateStr}, updating availability`);
+          // Update local state to reflect no availability
+          setDayWiseAvailability(prev => ({
+            ...prev,
+            [dateStr]: false
+          }));
           setSlots([]);
         }
-      } catch (e) {
-        console.error("Error in selectDate:", e);
+      } catch (error) {
+        console.error("Error fetching slots for", dateStr, ":", error);
         setSlots([]);
+        // Mark as unavailable on error
+        setDayWiseAvailability(prev => ({
+          ...prev,
+          [dateStr]: false
+        }));
       } finally {
         setLoadingSlots(false);
       }
@@ -804,57 +687,65 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedDate || !selectedSlot) return;
-    
-    const isValid = validateForm();
-    if (!isValid) {
+
+    if (!isValidTimezone(userTimezone)) {
+      toast.error("Invalid timezone detected. Please refresh the page.");
       return;
     }
-
-    // Check if it's a paid booking and payment methods are not enabled
+  
+    try {
+      const currentSlots = await getAvailableSlots(
+        businessId,
+        fmtApiDate(selectedDate),
+        userTimezone
+      );
+      
+      const requestedSlot = `${selectedSlot.startTime}-${selectedSlot.endTime}`;
+      const isStillAvailable = currentSlots.some(slot => 
+        `${slot.startTime}-${slot.endTime}` === requestedSlot
+      );
+      
+      if (!isStillAvailable) {
+        toast.error("This slot is no longer available. Please select another time.");
+        selectDate(selectedDate);
+        return;
+      }
+    } catch (error) {
+      toast.error("Unable to verify slot availability. Please try again.");
+      return;
+    }
+    
+    const isValid = validateForm();
+    if (!isValid) return;
+  
     const isPaidBooking = !settings?.price?.isFree && !dynamicPrice.isFree;
     if (isPaidBooking && !hasEnabledPaymentMethods) {
-      toast.error("Payment methods are not enabled. Please contact the admin.", {
-        duration: 4000,
-        style: {
-          background: theme.isDark ? '#2d1b1b' : '#fef2f2',
-          color: theme.isDark ? '#fca5a5' : '#dc2626',
-          border: '1px solid #ef4444',
-        },
-      });
+      toast.error("Payment methods are not enabled. Please contact the admin.");
       return;
     }
   
     if (settings?.price?.isFree || dynamicPrice.isFree) {
       setSubmitting(true);
       try {
-        const businessStartTime = convertTimeToBusinessTZ(
-          selectedSlot.startTime,
-          selectedDate
-        );
-        const businessEndTime = convertTimeToBusinessTZ(
-          selectedSlot.endTime,
-          selectedDate
-        );
-        const formattedPhone = phone
-          ? formatPhoneForStorage(phone, selectedCountry)
-          : "";
-    
+        const formattedPhone = phone ? formatPhoneForStorage(phone, selectedCountry) : "";
+  
         await bookAppointment({
           agentId: businessId,
           userId: isLoggedIn && userEmail ? userEmail : email,
           email: email,
           date: fmtApiDate(selectedDate),
-          startTime: businessStartTime,
-          endTime: businessEndTime,
+          startTime: selectedSlot.startTime, 
+          endTime: selectedSlot.endTime,     
           location: selectedLocation,
           name: name,
           phone: formattedPhone,
           notes: notes,
-          userTimezone: userTimezone,
+          userTimezone: userTimezone, 
         });
         setStep("confirmation");
-      } catch (e) {
-        console.error(e);
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to book appointment. Please try again.");
       } finally {
         setSubmitting(false);
       }
@@ -871,7 +762,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           Timezone: <strong>{formatTimezone(userTimezone)}</strong>
           {businessTimezone !== userTimezone && (
             <span className="text-xs block opacity-75">
-              ({getTimezoneDifference()})
+              ({getTimezoneDifferenceDisplay()})
             </span>
           )}
         </p>
@@ -886,6 +777,10 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           <Loader2 className="animate-spin h-8 w-8" style={{ color: theme.mainLightColor }} />
         </div>
       );
+    }
+
+    if (loadingSettings) {
+      return <LoadingSkeleton theme={theme} />;
     }
 
     if (step === "date") {
@@ -949,45 +844,40 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                   const dn = i + 1;
                   const date = new Date(y, m, dn);
                   
-                  // Create a consistent date string for comparison with API data
-                  // This ensures we're using the same format as the API response
-                  const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                  // Use consistent date formatting
+                  const dateString = getConsistentDateString(date);
                   
-                  // Explicitly check dayWiseAvailability separately for clarity
-                  const isUnavailableByAPI = dayWiseAvailability[dateString] === false;
-                  const isUnavailableByOtherRules = isBeforeToday(date) || 
-                    (unavailableDates[fmtApiDate(date)]?.allDay === true) ||
-                    (settings?.availability.find(r => r.day === new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(date))?.available === false);
+                  // Check availability with clear logging
+                  const isUnavailable = isDateFullyUnavailable(date);
+                  const hasApiData = dayWiseAvailability.hasOwnProperty(dateString);
+                  const apiValue = dayWiseAvailability[dateString];
                   
-                  // Combined check
-                  const isUnavailable = isUnavailableByAPI || isUnavailableByOtherRules;
-                  const isAvailable = dayWiseAvailability[dateString] === true;
-                  
-                  // Final availability status - if API explicitly marks as available, override other rules
-                  const finalAvailability = isAvailable ? false : isUnavailable;
+                  // Debug logging (remove in production)
+                  if (hasApiData) {
+                    console.log(`📅 ${dateString}: API=${apiValue}, Final=${!isUnavailable}`);
+                  }
                   
                   return (
                     <button
                       key={dn}
-                      onClick={() => !finalAvailability && selectDate(date)}
-                      disabled={finalAvailability}
+                      onClick={() => !isUnavailable && selectDate(date)}
+                      disabled={isUnavailable}
                       className={`
-                        h-8 w-8 flex items-center justify-center rounded-md text-sm
-                        ${
-                          finalAvailability
-                            ? "opacity-40 cursor-not-allowed"
-                            : "hover:bg-opacity-50"
+                        h-8 w-8 flex items-center justify-center rounded-md text-sm transition-colors
+                        ${isUnavailable
+                          ? "opacity-40 cursor-not-allowed"
+                          : "hover:opacity-80 cursor-pointer"
                         }
                       `}
                       style={{
-                         backgroundColor: finalAvailability ?
-                           "transparent" :
-                           (theme.isDark ? "#222" : theme.mainLightColor),
-                        color: finalAvailability ? 
-                          (theme.isDark ? "#555" : "#aaa") : 
-                          (theme.isDark ? "#fff" : "#000"),
-                        pointerEvents: finalAvailability ? "none" : "auto"
+                        backgroundColor: isUnavailable 
+                          ? "transparent" 
+                          : (theme.isDark ? "#222" : theme.mainLightColor),
+                        color: isUnavailable 
+                          ? (theme.isDark ? "#555" : "#aaa") 
+                          : (theme.isDark ? "#fff" : "#000"),
                       }}
+                      title={hasApiData ? `API: ${apiValue}` : "No API data"}
                     >
                       {dn}
                     </button>
