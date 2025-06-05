@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, File, Menu, X, Linkedin } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 
 const Container = styled.div`
   font-family: "DM Sans", sans-serif;
@@ -1493,1000 +1494,926 @@ const Home = () => {
       document.body.style.overflow = "";
     };
   }, [menuOpen]);
+
   return (
     <>
+      <Helmet>
+        <title>Sayy.ai – One AI Agent to Run Your Whole Business</title>
+        <meta
+          name="description"
+          content="Replace Shopify, Calendly, and CRMs with a single AI agent. Sayy handles sales, bookings, support, and payments—all in one simple dashboard."
+        />
+        <meta
+          name="keywords"
+          content="AI agent, business automation, sales automation, customer support, booking system, CRM, Shopify alternative"
+        />
+        <meta
+          property="og:title"
+          content="Sayy.ai | AI Agent Builder – One AI Agent to Run Your Whole Business"
+        />
+        <meta
+          property="og:description"
+          content="Sayy replaces 10+ business apps with a single AI agent. Sell, support, and grow—all from one dashboard."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://sayy.ai" />
+        <meta
+          property="og:image"
+          content="https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/banner.jpg"
+        />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+          name="twitter:title"
+          content="Sayy.ai | AI Agent Builder – One AI Agent to Run Your Business"
+        />
+        <meta
+          name="twitter:description"
+          content="Your AI-powered assistant for sales, support, payments, and more."
+        />
+        <meta
+          name="twitter:image"
+          content="https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/banner.jpg"
+        />
+        <link rel="canonical" href="https://sayy.ai" />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: "Sayy.ai",
+            applicationCategory: "BusinessApplication",
+            operatingSystem: "Web",
+            offers: {
+              "@type": "Offer",
+              price: "0",
+              priceCurrency: "USD",
+            },
+            description:
+              "Sayy.ai is an AI-powered business automation platform that replaces multiple business tools with a single intelligent agent.",
+          })}
+        </script>
+      </Helmet>
       <Container>
-        <Navbar $scrolled={scrolled}>
-          <Header
-            style={{
-              background: menuOpen ? "#140065" : "transparent",
-            }}
-          >
-            <Logo>
-              <span onClick={() => navigate("/")}>
-                <img src="/assets/Sayy AI Logo.svg" alt="logo" width={80} />
-              </span>
-              <NavLink
-                className="hidden [@media(min-width:601px)]:flex"
-                onClick={() => navigate("/pricing")}
-              >
-                PRICING
-              </NavLink>
-            </Logo>
-            <NavLinks className="">
-              <div className="relative z-10 hidden [@media(min-width:601px)]:flex">
-                <LoginButton onClick={() => navigate("/admin")}>
-                  Login/Sign up
-                </LoginButton>
-              </div>
-              <div className="relative z-10 hidden [@media(max-width:601px)]:block">
-                {!menuOpen ? (
-                  <LoginButton
-                    onClick={() => setMenuOpen(!menuOpen)}
-                    style={{ minWidth: "fit-content" }}
-                  >
-                    <Menu />
-                  </LoginButton>
-                ) : (
-                  <LoginButton
-                    onClick={() => setMenuOpen(!menuOpen)}
-                    style={{ minWidth: "fit-content" }}
-                  >
-                    <X />
-                  </LoginButton>
-                )}
-              </div>
-              {menuOpen && (
-                <div className=" hidden [@media(max-width:601px)]:flex w-full h-[100vh] flex flex-col gap-12 py-8 absolute right-0 mt-4 w-48 bg-black shadow-lg">
-                  <NavLink
-                    style={{
-                      borderBottom: "1px solid #fff",
-                      width: "80%",
-                      borderRadius: "0px",
-                      margin: "0 auto",
-                      padding: "2vh 2vw",
-                    }}
-                    className=""
-                    onClick={() => navigate("/pricing")}
-                  >
-                    PRICING
-                  </NavLink>
-                  <div
-                    className="relative z-10"
-                    style={{
-                      width: "80%",
-                      borderRadius: "0px",
-                      margin: "0 auto",
-                    }}
-                  >
-                    <LoginButton
-                      style={{ width: "100%" }}
-                      onClick={() => navigate("/admin")}
-                    >
-                      Login/Sign up
-                    </LoginButton>
-                  </div>
-                </div>
-              )}
-            </NavLinks>
-          </Header>
-        </Navbar>
-
-        {/* hero section  */}
-        <section className="practial-section relative w-full">
-          <HeroSection>
-            <div className="box-img absolute -top-20 -right-4 sm:top-0 sm:right-0 ">
-              <img src="/assets/landing-asset/assemble/blue-dots.png" alt="" />
-            </div>
-            <div className="box-img absolute top-0 left-0 hidden md:block">
-              <img
-                src="/assets/landing-asset/assemble/small-blue-dots.png"
-                alt=""
-              />
-            </div>
-            <article className="left-side w-[100%] lg:w-[fit-content] z-10">
-              <div className="headline flex gap-4 flex-col items-center lg:flex-row">
-                <img
-                  src="/assets/landing-asset/assemble/homepage-logo.svg"
-                  alt="Kifor Logo"
-                  className=""
-                />
-                <span className="flex flex-col items-end justify-end md:mt-8">
-                  <Headline>to your new Employee</Headline>
-                  <img
-                    src="/assets/landing-asset/assemble/underline.png"
-                    alt=""
-                  />
-                </span>
-              </div>
-              <Subheadline>
-                <div className="w-fit flex flex-col">
-                  <span className="heading flex items-center">
-                    <p className="text-[#AEB8FF]">Select their tasks</p>
-                    <ChevronRight
-                      size={16}
-                      className="ml-2 mt-1 stroke-4 stroke-grey-400"
-                    />
-                  </span>
-
-                  <div className="btns grid grid-cols-2 gap-x-4 gap-y-8 mt-4 place-items-center">
-                    {buttonData.map((btn, id) => {
-                      const isSelected = selectedBrains.includes(id);
-                      return (
-                        <button
-                          key={id}
-                          className="relative inline-block"
-                          onClick={() => handleSelectBrain(id)}
-                        >
-                          <img
-                            src={
-                              isSelected
-                                ? btn.activeBubbleImg
-                                : btn.defaultBubbleImg
-                            }
-                            alt="bubble"
-                            className="block w-fit h-[40px] sm:h-[50px]"
-                          />
-                          <div
-                            className={`para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px] transition-all duration-200`}
-                            style={{
-                              color: isSelected ? btn.textColor : "#fff",
-                              fontWeight: isSelected ? "600" : "400",
-                            }}
-                          >
-                            {btn.label}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div className="relative z-10 mt-12">
-                    <CTAButton onClick={() => navigate("/admin")}>
-                      LAUNCH MY FREE AI-MPLOYEE
-                      <ChevronRight size={20} className="ml-2" />
-                    </CTAButton>
-                  </div>
-                </div>
-              </Subheadline>
-            </article>
-            <article className="right-side lg:block w-[80%] lg:w-[40%] z-10 lg:mt-16 ">
-              <div className="relative">
-                <span className="relative">
-                  <img
-                    src="/assets/landing-asset/assemble/hero-mascot.png"
-                    alt="Kifor Mascot"
-                  />
-                  {buttonData.map((part, index) => (
-                    <div
-                      key={part.id}
-                      style={{
-                        position: "absolute",
-                        top: part.style.top,
-                        left: part.style.left,
-                        right: part.style.right,
-                        width: part.style.width,
-                        height: part.style.height,
-                      }}
-                      className={`transition-opacity duration-300 ${
-                        selectedBrains.includes(index)
-                          ? "opacity-100"
-                          : "opacity-0 pointer-events-none"
-                      }`}
-                    >
-                      <img
-                        src={part.brainPart}
-                        alt={part.label}
-                        className="w-fit h-full"
-                      />
-                    </div>
-                  ))}
-                </span>
-                <div
-                  style={{
-                    background:
-                      "linear-gradient(0deg,rgba(0, 0, 0, 1) 16%, rgba(0, 0, 0, 0) 100%)",
-                    backgroundRepeat: "no-repeat",
-                    height: "30%",
-                    width: "100%",
-                  }}
-                  className="absolute bottom-5"
-                ></div>
-              </div>
-            </article>
-          </HeroSection>
-        </section>
-
-        {/* Sayy What's that AND is Sayy Ai for  */}
-        <section className="practical-section relative w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw] py-[6vh]">
-          <PracticalSection>
-            <BlackBackground>
-              <span className="card-1 relative z-10 w-full h-fit">
-                <h1 className="px-3">Sayy? What's that?</h1>
-              </span>
-            </BlackBackground>
-            <WhiteBackground
-              style={{ width: "80%", marginLeft: "auto", marginRight: "0" }}
+        <header>
+          <Navbar $scrolled={scrolled}>
+            <Header
+              style={{
+                background: menuOpen ? "#140065" : "transparent",
+              }}
             >
-              <span className="para-font mt-4 font-[400] text-[1rem]">
-                Imagine an AI that does the work of an entire team: selling your
-                services, supporting customers, capturing leads, and managing
-                operations – all through simple, intelligent conversations, 24
-                hours a day. No coding skills needed.
-              </span>
-            </WhiteBackground>
-          </PracticalSection>
-          <CardsRow>
-            {/* card 1 */}
-            <PracticalCard>
-              <BlackBackground>
-                <span className="card-1 relative z-10 w-full h-fit">
-                  <h1 className="px-3">Who is Sayy AI for?</h1>
+              <Logo>
+                <span onClick={() => navigate("/")}>
+                  <img
+                    src="/assets/Sayy AI Logo.svg"
+                    alt="Sayy.ai Logo - AI Business Automation Platform"
+                    width={80}
+                  />
                 </span>
-              </BlackBackground>
-              {/* for mobile */}
-              <div className="hidden w-full max-[800px]:flex w-full justify-center mb-6">
-                <WhiteBackground
-                  style={{ margin: "0 2vw", width: "100%" }}
-                  className=""
+                <NavLink
+                  className="hidden [@media(min-width:601px)]:flex"
+                  onClick={() => navigate("/pricing")}
                 >
-                  <span style={{ padding: "2vh 2vw", width: "100%" }}>
-                    <h3 className="para-font text-[16px] font-[800] text-center z-10 relative">
-                      Solopreneurs, E-Commerce & Service Providers
-                    </h3>
-                  </span>
-                </WhiteBackground>
-              </div>
-              <div className="practical-card-content max-w-[350px]">
-                <div className="hidden min-[801px]:flex w-full flex-col gap-2 justify-center">
-                  <WhiteBackground
-                    style={{
-                      width: "100%",
-                    }}
-                  >
-                    <span
+                  PRICING
+                </NavLink>
+              </Logo>
+              <NavLinks className="">
+                <div className="relative z-10 hidden [@media(min-width:601px)]:flex">
+                  <LoginButton onClick={() => navigate("/admin")}>
+                    Login/Sign up
+                  </LoginButton>
+                </div>
+                <div className="relative z-10 hidden [@media(max-width:601px)]:block">
+                  {!menuOpen ? (
+                    <LoginButton
+                      onClick={() => setMenuOpen(!menuOpen)}
+                      style={{ minWidth: "fit-content" }}
+                    >
+                      <Menu />
+                    </LoginButton>
+                  ) : (
+                    <LoginButton
+                      onClick={() => setMenuOpen(!menuOpen)}
+                      style={{ minWidth: "fit-content" }}
+                    >
+                      <X />
+                    </LoginButton>
+                  )}
+                </div>
+                {menuOpen && (
+                  <div className=" hidden [@media(max-width:601px)]:flex w-full h-[100vh] flex flex-col gap-12 py-8 absolute right-0 mt-4 w-48 bg-black shadow-lg">
+                    <NavLink
                       style={{
-                        width: "95%",
-                        padding: "1.2vh 2vw ",
-                        marginRight: "20px",
+                        borderBottom: "1px solid #fff",
+                        width: "80%",
+                        borderRadius: "0px",
+                        margin: "0 auto",
+                        padding: "2vh 2vw",
+                      }}
+                      className=""
+                      onClick={() => navigate("/pricing")}
+                    >
+                      PRICING
+                    </NavLink>
+                    <div
+                      className="relative z-10"
+                      style={{
+                        width: "80%",
+                        borderRadius: "0px",
+                        margin: "0 auto",
                       }}
                     >
-                      <h1 className="main-font text-[20px] lg:text-[24px] font-[800]">
-                        Solopreneurs
-                      </h1>
-                    </span>
-                  </WhiteBackground>
-                  <WhiteBackground
-                    style={{
-                      width: "100%",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: "95%",
-                        padding: "1.2vh 2vw ",
-                        marginRight: "20px",
-                      }}
-                    >
-                      <h3 className="para-font text-[0.9rem] font-[400]">
-                        The power of a full team working for you, without
-                        traditional hiring costs.
-                      </h3>
-                    </span>
-                  </WhiteBackground>
-                </div>
-
-                <div className="for-card bg-[#fff] mt-2 w-full px-[6px] py-[6px] rounded-[10px] border border-black [@media(max-width:600px)]:max-w-[320px]">
-                  {/* for mobile */}
-                  <div className="mob-upper-content hidden max-[800px]:flex w-full flex-col gap-2 text-center py-2 px-2">
-                    <h1 className="main-font text-[20px] font-[800]">
-                      Solopreneurs
-                    </h1>
-                    <p className="para-font text-[0.9rem] font-[400]">
-                      The power of a full team working for you, without
-                      traditional hiring costs.
-                    </p>
-                  </div>
-                  <img
-                    src="/assets/landing-asset/assemble/who-card-1.png"
-                    alt=""
-                    width={"100%"}
-                  />
-                  <div className="content bg-[#FFFEB2] w-full border border-black mt-[6px] px-4 py-1">
-                    <p className="text-center para-font text-[14px] font-[500]">
-                      Creators, Freelancers, <br /> Coaches & Consultants
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </PracticalCard>
-
-            {/* card 2 */}
-            <PracticalCard style={{ justifyContent: "center" }}>
-              <div className="practical-card-content max-w-[350px]">
-                <div className="hidden min-[801px]:flex w-full flex-col gap-2 justify-center">
-                  <WhiteBackground
-                    style={{
-                      width: "100%",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: "95%",
-                        padding: "1.2vh 2vw ",
-                        marginRight: "20px",
-                      }}
-                    >
-                      <h1 className="main-font text-[20px] lg:text-[24px] font-[800]">
-                        E-Commerce
-                      </h1>
-                    </span>
-                  </WhiteBackground>
-                  <WhiteBackground
-                    style={{
-                      width: "100%",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: "95%",
-                        padding: "1.2vh 2vw ",
-                        marginRight: "20px",
-                      }}
-                    >
-                      <h3 className="para-font text-[0.9rem] font-[400]">
-                        Your intelligent storefront guiding customers and
-                        closing sales 24x7.
-                      </h3>
-                    </span>
-                  </WhiteBackground>
-                </div>
-                <div className="for-card bg-[#fff] mt-2 w-full px-[6px] py-[6px] rounded-[10px] border border-black [@media(max-width:600px)]:max-w-[320px]">
-                  <div className="mob-upper-content hidden max-[800px]:flex w-full flex-col gap-2 text-center py-2 px-2">
-                    <h1 className="main-font text-[20px] font-[800]">
-                      E-Commerce
-                    </h1>
-                    <p className="para-font text-[0.9rem] font-[400]">
-                      Your intelligent storefront guiding customers and closing
-                      sales 24x7.
-                    </p>
-                  </div>
-                  <img
-                    src="/assets/landing-asset/assemble/who-card-2.png"
-                    alt=""
-                    width={"100%"}
-                  />
-                  <div className="content bg-[#FFFEB2] w-full border border-black mt-[6px] px-4 py-1">
-                    <p className="text-center para-font text-[14px] font-[500]">
-                      E-commerce, D2C brands <br /> & Influencer storefronts
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </PracticalCard>
-
-            {/* card 3 */}
-            <PracticalCard>
-              <div className="practical-card-content max-w-[350px]">
-                <div className="hidden min-[801px]:flex w-full flex-col gap-2 justify-center">
-                  <WhiteBackground
-                    style={{
-                      width: "100%",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: "95%",
-                        padding: "1.2vh 2vw ",
-                        marginRight: "20px",
-                      }}
-                    >
-                      <h1 className="main-font text-[20px] lg:text-[24px] font-[800]">
-                        Service Providers
-                      </h1>
-                    </span>
-                  </WhiteBackground>
-                  <WhiteBackground
-                    style={{
-                      width: "100%",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: "95%",
-                        padding: "1.2vh 2vw ",
-                        marginRight: "20px",
-                      }}
-                    >
-                      <h3 className="para-font text-[0.9rem] font-[400]">
-                        Your AI front desk handling bookings, leads, and
-                        nurturing client relationships..
-                      </h3>
-                    </span>
-                  </WhiteBackground>
-                </div>
-                <div className="for-card bg-[#fff] mt-2 w-full px-[6px] py-[6px] rounded-[10px] border border-black [@media(max-width:600px)]:max-w-[320px]">
-                  <div className="mob-upper-content hidden max-[800px]:flex w-full flex-col gap-2 text-center py-2 px-2">
-                    <h1 className="main-font text-[20px] font-[800]">
-                      Service Providers
-                    </h1>
-                    <p className="para-font text-[0.9rem] font-[400]">
-                      Your AI front desk handling bookings, leads, and nurturing
-                      client relationships.
-                    </p>
-                  </div>
-                  <img
-                    src="/assets/landing-asset/assemble/who-card-3.png"
-                    alt=""
-                    width={"100%"}
-                  />
-                  <div className="content bg-[#FFFEB2] w-full border border-black mt-[6px] px-4 py-1">
-                    <p className="text-center para-font text-[14px] font-[500]">
-                      Hospitality, Wellness, <br /> Legal & Home Services
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </PracticalCard>
-          </CardsRow>
-        </section>
-
-        {/* What can Sayy do? */}
-        <section className="practial-section flex flex-col gap-4 relative w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw]">
-          {/* mobile version feature heading and social btns  */}
-          <FeaturesSection className="hidden [@media(max-width:900px)]:block">
-            <BlackBackground>
-              <span className="card-1 relative z-10 w-full h-fit">
-                <h1 className="px-3">What can Sayy Do?</h1>
-              </span>
-            </BlackBackground>
-            <div className="icon-container flex gap-1 sm:gap-2 justify-between sm:justify-center items-center mt-2 sm:mt-12">
-              {features.map((feature, idx) => (
-                <button
-                  key={feature.key}
-                  onClick={() => {
-                    const el = document.getElementById(
-                      `feature-${feature.key}`
-                    );
-                    if (el)
-                      el.scrollIntoView({
-                        behavior: "smooth",
-                        block: "center",
-                      });
-                    setSelectedFeature(feature.key);
-                    setUserSelected(true); // <-- add this
-                  }}
-                >
-                  <FeatureIcon
-                    className={`flex
-                        ${
-                          feature.key === selectedFeature
-                            ? "bg-[#000] text-[#64FFB7] "
-                            : "bg-white text-[#000]"
-                        }
-                        `}
-                  >
-                    <img
-                      src={
-                        feature.key === selectedFeature
-                          ? selectedFeatureIcons[idx]
-                          : FeatureIcons[idx]
-                      }
-                      alt=""
-                    />
-                  </FeatureIcon>
-                </button>
-              ))}
-            </div>
-          </FeaturesSection>
-          <FeaturesSection>
-            <div className="hidden [@media(min-width:900px)]:block">
-              <BlackBackground className="">
-                <span className="card-1 relative z-10 w-full h-fit">
-                  <h1 className="para-font px-3">What can Sayy Do?</h1>
-                </span>
-              </BlackBackground>
-            </div>
-            <FeaturesRow>
-              <FeaturesRight>
-                <FeatureImageBox className="">
-                  <img src={selected?.image} alt={selected?.label} />
-                </FeatureImageBox>
-              </FeaturesRight>
-              <FeaturesLeft>
-                <FeaturesList>
-                  {features.map((feature, idx) => (
-                    <FeatureListLabelBox
-                      id={`feature-${feature.key}`}
-                      key={feature.key}
-                      className={`relative z-[1] flex flex-col ${
-                        feature.key === selectedFeature
-                          ? "mb-[0] sm:mb-[0]"
-                          : "mb-0"
-                      } `}
-                    >
-                      <FeatureListItem
-                        selected={selectedFeature === feature.key}
-                        onClick={() => {
-                          setSelectedFeature(feature.key);
-                          setUserSelected(true);
-                        }}
+                      <LoginButton
+                        style={{ width: "100%" }}
+                        onClick={() => navigate("/admin")}
                       >
-                        <FeatureListLabel
-                          className={`w-full pl-4 pr-3 py-4
-                               ${
-                                 feature.key === selectedFeature
-                                   ? "bg-[#64FFB7]"
-                                   : "bg-white"
-                               } 
-                                before:content-[''] before:absolute before:w-0 before:h-0
-                                before:border-l-[20px] before:border-r-[20px] before:border-b-[20px]
-                                before:border-l-transparent before:border-r-transparent before:z-[0]
-                                ${
-                                  feature.key === selectedFeature
-                                    ? "before:border-b-[#64FFB7] before:bottom-[0px] before:right-[0px] before:translate-y-[-0.01rem] xs:before:translate-y-[-0.01rem] before:translate-x-[-0.1rem] xs:before:translate-x-[0.25rem] after:bottom-[0px] after:right-[0] after:translate-x-[0.08rem] xs:after:translate-x-[0.4rem] after:translate-y-[0.05rem]"
-                                    : "before:border-b-white before:bottom-[0px] before:right-[0] before:translate-y-[-0.01rem] xs:before:translate-y-[-0.01rem] before:translate-x-[-0.1rem] xs:before:translate-x-[0.25rem] after:bottom-[0px] after:right-[0px] after:translate-x-[0.08rem] xs:after:translate-x-[0.4rem] after:translate-y-[0.05rem]"
-                                } 
+                        Login/Sign up
+                      </LoginButton>
+                    </div>
+                  </div>
+                )}
+              </NavLinks>
+            </Header>
+          </Navbar>
+        </header>
 
-                                after:content-[''] after:absolute after:w-0 after:h-0
-                                after:border-l-[22px] after:border-r-[22px] after:border-b-[22px]
-                                after:border-l-transparent after:border-r-transparent after:border-b-black after:z-[-1]
-                          `}
-                        >
-                          <FeatureListH1>{feature.label}</FeatureListH1>
+        <main>
+          <section
+            className="practial-section relative w-full"
+            aria-label="Hero Section"
+          >
+            <HeroSection>
+              <div className="box-img absolute -top-20 -right-4 sm:top-0 sm:right-0 ">
+                <img
+                  src="/assets/landing-asset/assemble/blue-dots.png"
+                  alt="Decorative blue dots pattern"
+                />
+              </div>
+              <div className="box-img absolute top-0 left-0 hidden md:block">
+                <img
+                  src="/assets/landing-asset/assemble/small-blue-dots.png"
+                  alt="Decorative small blue dots pattern"
+                />
+              </div>
+              <article className="left-side w-[100%] lg:w-[fit-content] z-10">
+                <div className="headline flex gap-4 flex-col items-center lg:flex-row">
+                  <img
+                    src="/assets/landing-asset/assemble/homepage-logo.svg"
+                    alt="Sayy.ai Homepage Logo"
+                    className=""
+                  />
+                  <span className="flex flex-col items-end justify-end md:mt-8">
+                    <Headline>to your new Employee</Headline>
+                    <img
+                      src="/assets/landing-asset/assemble/underline.png"
+                      alt="Decorative underline"
+                    />
+                  </span>
+                </div>
+                <Subheadline>
+                  <div className="w-fit flex flex-col">
+                    <span className="heading flex items-center">
+                      <p className="text-[#AEB8FF]">Select their tasks</p>
+                      <ChevronRight
+                        size={16}
+                        className="ml-2 mt-1 stroke-4 stroke-grey-400"
+                      />
+                    </span>
 
-                          <div className="block max-[900px]:block min-[901px]:hidden pl-5">
-                            <FeatureListDesc>{feature?.desc}</FeatureListDesc>
-                          </div>
-
-                          {feature.key === selectedFeature && (
-                            <div className="hidden max-[900px]:hidden min-[901px]:block">
-                              <FeatureListDesc>
-                                {selected?.desc}
-                              </FeatureListDesc>
-                            </div>
-                          )}
-                          {/* mobile icon  */}
-                          <FeatureIcon
-                            className={`hidden [@media(max-width:900px)]:flex absolute -left-4 top-1/2 -translate-y-1/2
-                            ${
-                              feature.key === selectedFeature
-                                ? "bg-[#000] text-[#64FFB7]"
-                                : "bg-white text-[#000]"
-                            }
-                          `}
+                    <div className="btns grid grid-cols-2 gap-x-4 gap-y-8 mt-4 place-items-center">
+                      {buttonData.map((btn, id) => {
+                        const isSelected = selectedBrains.includes(id);
+                        return (
+                          <button
+                            key={id}
+                            className="relative inline-block"
+                            onClick={() => handleSelectBrain(id)}
+                            aria-label={`Select ${btn.label} feature`}
+                            role="button"
                           >
                             <img
                               src={
-                                feature.key === selectedFeature
-                                  ? selectedFeatureIcons[idx]
-                                  : FeatureIcons[idx]
+                                isSelected
+                                  ? btn.activeBubbleImg
+                                  : btn.defaultBubbleImg
                               }
-                              alt=""
+                              alt={`${btn.label} feature button`}
+                              className="block w-fit h-[40px] sm:h-[50px]"
                             />
-                          </FeatureIcon>
-                        </FeatureListLabel>
-                        <FeatureIcon
-                          className={`flex [@media(max-width:900px)]:hidden
-                           ${
-                             feature.key === selectedFeature
-                               ? "bg-[#000] text-[#64FFB7] "
-                               : "bg-white text-[#000]"
-                           }
-                          `}
-                        >
-                          <img
-                            src={
-                              feature.key === selectedFeature
-                                ? selectedFeatureIcons[idx]
-                                : FeatureIcons[idx]
-                            }
-                            alt=""
-                          />
-                        </FeatureIcon>
-                      </FeatureListItem>
+                            <div
+                              className={`para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px] transition-all duration-200`}
+                              style={{
+                                color: isSelected ? btn.textColor : "#fff",
+                                fontWeight: isSelected ? "600" : "400",
+                              }}
+                            >
+                              {btn.label}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="relative z-10 mt-12">
+                      <CTAButton onClick={() => navigate("/admin")}>
+                        LAUNCH MY FREE AI-MPLOYEE
+                        <ChevronRight size={20} className="ml-2" />
+                      </CTAButton>
+                    </div>
+                  </div>
+                </Subheadline>
+              </article>
+              <article className="right-side lg:block w-[80%] lg:w-[40%] z-10 lg:mt-16 ">
+                <div className="relative">
+                  <span className="relative">
+                    <img
+                      src="/assets/landing-asset/assemble/hero-mascot.png"
+                      alt="Sayy.ai AI Assistant Mascot"
+                    />
+                    {buttonData.map((part, index) => (
+                      <div
+                        key={part.id}
+                        style={{
+                          position: "absolute",
+                          top: part.style.top,
+                          left: part.style.left,
+                          right: part.style.right,
+                          width: part.style.width,
+                          height: part.style.height,
+                        }}
+                        className={`transition-opacity duration-300 ${
+                          selectedBrains.includes(index)
+                            ? "opacity-100"
+                            : "opacity-0 pointer-events-none"
+                        }`}
+                      >
+                        <img
+                          src={part.brainPart}
+                          alt={`${part.label} brain part visualization`}
+                          className="w-fit h-full"
+                        />
+                      </div>
+                    ))}
+                  </span>
+                  <div
+                    style={{
+                      background:
+                        "linear-gradient(0deg,rgba(0, 0, 0, 1) 16%, rgba(0, 0, 0, 0) 100%)",
+                      backgroundRepeat: "no-repeat",
+                      height: "30%",
+                      width: "100%",
+                    }}
+                    className="absolute bottom-5"
+                  ></div>
+                </div>
+              </article>
+            </HeroSection>
+          </section>
 
-                      {/* for mobile only  */}
-                      <FeatureImageBoxContainer className="below-img mt-2">
-                        <img src={feature?.image} alt={feature?.label} />
-                      </FeatureImageBoxContainer>
-                    </FeatureListLabelBox>
-                  ))}
-                </FeaturesList>
-              </FeaturesLeft>
-            </FeaturesRow>
-          </FeaturesSection>
-        </section>
-
-        {/* Where all can I use my AI-mployee?  */}
-        <section className="practial-section relative w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw] py-[6vh] max-[900px]:pb-0">
-          <PlatformSection>
-            <PlatformLeft className="left-side">
+          <section
+            className="practical-section relative w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw] py-[6vh]"
+            aria-label="About Section"
+          >
+            <PracticalSection>
               <BlackBackground>
                 <span className="card-1 relative z-10 w-full h-fit">
-                  <h1 className="px-3">Where all can I use my AI-mployee?</h1>
+                  <h1 className="px-3">Sayy? What's that?</h1>
                 </span>
               </BlackBackground>
-              <PlatformCardsRow className="">
-                <PlatformCard className="">
-                  <span className="">
-                    <PlatformIcon className="w-[20%]">
-                      <img
-                        src="assets/landing-asset/platform/social.png"
-                        alt="Link-in-Bio"
-                        className="object-contain w-20 sm:w-22"
-                      />
-                    </PlatformIcon>
-                    <div className="flex flex-col w-[80%] px-4">
-                      <PlatformCardTitle>Link-in-Bio</PlatformCardTitle>
-                      <PlatformCardDesc>
-                        Add your assistant to your social links — like a smart,
-                        interactive AI storefront.
-                      </PlatformCardDesc>
-                    </div>
-                  </span>
-                </PlatformCard>
-                <PlatformCard className="">
-                  <span>
-                    <PlatformIcon className="w-[20%]">
-                      <img
-                        src="assets/landing-asset/platform/website.png"
-                        alt="Link-in-Bio"
-                        className="object-contain w-20 sm:w-22"
-                      />
-                    </PlatformIcon>
-                    <div className="flex flex-col w-[80%] px-4">
-                      <PlatformCardTitle>Website</PlatformCardTitle>
-                      <PlatformCardDesc>
-                        Install our AI Agent directly onto your site for
-                        seamless customer interactions
-                      </PlatformCardDesc>
-                    </div>
-                  </span>
-                </PlatformCard>
-                <PlatformCard className="">
-                  <span>
-                    <PlatformIcon className="w-[20%]">
-                      <img
-                        src="assets/landing-asset/platform/chatgpt.png"
-                        alt="chatgpt"
-                        className="object-contain w-20 sm:w-22"
-                      />
-                    </PlatformIcon>
-                    <div className="flex flex-col w-[80%] px-4">
-                      <PlatformCardTitle>ChatGpt</PlatformCardTitle>
-                      <PlatformCardDesc>
-                        Transform the popular AI platform into your personalized
-                        sales channel
-                      </PlatformCardDesc>
-                    </div>
-                  </span>
-                </PlatformCard>
-              </PlatformCardsRow>
-            </PlatformLeft>
-            <AssembleSection className="max-[900px]:hidden">
-              <AssembleGrid>
-                <AssembleCard>
-                  <img
-                    src="/assets/landing-asset/assemble/use-my-ai-1.png"
-                    alt="Kifor Mascot"
-                    className="mascot-img"
-                    width={250}
-                  />
-                </AssembleCard>
-                <AssembleCard>
-                  <img
-                    src="/assets/landing-asset/assemble/use-my-ai-2.png"
-                    alt="Kifor Mascot"
-                    className="mascot-img"
-                    width={220}
-                  />
-                </AssembleCard>
-                <AssembleCard>
-                  <img
-                    src="/assets/landing-asset/assemble/use-my-ai-3.png"
-                    alt="Kifor Mascot"
-                    className=""
-                    width={250}
-                  />
-                </AssembleCard>
-              </AssembleGrid>
-            </AssembleSection>
-          </PlatformSection>
-        </section>
-        {/* in mobile Phone  */}
-        <AssembleSection className="min-[901px]:hidden  max-[900px]:mb-[6vh]">
-          <AssembleGrid>
-            <AssembleCard>
-              <img
-                src="/assets/landing-asset/assemble/use-my-ai-1.png"
-                alt="Kifor Mascot"
-                className="mascot-img"
-              />
-            </AssembleCard>
-            <AssembleCard className="hidden sm:flex">
-              <img
-                src="/assets/landing-asset/assemble/use-my-ai-2.png"
-                alt="Kifor Mascot"
-                className="mascot-img"
-              />
-            </AssembleCard>
-            <AssembleCard>
-              <img
-                src="/assets/landing-asset/assemble/use-my-ai-3.png"
-                alt="Kifor Mascot"
-                className=""
-              />
-            </AssembleCard>
-          </AssembleGrid>
-        </AssembleSection>
-
-        {/* So, how do I build my AI-mployee? */}
-        <section className="practial-section relative w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw] pb-[6vh]">
-          <BuildAgentSection>
-            <article className="upper">
-              <BlackBackground>
-                <span className="card-1 relative z-10 w-full h-fit">
-                  <h1 className="px-3">So, how do I build my AI-mployee?</h1>
-                </span>
-              </BlackBackground>
-              <WhiteBackground className="ml-auto mr-1">
-                <span className="card-2 ml-auto w-full h-fit">
-                  Train your AI-mployee's intelligence and personality to talk,
-                  think, and sell like you. No code needed.
+              <WhiteBackground
+                style={{ width: "80%", marginLeft: "auto", marginRight: "0" }}
+              >
+                <span className="para-font mt-4 font-[400] text-[1rem]">
+                  Imagine an AI that does the work of an entire team: selling
+                  your services, supporting customers, capturing leads, and
+                  managing operations – all through simple, intelligent
+                  conversations, 24 hours a day. No coding skills needed.
                 </span>
               </WhiteBackground>
-            </article>
-
-            <article className="below-section h-[100%] bg-[#FDCDFF] relative w-full">
-              <div className="tab w-[103%] sm:w-[90%] mx-auto flex items-center justify-between px-2 py-1 bg-[#FDCDFF] border border-black rounded-full absolute -top-7 left-1/2 transform -translate-x-1/2">
-                <h1 className="main-font font-[800] text-[18px]">
-                  Your AI, Your Way
-                </h1>
-                <div className="icons flex items-center gap-1">
-                  <span className="bg-[#fff] p-1 sm:p-2 m-auto rounded-full border border-black">
-                    <img src="/assets/icons/file-icon.svg" width={20} alt="" />
+            </PracticalSection>
+            <CardsRow>
+              {/* card 1 */}
+              <PracticalCard>
+                <BlackBackground>
+                  <span className="card-1 relative z-10 w-full h-fit">
+                    <h1 className="px-3">Who is Sayy AI for?</h1>
                   </span>
-                  <span className="bg-[#fff] p-1 sm:p-2 m-auto rounded-full border border-black">
-                    <File size={24}></File>
-                  </span>
+                </BlackBackground>
+                {/* for mobile */}
+                <div className="hidden w-full max-[800px]:flex w-full justify-center mb-6">
+                  <WhiteBackground
+                    style={{ margin: "0 2vw", width: "100%" }}
+                    className=""
+                  >
+                    <span style={{ padding: "2vh 2vw", width: "100%" }}>
+                      <h3 className="para-font text-[16px] font-[800] text-center z-10 relative">
+                        Solopreneurs, E-Commerce & Service Providers
+                      </h3>
+                    </span>
+                  </WhiteBackground>
                 </div>
-              </div>
-              <div className="card-container mt-4">
-                <div className="your-ai-card">
-                  <div className="top-heading relative z-10">
-                    <div className="green-card-title">
-                      <span>
-                        <h2 className="relative z-10">Brain</h2>
+                <div className="practical-card-content max-w-[350px]">
+                  <div className="hidden min-[801px]:flex w-full flex-col gap-2 justify-center">
+                    <WhiteBackground
+                      style={{
+                        width: "100%",
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: "95%",
+                          padding: "1.2vh 2vw ",
+                          marginRight: "20px",
+                        }}
+                      >
+                        <h1 className="main-font text-[20px] lg:text-[24px] font-[800]">
+                          Solopreneurs
+                        </h1>
                       </span>
-                    </div>
-                  </div>
-                  <div className="card-heading">
-                    <h1 className="">Smart beyond limits</h1>
-                  </div>
-                  <div className="content">
-                    <div className="img">
-                      <object
-                        type="image/svg+xml"
-                        data="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/web+anim-1+%40sdevc.svg"
-                        className="w-[150px] xs:w-[200px] h-auto"
-                      ></object>
-                    </div>
-                    <p className="para-font mt-4 font-[400] text-[1rem]">
-                      Smarten up your Agent's brain with files, catalogs, social
-                      links and all information related to your business.
-                    </p>
-                  </div>
-                </div>
-                <div className="your-ai-card">
-                  <div className="top-heading relative z-10">
-                    <div className="green-card-title">
-                      <span>
-                        <h2 className="z-10 relative">Voice</h2>
+                    </WhiteBackground>
+                    <WhiteBackground
+                      style={{
+                        width: "100%",
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: "95%",
+                          padding: "1.2vh 2vw ",
+                          marginRight: "20px",
+                        }}
+                      >
+                        <h3 className="para-font text-[0.9rem] font-[400]">
+                          The power of a full team working for you, without
+                          traditional hiring costs.
+                        </h3>
                       </span>
-                    </div>
+                    </WhiteBackground>
                   </div>
-                  <div className="card-heading">
-                    <h1 className="">Selling like you would</h1>
-                  </div>
-                  <div className="content">
-                    <div className="img">
-                      <object
-                        type="image/svg+xml"
-                        data="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/web+anim-3+%40sdevc.svg"
-                        className="w-[150px] xs:w-[200px] h-auto"
-                      ></object>
-                    </div>
-                    <p className="para-font mt-4 font-[400] text-[1rem]">
-                      Craft a conversational style that reflects your brand's
-                      personality, from professional to playful.
-                    </p>
-                  </div>
-                </div>
-                <div className="your-ai-card">
-                  <div className="top-heading relative z-10">
-                    <div className="green-card-title">
-                      <span>
-                        <h2 className="z-10 relative">Appearance</h2>
-                      </span>
-                    </div>
-                  </div>
-                  <div className="card-heading">
-                    <h1 className="">Your brand's extension</h1>
-                  </div>
-                  <div className="content">
-                    <div className="img">
-                      <object
-                        type="image/svg+xml"
-                        data="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/web+anim-2%40sdevc.svg"
-                        className="w-[150px] xs:w-[200px] h-auto"
-                      ></object>
-                    </div>
-                    <p className="para-font mt-4 font-[400] text-[1rem]">
-                      Customize chat themes, colors, and interactions to create
-                      a seamless, on-brand user experience.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </article>
-          </BuildAgentSection>
-        </section>
 
-        {/* Can I really run my entire business from One app? */}
-        <section className="practial-section w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw]">
-          <AppOverloadSection>
-            <AppOverloadUpper>
-              <BlackBackground>
-                <span className="card-1 relative z-10 w-full h-fit">
-                  <h1 className="px-3">
-                    Can I really run my entire business from One app?
+                  <div className="for-card bg-[#fff] mt-2 w-full px-[6px] py-[6px] rounded-[10px] border border-black [@media(max-width:600px)]:max-w-[320px]">
+                    {/* for mobile */}
+                    <div className="mob-upper-content hidden max-[800px]:flex w-full flex-col gap-2 text-center py-2 px-2">
+                      <h1 className="main-font text-[20px] font-[800]">
+                        Solopreneurs
+                      </h1>
+                      <p className="para-font text-[0.9rem] font-[400]">
+                        The power of a full team working for you, without
+                        traditional hiring costs.
+                      </p>
+                    </div>
+                    <img
+                      src="/assets/landing-asset/assemble/who-card-1.png"
+                      alt="Solopreneurs using Sayy.ai - Creators, Freelancers, Coaches & Consultants"
+                      width={"100%"}
+                    />
+                    <div className="content bg-[#FFFEB2] w-full border border-black mt-[6px] px-4 py-1">
+                      <p className="text-center para-font text-[14px] font-[500]">
+                        Creators, Freelancers, <br /> Coaches & Consultants
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </PracticalCard>
+
+              {/* card 2 */}
+              <PracticalCard style={{ justifyContent: "center" }}>
+                <div className="practical-card-content max-w-[350px]">
+                  <div className="hidden min-[801px]:flex w-full flex-col gap-2 justify-center">
+                    <WhiteBackground
+                      style={{
+                        width: "100%",
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: "95%",
+                          padding: "1.2vh 2vw ",
+                          marginRight: "20px",
+                        }}
+                      >
+                        <h1 className="main-font text-[20px] lg:text-[24px] font-[800]">
+                          E-Commerce
+                        </h1>
+                      </span>
+                    </WhiteBackground>
+                    <WhiteBackground
+                      style={{
+                        width: "100%",
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: "95%",
+                          padding: "1.2vh 2vw ",
+                          marginRight: "20px",
+                        }}
+                      >
+                        <h3 className="para-font text-[0.9rem] font-[400]">
+                          Your intelligent storefront guiding customers and
+                          closing sales 24x7.
+                        </h3>
+                      </span>
+                    </WhiteBackground>
+                  </div>
+                  <div className="for-card bg-[#fff] mt-2 w-full px-[6px] py-[6px] rounded-[10px] border border-black [@media(max-width:600px)]:max-w-[320px]">
+                    <div className="mob-upper-content hidden max-[800px]:flex w-full flex-col gap-2 text-center py-2 px-2">
+                      <h1 className="main-font text-[20px] font-[800]">
+                        E-Commerce
+                      </h1>
+                      <p className="para-font text-[0.9rem] font-[400]">
+                        Your intelligent storefront guiding customers and
+                        closing sales 24x7.
+                      </p>
+                    </div>
+                    <img
+                      src="/assets/landing-asset/assemble/who-card-2.png"
+                      alt="E-commerce businesses using Sayy.ai - Online stores and D2C brands"
+                      width={"100%"}
+                    />
+                    <div className="content bg-[#FFFEB2] w-full border border-black mt-[6px] px-4 py-1">
+                      <p className="text-center para-font text-[14px] font-[500]">
+                        E-commerce, D2C brands <br /> & Influencer storefronts
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </PracticalCard>
+
+              {/* card 3 */}
+              <PracticalCard>
+                <div className="practical-card-content max-w-[350px]">
+                  <div className="hidden min-[801px]:flex w-full flex-col gap-2 justify-center">
+                    <WhiteBackground
+                      style={{
+                        width: "100%",
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: "95%",
+                          padding: "1.2vh 2vw ",
+                          marginRight: "20px",
+                        }}
+                      >
+                        <h1 className="main-font text-[20px] lg:text-[24px] font-[800]">
+                          Service Providers
+                        </h1>
+                      </span>
+                    </WhiteBackground>
+                    <WhiteBackground
+                      style={{
+                        width: "100%",
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: "95%",
+                          padding: "1.2vh 2vw ",
+                          marginRight: "20px",
+                        }}
+                      >
+                        <h3 className="para-font text-[0.9rem] font-[400]">
+                          Your AI front desk handling bookings, leads, and
+                          nurturing client relationships..
+                        </h3>
+                      </span>
+                    </WhiteBackground>
+                  </div>
+                  <div className="for-card bg-[#fff] mt-2 w-full px-[6px] py-[6px] rounded-[10px] border border-black [@media(max-width:600px)]:max-w-[320px]">
+                    <div className="mob-upper-content hidden max-[800px]:flex w-full flex-col gap-2 text-center py-2 px-2">
+                      <h1 className="main-font text-[20px] font-[800]">
+                        Service Providers
+                      </h1>
+                      <p className="para-font text-[0.9rem] font-[400]">
+                        Your AI front desk handling bookings, leads, and
+                        nurturing client relationships.
+                      </p>
+                    </div>
+                    <img
+                      src="/assets/landing-asset/assemble/who-card-3.png"
+                      alt="Service providers using Sayy.ai - Hospitality, Wellness, Legal & Home Services"
+                      width={"100%"}
+                    />
+                    <div className="content bg-[#FFFEB2] w-full border border-black mt-[6px] px-4 py-1">
+                      <p className="text-center para-font text-[14px] font-[500]">
+                        Hospitality, Wellness, <br /> Legal & Home Services
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </PracticalCard>
+            </CardsRow>
+          </section>
+
+          <section
+            className="practial-section relative w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw] py-[6vh] max-[900px]:pb-0"
+            aria-label="Platforms Section"
+          >
+            <PlatformSection>
+              <PlatformLeft className="left-side">
+                <BlackBackground>
+                  <span className="card-1 relative z-10 w-full h-fit">
+                    <h1 className="px-3">Where all can I use my AI-mployee?</h1>
+                  </span>
+                </BlackBackground>
+                <PlatformCardsRow className="">
+                  <PlatformCard className="">
+                    <span className="">
+                      <PlatformIcon className="w-[20%]">
+                        <img
+                          src="assets/landing-asset/platform/social.png"
+                          alt="Social Media Integration Icon"
+                          className="object-contain w-20 sm:w-22"
+                        />
+                      </PlatformIcon>
+                      <div className="flex flex-col w-[80%] px-4">
+                        <PlatformCardTitle>Link-in-Bio</PlatformCardTitle>
+                        <PlatformCardDesc>
+                          Add your assistant to your social links — like a
+                          smart, interactive AI storefront.
+                        </PlatformCardDesc>
+                      </div>
+                    </span>
+                  </PlatformCard>
+                  <PlatformCard className="">
+                    <span>
+                      <PlatformIcon className="w-[20%]">
+                        <img
+                          src="assets/landing-asset/platform/website.png"
+                          alt="Website Integration Icon"
+                          className="object-contain w-20 sm:w-22"
+                        />
+                      </PlatformIcon>
+                      <div className="flex flex-col w-[80%] px-4">
+                        <PlatformCardTitle>Website</PlatformCardTitle>
+                        <PlatformCardDesc>
+                          Install our AI Agent directly onto your site for
+                          seamless customer interactions
+                        </PlatformCardDesc>
+                      </div>
+                    </span>
+                  </PlatformCard>
+                  <PlatformCard className="">
+                    <span>
+                      <PlatformIcon className="w-[20%]">
+                        <img
+                          src="assets/landing-asset/platform/chatgpt.png"
+                          alt="ChatGPT Integration Icon"
+                          className="object-contain w-20 sm:w-22"
+                        />
+                      </PlatformIcon>
+                      <div className="flex flex-col w-[80%] px-4">
+                        <PlatformCardTitle>ChatGpt</PlatformCardTitle>
+                        <PlatformCardDesc>
+                          Transform the popular AI platform into your
+                          personalized sales channel
+                        </PlatformCardDesc>
+                      </div>
+                    </span>
+                  </PlatformCard>
+                </PlatformCardsRow>
+              </PlatformLeft>
+              <AssembleSection className="max-[900px]:hidden">
+                <AssembleGrid>
+                  <AssembleCard>
+                    <img
+                      src="/assets/landing-asset/assemble/use-my-ai-1.png"
+                      alt="Sayy.ai AI Assistant on Social Media"
+                      className="mascot-img"
+                      width={250}
+                    />
+                  </AssembleCard>
+                  <AssembleCard>
+                    <img
+                      src="/assets/landing-asset/assemble/use-my-ai-2.png"
+                      alt="Sayy.ai AI Assistant on Website"
+                      className="mascot-img"
+                      width={220}
+                    />
+                  </AssembleCard>
+                  <AssembleCard>
+                    <img
+                      src="/assets/landing-asset/assemble/use-my-ai-3.png"
+                      alt="Sayy.ai AI Assistant on ChatGPT"
+                      className=""
+                      width={250}
+                    />
+                  </AssembleCard>
+                </AssembleGrid>
+              </AssembleSection>
+            </PlatformSection>
+          </section>
+          {/* in mobile Phone  */}
+          <AssembleSection className="min-[901px]:hidden  max-[900px]:mb-[6vh]">
+            <AssembleGrid>
+              <AssembleCard>
+                <img
+                  src="/assets/landing-asset/assemble/use-my-ai-1.png"
+                  alt="Sayy.ai AI Assistant on Social Media"
+                  className="mascot-img"
+                />
+              </AssembleCard>
+              <AssembleCard className="hidden sm:flex">
+                <img
+                  src="/assets/landing-asset/assemble/use-my-ai-2.png"
+                  alt="Sayy.ai AI Assistant on Website"
+                  className="mascot-img"
+                />
+              </AssembleCard>
+              <AssembleCard>
+                <img
+                  src="/assets/landing-asset/assemble/use-my-ai-3.png"
+                  alt="Sayy.ai AI Assistant on ChatGPT"
+                  className=""
+                />
+              </AssembleCard>
+            </AssembleGrid>
+          </AssembleSection>
+
+          <section
+            className="practial-section relative w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw] pb-[6vh]"
+            aria-label="Build Agent Section"
+          >
+            <BuildAgentSection>
+              <article className="upper">
+                <BlackBackground>
+                  <span className="card-1 relative z-10 w-full h-fit">
+                    <h1 className="px-3">So, how do I build my AI-mployee?</h1>
+                  </span>
+                </BlackBackground>
+                <WhiteBackground className="ml-auto mr-1">
+                  <span className="card-2 ml-auto w-full h-fit">
+                    Train your AI-mployee's intelligence and personality to
+                    talk, think, and sell like you. No code needed.
+                  </span>
+                </WhiteBackground>
+              </article>
+
+              <article className="below-section h-[100%] bg-[#FDCDFF] relative w-full">
+                <div className="tab w-[103%] sm:w-[90%] mx-auto flex items-center justify-between px-2 py-1 bg-[#FDCDFF] border border-black rounded-full absolute -top-7 left-1/2 transform -translate-x-1/2">
+                  <h1 className="main-font font-[800] text-[18px]">
+                    Your AI, Your Way
                   </h1>
+                  <div className="icons flex items-center gap-1">
+                    <span className="bg-[#fff] p-1 sm:p-2 m-auto rounded-full border border-black">
+                      <img
+                        src="/assets/icons/file-icon.svg"
+                        width={20}
+                        alt="File upload icon"
+                      />
+                    </span>
+                    <span className="bg-[#fff] p-1 sm:p-2 m-auto rounded-full border border-black">
+                      <File size={24}></File>
+                    </span>
+                  </div>
+                </div>
+                <div className="card-container mt-4">
+                  <div className="your-ai-card">
+                    <div className="top-heading relative z-10">
+                      <div className="green-card-title">
+                        <span>
+                          <h2 className="relative z-10">Brain</h2>
+                        </span>
+                      </div>
+                    </div>
+                    <div className="card-heading">
+                      <h1 className="">Smart beyond limits</h1>
+                    </div>
+                    <div className="content">
+                      <div className="img">
+                        <object
+                          type="image/svg+xml"
+                          data="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/web+anim-1+%40sdevc.svg"
+                          className="w-[150px] xs:w-[200px] h-auto"
+                          aria-label="Brain feature animation"
+                          role="img"
+                        ></object>
+                      </div>
+                      <p className="para-font mt-4 font-[400] text-[1rem]">
+                        Smarten up your Agent's brain with files, catalogs,
+                        social links and all information related to your
+                        business.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="your-ai-card">
+                    <div className="top-heading relative z-10">
+                      <div className="green-card-title">
+                        <span>
+                          <h2 className="z-10 relative">Voice</h2>
+                        </span>
+                      </div>
+                    </div>
+                    <div className="card-heading">
+                      <h1 className="">Selling like you would</h1>
+                    </div>
+                    <div className="content">
+                      <div className="img">
+                        <object
+                          type="image/svg+xml"
+                          data="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/web+anim-3+%40sdevc.svg"
+                          className="w-[150px] xs:w-[200px] h-auto"
+                          aria-label="Voice feature animation"
+                          role="img"
+                        ></object>
+                      </div>
+                      <p className="para-font mt-4 font-[400] text-[1rem]">
+                        Craft a conversational style that reflects your brand's
+                        personality, from professional to playful.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="your-ai-card">
+                    <div className="top-heading relative z-10">
+                      <div className="green-card-title">
+                        <span>
+                          <h2 className="z-10 relative">Appearance</h2>
+                        </span>
+                      </div>
+                    </div>
+                    <div className="card-heading">
+                      <h1 className="">Your brand's extension</h1>
+                    </div>
+                    <div className="content">
+                      <div className="img">
+                        <object
+                          type="image/svg+xml"
+                          data="https://shopify-gobbl-images-bucket.s3.ap-south-1.amazonaws.com/web+anim-2%40sdevc.svg"
+                          className="w-[150px] xs:w-[200px] h-auto"
+                          aria-label="Appearance feature animation"
+                          role="img"
+                        ></object>
+                      </div>
+                      <p className="para-font mt-4 font-[400] text-[1rem]">
+                        Customize chat themes, colors, and interactions to
+                        create a seamless, on-brand user experience.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </BuildAgentSection>
+          </section>
+
+          <section
+            className="practial-section w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw]"
+            aria-label="App Overload Section"
+          >
+            <AppOverloadSection>
+              <AppOverloadUpper>
+                <BlackBackground>
+                  <span className="card-1 relative z-10 w-full h-fit">
+                    <h1 className="px-3">
+                      Can I really run my entire business from One app?
+                    </h1>
+                  </span>
+                </BlackBackground>
+                <WhiteBackground className="ml-auto">
+                  <span className="card-2 ml-auto w-full h-fit">
+                    One word - SAYY YES! We are reimagining common business
+                    tools under one umbrella. It's time to stop switching tabs.
+                    <h1 className="font-[700]">Goodbye, App Overload!</h1>
+                  </span>
+                </WhiteBackground>
+                <BlackBackground>
+                  <span className="relative z-10 w-full h-fit">
+                    <h1 className="px-3">Replacing what tools?</h1>
+                  </span>
+                </BlackBackground>
+              </AppOverloadUpper>
+
+              <AppOverloadLower>
+                <AppOverloadCardsRow>
+                  <AppOverloadCard>
+                    <AppOverloadCardTop style={{ background: "#C8EEFF" }}>
+                      <AppOverloadCardTitle>
+                        WEBSITE BUILDERS
+                      </AppOverloadCardTitle>
+                      <AppOverloadIcon>
+                        <img
+                          src="/assets/landing-asset/goodbye/web.png"
+                          alt="Website Builder Integration Icon"
+                          className="icon-img"
+                        />
+                      </AppOverloadIcon>
+                    </AppOverloadCardTop>
+                    <AppOverloadCardBottom>
+                      <AppOverloadCardSub>Replaces</AppOverloadCardSub>
+                      <AppOverloadCardReplace>
+                        Wix & Wordpress
+                      </AppOverloadCardReplace>
+                    </AppOverloadCardBottom>
+                  </AppOverloadCard>
+
+                  <AppOverloadCard>
+                    <AppOverloadCardTop style={{ background: "#94DFFF" }}>
+                      <AppOverloadCardTitle>
+                        SCHEDULING APPS
+                      </AppOverloadCardTitle>
+                      <AppOverloadIcon>
+                        <img
+                          src="/assets/landing-asset/goodbye/calender.png"
+                          alt="Calendar Integration Icon"
+                          className="icon-img"
+                        />
+                      </AppOverloadIcon>
+                    </AppOverloadCardTop>
+                    <AppOverloadCardBottom>
+                      <AppOverloadCardSub>Replaces</AppOverloadCardSub>
+                      <AppOverloadCardReplace>
+                        Calendly & Cal
+                      </AppOverloadCardReplace>
+                    </AppOverloadCardBottom>
+                  </AppOverloadCard>
+
+                  <AppOverloadCard>
+                    <AppOverloadCardTop style={{ background: "#c8eeff" }}>
+                      <AppOverloadCardTitle>CHATBOTS</AppOverloadCardTitle>
+                      <AppOverloadIcon>
+                        <img
+                          src="/assets/landing-asset/goodbye/chatbot.png"
+                          alt="Chatbot Integration Icon"
+                          className="icon-img"
+                        />
+                      </AppOverloadIcon>
+                    </AppOverloadCardTop>
+                    <AppOverloadCardBottom>
+                      <AppOverloadCardSub>Replaces</AppOverloadCardSub>
+                      <AppOverloadCardReplace>
+                        Tawk.to & Tidio
+                      </AppOverloadCardReplace>
+                    </AppOverloadCardBottom>
+                  </AppOverloadCard>
+
+                  <AppOverloadCard>
+                    <AppOverloadCardTop style={{ background: "#94dfff" }}>
+                      <AppOverloadCardTitle>CRMs</AppOverloadCardTitle>
+                      <AppOverloadIcon>
+                        <img
+                          src="/assets/landing-asset/goodbye/group.png"
+                          alt="CRM Integration Icon"
+                          className="icon-img"
+                        />
+                      </AppOverloadIcon>
+                    </AppOverloadCardTop>
+                    <AppOverloadCardBottom>
+                      <AppOverloadCardSub>Replaces</AppOverloadCardSub>
+                      <AppOverloadCardReplace>Hubspot</AppOverloadCardReplace>
+                    </AppOverloadCardBottom>
+                  </AppOverloadCard>
+
+                  <AppOverloadCard style={{ background: "#c8eeff" }}>
+                    <AppOverloadCardTop>
+                      <AppOverloadCardTitle>
+                        LINK-IN-BIO TOOLS
+                      </AppOverloadCardTitle>
+                      <AppOverloadIcon>
+                        <img
+                          src="/assets/landing-asset/goodbye/link.png"
+                          alt="Link-in-Bio Integration Icon"
+                          className="icon-img"
+                        />
+                      </AppOverloadIcon>
+                    </AppOverloadCardTop>
+                    <AppOverloadCardBottom>
+                      <AppOverloadCardSub>Replaces</AppOverloadCardSub>
+                      <AppOverloadCardReplace>
+                        Linktree & Hopp
+                      </AppOverloadCardReplace>
+                    </AppOverloadCardBottom>
+                  </AppOverloadCard>
+                </AppOverloadCardsRow>
+              </AppOverloadLower>
+            </AppOverloadSection>
+          </section>
+
+          <section
+            className="practial-section w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw] pt-[6vh] pb-[8vh] lg:pb-[12vh]"
+            aria-label="Integrations Section"
+          >
+            <IntegrationsSection>
+              <BlackBackground>
+                <span className="">
+                  <h1 className="px-3">Extensive Integrations via MCP</h1>
                 </span>
               </BlackBackground>
               <WhiteBackground className="ml-auto">
-                <span className="card-2 ml-auto w-full h-fit">
-                  One word - SAYY YES! We are reimagining common business tools
-                  under one umbrella. It's time to stop switching tabs.
-                  <h1 className="font-[700]">Goodbye, App Overload!</h1>
+                <span className="">
+                  Convert any API into a feature packed selling machine. Make
+                  your agents powerful by integrating 200+ apps using Model
+                  Context Protocol (MCP).
                 </span>
               </WhiteBackground>
-              <BlackBackground>
-                <span className="relative z-10 w-full h-fit">
-                  <h1 className="px-3">Replacing what tools?</h1>
-                </span>
-              </BlackBackground>
-            </AppOverloadUpper>
+              <IntegrationsGrid>
+                {integrationsGrid.map(({ name, src }, idx) => (
+                  <IntegrationBox key={idx}>
+                    <img src={src} alt={`${name} integration logo`} />
+                  </IntegrationBox>
+                ))}
+              </IntegrationsGrid>
+            </IntegrationsSection>
+          </section>
+        </main>
 
-            <AppOverloadLower>
-              <AppOverloadCardsRow>
-                <AppOverloadCard>
-                  <AppOverloadCardTop style={{ background: "#C8EEFF" }}>
-                    <AppOverloadCardTitle>
-                      WEBSITE BUILDERS
-                    </AppOverloadCardTitle>
-                    <AppOverloadIcon>
-                      <img
-                        src="/assets/landing-asset/goodbye/web.png"
-                        alt="Website Builders"
-                        className="icon-img"
-                      />
-                    </AppOverloadIcon>
-                  </AppOverloadCardTop>
-                  <AppOverloadCardBottom>
-                    <AppOverloadCardSub>Replaces</AppOverloadCardSub>
-                    <AppOverloadCardReplace>
-                      Wix & Wordpress
-                    </AppOverloadCardReplace>
-                  </AppOverloadCardBottom>
-                </AppOverloadCard>
-
-                <AppOverloadCard>
-                  <AppOverloadCardTop style={{ background: "#94DFFF" }}>
-                    <AppOverloadCardTitle>SCHEDULING APPS</AppOverloadCardTitle>
-                    <AppOverloadIcon>
-                      <img
-                        src="/assets/landing-asset/goodbye/calender.png"
-                        alt="Scheduling Apps"
-                        className="icon-img"
-                      />
-                    </AppOverloadIcon>
-                  </AppOverloadCardTop>
-                  <AppOverloadCardBottom>
-                    <AppOverloadCardSub>Replaces</AppOverloadCardSub>
-                    <AppOverloadCardReplace>
-                      Calendly & Cal
-                    </AppOverloadCardReplace>
-                  </AppOverloadCardBottom>
-                </AppOverloadCard>
-
-                <AppOverloadCard>
-                  <AppOverloadCardTop style={{ background: "#c8eeff" }}>
-                    <AppOverloadCardTitle>CHATBOTS</AppOverloadCardTitle>
-                    <AppOverloadIcon>
-                      <img
-                        src="/assets/landing-asset/goodbye/chatbot.png"
-                        alt="Chatbots"
-                        className="icon-img"
-                      />
-                    </AppOverloadIcon>
-                  </AppOverloadCardTop>
-                  <AppOverloadCardBottom>
-                    <AppOverloadCardSub>Replaces</AppOverloadCardSub>
-                    <AppOverloadCardReplace>
-                      Tawk.to & Tidio
-                    </AppOverloadCardReplace>
-                  </AppOverloadCardBottom>
-                </AppOverloadCard>
-
-                <AppOverloadCard>
-                  <AppOverloadCardTop style={{ background: "#94dfff" }}>
-                    <AppOverloadCardTitle>CRMs</AppOverloadCardTitle>
-                    <AppOverloadIcon>
-                      <img
-                        src="/assets/landing-asset/goodbye/group.png"
-                        alt="CRMs"
-                        className="icon-img"
-                      />
-                    </AppOverloadIcon>
-                  </AppOverloadCardTop>
-                  <AppOverloadCardBottom>
-                    <AppOverloadCardSub>Replaces</AppOverloadCardSub>
-                    <AppOverloadCardReplace>Hubspot</AppOverloadCardReplace>
-                  </AppOverloadCardBottom>
-                </AppOverloadCard>
-
-                <AppOverloadCard style={{ background: "#c8eeff" }}>
-                  <AppOverloadCardTop>
-                    <AppOverloadCardTitle>
-                      LINK-IN-BIO TOOLS
-                    </AppOverloadCardTitle>
-                    <AppOverloadIcon>
-                      <img
-                        src="/assets/landing-asset/goodbye/link.png"
-                        alt="Link-in-Bio Tools"
-                        className="icon-img"
-                      />
-                    </AppOverloadIcon>
-                  </AppOverloadCardTop>
-                  <AppOverloadCardBottom>
-                    <AppOverloadCardSub>Replaces</AppOverloadCardSub>
-                    <AppOverloadCardReplace>
-                      Linktree & Hopp
-                    </AppOverloadCardReplace>
-                  </AppOverloadCardBottom>
-                </AppOverloadCard>
-              </AppOverloadCardsRow>
-            </AppOverloadLower>
-          </AppOverloadSection>
-        </section>
-
-        {/* Extensive Integrations via MCP */}
-        <section className="practial-section w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw] pt-[6vh] pb-[8vh] lg:pb-[12vh]">
-          <IntegrationsSection>
-            <BlackBackground>
-              <span className="">
-                <h1 className="px-3">Extensive Integrations via MCP</h1>
-              </span>
-            </BlackBackground>
-            <WhiteBackground className="ml-auto">
-              <span className="">
-                Convert any API into a feature packed selling machine. Make your
-                agents powerful by integrating 200+ apps using Model Context
-                Protocol (MCP).
-              </span>
-            </WhiteBackground>
-            <IntegrationsGrid>
-              {integrationsGrid.map(({ name, src }, idx) => (
-                <IntegrationBox key={idx}>
-                  <img src={src} alt={name} />
-                </IntegrationBox>
-              ))}
-            </IntegrationsGrid>
-          </IntegrationsSection>
-        </section>
-
-        {/* footer  */}
-        <section className="practial-section w-full bg-[#ECECEC] border border-[#000000] [@media(max-width:800px)]:px-0 px-1 [@media(max-width:800px)]:py-0 py-1">
+        <footer className="practial-section w-full bg-[#ECECEC] border border-[#000000] [@media(max-width:800px)]:px-0 px-1 [@media(max-width:800px)]:py-0 py-1">
           <FooterSection>
             <FooterUpper>
               <FooterLeft>
@@ -2588,7 +2515,7 @@ const Home = () => {
               </span>
             </FooterBelow>
           </FooterSection>
-        </section>
+        </footer>
       </Container>
     </>
   );
