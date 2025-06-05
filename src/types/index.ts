@@ -123,6 +123,7 @@ export interface BotConfig {
   username: string;
   name: string;
   bio: string;
+  clientId: string;
   whatsappNumber: {
     countryCode: string;
     number: string;

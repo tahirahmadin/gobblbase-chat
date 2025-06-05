@@ -9,7 +9,7 @@ import {
 import { useBotConfig } from "../../../store/useBotConfig";
 import { useUserStore } from "../../../store/useUserStore";
 import toast from "react-hot-toast";
-import { CreditCard, Wallet, AlertCircle } from "lucide-react";
+import { CreditCard, Wallet } from "lucide-react";
 import { backendApiUrl } from "../../../utils/constants";
 import { useCryptoPayment } from "../../../hooks/useCryptoHook";
 import { useAdminStore } from "../../../store/useAdminStore";
@@ -503,7 +503,7 @@ export function PaymentSection({
           body: JSON.stringify({
             lineItems: [],
             agentId: activeBotId,
-            clientId: adminId,
+            clientId: activeBotData?.clientId,
             userId: userId,
             userEmail: userEmail,
             amount: 0,
@@ -583,7 +583,7 @@ export function PaymentSection({
             body: JSON.stringify({
               cart: [product],
               agentId: activeBotId,
-              clientId: adminId,
+              clientId: activeBotData?.clientId,
               userId: userId,
               userEmail: userEmail,
               stripeAccountId: activeBotData.paymentMethods.stripe.accountId,
