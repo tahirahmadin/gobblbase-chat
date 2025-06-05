@@ -507,7 +507,7 @@ export function PaymentSection({
             userId: userId,
             userEmail: userEmail,
             amount: 0,
-            currency: "USD",
+            currency: activeBotData?.currency || "USD",
             cart: [product],
             shipping: shipping,
             checkType: product.checkType,

@@ -105,9 +105,9 @@ const Orders = () => {
                       <th className=" py-1.5 px-2 text-left text-sm rounded-r-[12px] text-center whitespace-nowrap">
                         AMOUNT
                       </th>
-                      <th className=" py-1.5 px-2 text-left text-sm rounded-r-[12px] text-center whitespace-nowrap">
+                      {/* <th className=" py-1.5 px-2 text-left text-sm rounded-r-[12px] text-center whitespace-nowrap">
                         ACTIONS
-                      </th>
+                      </th> */}
                     </tr>
                   </thead>
                   <tbody>
@@ -164,7 +164,10 @@ const Orders = () => {
                                     {item.title}
                                   </span>
                                   <div className="whitespace-nowrap text-[0.8rem]">
-                                    Price: {item.price} {order.currency}
+                                    Price:{" "}
+                                    {order.totalAmount === 0
+                                      ? "FREE"
+                                      : `${item.price} ${order.currency}`}
                                   </div>
                                 </div>
                               ))}
@@ -173,15 +176,17 @@ const Orders = () => {
                               <div className="font-semibold text-sm">
                                 {order.totalAmount / 100} {order.currency}
                               </div>
-                                <p className="text-sm">Pay with stripe</p>
+                              {order.totalAmount != 0 && (
+                                <p className="text-sm">
+                                  Pay with {order.paymentMethod}
+                                </p>
+                              )}
                             </td>
-                              <td className="py-1.5 px-2 rounded-r-[12px] text-center whitespace-nowrap ">
-                                <button
-                                  className="bg-[#FF9797] text-[#000] w-24 py-1 rounded-full border border-[#000] text-sm"
-                                  >
+                            {/* <td className="py-1.5 px-2 rounded-r-[12px] text-center whitespace-nowrap ">
+                              <button className="bg-[#FF9797] text-[#000] w-24 py-1 rounded-full border border-[#000] text-sm">
                                 Cancel
-                                </button>
-                              </td>
+                              </button>
+                            </td> */}
                           </tr>
                         );
                       })
@@ -214,13 +219,15 @@ const Orders = () => {
                   <div className="top-order-id bg-[#CEFFDC] border border-black px-2 rounded-full absolute -top-[0.8rem] left-2">
                     Order: {order.orderId}
                   </div>
-                  
+
                   <div className="person-details flex flex-row [@media(max-width:380px)]:flex-col gap-4 items-start justify-between pt-4">
                     <div>
                       <h1 className="main-font uppercase text-[1rem] font-[500]">
                         {order.shipping.name}
                       </h1>
-                      <h2 className="main-font text-[0.8rem] font-[500]">{order.userEmail}</h2>
+                      <h2 className="main-font text-[0.8rem] font-[500]">
+                        {order.userEmail}
+                      </h2>
                       <h2 className="main-font text-[0.8rem] font-[500]">
                         {order.shipping.phone}
                       </h2>
@@ -236,7 +243,8 @@ const Orders = () => {
                       <div key={i} className="">
                         <div className="flex items-center justify-between">
                           <span className="truncat">
-                            Qty: {i + 1}  {item.title}</span>
+                            Qty: {i + 1} {item.title}
+                          </span>
                           <span className="whitespace-nowrap">
                             {item.price} {order.currency}
                           </span>
@@ -264,7 +272,7 @@ const Orders = () => {
             })
           )}
         </div>
-      {/* Pagination Controls */}
+        {/* Pagination Controls */}
         <div className="mt-4 flex justify-center items-center space-x-2">
           <button
             onClick={() => handlePageChange(currentPage - 1)}
