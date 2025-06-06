@@ -41,6 +41,8 @@ import { useUserStore } from "../../../store/useUserStore";
 import { useBotConfig } from "../../../store/useBotConfig";
 import { LoginCard } from "../otherComponents/LoginCard"; 
 import { BookingPaymentComponent } from "./BookingPaymentComponent";
+import TimezoneSelector from "./TimezoneSelector"; // Import the clean component
+import { detectUserTimezone, getQuickTimezone } from "../../../utils/timezoneDetection"; // Import improved detection
 import toast from "react-hot-toast";
 import { formatTimezone, isValidTimezone, getUserTimezone, getTimezoneDifference } from "../../../utils/timezoneUtils";
 import { DateTime } from 'luxon';
@@ -230,8 +232,10 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [unavailableDates, setUnavailableDates] = useState<Record<string, UnavailableDate>>({});
   const [userTimezone, setUserTimezone] = useState<string>(
-    getUserTimezone() 
+    getQuickTimezone() // Use quick detection for immediate display
   );
+  // Simplified timezone detection status - only track if VPN is detected
+  const [isVPNDetected, setIsVPNDetected] = useState(false);
   const [businessTimezone, setBusinessTimezone] = useState<string>("UTC");
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
@@ -382,6 +386,75 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     }, 0);
   };
 
+  // Simplified timezone detection on component mount
+  useEffect(() => {
+    const performInitialTimezoneDetection = async () => {
+      try {
+        console.log('🚀 Performing timezone detection...');
+        const detection = await detectUserTimezone();
+        
+        // Only show notifications and update if VPN is detected with high confidence
+        if (detection.source === 'ip' && detection.confidence === 'high' && detection.vpnInfo?.likelyVPN) {
+          console.log(`🔄 VPN detected - updating timezone: ${userTimezone} → ${detection.timezone}`);
+          setUserTimezone(detection.timezone);
+          setIsVPNDetected(true);
+          
+          // Show VPN notification
+          toast.success(
+            `VPN detected - Using VPN location: ${detection.location?.city || 'Unknown'} (${formatTimezone(detection.timezone)})`,
+            { duration: 4000 }
+          );
+        } else {
+          // Silent detection for normal users - no notifications needed
+          console.log('ℹ️ Using system timezone - no VPN detected');
+        }
+      } catch (error) {
+        console.error('Timezone detection failed:', error);
+        // Fail silently - use system timezone
+      }
+    };
+
+    // Delay initial detection slightly to allow component to settle
+    const timeoutId = setTimeout(performInitialTimezoneDetection, 500);
+    return () => clearTimeout(timeoutId);
+  }, []); // Only run on mount
+
+  // Simplified timezone detection callback - only show VPN-related messages
+  const handleTimezoneDetected = useCallback((result: any) => {
+    console.log('📍 Timezone detection result:', result);
+    
+    // Only update VPN status if it's actually detected with high confidence
+    if (result.vpnInfo?.likelyVPN && result.confidence === 'high') {
+      setIsVPNDetected(true);
+      
+      // Only show VPN-related notifications
+      if (result.source === 'ip' && result.location) {
+        toast.success(`VPN detected - Using VPN location: ${result.location.city}`, { duration: 3000 });
+      }
+    } else {
+      setIsVPNDetected(false);
+    }
+  }, []);
+
+  // Handle timezone change
+  const handleTimezoneChange = useCallback((newTimezone: string) => {
+    console.log('🌍 Timezone changed from', userTimezone, 'to', newTimezone);
+    setUserTimezone(newTimezone);
+    
+    // Reset selected date and slot when timezone changes
+    setSelectedDate(null);
+    setSelectedSlot(null);
+    setSlots([]);
+    
+    // Reset to date selection step
+    if (step !== 'date') {
+      setStep('date');
+    }
+    
+    // Show feedback to user
+    toast.success(`Timezone changed to ${formatTimezone(newTimezone)}`);
+  }, [userTimezone, step]);
+
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(id);
@@ -410,7 +483,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     setAvailabilityDebug('');
     
     try {
-      console.log('🔍 Fetching availability for business:', businessId);
+      console.log('🔍 Fetching availability for business:', businessId, 'timezone:', userTimezone);
       const availability = await getDayWiseAvailability(businessId, userTimezone);
       
       console.log('📥 API Response:', availability);
@@ -517,14 +590,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       setSelectedLocation(settings.locations[0]);
     }
   }, [settings]);
-
-  useEffect(() => {
-    const detectedTimezone = getUserTimezone();
-    if (detectedTimezone !== userTimezone) {
-      console.log('Updating user timezone from', userTimezone, 'to', detectedTimezone);
-      setUserTimezone(detectedTimezone);
-    }
-  }, []);
 
   const getTimezoneDifferenceDisplay = (): string => {
     return getTimezoneDifference(userTimezone, businessTimezone);
@@ -643,7 +708,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       const apiDate = fmtApiDate(d);
       const dateStr = getConsistentDateString(d);
       
-      console.log(`🎯 Selecting date: ${dateStr} (API: ${apiDate})`);
+      console.log(`🎯 Selecting date: ${dateStr} (API: ${apiDate}) in timezone: ${userTimezone}`);
       
       try {
         const slots = await getAvailableSlots(businessId, apiDate, userTimezone);
@@ -754,22 +819,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     }
   };
 
-  const renderTimezoneInfo = () => (
-    <div className="flex items-start text-xs mb-4">
-      <Globe className="h-4 w-4 mr-1 flex-shrink-0 mt-0.5" style={{ color: theme.mainLightColor }} />
-      <div>
-        <p>
-          Timezone: <strong>{formatTimezone(userTimezone)}</strong>
-          {businessTimezone !== userTimezone && (
-            <span className="text-xs block opacity-75">
-              ({getTimezoneDifferenceDisplay()})
-            </span>
-          )}
-        </p>
-      </div>
-    </div>
-  );
-
   const renderContent = () => {
     if (loadingSettings) {
       return (
@@ -777,10 +826,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           <Loader2 className="animate-spin h-8 w-8" style={{ color: theme.mainLightColor }} />
         </div>
       );
-    }
-
-    if (loadingSettings) {
-      return <LoadingSkeleton theme={theme} />;
     }
 
     if (step === "date") {
@@ -793,7 +838,12 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           <div>
             <div className="flex justify-between items-center text-sm mb-4" style={{ borderColor: theme.isDark ? "#333" : "#ddd" }}>
               <h3 className="font-medium">SELECT SLOT</h3>
-              <div className="text-sm">Timezone: {formatTimezone(userTimezone)}</div>
+              <TimezoneSelector
+                selectedTimezone={userTimezone}
+                onTimezoneChange={handleTimezoneChange}
+                onTimezoneDetected={handleTimezoneDetected}
+                theme={theme}
+              />
             </div>
 
             {loadingAvailability ? (
@@ -803,12 +853,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
             </div>
           ) : (
             <div className="mb-4">
-              {/* Debug info */}
-              {availabilityDebug && (
-                <div className="text-xs mb-2 p-1 bg-gray-100 rounded">
-                  Debug: {availabilityDebug}
-                </div>
-              )}
               <div className="flex items-center justify-between mb-2">
                 <button
                   onClick={prevMonth}
@@ -852,11 +896,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                   const hasApiData = dayWiseAvailability.hasOwnProperty(dateString);
                   const apiValue = dayWiseAvailability[dateString];
                   
-                  // Debug logging (remove in production)
-                  if (hasApiData) {
-                    console.log(`📅 ${dateString}: API=${apiValue}, Final=${!isUnavailable}`);
-                  }
-                  
                   return (
                     <button
                       key={dn}
@@ -877,7 +916,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                           ? (theme.isDark ? "#555" : "#aaa") 
                           : (theme.isDark ? "#fff" : "#000"),
                       }}
-                      title={hasApiData ? `API: ${apiValue}` : "No API data"}
                     >
                       {dn}
                     </button>
@@ -918,7 +956,12 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                 >
                   <ArrowLeft className="h-4 w-4 mr-1" /> BACK
                 </button>
-                <div className="text-sm">Timezone: {formatTimezone(userTimezone)}</div>
+                <TimezoneSelector
+                  selectedTimezone={userTimezone}
+                  onTimezoneChange={handleTimezoneChange}
+                  onTimezoneDetected={handleTimezoneDetected}
+                  theme={theme}
+                />
               </div>
               
               <div className="mb-4 flex justify-between">
@@ -942,7 +985,12 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
               >
                 <ArrowLeft className="h-4 w-4 mr-1" /> BACK
               </button>
-              <div className="text-sm">Timezone: {formatTimezone(userTimezone)}</div>
+              <TimezoneSelector
+                selectedTimezone={userTimezone}
+                onTimezoneChange={handleTimezoneChange}
+                onTimezoneDetected={handleTimezoneDetected}
+                theme={theme}
+              />
             </div>
       
             <div className="mb-4 flex justify-between">
@@ -1003,7 +1051,12 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
               >
                 <ArrowLeft className="h-4 w-4 mr-1" /> BACK
               </button>
-              <div className="text-sm">Timezone: {formatTimezone(userTimezone)}</div>
+              <TimezoneSelector
+                selectedTimezone={userTimezone}
+                onTimezoneChange={handleTimezoneChange}
+                onTimezoneDetected={handleTimezoneDetected}
+                theme={theme}
+              />
             </div>
       
             <div className="mb-4 flex justify-between items-center">
@@ -1295,6 +1348,22 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                 </div>
                 <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
                     {fmtTime(selectedSlot.startTime)} - {fmtTime(selectedSlot.endTime)}
+                </div>
+                </div>
+
+                <div className="flex justify-between items-center">
+                <div 
+                    className="font-medium uppercase"
+                    style={{ color: theme.highlightColor }}
+                >
+                    TIMEZONE
+                </div>
+                <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
+                    {formatTimezone(userTimezone)}
+                    {/* Only show VPN indicator in confirmation if VPN was detected */}
+                    {isVPNDetected && (
+                      <span className="text-xs ml-2 opacity-75">(VPN location)</span>
+                    )}
                 </div>
                 </div>
                 
