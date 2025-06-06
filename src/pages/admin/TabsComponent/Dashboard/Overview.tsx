@@ -400,7 +400,10 @@ const Overview = () => {
                         : "bg-[#D4DEFF] border-[#AEB8FF]"
                     }`}
                 >
-                  <div className="text-2xl font-semibold">{item.value}</div>
+                  <div className="text-2xl font-semibold">
+                    {item?.value &&
+                      parseFloat(item.value.toString()).toFixed(2)}
+                  </div>
                   <div className="text-xs text-black mt-1">{item.label}</div>
                 </div>
               ))}
