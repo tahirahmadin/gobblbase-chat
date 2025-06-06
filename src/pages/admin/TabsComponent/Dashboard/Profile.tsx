@@ -324,6 +324,7 @@ const Profile = () => {
           // setProfileImage(response);
           setAgentPicture(response);
           toast.success("Profile picture updated successfully");
+          fetchAllAgents();
         } else {
           throw new Error("Failed to update profile picture");
         }

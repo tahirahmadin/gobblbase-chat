@@ -419,7 +419,9 @@ export default function PublicChat({
     const isBookingRequest = featureText.includes("booking appointments");
     const isProductRequest = featureText.includes("browsing our products");
     const isContactRequest = featureText.includes("contacting us");
-    const isKnowledgeBaseRequest = featureText.includes("answering questions about our knowledge base");
+    const isKnowledgeBaseRequest = featureText.includes(
+      "answering questions about our knowledge base"
+    );
 
     // Process contact requests first (including lead collection)
     if (isContactRequest) {
@@ -477,17 +479,20 @@ export default function PublicChat({
     }
 
     // For other queries, use AI response
-    if (isKnowledgeBaseRequest || (!isBookingRequest && !isProductRequest && !isContactRequest)) {
+    if (
+      isKnowledgeBaseRequest ||
+      (!isBookingRequest && !isProductRequest && !isContactRequest)
+    ) {
       try {
         await handleAIResponse(featureText);
-    
+
         // Wait for the AI response to be added to messages
         setTimeout(() => {
           const currentMessages = messages;
           const latestAgentMessage = currentMessages
             .slice(messageCountBefore)
             .find((msg) => msg.sender === "agent");
-    
+
           if (latestAgentMessage) {
             responseContent = latestAgentMessage.content;
             logConversation(featureText, responseContent);
@@ -538,12 +543,12 @@ export default function PublicChat({
           <Helmet>
             <title>
               {currentConfig.name
-                ? `${currentConfig.name} | Sayy.ai chatbot`
-                : "Sayy.ai chatbot"}
+                ? `${currentConfig.name} | Sayy.ai Agent`
+                : "Sayy.ai Agent"}
             </title>
             <meta
               name="description"
-              content={`${currentConfig.bio} | Sayy.ai chatbot`}
+              content={`${currentConfig.bio} | Sayy.ai Agent`}
             />
             <meta
               property="og:title"
@@ -551,12 +556,12 @@ export default function PublicChat({
             />
             <meta
               property="og:description"
-              content={`${currentConfig.bio} | Sayy.ai chatbot`}
+              content={`${currentConfig.bio} | Sayy.ai Agent`}
             />
             <meta property="og:image" content={currentConfig.logo} />
             <meta
               property="og:image:alt"
-              content={`${currentConfig.name} | Sayy.ai chatbot`}
+              content={`${currentConfig.name} | Sayy.ai Agent`}
             />
             <meta
               property="og:url"
@@ -565,11 +570,11 @@ export default function PublicChat({
             <meta name="twitter:card" content="summary_large_image" />
             <meta
               name="twitter:title"
-              content={`${currentConfig.name} | Sayy.ai chatbot`}
+              content={`${currentConfig.name} | Sayy.ai Agent`}
             />
             <meta
               name="twitter:description"
-              content={`${currentConfig.bio} | Sayy.ai chatbot`}
+              content={`${currentConfig.bio} | Sayy.ai Agent`}
             />
             <meta name="twitter:image" content={currentConfig.logo} />
           </Helmet>

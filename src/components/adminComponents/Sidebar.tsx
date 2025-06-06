@@ -192,11 +192,7 @@ const Sidebar = ({ onClose }: SidebarProps) => {
   const toggleTab = (tabName: string) => {
     localStorage.removeItem("editingProduct");
 
-    setExpandedTabs((prev) =>
-      prev.includes(tabName)
-        ? prev.filter((tab) => tab !== tabName)
-        : [...prev, tabName]
-    );
+    setExpandedTabs((prev) => (prev.includes(tabName) ? [] : [tabName]));
   };
 
   const isTabExpanded = (tabName: string) => expandedTabs.includes(tabName);

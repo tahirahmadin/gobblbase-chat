@@ -478,11 +478,11 @@ export default function AboutSection({
                     socials.linkedin.startsWith("http")
                       ? socials.linkedin
                       : socials.linkedin.startsWith("company/")
-                      ? `https://linkedin.com/company/${socials.linkedin.replace(
+                      ? `https://linkedin.com/${socials.linkedin.replace(
                           "company/",
                           ""
                         )}`
-                      : `https://linkedin.com/in/${(
+                      : `https://linkedin.com/${(
                           socials.linkedin || ""
                         ).replace(/^@/, "")}`
                   }
@@ -524,19 +524,19 @@ export default function AboutSection({
           </div>
 
           {/* Bio Section */}
-          <div className="w-full px-6 mt-4">
-            <div
-              className="rounded-xl p-4"
-              style={{
-                backgroundColor: !theme.isDark ? "white" : "black",
-                color: theme.isDark ? "white" : "black",
-              }}
-            >
-              <p className="text-sm text-center">
-                {currentConfig?.bio || "Add your bio..."}
-              </p>
+          {currentConfig?.bio && (
+            <div className="w-full px-6 mt-4">
+              <div
+                className="rounded-xl p-4"
+                style={{
+                  backgroundColor: !theme.isDark ? "white" : "black",
+                  color: theme.isDark ? "white" : "black",
+                }}
+              >
+                <p className="text-sm text-center">{currentConfig.bio}</p>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Contact Us Button - New Prominent Position */}
           {currentConfig?.customerLeadFlag && (
