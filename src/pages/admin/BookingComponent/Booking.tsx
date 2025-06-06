@@ -157,39 +157,91 @@ const DEFAULT_TIMEZONES = [
   { value: "Australia/Sydney", label: "Sydney" },
 ];
 
+const calculateVPNConfidence = (apiData, systemTz) => {
+  let confidence = 0;
+  
+  // Timezone mismatch (primary indicator)
+  if (apiData.timezone !== systemTz) confidence += 70;
+  
+  // Known VPN/proxy indicators in ISP name
+  const vpnIndicators = ['vpn', 'proxy', 'hosting', 'datacenter', 'cloud', 'server', 'vps'];
+  if (vpnIndicators.some(indicator => 
+    apiData.org?.toLowerCase().includes(indicator))) {
+    confidence += 20;
+  }
+  
+  // High-confidence VPN providers (common ones)
+  const knownVPNProviders = ['nordvpn', 'expressvpn', 'surfshark', 'mullvad', 'protonvpn'];
+  if (knownVPNProviders.some(provider => 
+    apiData.org?.toLowerCase().includes(provider))) {
+    confidence += 25;
+  }
+  
+  return Math.min(confidence, 100);
+};
+
+// REPLACE the existing detectSmartTimezone function with this:
 const detectSmartTimezone = async () => {
   const systemTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // Increased timeout
     
     const response = await fetch('https://ipapi.co/json/', {
-      signal: controller.signal
+      signal: controller.signal,
+      headers: {
+        'Accept': 'application/json',
+      }
     });
     clearTimeout(timeoutId);
     
+    if (!response.ok) {
+      throw new Error(`API responded with status: ${response.status}`);
+    }
+    
     const data = await response.json();
+    
+    // Validate API response
+    if (!data.timezone || !data.country_name) {
+      throw new Error('Invalid API response structure');
+    }
+    
     const ipTimezone = data.timezone;
     const isVPNDetected = systemTimezone !== ipTimezone;
+    
+    // Additional VPN detection heuristics
+    const confidenceScore = calculateVPNConfidence(data, systemTimezone);
     
     return {
       timezone: isVPNDetected ? ipTimezone : systemTimezone,
       systemTimezone,
       ipTimezone,
       isVPNDetected,
+      confidence: confidenceScore,
       location: isVPNDetected ? `${data.city}, ${data.country_name}` : null,
-      detectionMethod: isVPNDetected ? 'IP (VPN detected)' : 'System'
+      detectionMethod: isVPNDetected ? 'IP (VPN detected)' : 'System',
+      apiData: {
+        country: data.country_name,
+        city: data.city,
+        region: data.region,
+        org: data.org // ISP info can help identify VPN providers
+      }
     };
     
   } catch (error) {
+    console.warn('Timezone detection failed:', error.message);
+    
     return {
       timezone: systemTimezone,
       systemTimezone,
       ipTimezone: null,
       isVPNDetected: false,
+      confidence: 0,
       location: null,
-      detectionMethod: 'System (IP check failed)'
+      detectionMethod: `System (${error.name === 'AbortError' ? 'timeout' : 'API error'})`,
+      error: error.message,
+      apiData: null
     };
   }
 };
@@ -226,7 +278,10 @@ const Booking: React.FC<BookingProps> = ({
             isLoading: false,
             isVPNDetected: result.isVPNDetected,
             location: result.location,
-            detectionMethod: result.detectionMethod
+            detectionMethod: result.detectionMethod,
+            confidence: result.confidence,
+            error: result.error,
+            apiData: result.apiData
           });
           
           if (result.isVPNDetected && result.ipTimezone) {
@@ -261,7 +316,10 @@ const Booking: React.FC<BookingProps> = ({
             isLoading: false,
             isVPNDetected: false,
             location: null,
-            detectionMethod: 'System (fallback)'
+            detectionMethod: 'System (fallback)',
+            confidence: 0,
+            error: 'Smart detection failed',
+            apiData: null
           });
         }
       };
@@ -302,7 +360,10 @@ const Booking: React.FC<BookingProps> = ({
     isLoading: !isEditMode,
     isVPNDetected: false,
     location: null,
-    detectionMethod: 'System'
+    detectionMethod: 'System',
+    confidence: 0,
+    error: null,
+    apiData: null
   });
 
   const generateTimeOptions = (startHour = 0, endHour = 24) => {
@@ -1166,15 +1227,25 @@ const Booking: React.FC<BookingProps> = ({
               <div className={`rounded-lg p-4 border ${
                 timezoneDetection.isVPNDetected 
                   ? 'bg-blue-50 border-blue-200' 
+                  : timezoneDetection.error
+                  ? 'bg-yellow-50 border-yellow-200'
                   : 'bg-green-50 border-green-200'
               }`}>
                 <div className="flex items-start">
                   <div className={`mr-3 mt-0.5 ${
-                    timezoneDetection.isVPNDetected ? 'text-blue-500' : 'text-green-500'
+                    timezoneDetection.isVPNDetected 
+                      ? 'text-blue-500' 
+                      : timezoneDetection.error
+                      ? 'text-yellow-500'
+                      : 'text-green-500'
                   }`}>
                     {timezoneDetection.isVPNDetected ? (
                       <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" />
+                      </svg>
+                    ) : timezoneDetection.error ? (
+                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                       </svg>
                     ) : (
                       <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
@@ -1182,17 +1253,42 @@ const Booking: React.FC<BookingProps> = ({
                       </svg>
                     )}
                   </div>
-                  <div>
+                  <div className="flex-1">
                     {timezoneDetection.isVPNDetected ? (
                       <>
-                        <p className="text-sm font-medium text-blue-800">
-                          🔒 VPN Detected - Using VPN Location
-                        </p>
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-sm font-medium text-blue-800">
+                            🔒 VPN Detected - Using VPN Location
+                          </p>
+                          {timezoneDetection.confidence > 0 && (
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                              timezoneDetection.confidence >= 90 ? 'bg-red-100 text-red-800' :
+                              timezoneDetection.confidence >= 70 ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-blue-100 text-blue-800'
+                            }`}>
+                              {timezoneDetection.confidence}% confidence
+                            </span>
+                          )}
+                        </div>
                         <p className="text-sm text-blue-700">
                           Location: {timezoneDetection.location}
                         </p>
+                        {timezoneDetection.apiData?.org && (
+                          <p className="text-xs text-blue-600 mt-1">
+                            ISP: {timezoneDetection.apiData.org}
+                          </p>
+                        )}
                         <p className="text-xs text-blue-600 mt-1">
                           Using your VPN location's timezone for booking calculations.
+                        </p>
+                      </>
+                    ) : timezoneDetection.error ? (
+                      <>
+                        <p className="text-sm font-medium text-yellow-800">
+                          ⚠️ Detection Issue - Using System Timezone
+                        </p>
+                        <p className="text-xs text-yellow-600 mt-1">
+                          {timezoneDetection.error} - falling back to device timezone.
                         </p>
                       </>
                     ) : (
@@ -1203,6 +1299,11 @@ const Booking: React.FC<BookingProps> = ({
                         <p className="text-xs text-green-600 mt-1">
                           Using your device's timezone setting (no VPN detected).
                         </p>
+                        {timezoneDetection.apiData?.org && (
+                          <p className="text-xs text-green-600 mt-1">
+                            ISP: {timezoneDetection.apiData.org}
+                          </p>
+                        )}
                       </>
                     )}
                   </div>
@@ -1227,7 +1328,9 @@ const Booking: React.FC<BookingProps> = ({
                 </select>
                 <p className="text-xs text-gray-500 mt-1">
                   Detection: {timezoneDetection.detectionMethod}
-                </p>
+                  {timezoneDetection.confidence > 0 && ` (${timezoneDetection.confidence}% confidence)`}
+                  {timezoneDetection.error && ` - ${timezoneDetection.error}`}
+                </p>s
               </div>
             </div>
           )}
