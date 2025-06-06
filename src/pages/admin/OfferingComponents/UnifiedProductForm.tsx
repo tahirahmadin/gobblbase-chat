@@ -822,7 +822,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       </Button>
                     </div>
                   </label>
-                  <label className="flex items-center gap-2">
+                  <label className="flex items-center gap-2 mt-8">
                     <input
                       type="radio"
                       name="uploadType"
@@ -831,12 +831,26 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       onChange={(e) =>
                         setForm((f) => ({ ...f, uploadType: e.target.value }))
                       }
-                      className="accent-green-500 w-5 h-5"
+                      className="hidden"
                     />
+                    {/* Custom Circle Visual */}
+                    <div
+                      className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
+                        ${
+                          form.uploadType === "redirect"
+                            ? "bg-[#CEFFDC]"
+                            : "bg-[#CDCDCD]"
+                        }
+                          `}
+                    >
+                      {form.uploadType === "redirect" && (
+                        <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]" />
+                      )}
+                    </div>
                     <span>Redirect to URL</span>
                     <input
                       type="text"
-                      className="ml-2 border border-gray-300 rounded p-1 bg-white"
+                      className="ml-2 border border-[#7d7d7d] p-1 bg-white"
                       placeholder="http://"
                       value={form.fileUrl || ""}
                       onChange={(e) =>
@@ -1765,7 +1779,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       )}
                     </div>
 
-                    <span>USD</span>
+                    <span>{activeBotData?.currency}</span>
                   </span>
 
                   <div className="border-[#7d7d7d] flex border overflow-hidden">

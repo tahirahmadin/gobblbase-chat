@@ -19,6 +19,7 @@ import {
 } from "../../../lib/serverActions";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import { formatTimezone, isValidTimezone, getUserTimezone } from "../../../utils/timezoneUtils";
 
 interface TimeSlot {
   id?: string;
@@ -176,36 +177,27 @@ const Booking: React.FC<BookingProps> = ({
 
   useEffect(() => {
     if (!isEditMode) {
-      const detectedTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
+      const detectedTz = getUserTimezone();
       setTimezone(detectedTz);
-
+  
       const alreadyInList = DEFAULT_TIMEZONES.find(
         (tz) => tz.value === detectedTz
       );
       setDetectedTimezoneInList(!!alreadyInList);
-
-      if (!alreadyInList && detectedTz) {
+  
+      if (!alreadyInList && detectedTz && isValidTimezone(detectedTz)) {
         try {
-          const tzOffset =
-            new Intl.DateTimeFormat("en", {
-              timeZone: detectedTz,
-              timeZoneName: "short",
-            })
-              .formatToParts()
-              .find((part) => part.type === "timeZoneName")?.value || "";
-
           const detectedTzEntry = {
             value: detectedTz,
-            label: `${detectedTz} (${tzOffset})`,
+            label: formatTimezoneDisplay(detectedTz), 
           };
-
+  
           setTimezones((prev) => [
             detectedTzEntry,
             ...prev.filter((tz) => tz.value !== detectedTz),
           ]);
         } catch (e) {
-          console.error("Error formatting timezone offset:", e);
+          console.error("Error formatting detected timezone:", e);
         }
       } else {
         setTimezones(DEFAULT_TIMEZONES);
@@ -232,7 +224,7 @@ const Booking: React.FC<BookingProps> = ({
   const [selectedLocation, setSelectedLocation] =
     useState<string>("google_meet");
   const [timezone, setTimezone] = useState<string>(
-    Intl.DateTimeFormat().resolvedOptions().timeZone
+    getUserTimezone()
   );
   const [isFree, setIsFree] = useState(false);
   const [priceAmount, setPriceAmount] = useState(0);
@@ -356,33 +348,30 @@ const Booking: React.FC<BookingProps> = ({
           }
 
           if (settings.timezone) {
-            setTimezone(settings.timezone);
-            // If saved timezone is not in default list, add it
-            const tzInList = DEFAULT_TIMEZONES.find(
-              (tz) => tz.value === settings.timezone
-            );
-            if (!tzInList) {
-              try {
-                const tzOffset =
-                  new Intl.DateTimeFormat("en", {
-                    timeZone: settings.timezone,
-                    timeZoneName: "short",
-                  })
-                    .formatToParts()
-                    .find((part) => part.type === "timeZoneName")?.value || "";
-
-                const savedTzEntry = {
-                  value: settings.timezone,
-                  label: `${settings.timezone} (${tzOffset})`,
-                };
-
-                setTimezones((prev) => [
-                  savedTzEntry,
-                  ...prev.filter((tz) => tz.value !== settings.timezone),
-                ]);
-              } catch (e) {
-                console.error("Error formatting saved timezone offset:", e);
+            if (isValidTimezone(settings.timezone)) {
+              setTimezone(settings.timezone);
+            
+              const tzInList = DEFAULT_TIMEZONES.find(
+                (tz) => tz.value === settings.timezone
+              );
+              if (!tzInList) {
+                try {
+                  const savedTzEntry = {
+                    value: settings.timezone,
+                    label: formatTimezoneDisplay(settings.timezone),
+                  };
+  
+                  setTimezones((prev) => [
+                    savedTzEntry,
+                    ...prev.filter((tz) => tz.value !== settings.timezone),
+                  ]);
+                } catch (e) {
+                  console.error("Error formatting saved timezone:", e);
+                }
               }
+            } else {
+              console.warn('Invalid timezone in settings:', settings.timezone);
+              setTimezone('UTC');
             }
           }
 
@@ -468,8 +457,12 @@ const Booking: React.FC<BookingProps> = ({
     }
   };
 
-  const formatTimezoneDisplay = (tz) => {
+  const formatTimezoneDisplay = (tz: string): string => {
     try {
+      if (!isValidTimezone(tz)) {
+        return tz;
+      }
+      
       const now = new Date();
       const offset = new Intl.DateTimeFormat("en", {
         timeZone: tz,
@@ -478,15 +471,16 @@ const Booking: React.FC<BookingProps> = ({
         .formatToParts()
         .find((part) => part.type === "timeZoneName")?.value;
 
-      const offsetHours = Math.round(
-        (new Date(now.toLocaleString("en-US", { timeZone: tz })) - now) /
-          (1000 * 60 * 60)
-      );
-      const offsetString =
-        offsetHours >= 0 ? `+${offsetHours}` : `${offsetHours}`;
-
-      return `${tz.split("/").pop()} (GMT${offsetString}) ${offset}`;
+      const userTime = new Date(now.toLocaleString("en-US", { timeZone: getUserTimezone() }));
+      const targetTime = new Date(now.toLocaleString("en-US", { timeZone: tz }));
+      const offsetHours = Math.round((targetTime.getTime() - userTime.getTime()) / (1000 * 60 * 60));
+      
+      const offsetString = offsetHours >= 0 ? `+${offsetHours}` : `${offsetHours}`;
+      const cityName = tz.split("/").pop() || tz;
+  
+      return `${cityName} (GMT${offsetString}) ${offset || ''}`;
     } catch (e) {
+      console.error('Error formatting timezone:', e);
       return tz;
     }
   };
@@ -787,6 +781,11 @@ const Booking: React.FC<BookingProps> = ({
 
     if (!isFree && (!priceAmount || priceAmount <= 0)) {
       setPriceError("Price cannot be empty for paid sessions");
+      return;
+    }
+
+    if (!isValidTimezone(timezone)) {
+      toast.error("Invalid timezone selected. Please choose a valid timezone.");
       return;
     }
 

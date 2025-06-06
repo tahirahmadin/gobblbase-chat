@@ -3,7 +3,38 @@ import { useBotConfig } from "../../../../store/useBotConfig";
 import toast from "react-hot-toast";
 import { getAgentPolicies } from "../../../../lib/serverActions";
 import { backendApiUrl } from "../../../../utils/constants";
+import styled from "styled-components";
+const Button = styled.button`
+  position: relative;
+  background: #6AFF97;
+  padding: 0.6vh 1vw;
+  border: 2px solid black;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: clamp(8px, 4vw, 16px);
+  min-width: 120px;
 
+  &::before {
+    content: "";
+    position: absolute;
+    top: 5px;
+    right: -5px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #000000;
+    z-index: -1;
+    background: #6AFF97;
+  }
+
+  &:disabled {
+    background: #6aff97;
+    cursor: not-allowed;
+    color: black;
+  }
+  &:disabled::before {
+    background: #d6ffe0;
+  }
+`;
 interface Policy {
   id: string;
   name: string;
@@ -28,6 +59,7 @@ const Policies = () => {
     { id: "privacy", name: "Privacy Policy", enabled: false },
     { id: "terms", name: "Terms & Conditions", enabled: false },
   ]);
+  const activeIndex = policies.findIndex((p) => p.id === activePolicy);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -99,7 +131,10 @@ const Policies = () => {
   };
 
   const handleSelectPolicy = (id: string) => {
-    setActivePolicy(id);
+    const index = policies.findIndex((p) => p.id === id);
+    if (index <= activeIndex + 2) {
+      setActivePolicy(id);
+    }
   };
 
   const handleUpdate = async () => {
@@ -140,8 +175,8 @@ const Policies = () => {
   const currentPolicyText = policyContents[activePolicy] || "";
 
   return (
-    <div className="max-full mx-auto p-6">
-      <div className="mb-6">
+    <div className="max-full mx-auto h-full overflow-scroll">
+      <div className="mt-4 p-6">
         <h1 className="text-2xl font-semibold text-gray-900">
           Terms & Policies
         </h1>
@@ -150,82 +185,84 @@ const Policies = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full">
         {/* Sidebar */}
-        <div className="md:col-span-4 space-y-3">
+        <div className="flex w-full flex-shrink-0 flex-col items-start md:pt-8 px-0 md:px-2 overflow-hidden pb-8">
           {isLoading ? (
             <div className="flex items-center justify-center h-64 text-gray-500">
               Loading policies...
             </div>
           ) : (
-            policies.map((policy) => (
-              <div
-                key={policy.id}
-                className={`flex items-center justify-between px-4 py-2 rounded-lg border cursor-pointer transition-colors ${
-                  activePolicy === policy.id
-                    ? "bg-green-50 border-green-500"
-                    : "bg-white border-gray-200"
-                }`}
-                onClick={() => handleSelectPolicy(policy.id)}
-              >
-                <div>
-                  <span className="text-sm text-gray-700">{policy.name}</span>
+            policies.map((policy , i) => {
+
+              const isCompleted = i < activeIndex;
+              const isActive = policy.id === activePolicy;
+              return (
+                <div
+                  key={policy.id}
+                  className="mb-4 flex flex-col md:flex-row gap-4 items-start justify-start w-full relative"
+                  onClick={() => handleSelectPolicy(policy.id)}
+                >
+                    <div className={`flex justify-between items-center px-4 border h-12 z-30 mx-6 md:mx-2 ${
+                      isActive && policy.enabled
+                        ? "bg-[#CEFFDC] border-[#000000] w-[80%] md:w-[30%] text-white rounded-[12px]"
+                        : isActive 
+                        ? "bg-[#EAEFFF] border-[#000000] w-[80%] md:w-[30%] text-white rounded-[12px]"
+                        : "bg-[transparent] border-[#000000] w-[80%] md:w-[30%] text-white rounded-[12px]"
+                        }`}>
+
+                        <div>
+                          <span className="main-font text-[1rem] text-black font-[500]">{policy.name}</span>
+                        </div>
+                        <label className="flex items-center cursor-pointer ml-2">
+                          <input
+                            type="checkbox"
+                            checked={policy.enabled}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleToggleEnable(policy.id);
+                            }}
+                            className="sr-only peer"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <div className="w-11 h-6 bg-[#CDCDCD] border border-black rounded-full relative transition-colors duration-200 peer-checked:bg-green-400">
+                            <div
+                              className={`absolute border border-black top-0.0 left-0 w-[22px] h-[22px] bg-white rounded-full shadow transition-transform duration-200 ${
+                                policy.enabled ? "translate-x-5" : ""
+                              }`}
+                            ></div>
+                          </div>
+                        </label>
+                    </div>
+                    {/* Main Panel */}
+                    {/* Only show content for active step */}
+                    {isActive && <div className="z-10 bg-[#EAEFFF] md:rounded-lg p-3 mx-auto w-full md:w-[70%]">
+                      <div className="rounded-lg px-3 py-6 flex flex-col xs:flex-row items-start gap-4 whitespace-nowrap">
+                          {/* Text Input */}
+                            <div className="para-font text-[0.9rem] text-black">Enter {policy.name}:</div>
+                            <div className="space-y-2 w-full">
+                              <textarea
+                                value={currentPolicyText}
+                                onChange={handlePolicyTextChange}
+                                placeholder="Type your message..."
+                                className="w-full h-40 px-4 py-2 text-sm border border-[#7D7D7D] resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              />
+                              <div className="flex justify-end relative z-10">
+                                <Button
+                                  onClick={handleUpdate}
+                                  className=""
+                                  disabled={isUpdating}
+                                >
+                                  {isUpdating ? "UPDATING..." : "UPDATE"}
+                                </Button>
+                              </div>
+                            </div>
+                        </div>
+                    </div>}
                 </div>
-                <label className="flex items-center cursor-pointer ml-2">
-                  <input
-                    type="checkbox"
-                    checked={policy.enabled}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      handleToggleEnable(policy.id);
-                    }}
-                    className="sr-only peer"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <div className="w-11 h-6 bg-gray-200 rounded-full relative transition-colors duration-200 peer-checked:bg-green-400">
-                    <div
-                      className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
-                        policy.enabled ? "translate-x-5" : ""
-                      }`}
-                    ></div>
-                  </div>
-                </label>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
-
-        {/* Main Panel */}
-        <div className="md:col-span-8">
-          <div className="bg-blue-50 rounded-lg p-6">
-            <div className="space-y-4">
-              {/* Text Input */}
-              <div>
-                <div className="text-sm text-gray-600 mb-2">
-                  Enter policy content:
-                </div>
-                <div className="space-y-2">
-                  <textarea
-                    value={currentPolicyText}
-                    onChange={handlePolicyTextChange}
-                    placeholder="Type your message..."
-                    className="w-full h-40 px-4 py-2 text-sm border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                  <div className="flex justify-end">
-                    <button
-                      onClick={handleUpdate}
-                      className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-colors"
-                      disabled={isUpdating}
-                    >
-                      {isUpdating ? "UPDATING..." : "UPDATE"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

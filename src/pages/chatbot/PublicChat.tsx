@@ -16,6 +16,7 @@ import { useProductsLogic } from "../../hooks/useProductsLogic";
 import { useContactLogic } from "../../hooks/useContactLogic";
 import { useChatMessages } from "../../hooks/useChatMessages";
 import { useFeatureNotifications } from "../../hooks/useFeatureNotifications";
+import ClickableMessageText from "./ClickableMessageText";
 
 type Screen = "about" | "chat" | "browse";
 
@@ -396,6 +397,125 @@ export default function PublicChat({
     );
   }
 
+  const handleFeatureClick = async (featureText: string): Promise<void> => {
+    if (!currentConfig?.agentId) return;
+
+    // Add user message to chat
+    const userMsg: ChatMessage = {
+      id: Date.now().toString(),
+      content: featureText,
+      timestamp: new Date(),
+      sender: "user",
+    };
+    setMessages((m) => [...m, userMsg]);
+    setMessage("");
+    setShowCues(false);
+    scrollToBottom();
+
+    const messageCountBefore = messages.length + 1;
+    let responseContent = "";
+
+    // Extract the feature type from the message
+    const isBookingRequest = featureText.includes("booking appointments");
+    const isProductRequest = featureText.includes("browsing our products");
+    const isContactRequest = featureText.includes("contacting us");
+    const isKnowledgeBaseRequest = featureText.includes(
+      "answering questions about our knowledge base"
+    );
+
+    // Process contact requests first (including lead collection)
+    if (isContactRequest) {
+      const contactHandled = await handleContactRequest(
+        featureText,
+        setMessages,
+        scrollToBottom,
+        currentConfig?.customerLeadFlag
+      );
+
+      if (contactHandled) {
+        setTimeout(() => {
+          const currentMessages = messages;
+          const newMessages = currentMessages.slice(messageCountBefore);
+          const latestBotMessage = newMessages.find(
+            (msg) => msg.sender === "agent"
+          );
+          responseContent = latestBotMessage
+            ? latestBotMessage.content
+            : "Contact collection initiated";
+          logConversation(featureText, responseContent);
+        }, 200);
+        return;
+      }
+    }
+
+    // Process booking-related messages
+    if (isBookingRequest) {
+      const bookingHandled = handleBookingRequest(
+        featureText,
+        setMessages,
+        scrollToBottom
+      );
+
+      if (bookingHandled) {
+        responseContent = "Booking calendar displayed";
+        logConversation(featureText, responseContent);
+        return;
+      }
+    }
+
+    // Process product-related messages
+    if (isProductRequest) {
+      const productHandled = handleProductRequest(
+        featureText,
+        setMessages,
+        scrollToBottom
+      );
+
+      if (productHandled) {
+        responseContent = "Product catalog displayed";
+        logConversation(featureText, responseContent);
+        return;
+      }
+    }
+
+    // For other queries, use AI response
+    if (
+      isKnowledgeBaseRequest ||
+      (!isBookingRequest && !isProductRequest && !isContactRequest)
+    ) {
+      try {
+        await handleAIResponse(featureText);
+
+        // Wait for the AI response to be added to messages
+        setTimeout(() => {
+          const currentMessages = messages;
+          const latestAgentMessage = currentMessages
+            .slice(messageCountBefore)
+            .find((msg) => msg.sender === "agent");
+
+          if (latestAgentMessage) {
+            responseContent = latestAgentMessage.content;
+            logConversation(featureText, responseContent);
+          }
+        }, 1000);
+      } catch (error) {
+        console.error("Error handling AI response:", error);
+        responseContent = "Error occurred while processing request";
+        logConversation(featureText, responseContent);
+      }
+    }
+  };
+
+  // Function to check if message contains clickable features
+  const hasClickableFeatures = (content: string): boolean => {
+    const clickableFeatures = [
+      "booking appointments",
+      "browsing our products",
+      "contacting us",
+      "answering questions about our knowledge base",
+    ];
+    return clickableFeatures.some((feature) => content.includes(feature));
+  };
   // Show BotNotFound component if there's an error fetching bot config
   if (botConfigError && !isPreview) {
     return (
@@ -423,12 +543,12 @@ export default function PublicChat({
           <Helmet>
             <title>
               {currentConfig.name
-                ? `${currentConfig.name} | Sayy.ai chatbot`
-                : "Sayy.ai chatbot"}
+                ? `${currentConfig.name} | Sayy.ai Agent`
+                : "Sayy.ai Agent"}
             </title>
             <meta
               name="description"
-              content={`${currentConfig.bio} | Sayy.ai chatbot`}
+              content={`${currentConfig.bio} | Sayy.ai Agent`}
             />
             <meta
               property="og:title"
@@ -436,25 +556,27 @@ export default function PublicChat({
             />
             <meta
               property="og:description"
-              content={`${currentConfig.bio} | Sayy.ai chatbot`}
+              content={`${currentConfig.bio} | Sayy.ai Agent`}
             />
             <meta property="og:image" content={currentConfig.logo} />
             <meta
               property="og:image:alt"
-              content={`${currentConfig.name} | Sayy.ai chatbot`}
+              content={`${currentConfig.name} | Sayy.ai Agent`}
             />
             <meta
               property="og:url"
               content={`https://sayy.ai/${currentConfig.username}`}
             />
+            <meta name="twitter:card" content="summary_large_image" />
             <meta
-              property="og:url"
-              content={`https://sayy.ai/${currentConfig.username}`}
+              name="twitter:title"
+              content={`${currentConfig.name} | Sayy.ai Agent`}
             />
             <meta
-              property="og:url"
-              content={`https://sayy.ai/${currentConfig.username}`}
+              name="twitter:description"
+              content={`${currentConfig.bio} | Sayy.ai Agent`}
             />
+            <meta name="twitter:image" content={currentConfig.logo} />
           </Helmet>
           <div
             className="w-full max-w-md shadow-2xl overflow-hidden flex flex-col relative"
@@ -508,6 +630,7 @@ export default function PublicChat({
                       }}
                       isBookingConfigured={isBookingConfigured}
                       setActiveScreen={setActiveScreen}
+                      onFeatureClick={handleFeatureClick}
                     />
                   </div>
 

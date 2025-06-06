@@ -168,29 +168,38 @@ const Header = () => {
             </div>
 
             <div className="truncate max:w-[100%] ">
-              <a
-                href={`https://Sayy.ai/${activeBotData?.username}`}
-                target="_blank"
-              >
+              {isAllAgentsPage ? (
                 <div className="relative inline-block">
                   <div className="absolute top-1 left-1 w-full h-full bg-[#6aff97] rounded"></div>
                   <div className="relative inline-block">
-                    {/* Bottom layer for shadow effect */}
                     <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
-
-                    {/* Main button */}
                     <button
-                      disabled={!activeBotId}
-                      className="relative bg-[#6aff97] text-black font-semibold px-4 py-2 border border-black flex items-center gap-2"
-                      style={{
-                        cursor: isAllAgentsPage ? "not-allowed" : "pointer",
-                      }}
+                      disabled
+                      className="relative bg-[#6aff97] text-black font-semibold px-4 py-2 border border-black flex items-center gap-2 cursor-not-allowed"
                     >
                       <Eye className="w-5 h-5" /> View Agent
                     </button>
                   </div>
                 </div>
-              </a>
+              ) : (
+                <a
+                  href={`https://Sayy.ai/${activeBotData?.username}`}
+                  target="_blank"
+                >
+                  <div className="relative inline-block">
+                    <div className="absolute top-1 left-1 w-full h-full bg-[#6aff97] rounded"></div>
+                    <div className="relative inline-block">
+                      <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
+                      <button
+                        disabled={!activeBotId}
+                        className="relative bg-[#6aff97] text-black font-semibold px-4 py-2 border border-black flex items-center gap-2"
+                      >
+                        <Eye className="w-5 h-5" /> View Agent
+                      </button>
+                    </div>
+                  </div>
+                </a>
+              )}
             </div>
           </div>
         </div>
