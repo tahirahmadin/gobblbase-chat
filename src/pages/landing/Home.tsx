@@ -1655,21 +1655,27 @@ const Home = () => {
               </div>
               <article className="left-side w-[100%] lg:w-[fit-content] z-10">
                 <div className="headline flex gap-4 flex-col items-center lg:flex-row">
-                  <img
-                    src="/assets/landing-asset/assemble/homepage-logo.svg"
-                    alt="Sayy.ai Homepage Logo"
-                    className=""
-                  />
-                  <span className="flex flex-col items-end justify-end md:mt-8">
-                    <Headline>to your new Employee</Headline>
                     <img
-                      src="/assets/landing-asset/assemble/underline.png"
-                      alt="Decorative underline"
+                      src="/assets/landing-asset/assemble/homepage-logo.svg"
+                      alt="Sayy.ai Homepage Logo"
+                      className=""
                     />
-                  </span>
+                    <span className="flex flex-col items-end justify-end md:mt-8">
+                      <Headline>to your new Employee</Headline>
+                      <img
+                        src="/assets/landing-asset/assemble/underline.png"
+                        alt="Decorative underline"
+                      />
+                    </span>
                 </div>
 
                 <Subheadline>
+                  <div className="headline-para mt-4 mb-10 lg:mt-0 lg:mb-8 w-[100%] text-center lg:text-start">
+                    <p className="para-font text-[1rem]">
+                      Your practical AI Co-Pilot for business growth. <br /> Handle
+                      sales, support, and scheduling—all in one place.
+                    </p>
+                  </div>
                   <div className="w-fit flex flex-col">
                     <p className="para-font text-[15px] font-[500] text-left mb-4">
                       Your practical AI Co-Pilot for business growth. <br />
