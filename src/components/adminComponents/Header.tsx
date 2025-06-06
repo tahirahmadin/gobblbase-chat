@@ -89,7 +89,7 @@ const Header = () => {
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center space-x-2 bg-white border border-black px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
-              <div className="absolute z-[-1] top-1 left-1 w-full h-full bg-white border border-black"></div>
+              <div className="absolute z-[-1] top-[3px] left-[3px] w-full h-full bg-white border border-black"></div>
               {activeBotData?.logo ? (
                 <img
                   key={`${activeBotData.logo}?t=${Date.now()}`}

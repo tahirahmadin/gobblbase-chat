@@ -3,8 +3,9 @@ import { ChatMessage } from "../types";
 
 // Template messages for feature notifications
 const featureNotificationMessages = [
-  "I can help you with {{features}}.",
-  "I'm here to help with {{features}}.",
+  "I can help you with:",
+  "I'm here to help with:",
+  "My capabilities include:",
 ];
 
 export interface UseFeatureNotificationsReturn {
@@ -65,26 +66,30 @@ export function useFeatureNotifications(
       features.push("contacting us");
     }
     
-    if (checkFeature(isQueryable)) {
-      features.push("answering questions about our knowledge base");
-    }
+    // Special handling for knowledge base feature - it comes with starting text
+    const hasKnowledgeBase = checkFeature(isQueryable);
     
-    if (features.length === 0) {
+    if (features.length === 0 && !hasKnowledgeBase) {
       return "";
     }
     
-    let featuresContent = "";
-    if (features.length === 1) {
-      featuresContent = features[0];
-    } else if (features.length === 2) {
-      featuresContent = `${features[0]} and ${features[1]}`;
+    // Get random template message
+    const messageIndex = Math.floor(Math.random() * featureNotificationMessages.length);
+    const baseMessage = featureNotificationMessages[messageIndex];
+    
+    // Create the content with line break separation
+    let content = baseMessage;
+    
+    if (hasKnowledgeBase) {
+      content += "\nanswering questions about our knowledge base";
+      if (features.length > 0) {
+        content += " " + features.join(" ");
+      }
     } else {
-      const lastFeature = features[features.length - 1];
-      featuresContent = `${features.slice(0, -1).join(", ")}, and ${lastFeature}`;
+      content += "\n" + features.join(" ");
     }
     
-    const messageIndex = Math.floor(Math.random() * featureNotificationMessages.length);
-    return featureNotificationMessages[messageIndex].replace("{{features}}", featuresContent);
+    return content;
   }, [isBookingConfigured, hasProducts, customerLeadFlag, isQueryable, checkFeature]);
   
   // Update features state
@@ -117,6 +122,7 @@ export function useFeatureNotifications(
             content: featureMessage,
             timestamp: new Date(),
             sender: "agent",
+            type: "features-combined", 
           };
           
           return [...updatedMessages, newFeatureMsg];
@@ -133,6 +139,7 @@ export function useFeatureNotifications(
       content: featureMessage,
       timestamp: new Date(),
       sender: "agent",
+      type: "features-combined", 
     };
     
     setMessages(messages => {

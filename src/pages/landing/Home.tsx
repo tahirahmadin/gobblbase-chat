@@ -242,7 +242,7 @@ const Headline = styled.h1`
 const Subheadline = styled.div`
   display: flex;
   flex-direction: column;
-  padding: 4vh 4vw 4vh 4vw;
+  padding: 2vh 4vw 4vh 4vw;
   margin-right: 6vw;
   @media (max-width: 1024px) {
     align-items: center;
@@ -1668,6 +1668,7 @@ const Home = () => {
                       />
                     </span>
                 </div>
+
                 <Subheadline>
                   <div className="headline-para mt-4 mb-10 lg:mt-0 lg:mb-8 w-[100%] text-center lg:text-start">
                     <p className="para-font text-[1rem]">
@@ -1676,6 +1677,10 @@ const Home = () => {
                     </p>
                   </div>
                   <div className="w-fit flex flex-col">
+                    <p className="para-font text-[15px] font-[500] text-left mb-4">
+                      Your practical AI Co-Pilot for business growth. <br />
+                      Handle sales, support, and scheduling—all in one place.
+                    </p>
                     <span className="heading flex items-center">
                       <p className="text-[#AEB8FF]">Select their tasks</p>
                       <ChevronRight
@@ -2336,7 +2341,7 @@ const Home = () => {
                       <AppOverloadIcon>
                         <img
                           src="/assets/landing-asset/goodbye/chatbot.png"
-                          alt="Chatbot Integration Icon"
+                          alt="Agent Integration Icon"
                           className="icon-img"
                         />
                       </AppOverloadIcon>

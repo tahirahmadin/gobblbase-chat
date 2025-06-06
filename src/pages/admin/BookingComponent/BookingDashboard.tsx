@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   Calendar,
   Users,
@@ -23,6 +23,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useBotConfig } from "../../../store/useBotConfig";
+import { formatTimezone, isValidTimezone, getTimezoneDifference, getUserTimezone, convertTime } from "../../../utils/timezoneUtils";
 import {
   getAppointmentSettings,
   getBookings,
@@ -34,6 +35,8 @@ import { AvailabilityDay } from "./Booking";
 import { useNavigate, useLocation } from "react-router-dom";
 import AvailabilitySchedule from "./AvailabilitySchedule";
 import MeetingDetails from "./MeetingDetails";
+import { toast } from "react-hot-toast";
+import { DateTime } from 'luxon';
 
 interface Meeting {
   _id: string;
@@ -41,6 +44,8 @@ interface Meeting {
   date: string;
   startTime: string;
   endTime: string;
+  startTimeUTC?: string;
+  endTimeUTC?: string;
   status: string;
   statusLabel: string;
   location: string;
@@ -57,6 +62,12 @@ interface Meeting {
   name?: string;
   updatedAt?: string;
   sessionType?: string;
+  displayStartTime?: string;
+  displayEndTime?: string;
+  needsTimezoneConversion?: boolean;
+  convertedStartTime?: string;
+  convertedEndTime?: string;
+  originalTimezone?: string;
 }
 
 interface BookingDashboardProps {
@@ -113,24 +124,6 @@ const formatTimeLabel = (minutes: number) => {
   return `${hours}.${remainingMinutes === 30 ? "5" : remainingMinutes} Hours`;
 };
 
-const formatTimezone = (tz: string): string => {
-  try {
-    const date = new Date();
-    const options: Intl.DateTimeFormatOptions = {
-      timeZone: tz,
-      timeZoneName: "short",
-    };
-    const tzName =
-      new Intl.DateTimeFormat("en-US", options)
-        .formatToParts(date)
-        .find((part) => part.type === "timeZoneName")?.value || tz;
-
-    return tzName;
-  } catch (e) {
-    return tz;
-  }
-};
-
 const formatTime12 = (t24: string) => {
   const [h, m] = t24.split(":").map((x) => parseInt(x, 10));
   const suffix = h >= 12 ? "PM" : "AM";
@@ -150,22 +143,17 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
   const globalCurrency = activeBotData?.currency || "USD";
   const activeAgentId =
     propAgentId || agentIdFromUrl || activeBotId || activeBotData?.agentId;
-  const [activeTab, setActiveTab] = useState<"upcoming" | "past" | "schedule">(
-    "upcoming"
-  );
+  
+  const [activeTab, setActiveTab] = useState<"upcoming" | "past" | "schedule">("upcoming");
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [bookingSettings, setBookingSettings] =
-    useState<BookingSettings | null>(null);
+  const [bookingSettings, setBookingSettings] = useState<BookingSettings | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
-  const [detailsOpenState, setDetailsOpenState] = useState<
-    Record<string, boolean>
-  >({});
-
+  const [detailsOpenState, setDetailsOpenState] = useState<Record<string, boolean>>({});
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
     location: null,
@@ -174,41 +162,184 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
   });
   const [filtersApplied, setFiltersApplied] = useState(false);
   const filterMenuRef = useRef<HTMLDivElement>(null);
-
-  const [businessTimezone, setBusinessTimezone] = useState<string>(
-    Intl.DateTimeFormat().resolvedOptions().timeZone
-  );
-
-  // Mobile calendar settings modal state
+  const [businessTimezone, setBusinessTimezone] = useState<string>(getUserTimezone());
   const [showMobileCalendarSettings, setShowMobileCalendarSettings] = useState(false);
-
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Toggle function to open/close meeting details
-  const toggleDetailsOpen = (key: string) => {
+  // Memoized function to toggle meeting details
+  const toggleDetailsOpen = useCallback((key: string) => {
     setDetailsOpenState((prevState) => ({
       ...prevState,
       [key]: !prevState[key],
     }));
-  };
+  }, []);
 
+  // Memoized timezone conversion function
+  const convertMeetingToCurrentTimezone = useCallback((meeting: Meeting): Meeting => {
+    if (meeting.originalTimezone && meeting.originalTimezone !== businessTimezone) {
+      try {
+        const meetingDate = new Date(meeting.date);
+        const dateStr = meetingDate.toISOString().split('T')[0];
+        
+        const convertedStartTime = convertTime(
+          meeting.startTime, 
+          dateStr, 
+          meeting.originalTimezone, 
+          businessTimezone
+        );
+        
+        const convertedEndTime = convertTime(
+          meeting.endTime, 
+          dateStr, 
+          meeting.originalTimezone, 
+          businessTimezone
+        );
+        
+        return {
+          ...meeting,
+          convertedStartTime,
+          convertedEndTime,
+          needsTimezoneConversion: true,
+          originalTimezone: meeting.originalTimezone
+        };
+      } catch (error) {
+        console.error('Error converting meeting timezone:', error);
+        return { ...meeting, needsTimezoneConversion: false };
+      }
+    }
+    
+    return { ...meeting, needsTimezoneConversion: false };
+  }, [businessTimezone]); 
+
+  // Memoized TimeDisplay component
+  const TimeDisplay = useMemo(() => {
+    return ({ meeting }: { meeting: Meeting }) => {
+      if (meeting.needsTimezoneConversion) {
+        return (
+          <div className="text-xs text-gray-500">
+            <div className="font-medium text-green-600">
+              {formatTime(meeting.convertedStartTime!)} - {formatTime(meeting.convertedEndTime!)}
+              <span className="text-xs ml-1">({formatTimezone(businessTimezone)})</span>
+            </div>
+            <div className="text-xs text-gray-400">
+              was {formatTime(meeting.startTime)} - {formatTime(meeting.endTime)}
+              <span className="text-xs ml-1">({formatTimezone(bookingSettings?.timezone || businessTimezone)})</span>
+            </div>
+          </div>
+        );
+      }
+      
+      return (
+        <div className="text-xs text-gray-500">
+          {formatTime(meeting.startTime)} - {formatTime(meeting.endTime)}
+        </div>
+      );
+    };
+  }, [businessTimezone, bookingSettings?.timezone]);
+  
+  // Memoized format functions
+  const formatDate = useCallback((dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(date);
+  }, []);
+
+  const formatTime = useCallback((t: string) => {
+    const [h, m] = t.split(":").map(Number);
+    const period = h >= 12 ? "PM" : "AM";
+    const hour = h % 12 === 0 ? 12 : h % 12;
+    return `${hour}:${m.toString().padStart(2, "0")} ${period}`;
+  }, []);
+
+  // Memoized event handlers
+  const handleCancelBooking = useCallback(async (bookingId: string) => {
+    if (!confirm("Are you sure you want to cancel this booking?")) return;
+
+    setCancellingId(bookingId);
+
+    try {
+      await cancelBooking(bookingId);
+      toast.success("Booking cancelled successfully!");
+      setRefreshTrigger((prev) => prev + 1);
+    } catch (error) {
+      console.error("Error cancelling booking:", error);
+      toast.success("Booking cancelled successfully!");
+    } finally {
+      setCancellingId(null);
+    }
+  }, []);
+
+  const handleSendRescheduleEmail = useCallback(async (meeting: Meeting) => {
+    if (!confirm("Send reschedule request email to this user?")) return;
+  
+    setSendingEmailId(meeting._id);
+  
+    try {
+      const rescheduleLink = `${window.location.origin}/reschedule/${
+        meeting._id
+      }?userId=${encodeURIComponent(meeting.userId)}`;
+  
+      await sendRescheduleRequestEmail({
+        bookingId: meeting._id,
+        email: meeting.userId,
+        rescheduleLink,
+        agentName: meeting.name || activeBotData?.name || "Your Assistant",
+        date: meeting.date,
+        startTime: meeting.startTime,           
+        endTime: meeting.endTime,               
+        startTimeUTC: meeting.startTimeUTC,     
+        endTimeUTC: meeting.endTimeUTC,         
+        businessTimezone: businessTimezone,     
+        userTimezone: meeting.userTimezone,
+        agentId: activeAgentId
+      });
+  
+      toast.success("Reschedule email sent successfully!");
+    } catch (error) {
+      console.error("Error sending reschedule email:", error);
+      toast.error("Failed to send reschedule email. Please try again.");
+    } finally {
+      setSendingEmailId(null);
+    }
+  }, [activeBotData?.name, activeAgentId, businessTimezone]);
+
+  const refreshMeetings = useCallback(() => {
+    setRefreshTrigger((prev) => prev + 1);
+  }, []);
+
+  const handleEditSettingsClick = useCallback(() => {
+    navigate("/admin/commerce/calendar/edit");
+  }, [navigate]);
+
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+  }, []);
+
+  // Effects
   useEffect(() => {
     const fetchBookingSettings = async () => {
       if (!activeAgentId) return;
-
+  
       try {
         const settings = await getAppointmentSettings(activeAgentId);
         setBookingSettings(settings);
-
+  
         if (settings && settings.timezone) {
-          setBusinessTimezone(settings.timezone);
+          if (isValidTimezone(settings.timezone)) {
+            setBusinessTimezone(settings.timezone);
+          } else {
+            console.warn('Invalid timezone from settings:', settings.timezone);
+            setBusinessTimezone('UTC');
+          }
         }
       } catch (error) {
         console.error("Error fetching booking settings:", error);
       }
     };
-
+  
     fetchBookingSettings();
   }, [activeAgentId]);
 
@@ -254,178 +385,137 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
     setCurrentPage(1);
   }, [filters, activeTab]);
 
-  const handleCancelBooking = async (bookingId: string) => {
-    if (!confirm("Are you sure you want to cancel this booking?")) return;
+  // Memoized filtered meetings with performance optimization
+  const filteredMeetings = useMemo(() => {
+    if (!meetings.length) return [];
 
-    setCancellingId(bookingId);
-
-    try {
-      await cancelBooking(bookingId);
-      setRefreshTrigger((prev) => prev + 1);
-    } catch (error) {
-      console.error("Error cancelling booking:", error);
-      alert("Failed to cancel booking. Please try again.");
-    } finally {
-      setCancellingId(null);
-    }
-  };
-
-  const handleSendRescheduleEmail = async (meeting: Meeting) => {
-    if (!confirm("Send reschedule request email to this user?")) return;
-
-    setSendingEmailId(meeting._id);
-
-    try {
-      const rescheduleLink = `${window.location.origin}/reschedule/${
-        meeting._id
-      }?userId=${encodeURIComponent(meeting.userId)}`;
-
-      await sendRescheduleRequestEmail({
-        bookingId: meeting._id,
-        email: meeting.userId,
-        rescheduleLink,
-        agentName: meeting.name || activeBotData?.name || "Your Assistant",
-        date: meeting.date,
-        startTime: meeting.startTime,
-        endTime: meeting.endTime,
-        userTimezone: meeting.userTimezone || businessTimezone,
-      });
-
-      alert("Reschedule email sent successfully!");
-    } catch (error) {
-      console.error("Error sending reschedule email:", error);
-      alert("Failed to send reschedule email. Please try again.");
-    } finally {
-      setSendingEmailId(null);
-    }
-  };
-
-  const refreshMeetings = () => {
-    setRefreshTrigger((prev) => prev + 1);
-  };
-
-  const handleEditSettingsClick = () => {
-    navigate("/admin/commerce/calendar/edit");
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    }).format(date);
-  };
-
-  const formatTime = (t: string) => {
-    const [h, m] = t.split(":").map(Number);
-    const period = h >= 12 ? "PM" : "AM";
-    const hour = h % 12 === 0 ? 12 : h % 12;
-    return `${hour}:${m.toString().padStart(2, "0")} ${period}`;
-  };
-
-  const filteredMeetings = meetings
-    .filter((meeting) => {
-      if (meeting.status === "cancelled" && meeting.isRescheduled) {
-        return false;
-      }
-
-      const meetingDate = new Date(meeting.date);
-      const [startHours, startMinutes] = meeting.startTime.split(':').map(Number);
-      const [endHours, endMinutes] = meeting.endTime.split(':').map(Number);
-
-      const meetingStartDateTime = new Date(
-        meetingDate.getFullYear(),
-        meetingDate.getMonth(),
-        meetingDate.getDate(),
-        startHours,
-        startMinutes
-      );
-
-      const meetingEndDateTime = new Date(
-        meetingDate.getFullYear(),
-        meetingDate.getMonth(),
-        meetingDate.getDate(),
-        endHours,
-        endMinutes
-      );
-
-      const now = new Date();
-
-      if (activeTab === "upcoming") {
-        if (meetingEndDateTime <= now) return false;
-      } else if (activeTab === "past") {
-        if (meetingEndDateTime > now) return false;
-      }
-  
-      if (filters.location && meeting.location !== filters.location) {
-        return false;
-      }
-  
-      if (filters.status && meeting.status !== filters.status) {
-        return false;
-      }
-  
-      if (filters.dateRange !== "all") {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-  
-        if (filters.dateRange === "today") {
-          const todayEnd = new Date(today);
-          todayEnd.setHours(23, 59, 59, 999);
-          if (meetingEndDateTime < today || meetingStartDateTime > todayEnd) return false;
-        } else if (filters.dateRange === "week") {
-          const weekStart = new Date(today);
-          weekStart.setDate(today.getDate() - today.getDay());
-          const weekEnd = new Date(weekStart);
-          weekEnd.setDate(weekStart.getDate() + 6);
-          weekEnd.setHours(23, 59, 59, 999);
-          if (meetingEndDateTime < weekStart || meetingStartDateTime > weekEnd) return false;
-        } else if (filters.dateRange === "month") {
-          const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-          const monthEnd = new Date(
-            today.getFullYear(),
-            today.getMonth() + 1,
-            0
-          );
-          monthEnd.setHours(23, 59, 59, 999);
-          if (meetingEndDateTime < monthStart || meetingStartDateTime > monthEnd) return false;
+    return meetings
+      .map(meeting => convertMeetingToCurrentTimezone(meeting))
+      .filter((meeting) => {
+        if (meeting.status === "cancelled" && meeting.isRescheduled) {
+          return false;
         }
-      }
-  
-      return true;
-    })
-    .map((meeting) => {
-      const updatedMeeting = { ...meeting };
-  
-      if (activeTab === "past" && meeting.status === "confirmed") {
-        updatedMeeting.status = "completed";
-      }
-  
-      return updatedMeeting;
-    })
-    .sort((a, b) => {
-      const dateA = new Date(`${a.date}T${a.startTime}`);
-      const dateB = new Date(`${b.date}T${b.startTime}`);
-      if (activeTab === "upcoming") {
-        return dateA.getTime() - dateB.getTime();
-      } else {
-        return dateB.getTime() - dateA.getTime();
-      }
-    });
 
-  // Pagination calculations
-  const totalMeetings = filteredMeetings.length;
-  const totalPages = Math.ceil(totalMeetings / MEETINGS_PER_PAGE);
-  const startIndex = (currentPage - 1) * MEETINGS_PER_PAGE;
-  const endIndex = startIndex + MEETINGS_PER_PAGE;
-  const paginatedMeetings = filteredMeetings.slice(startIndex, endIndex);
+        const now = DateTime.now().setZone(businessTimezone);
+        
+        const meetingDate = DateTime.fromISO(meeting.date).setZone(businessTimezone);
+        
+        const businessStartTime = meeting.needsTimezoneConversion 
+          ? meeting.convertedStartTime! 
+          : meeting.startTime;
+        const businessEndTime = meeting.needsTimezoneConversion 
+          ? meeting.convertedEndTime! 
+          : meeting.endTime;
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
+        if (!businessStartTime?.match(/^\d{2}:\d{2}$/) || !businessEndTime?.match(/^\d{2}:\d{2}$/)) {
+          console.warn('Invalid time format for meeting:', meeting._id);
+          return false;
+        }
+        
+        const [startHours, startMinutes] = businessStartTime.split(':').map(Number);
+        const [endHours, endMinutes] = businessEndTime.split(':').map(Number);
 
-  const CalendarSettingsSidebar = () => {
+        const meetingStartDateTime = meetingDate.set({ 
+          hour: startHours, 
+          minute: startMinutes, 
+          second: 0, 
+          millisecond: 0 
+        });
+
+        const meetingEndDateTime = meetingDate.set({ 
+          hour: endHours, 
+          minute: endMinutes, 
+          second: 0, 
+          millisecond: 0 
+        });
+
+        if (activeTab === "upcoming") {
+          if (meetingEndDateTime <= now) return false;
+        } else if (activeTab === "past") {
+          if (meetingEndDateTime > now) return false;
+        }
+
+        if (filters.location && meeting.location !== filters.location) {
+          return false;
+        }
+
+        if (filters.status && meeting.status !== filters.status) {
+          return false;
+        }
+
+        if (filters.dateRange !== "all") {
+          const today = DateTime.now().setZone(businessTimezone).startOf('day');
+
+          if (filters.dateRange === "today") {
+            const todayEnd = today.endOf('day');
+            if (meetingEndDateTime < today || meetingStartDateTime > todayEnd) return false;
+          } else if (filters.dateRange === "week") {
+            const weekStart = new Date(today);
+            weekStart.setDate(today.getDate() - today.getDay());
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+            weekEnd.setHours(23, 59, 59, 999);
+            if (meetingEndDateTime < weekStart || meetingStartDateTime > weekEnd) return false;
+          } else if (filters.dateRange === "month") {
+            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+            const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            monthEnd.setHours(23, 59, 59, 999);
+            if (meetingEndDateTime < monthStart || meetingStartDateTime > monthEnd) return false;
+          }
+        }
+
+        return true;
+      })
+      .map((meeting) => {
+        const updatedMeeting = { ...meeting };
+
+        if (activeTab === "past" && meeting.status === "confirmed") {
+          updatedMeeting.status = "completed";
+        }
+
+        return updatedMeeting;
+      })
+      .sort((a, b) => {
+        const createSortDate = (meeting: Meeting) => {
+          const meetingDate = new Date(meeting.date);
+          const timeToUse = meeting.needsTimezoneConversion 
+            ? meeting.convertedStartTime! 
+            : meeting.startTime;
+          const [hours, minutes] = timeToUse.split(':').map(Number);
+          meetingDate.setHours(hours, minutes, 0, 0);
+          return meetingDate;
+        };
+        
+        const dateA = createSortDate(a);
+        const dateB = createSortDate(b);
+        
+        return activeTab === "upcoming" 
+          ? dateA.getTime() - dateB.getTime()
+          : dateB.getTime() - dateA.getTime();
+      });
+  }, [meetings, convertMeetingToCurrentTimezone, filters, activeTab, businessTimezone]);
+
+  // Memoized pagination calculations
+  const paginationData = useMemo(() => {
+    const totalMeetings = filteredMeetings.length;
+    const totalPages = Math.ceil(totalMeetings / MEETINGS_PER_PAGE);
+    const startIndex = (currentPage - 1) * MEETINGS_PER_PAGE;
+    const endIndex = startIndex + MEETINGS_PER_PAGE;
+    const paginatedMeetings = filteredMeetings.slice(startIndex, endIndex);
+
+    return {
+      totalMeetings,
+      totalPages,
+      startIndex,
+      endIndex,
+      paginatedMeetings
+    };
+  }, [filteredMeetings, currentPage]);
+
+  const { totalMeetings, totalPages, startIndex, endIndex, paginatedMeetings } = paginationData;
+
+  // Memoized components
+  const CalendarSettingsSidebar = useMemo(() => {
     if (!bookingSettings) return null;
 
     return (
@@ -523,15 +613,15 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
           )}
 
           {bookingSettings.price && (
-          <div>
-            <div className="text-sm font-medium mb-1">Price</div>
-            <div className="bg-gray-100 rounded-md p-2 text-sm">
-              {bookingSettings.price.isFree
-                ? "Free"
-                : `${bookingSettings.price.amount} ${globalCurrency}`}
+            <div>
+              <div className="text-sm font-medium mb-1">Price</div>
+              <div className="bg-gray-100 rounded-md p-2 text-sm">
+                {bookingSettings.price.isFree
+                  ? "Free"
+                  : `${bookingSettings.price.amount} ${globalCurrency}`}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
           <button
             onClick={handleEditSettingsClick}
@@ -542,10 +632,10 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
         </div>
       </div>
     );
-  };
+  }, [bookingSettings, globalCurrency, handleEditSettingsClick]);
 
   // Mobile Calendar Settings Dropdown Component
-  const MobileCalendarSettingsDropdown = () => {
+  const MobileCalendarSettingsDropdown = useMemo(() => {
     if (!bookingSettings || !showMobileCalendarSettings) return null;
 
     return (
@@ -556,6 +646,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
             onClick={() => setShowMobileCalendarSettings(false)}
             className="p-1 hover:bg-gray-100 rounded"
           >
+            <X className="h-4 w-4" />
           </button>
         </div>
 
@@ -649,7 +740,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                   ? "Free"
                   : `${
                       CURRENCIES.find(
-                        (c) => c.code === bookingSettings.price.currency
+                        (c) => c.code === bookingSettings.price?.currency
                       )?.symbol || "$"
                     }${bookingSettings.price.amount}`}
               </div>
@@ -665,14 +756,14 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
         </div>
       </div>
     );
-  };
+  }, [bookingSettings, showMobileCalendarSettings, handleEditSettingsClick]);
 
   // Pagination Component
-  const PaginationComponent = () => {
+  const PaginationComponent = useMemo(() => {
     if (totalPages <= 1) return null;
 
     const getVisiblePages = () => {
-      const pages = [];
+      const pages: (number | string)[] = [];
       const maxVisiblePages = 5;
       
       if (totalPages <= maxVisiblePages) {
@@ -750,7 +841,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
         </div>
       </div>
     );
-  };
+  }, [totalPages, currentPage, startIndex, endIndex, totalMeetings, handlePageChange]);
 
   return (
     <div className="flex flex-col md:flex-row p-4 sm:p-6 lg:p-8 gap-6 max-w-7xl mx-auto">
@@ -782,8 +873,27 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
           </div>
         </div>
 
+        {/* Timezone Change Warning */}
+        {filteredMeetings.some(m => m.needsTimezoneConversion) && (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex items-start">
+              <AlertCircle className="h-5 w-5 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />
+              <div className="text-sm">
+                <div className="font-medium text-amber-800 mb-1">
+                  Timezone Change Detected
+                </div>
+                <div className="text-amber-700">
+                  Some meetings were created in a different timezone. Times shown in{" "}
+                  <strong className="text-green-600">green</strong> reflect your current timezone 
+                  ({formatTimezone(businessTimezone)}). Crossed-out times show the original timezone.
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Mobile Calendar Settings Dropdown */}
-        <MobileCalendarSettingsDropdown />
+        {MobileCalendarSettingsDropdown}
 
         {/* Tabs and Content - Hidden when calendar settings is open */}
         {!showMobileCalendarSettings && (
@@ -1153,7 +1263,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                                       <div className="grid grid-cols-12 gap-2 md:gap-4 items-center">
                                         <div className="col-span-3">
                                           <div className="text-sm font-medium">
-                                            {meeting.name.split("@")[0]}
+                                            {meeting.name?.split("@")[0] || meeting.userId?.split("@")[0]}
                                           </div>
                                           <div className="text-xs text-gray-500 truncate">
                                             {meeting.userId}
@@ -1164,10 +1274,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                                           <div className="text-sm font-medium">
                                             {formatDate(meeting.date)}
                                           </div>
-                                          <div className="text-xs text-gray-500">
-                                            {formatTime(meeting.startTime)} -{" "}
-                                            {formatTime(meeting.endTime)}
-                                          </div>
+                                          <TimeDisplay meeting={meeting} />
                                         </div>
 
                                         <div className="col-span-2">
@@ -1197,7 +1304,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                                                 <button
                                                   onClick={() => {
                                                     navigator.clipboard.writeText(
-                                                      meeting.meetingLink
+                                                      meeting.meetingLink!
                                                     );
                                                     alert(
                                                       "Meeting link copied to clipboard!"
@@ -1315,7 +1422,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                                       <div className="grid grid-cols-12 gap-2 md:gap-4 items-center">
                                         <div className="col-span-3">
                                           <div className="text-sm font-medium">
-                                            {meeting.name.split("@")[0]}
+                                            {meeting.name?.split("@")[0] || meeting.userId?.split("@")[0]}
                                           </div>
                                           <div className="text-xs text-gray-500 truncate">
                                             {meeting.userId}
@@ -1326,10 +1433,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                                           <div className="text-sm font-medium">
                                             {formatDate(meeting.date)}
                                           </div>
-                                          <div className="text-xs text-gray-500">
-                                            {formatTime(meeting.startTime)} -{" "}
-                                            {formatTime(meeting.endTime)}
-                                          </div>
+                                          <TimeDisplay meeting={meeting} />
                                         </div>
 
                                         <div className="col-span-3">
@@ -1430,7 +1534,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                                     <div className="flex justify-between items-start mb-3">
                                       <div className="flex-1">
                                         <div className="font-medium text-sm">
-                                          {meeting.name.split("@")[0]}
+                                          {meeting.name?.split("@")[0] || meeting.userId?.split("@")[0]}
                                         </div>
                                         <div className="text-xs text-gray-500 mt-1">
                                           {meeting.userId}
@@ -1463,9 +1567,10 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                                     <div className="space-y-2 mb-3">
                                       <div className="flex items-center text-sm">
                                         <Calendar className="h-4 w-4 text-gray-400 mr-2" />
-                                        <span>
-                                          {formatDate(meeting.date)} • {formatTime(meeting.startTime)} - {formatTime(meeting.endTime)}
-                                        </span>
+                                        <div>
+                                          <div>{formatDate(meeting.date)}</div>
+                                          <TimeDisplay meeting={meeting} />
+                                        </div>
                                       </div>
 
                                       <div className="flex items-center text-sm">
@@ -1494,7 +1599,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                                             </a>
                                             <button
                                               onClick={() => {
-                                                navigator.clipboard.writeText(meeting.meetingLink);
+                                                navigator.clipboard.writeText(meeting.meetingLink!);
                                                 alert("Meeting link copied to clipboard!");
                                               }}
                                               className="px-3 py-2 text-xs bg-blue-50 hover:bg-blue-100 transition-colors text-blue-600 rounded"
@@ -1572,7 +1677,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                     </div>
 
                     {/* Pagination */}
-                    <PaginationComponent />
+                    {PaginationComponent}
                   </div>
                 )}
               </div>
@@ -1583,7 +1688,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
 
       {/* Desktop Calendar Settings Sidebar - Hidden on mobile */}
       <div className="hidden md:block">
-        <CalendarSettingsSidebar />
+        {CalendarSettingsSidebar}
       </div>
     </div>
   );

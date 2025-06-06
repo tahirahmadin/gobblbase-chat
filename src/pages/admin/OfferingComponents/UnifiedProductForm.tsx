@@ -1774,7 +1774,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       )}
                     </div>
 
-                    <span>USD</span>
+                    <span>{activeBotData?.currency}</span>
                   </span>
 
                   <div className="border-[#7d7d7d] flex border overflow-hidden">
