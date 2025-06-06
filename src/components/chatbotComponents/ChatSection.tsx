@@ -12,18 +12,21 @@ interface ClickableMessageTextProps {
   theme: Theme;
   onFeatureClick: (featureText: string) => void;
   isLoading?: boolean;
+  isFeatureMessage?: boolean; 
 }
 
 const ClickableMessageText: React.FC<ClickableMessageTextProps> = ({
   content,
   theme,
   onFeatureClick,
-  isLoading = false
+  isLoading = false,
+  isFeatureMessage = false
 }) => {
   const clickableFeatures = [
     "booking appointments",
     "browsing our products", 
-    "contacting us"
+    "contacting us",
+    "answering questions about our knowledge base" 
   ];
 
   const handleFeatureClick = (feature: string) => {
@@ -31,6 +34,89 @@ const ClickableMessageText: React.FC<ClickableMessageTextProps> = ({
       onFeatureClick(`I need help with ${feature}`);
     }
   };
+
+  if (isFeatureMessage && content.includes('\n')) {
+    const lines = content.split('\n');
+    const firstLine = lines[0];
+    const secondLine = lines[1] || '';
+    
+    // Extract features from the second line
+    const featuresInSecondLine = clickableFeatures.filter(feature => 
+      secondLine.includes(feature)
+    );
+    
+    return (
+      <div 
+        className="prose prose-sm max-w-none [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0 [&>blockquote]:m-0 [&>pre]:m-0 [&>*]:text-inherit prose-headings:text-inherit prose-ul:text-inherit prose-li:text-inherit prose-li:marker:text-inherit prose-strong:text-inherit"
+        style={{ 
+          color: !theme.isDark ? "black" : "white", 
+          fontSize: 13,
+          lineHeight: 1.4,
+          wordSpacing: 'normal',
+          letterSpacing: 'normal'
+        }}
+      >
+        {/* First line - plain text */}
+        <div style={{ marginBottom: '8px' }}>
+          {firstLine}
+        </div>
+        
+        {/* Second line - feature buttons */}
+        <div style={{ 
+          display: 'flex', 
+          flexWrap: 'wrap', 
+          gap: '6px',
+          marginTop: '4px'
+        }}>
+          {featuresInSecondLine.map((feature, index) => (
+            <span
+              key={index}
+              onClick={() => handleFeatureClick(feature)}
+              className="feature-bubble-inline"
+              style={{
+                background: `linear-gradient(135deg, ${theme.mainLightColor}, ${theme.mainDarkColor})`,
+                color: '#ffffff',
+                padding: '4px 8px',
+                borderRadius: '12px',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                display: 'inline-block',
+                margin: '2px',
+                fontSize: '0.85em',
+                fontWeight: '600',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                transition: 'all 0.15s ease',
+                opacity: isLoading ? 0.7 : 1,
+                textShadow: 'none',
+                border: 'none',
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+                verticalAlign: 'middle',
+                lineHeight: '1.2',
+                wordBreak: 'keep-all',
+                position: 'relative'
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.background = `linear-gradient(135deg, ${theme.mainDarkColor}, ${theme.mainLightColor})`;
+                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.background = `linear-gradient(135deg, ${theme.mainLightColor}, ${theme.mainDarkColor})`;
+                  e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.15)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }
+              }}
+            >
+              {feature}
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const renderTextWithBubbles = (text: string) => {
     let parts: (string | JSX.Element)[] = [text];
@@ -153,9 +239,19 @@ export default function ChatSection({
     const clickableFeatures = [
       "booking appointments",
       "browsing our products", 
-      "contacting us"
+      "contacting us",
+      "answering questions about our knowledge base"
     ];
     return clickableFeatures.some(feature => content.includes(feature));
+  };
+
+  const isFeatureMessage = (msg: ChatMessage): boolean => {
+    return msg.type === "features-combined" || 
+           (msg.id && String(msg.id).includes("features")) ||
+           (msg.sender === "agent" && 
+            (msg.content.includes("I can help you with") ||
+             msg.content.includes("I'm here to help with") ||
+             msg.content.includes("capabilities include")));
   };
 
   // Separate messages by type
@@ -182,6 +278,7 @@ export default function ChatSection({
           theme={theme}
           onFeatureClick={onFeatureClick}
           isLoading={isLoading}
+          isFeatureMessage={isFeatureMessage(msg)}
         />
       );
     }
@@ -248,6 +345,7 @@ export default function ChatSection({
             theme={theme}
             onFeatureClick={onFeatureClick}
             isLoading={isLoading}
+            isFeatureMessage={isFeatureMessage(msg)}
           />
         );
       }

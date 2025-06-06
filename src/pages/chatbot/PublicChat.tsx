@@ -419,6 +419,7 @@ export default function PublicChat({
     const isBookingRequest = featureText.includes("booking appointments");
     const isProductRequest = featureText.includes("browsing our products");
     const isContactRequest = featureText.includes("contacting us");
+    const isKnowledgeBaseRequest = featureText.includes("answering questions about our knowledge base");
 
     // Process contact requests first (including lead collection)
     if (isContactRequest) {
@@ -476,25 +477,27 @@ export default function PublicChat({
     }
 
     // For other queries, use AI response
-    try {
-      await handleAIResponse(featureText);
-
-      // Wait for the AI response to be added to messages
-      setTimeout(() => {
-        const currentMessages = messages;
-        const latestAgentMessage = currentMessages
-          .slice(messageCountBefore)
-          .find((msg) => msg.sender === "agent");
-
-        if (latestAgentMessage) {
-          responseContent = latestAgentMessage.content;
-          logConversation(featureText, responseContent);
-        }
-      }, 1000);
-    } catch (error) {
-      console.error("Error handling AI response:", error);
-      responseContent = "Error occurred while processing request";
-      logConversation(featureText, responseContent);
+    if (isKnowledgeBaseRequest || (!isBookingRequest && !isProductRequest && !isContactRequest)) {
+      try {
+        await handleAIResponse(featureText);
+    
+        // Wait for the AI response to be added to messages
+        setTimeout(() => {
+          const currentMessages = messages;
+          const latestAgentMessage = currentMessages
+            .slice(messageCountBefore)
+            .find((msg) => msg.sender === "agent");
+    
+          if (latestAgentMessage) {
+            responseContent = latestAgentMessage.content;
+            logConversation(featureText, responseContent);
+          }
+        }, 1000);
+      } catch (error) {
+        console.error("Error handling AI response:", error);
+        responseContent = "Error occurred while processing request";
+        logConversation(featureText, responseContent);
+      }
     }
   };
 
@@ -504,6 +507,7 @@ export default function PublicChat({
       "booking appointments",
       "browsing our products",
       "contacting us",
+      "answering questions about our knowledge base",
     ];
     return clickableFeatures.some((feature) => content.includes(feature));
   };
