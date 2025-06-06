@@ -78,18 +78,11 @@ const Support = () => {
         clientId: adminId,
       });
       // Simulate support response (replace with actual API call if needed)
-      setTimeout(() => {
-        setIsTyping(false);
-        const supportMessage: Message = {
-          id: Date.now() + 1,
-          content:
-            "Thank you for your message. Our support team will get back to you shortly.",
-          sender: "support",
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, supportMessage]);
-        // Optionally, also call updateAdminChatLog for support reply
-      }, 2000);
+      // setTimeout(() => {
+      //   setIsTyping(false);
+
+      //   // Optionally, also call updateAdminChatLog for support reply
+      // }, 2000);
     } catch (err) {
       setIsTyping(false);
       // Optionally show error
