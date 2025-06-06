@@ -222,7 +222,6 @@ const Payments = () => {
       const result = await enableStripePayment(adminId, !isStripeEnabled);
       setIsStripeEnabled(result);
       refetchClientData();
-      toast.success("Stripe payments enabled successfully");
     } catch (error: any) {
       toast.error("Failed to enable Stripe payments");
     } finally {
@@ -461,13 +460,19 @@ const Payments = () => {
                             d="M13 7l5 5m0 0l-5 5m5-5H6"
                           />
                         </svg>
-                        <span>Proceed with KYC</span>
+                        {clientData?.paymentMethods?.stripe?.reasons?.status ===
+                          "PENDING_VERIFICATION" && <span>VISIT STRIPE</span>}
+                        {clientData?.paymentMethods?.stripe?.reasons?.status !=
+                          "PENDING_VERIFICATION" && (
+                          <span>PROCEED WITH KYC</span>
+                        )}
                       </>
                     )}
                   </button>
 
                   {clientData?.paymentMethods?.stripe?.reasons &&
-                    clientData.paymentMethods.stripe.reasons.length > 0 && (
+                    clientData.paymentMethods.stripe.reasons?.reasons?.length >
+                      0 && (
                       <div className="mt-4 p-4 bg-red-50 rounded-lg border border-red-100">
                         <div className="flex items-center space-x-2 mb-3">
                           <svg
@@ -484,11 +489,18 @@ const Payments = () => {
                             />
                           </svg>
                           <h4 className="text-sm font-semibold text-red-800">
-                            KYC Requirements
+                            {clientData?.paymentMethods?.stripe?.reasons
+                              ?.status === "DOCUMENTS_PENDING" &&
+                              "Complete following Details"}
+                            {clientData?.paymentMethods?.stripe?.reasons
+                              ?.status === "ERROR" && "Fix following errors"}
+                            {clientData?.paymentMethods?.stripe?.reasons
+                              ?.status === "PENDING_VERIFICATION" &&
+                              "Stripe is verifying following"}
                           </h4>
                         </div>
                         <ul className="space-y-2">
-                          {clientData.paymentMethods.stripe.reasons.map(
+                          {clientData?.paymentMethods?.stripe?.reasons?.reasons?.map(
                             (reason: string, index: number) => (
                               <li
                                 key={index}

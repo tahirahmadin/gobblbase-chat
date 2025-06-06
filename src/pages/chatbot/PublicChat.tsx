@@ -10,12 +10,13 @@ import ChatSection from "../../components/chatbotComponents/ChatSection";
 import InputSection from "../../components/chatbotComponents/InputSection";
 import AboutSection from "../../components/chatbotComponents/AboutSection";
 import BrowseSection from "../../components/chatbotComponents/BrowseSection";
+import BotNotFound from "../../components/chatbotComponents/BotNotFound";
 import { useBookingLogic } from "../../hooks/useBookingLogic";
 import { useProductsLogic } from "../../hooks/useProductsLogic";
 import { useContactLogic } from "../../hooks/useContactLogic";
 import { useChatMessages } from "../../hooks/useChatMessages";
 import { useFeatureNotifications } from "../../hooks/useFeatureNotifications";
-import ClickableMessageText from './ClickableMessageText';
+import ClickableMessageText from "./ClickableMessageText";
 
 type Screen = "about" | "chat" | "browse";
 
@@ -37,6 +38,7 @@ export default function PublicChat({
     activeBotData,
     isLoading: isConfigLoading,
     fetchBotData,
+    error: botConfigError,
   } = useBotConfig();
   const globalCurrency = activeBotData?.currency || "USD";
   const { initializeSession } = useUserStore();
@@ -397,7 +399,7 @@ export default function PublicChat({
 
   const handleFeatureClick = async (featureText: string): Promise<void> => {
     if (!currentConfig?.agentId) return;
-  
+
     // Add user message to chat
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
@@ -409,15 +411,15 @@ export default function PublicChat({
     setMessage("");
     setShowCues(false);
     scrollToBottom();
-  
+
     const messageCountBefore = messages.length + 1;
     let responseContent = "";
-  
+
     // Extract the feature type from the message
     const isBookingRequest = featureText.includes("booking appointments");
     const isProductRequest = featureText.includes("browsing our products");
     const isContactRequest = featureText.includes("contacting us");
-  
+
     // Process contact requests first (including lead collection)
     if (isContactRequest) {
       const contactHandled = await handleContactRequest(
@@ -426,7 +428,7 @@ export default function PublicChat({
         scrollToBottom,
         currentConfig?.customerLeadFlag
       );
-  
+
       if (contactHandled) {
         setTimeout(() => {
           const currentMessages = messages;
@@ -442,7 +444,7 @@ export default function PublicChat({
         return;
       }
     }
-  
+
     // Process booking-related messages
     if (isBookingRequest) {
       const bookingHandled = handleBookingRequest(
@@ -450,14 +452,14 @@ export default function PublicChat({
         setMessages,
         scrollToBottom
       );
-  
+
       if (bookingHandled) {
         responseContent = "Booking calendar displayed";
         logConversation(featureText, responseContent);
         return;
       }
     }
-  
+
     // Process product-related messages
     if (isProductRequest) {
       const productHandled = handleProductRequest(
@@ -465,25 +467,25 @@ export default function PublicChat({
         setMessages,
         scrollToBottom
       );
-  
+
       if (productHandled) {
         responseContent = "Product catalog displayed";
         logConversation(featureText, responseContent);
         return;
       }
     }
-  
+
     // For other queries, use AI response
     try {
       await handleAIResponse(featureText);
-  
+
       // Wait for the AI response to be added to messages
       setTimeout(() => {
         const currentMessages = messages;
         const latestAgentMessage = currentMessages
           .slice(messageCountBefore)
           .find((msg) => msg.sender === "agent");
-  
+
         if (latestAgentMessage) {
           responseContent = latestAgentMessage.content;
           logConversation(featureText, responseContent);
@@ -495,16 +497,35 @@ export default function PublicChat({
       logConversation(featureText, responseContent);
     }
   };
-  
+
   // Function to check if message contains clickable features
   const hasClickableFeatures = (content: string): boolean => {
     const clickableFeatures = [
       "booking appointments",
-      "browsing our products", 
-      "contacting us"
+      "browsing our products",
+      "contacting us",
     ];
-    return clickableFeatures.some(feature => content.includes(feature));
+    return clickableFeatures.some((feature) => content.includes(feature));
   };
+  // Show BotNotFound component if there's an error fetching bot config
+  if (botConfigError && !isPreview) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <div
+          className="w-full h-full max-w-md shadow-2xl overflow-hidden flex flex-col relative"
+          style={{
+            height: previewConfig
+              ? chatHeight
+                ? chatHeight
+                : 620
+              : `${viewportHeight}px`,
+          }}
+        >
+          <BotNotFound theme={theme} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full flex items-start justify-center">
@@ -664,7 +685,11 @@ export default function PublicChat({
                       isFreeSession: pricingInfo.isFreeSession,
                     }}
                     isBookingConfigured={isBookingConfigured}
-                    setActiveScreen={setActiveScreen}
+                    setActiveScreen={
+                      setActiveScreen as (
+                        screen: "chat" | "browse" | "book"
+                      ) => void
+                    }
                   />
                 </div>
               )}

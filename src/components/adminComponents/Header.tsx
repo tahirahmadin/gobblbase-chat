@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { ChevronDown, Eye } from "lucide-react";
 import { useBotConfig } from "../../store/useBotConfig";
 import { useAdminStore } from "../../store/useAdminStore";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useServerHook } from "../../hooks/useServerHook";
 
 interface Agent {
@@ -12,11 +12,14 @@ interface Agent {
 }
 
 const Header = () => {
-  const { activeBotData, activeBotId, setActiveBotId } = useBotConfig();
+  const { activeBotData, activeBotId, setActiveBotId, setActiveBotData } =
+    useBotConfig();
   const { agents, adminEmail, clientData } = useAdminStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAllAgentsPage = location.pathname === "/admin/all-agents";
 
   //Handeling agentDetails refresh when change trigger
   const hook1 = useServerHook({ initHook: true });
@@ -70,7 +73,9 @@ const Header = () => {
                 </div>
               )}
               <span className="hidden xs:block">
-                {activeBotData?.name || "Select Agent"}
+                {isAllAgentsPage
+                  ? "All Agents"
+                  : activeBotData?.name || "Select Agent"}
               </span>
               <ChevronDown className="w-4 h-4 text-gray-500" />
             </button>
@@ -80,16 +85,42 @@ const Header = () => {
                   <div className="px-4 pb-2 text-white font-semibold text-base">
                     YOUR AGENTS
                   </div>
+                  <button
+                    onClick={() => {
+                      setActiveBotId(null);
+                      setActiveBotData(null);
+                      setIsDropdownOpen(false);
+                      navigate("/admin/all-agents");
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm flex items-center space-x-2 rounded-md transition-colors duration-150
+                      ${
+                        isAllAgentsPage
+                          ? "bg-white bg-opacity-20 border border-white text-white"
+                          : "hover:bg-blue-600 text-white"
+                      }
+                    `}
+                  >
+                    <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
+                      <span className="text-xs text-gray-500">A</span>
+                    </div>
+                    <span className="font-medium">All Agents</span>
+                    {isAllAgentsPage && (
+                      <span className="ml-auto text-xs text-green-200 font-semibold">
+                        Selected
+                      </span>
+                    )}
+                  </button>
                   {agents?.map((agent: Agent) => (
                     <button
                       key={agent.agentId}
                       onClick={() => handleAgentSelect(agent.agentId)}
                       className={`w-full text-left px-4 py-2 text-sm flex items-center space-x-2 rounded-md transition-colors duration-150
                         ${
-                          agent.agentId === activeBotId
+                          !isAllAgentsPage && agent.agentId === activeBotId
                             ? "bg-white bg-opacity-20 border border-white text-white"
                             : "hover:bg-blue-600 text-white"
-                        }`}
+                        }
+                      `}
                     >
                       {agent.logo ? (
                         <img
@@ -106,7 +137,7 @@ const Header = () => {
                         </div>
                       )}
                       <span className=" font-medium">{agent.name}</span>
-                      {agent.agentId === activeBotId && (
+                      {agent.agentId === activeBotId && !isAllAgentsPage && (
                         <span className="ml-auto text-xs text-green-200 font-semibold">
                           Selected
                         </span>
@@ -137,26 +168,38 @@ const Header = () => {
             </div>
 
             <div className="truncate max:w-[100%] ">
-              <a
-                href={`https://Sayy.ai/${activeBotData?.username}`}
-                target="_blank"
-              >
+              {isAllAgentsPage ? (
                 <div className="relative inline-block">
                   <div className="absolute top-1 left-1 w-full h-full bg-[#6aff97] rounded"></div>
                   <div className="relative inline-block">
-                    {/* Bottom layer for shadow effect */}
                     <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
-
-                    {/* Main button */}
                     <button
-                      disabled={!activeBotId}
-                      className="relative bg-[#6aff97] text-black font-semibold px-4 py-2 border border-black flex items-center gap-2"
+                      disabled
+                      className="relative bg-[#6aff97] text-black font-semibold px-4 py-2 border border-black flex items-center gap-2 cursor-not-allowed"
                     >
                       <Eye className="w-5 h-5" /> View Agent
                     </button>
                   </div>
                 </div>
-              </a>
+              ) : (
+                <a
+                  href={`https://Sayy.ai/${activeBotData?.username}`}
+                  target="_blank"
+                >
+                  <div className="relative inline-block">
+                    <div className="absolute top-1 left-1 w-full h-full bg-[#6aff97] rounded"></div>
+                    <div className="relative inline-block">
+                      <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
+                      <button
+                        disabled={!activeBotId}
+                        className="relative bg-[#6aff97] text-black font-semibold px-4 py-2 border border-black flex items-center gap-2"
+                      >
+                        <Eye className="w-5 h-5" /> View Agent
+                      </button>
+                    </div>
+                  </div>
+                </a>
+              )}
             </div>
           </div>
         </div>

@@ -124,7 +124,9 @@ const Overview = () => {
     },
     {
       label: "Credits Used",
-      value: 0,
+      value: `${
+        (clientData?.creditsPerMonth || 0) - (clientData?.availableCredits || 0)
+      } / ${clientData?.creditsPerMonth || 0}`,
     },
     {
       label: "Leads",

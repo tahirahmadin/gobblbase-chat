@@ -212,50 +212,49 @@ const Manage = () => {
           Manage Offerings
         </h1>
         <div className="relative z-10">
-          <Button
-            onClick={() => navigate("/admin/commerce/add")}
-            className=""
-          >
+          <Button onClick={() => navigate("/admin/commerce/add")} className="">
             + New
           </Button>
         </div>
       </div>
       <div className="flex gap-1 lg:gap-2 mb-4 max-w-screen lg:w-[98%] mx-auto px-6 pb-4 lg:p-6">
-       {TABS.map((t) => {
-            const isActive = tab === t.value;
-            const iconSrc = isActive ? t.greenSvgIcon : t.blackSvgIcon;
+        {TABS.map((t) => {
+          const isActive = tab === t.value;
+          const iconSrc = isActive ? t.greenSvgIcon : t.blackSvgIcon;
 
-            return (
-              <button
-                key={t.value}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg font-semibold text-sm transition-colors ${
-                  isActive
-                    ? "bg-black text-[#6AFF97]"
-                    : "bg-white border border-black text-black"
-                }`}
-                onClick={() => setTab(t.value)}
-              >
-                {/* Mobile view icon (only if icon is available) */}
-                {iconSrc && (
-                  <span className="block sm:hidden">
-                    {tab === t.value ? (
-                      <span className="flex items-center gap-2">
-                        <img width={25} src={iconSrc} alt={`${t.label} icon`} />
-                        <h1 className="hidden xs:block whitespace-nowrap">{t.label}</h1>
-                      </span>
-                    ) : (<img width={25} src={iconSrc} alt={`${t.label} icon`} />
-                    ) }
-                     
-                  </span>
-                )}
-
-                {/* Label */}
-                <span className={iconSrc ? "hidden sm:block" : "block"}>
-                  {t.label}
+          return (
+            <button
+              key={t.value}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg font-semibold text-sm transition-colors ${
+                isActive
+                  ? "bg-black text-[#6AFF97]"
+                  : "bg-white border border-black text-black"
+              }`}
+              onClick={() => setTab(t.value)}
+            >
+              {/* Mobile view icon (only if icon is available) */}
+              {iconSrc && (
+                <span className="block sm:hidden">
+                  {tab === t.value ? (
+                    <span className="flex items-center gap-2">
+                      <img width={25} src={iconSrc} alt={`${t.label} icon`} />
+                      <h1 className="hidden xs:block whitespace-nowrap">
+                        {t.label}
+                      </h1>
+                    </span>
+                  ) : (
+                    <img width={25} src={iconSrc} alt={`${t.label} icon`} />
+                  )}
                 </span>
-              </button>
-            );
-          })}
+              )}
+
+              {/* Label */}
+              <span className={iconSrc ? "hidden sm:block" : "block"}>
+                {t.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
       {/* product manage table  */}
       <div className="bg-[#EEEEEE] border border-gray-200 lg:w-[95%] mx-auto px-6 pt-8 pb-24 md:pb-4 lg:p-6 ">
@@ -268,7 +267,7 @@ const Manage = () => {
                   <th className="py-1.5 px-2 text-left text-sm rounded-l-[12px] text-center">
                     CODE
                   </th>
-                  <th className="py-1.5 px-2 text-left text-sm text-center">
+                  <th className="py-1.5 px-2 text-left text-sm ">
                     ITEM NAME
                   </th>
                   <th className="py-1.5 px-2 text-left text-sm text-center">
@@ -299,8 +298,8 @@ const Manage = () => {
                       <td className="py-1.5 px-2 text-sm rounded-l-[12px] text-center">
                         {p.productId}
                       </td>
-                      <td className="py-1.5 px-2 text-sm text-center w-fit">
-                        <div className="flex items-center gap-1.5 justify-center">
+                      <td className="py-1.5 px-2 text-sm text-left">
+                        <div className="flex items-center gap-1.5 justify-start ">
                           <img
                             src={
                               p.images[0] ||
@@ -309,11 +308,11 @@ const Manage = () => {
                             alt=""
                             className="w-8 h-8 lg:w-10 lg:h-10 rounded object-cover"
                           />
-                          <div>
+                          <div className="flex flex-col justify-center items-start">
                             <div className="uppercase text-[0.9rem]">
                               {p.title}
                             </div>
-                            <div className="text-[10px] text-[0.7rem] text-gray-500">
+                            <div className="text-[10px] text-[0.7rem] text-gray-500 text-left">
                               Qty:
                               {p.quantityType === "variedSizes" &&
                                 Object.entries(p.variedQuantities)

@@ -822,6 +822,43 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       </Button>
                     </div>
                   </label>
+                  <label className="flex items-center gap-2 mt-8">
+                    <input
+                      type="radio"
+                      name="uploadType"
+                      value="redirect"
+                      checked={form.uploadType === "redirect"}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, uploadType: e.target.value }))
+                      }
+                      className="hidden"
+                    />
+                    {/* Custom Circle Visual */}
+                    <div
+                      className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
+                        ${
+                          form.uploadType === "redirect"
+                            ? "bg-[#CEFFDC]"
+                            : "bg-[#CDCDCD]"
+                        }
+                          `}
+                    >
+                      {form.uploadType === "redirect" && (
+                        <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]" />
+                      )}
+                    </div>
+                    <span>Redirect to URL</span>
+                    <input
+                      type="text"
+                      className="ml-2 border border-[#7d7d7d] p-1 bg-white"
+                      placeholder="http://"
+                      value={form.fileUrl || ""}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, fileUrl: e.target.value }))
+                      }
+                      disabled={form.uploadType !== "redirect"}
+                    />
+                  </label>
                   {/* Status line */}
                   <div className="mt-2 text-sm">
                     {form.uploadType === "upload" && (
@@ -855,7 +892,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                             )}
                           </div>
                         )}
-                        {/* {form.uploadType === "upload" &&
+                        {form.uploadType === "upload" &&
                           editMode &&
                           form.fileUrl && (
                             <a
@@ -866,7 +903,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                             >
                               View attachment
                             </a>
-                          )} */}
+                          )}
                       </>
                     )}
                   </div>
@@ -1434,6 +1471,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                               ...f,
                               quantityType: e.target.value,
                               quantityUnlimited: false,
+                              variedSizes: ["S"],
                             }))
                           }
                           className="hidden"
@@ -1772,7 +1810,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       disabled={form.priceType !== "paid"}
                     />
                     <span className="usd px-2 py-2 bg-[#AEB8FF] w-fit border-l border-[#7d7d7d]">
-                      USD
+                      {activeBotData?.currency}
                     </span>
                   </div>
                 </label>

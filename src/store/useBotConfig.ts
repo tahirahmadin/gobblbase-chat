@@ -88,10 +88,20 @@ export const useBotConfig = create<BotConfigState>()((set, get) => {
           activeBotId: response.agentId,
           activeBotData: response,
           isLoading: false,
+          error: null,
         });
       } catch (error) {
-        set({ error: (error as Error).message, isLoading: false });
-        toast.error("Failed to fetch bot configuration");
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch bot configuration";
+        set({
+          error: errorMessage,
+          isLoading: false,
+          activeBotData: null,
+          activeBotId: null,
+        });
+        toast.error(errorMessage);
       }
     },
     updateBotUsernameViaStore: async (
