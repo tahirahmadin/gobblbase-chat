@@ -356,7 +356,7 @@ const SocialMediaSection = () => {
           disabled={isSavingSocials || !hasSocialsChanged()}
           className={`transition-colors ${
             isSavingSocials || !hasSocialsChanged()
-              ? "opacity-50 cursor-not-allowed"
+              ? "cursor-not-allowed"
               : ""
           }`}
         >

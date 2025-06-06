@@ -12,16 +12,22 @@ interface AdminLayoutProps {
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const isAllAgentsPage = location.pathname === "/admin/all-agents";
 
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Mobile Menu Button */}
-      <button
-        className="lg:hidden fixed top-3 left-4 z-50 p-2 rounded-md bg-black text-white"
-        onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-      >
-        {isMobileSidebarOpen ? <X size={24} /> : <Menu size={24} />}
-      </button>
+
+      {!isAllAgentsPage ? (
+        <button
+          className="lg:hidden fixed top-2 left-4 z-50 p-2 rounded-md bg-black text-white"
+          onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+        >
+          {isMobileSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      ) : (
+        <button className="hidden"></button>
+      )}
 
       {/* Mobile Sidebar Drawer */}
       <div
