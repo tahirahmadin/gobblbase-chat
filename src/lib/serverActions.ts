@@ -2039,9 +2039,11 @@ export async function getClientAnalytics(
 /**
  * Fetch all admin/support chat logs
  */
-export async function getAdminChatLogs() {
+export async function getAdminSupportLogs(clientId: string) {
   try {
-    const response = await axios.get(`${apiUrl}/admin/getAdminChatLogs`);
+    const response = await axios.get(
+      `${apiUrl}/admin/getAdminSupportLogs?clientId=${clientId}`
+    );
 
     if (response.data.error) {
       throw new Error(response.data.error);
@@ -2059,7 +2061,7 @@ export async function getAdminChatLogs() {
  */
 export async function updateAdminChatLog(params: {
   newUserLog: any[];
-  userId: string;
+  clientId: string;
 }) {
   try {
     const response = await axios.post(`${apiUrl}/admin/updateChatLog`, params);
