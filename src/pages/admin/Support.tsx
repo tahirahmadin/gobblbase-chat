@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { Send, Circle } from "lucide-react";
-import { getAdminChatLogs, updateAdminChatLog } from "../../lib/serverActions";
-import { useUserStore } from "../../store/useUserStore";
+import {
+  getAdminSupportLogs,
+  updateAdminChatLog,
+} from "../../lib/serverActions";
+import { useAdminStore } from "../../store/useAdminStore";
 
 interface Message {
   id: number;
-  text: string;
-  sender: "user" | "support";
+  content: string;
+  sender: "admin" | "support";
   timestamp: Date;
 }
 
 const Support = () => {
-  const { userId } = useUserStore();
+  const { adminId } = useAdminStore();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -20,42 +23,39 @@ const Support = () => {
   // Fetch admin chat logs on mount
   useEffect(() => {
     const fetchLogs = async () => {
+      if (!adminId) return;
       try {
-        const messages = await getAdminChatLogs();
-        // Assume data is an array of logs, flatten userLogs if needed
-        let allMessages: Message[] = [];
-        messages.forEach((log: any) => {
-          if (Array.isArray(log.userLogs)) {
-            allMessages = allMessages.concat(
-              log.userLogs.map((msg: any, idx: number) => ({
-                id: Date.now() + idx + Math.random(),
-                text: msg.content,
-                sender: msg.role === "agent" ? "support" : "user",
-                timestamp: new Date(msg.timestamp),
-              }))
-            );
-          }
-        });
-        setMessages(allMessages);
+        const messagesArr = await getAdminSupportLogs(adminId);
+        setMessages(messagesArr);
+        // messagesArr is an array of { role, content, timestamp }
+        // const allMessages: Message[] = messagesArr.map(
+        //   (msg: any, idx: number) => ({
+        //     id: Date.now() + idx + Math.random(),
+        //     text: msg.content,
+        //     sender: msg.role,
+        //     timestamp: new Date(msg.timestamp),
+        //   })
+        // );
+        // setMessages(allMessages);
       } catch (err) {
         // Optionally show error
       }
     };
     fetchLogs();
-  }, []);
+  }, [adminId]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !userId) return;
+    if (!newMessage.trim() || !adminId) return;
 
     // Add user message optimistically
-    const userMessage: Message = {
+    const adminMessage: Message = {
       id: Date.now(),
-      text: newMessage,
-      sender: "user",
+      content: newMessage,
+      sender: "admin",
       timestamp: new Date(),
     };
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => [...prev, adminMessage]);
     setNewMessage("");
     setIsTyping(true);
 
@@ -63,19 +63,20 @@ const Support = () => {
       await updateAdminChatLog({
         newUserLog: [
           {
-            role: "user",
-            content: userMessage.text,
-            timestamp: userMessage.timestamp.toISOString(),
+            sender: "admin",
+            content: adminMessage.content,
+            timestamp: adminMessage.timestamp.toISOString(),
           },
         ],
-        userId: userId,
+        clientId: adminId,
       });
       // Simulate support response (replace with actual API call if needed)
       setTimeout(() => {
         setIsTyping(false);
         const supportMessage: Message = {
           id: Date.now() + 1,
-          text: "Thank you for your message. Our support team will get back to you shortly.",
+          content:
+            "Thank you for your message. Our support team will get back to you shortly.",
           sender: "support",
           timestamp: new Date(),
         };
@@ -149,20 +150,20 @@ const Support = () => {
           <div
             key={message.id}
             className={`flex ${
-              message.sender === "user" ? "justify-end" : "justify-start"
+              message.sender === "admin" ? "justify-end" : "justify-start"
             }`}
           >
             <div
               className={`max-w-[70%] rounded-lg p-3 ${
-                message.sender === "user"
+                message.sender === "admin"
                   ? "bg-blue-600 text-white"
                   : "bg-white border"
               }`}
             >
-              <p className="whitespace-pre-wrap">{message.text}</p>
+              <p className="whitespace-pre-wrap">{message.content}</p>
               <span
                 className={`text-xs mt-1 block ${
-                  message.sender === "user" ? "text-blue-100" : "text-gray-500"
+                  message.sender === "admin" ? "text-blue-100" : "text-gray-500"
                 }`}
               >
                 {formatTimestamp(message.timestamp)}

@@ -705,7 +705,7 @@ const Pricing = () => {
 
                       {/* Price */}
                       <div className="para-font text-[1rem] font-bold text-black">
-                        {plan.price}
+                        ${plan.price}
                       </div>
                       <div className="text-gray-600 mb-4 text-base">
                         per month
