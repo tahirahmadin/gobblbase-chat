@@ -41,8 +41,8 @@ import { useUserStore } from "../../../store/useUserStore";
 import { useBotConfig } from "../../../store/useBotConfig";
 import { LoginCard } from "../otherComponents/LoginCard"; 
 import { BookingPaymentComponent } from "./BookingPaymentComponent";
-import TimezoneSelector from "./TimezoneSelector"; // Import the clean component
-import { detectUserTimezone, getQuickTimezone } from "../../../utils/timezoneDetection"; // Import improved detection
+import TimezoneSelector from "./TimezoneSelector";
+import { detectUserTimezone, getQuickTimezone } from "../../../utils/timezoneDetection";
 import toast from "react-hot-toast";
 import { formatTimezone, isValidTimezone, getUserTimezone, getTimezoneDifference } from "../../../utils/timezoneUtils";
 import { DateTime } from 'luxon';
@@ -231,12 +231,11 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const [settings, setSettings] = useState<AppointmentSettings | null>(null);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [unavailableDates, setUnavailableDates] = useState<Record<string, UnavailableDate>>({});
-  const [userTimezone, setUserTimezone] = useState<string>(
-    getQuickTimezone() // Use quick detection for immediate display
-  );
-  // Simplified timezone detection status - only track if VPN is detected
-  const [isVPNDetected, setIsVPNDetected] = useState(false);
+  
+  // SIMPLIFIED TIMEZONE STATE - No VPN detection complexity
+  const [userTimezone, setUserTimezone] = useState<string>(getQuickTimezone());
   const [businessTimezone, setBusinessTimezone] = useState<string>("UTC");
+  
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [stripeProcessing, setStripeProcessing] = useState(false);
@@ -386,59 +385,34 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     }, 0);
   };
 
-  // Simplified timezone detection on component mount
+  // ULTRA SIMPLE TIMEZONE DETECTION - Just use IP timezone
   useEffect(() => {
-    const performInitialTimezoneDetection = async () => {
+    const setIPTimezone = async () => {
       try {
-        console.log('🚀 Performing timezone detection...');
-        const detection = await detectUserTimezone();
+        console.log('🚀 Detecting timezone from IP...');
+        const ipTimezone = await detectUserTimezone();
         
-        // Only show notifications and update if VPN is detected with high confidence
-        if (detection.source === 'ip' && detection.confidence === 'high' && detection.vpnInfo?.likelyVPN) {
-          console.log(`🔄 VPN detected - updating timezone: ${userTimezone} → ${detection.timezone}`);
-          setUserTimezone(detection.timezone);
-          setIsVPNDetected(true);
+        if (ipTimezone !== userTimezone) {
+          console.log(`🌍 Updating timezone: ${userTimezone} → ${ipTimezone}`);
+          setUserTimezone(ipTimezone);
           
-          // Show VPN notification
-          toast.success(
-            `VPN detected - Using VPN location: ${detection.location?.city || 'Unknown'} (${formatTimezone(detection.timezone)})`,
-            { duration: 4000 }
-          );
-        } else {
-          // Silent detection for normal users - no notifications needed
-          console.log('ℹ️ Using system timezone - no VPN detected');
+          // Optional: Show a simple notification
+          toast.success(`Timezone set to ${formatTimezone(ipTimezone)}`, { duration: 3000 });
         }
       } catch (error) {
-        console.error('Timezone detection failed:', error);
-        // Fail silently - use system timezone
+        console.error('Failed to detect timezone:', error);
+        // Keep using system timezone (already set in state)
       }
     };
 
-    // Delay initial detection slightly to allow component to settle
-    const timeoutId = setTimeout(performInitialTimezoneDetection, 500);
+    // Small delay to let component settle
+    const timeoutId = setTimeout(setIPTimezone, 500);
     return () => clearTimeout(timeoutId);
-  }, []); // Only run on mount
+  }, []); // Run once on mount
 
-  // Simplified timezone detection callback - only show VPN-related messages
-  const handleTimezoneDetected = useCallback((result: any) => {
-    console.log('📍 Timezone detection result:', result);
-    
-    // Only update VPN status if it's actually detected with high confidence
-    if (result.vpnInfo?.likelyVPN && result.confidence === 'high') {
-      setIsVPNDetected(true);
-      
-      // Only show VPN-related notifications
-      if (result.source === 'ip' && result.location) {
-        toast.success(`VPN detected - Using VPN location: ${result.location.city}`, { duration: 3000 });
-      }
-    } else {
-      setIsVPNDetected(false);
-    }
-  }, []);
-
-  // Handle timezone change
+  // Simple timezone change handler
   const handleTimezoneChange = useCallback((newTimezone: string) => {
-    console.log('🌍 Timezone changed from', userTimezone, 'to', newTimezone);
+    console.log('🌍 Timezone changed to:', newTimezone);
     setUserTimezone(newTimezone);
     
     // Reset selected date and slot when timezone changes
@@ -453,7 +427,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     
     // Show feedback to user
     toast.success(`Timezone changed to ${formatTimezone(newTimezone)}`);
-  }, [userTimezone, step]);
+  }, [step]);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60_000);
@@ -841,7 +815,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
               <TimezoneSelector
                 selectedTimezone={userTimezone}
                 onTimezoneChange={handleTimezoneChange}
-                onTimezoneDetected={handleTimezoneDetected}
                 theme={theme}
               />
             </div>
@@ -959,7 +932,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                 <TimezoneSelector
                   selectedTimezone={userTimezone}
                   onTimezoneChange={handleTimezoneChange}
-                  onTimezoneDetected={handleTimezoneDetected}
                   theme={theme}
                 />
               </div>
@@ -988,7 +960,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
               <TimezoneSelector
                 selectedTimezone={userTimezone}
                 onTimezoneChange={handleTimezoneChange}
-                onTimezoneDetected={handleTimezoneDetected}
                 theme={theme}
               />
             </div>
@@ -1054,7 +1025,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
               <TimezoneSelector
                 selectedTimezone={userTimezone}
                 onTimezoneChange={handleTimezoneChange}
-                onTimezoneDetected={handleTimezoneDetected}
                 theme={theme}
               />
             </div>
@@ -1360,10 +1330,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                 </div>
                 <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
                     {formatTimezone(userTimezone)}
-                    {/* Only show VPN indicator in confirmation if VPN was detected */}
-                    {isVPNDetected && (
-                      <span className="text-xs ml-2 opacity-75">(VPN location)</span>
-                    )}
                 </div>
                 </div>
                 

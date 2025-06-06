@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Globe, ChevronDown, Wifi, Shield, MapPin, Clock } from 'lucide-react';
+import { Globe, ChevronDown } from 'lucide-react';
 import { formatTimezone } from '../../../utils/timezoneUtils';
-import { detectUserTimezone, detectVPNUsage, getQuickTimezone } from '../../../utils/timezoneDetection';
 import { DateTime } from 'luxon';
 import { Theme } from '../../types';
 
@@ -72,7 +71,6 @@ interface TimezoneSelectoProps {
   theme: Theme;
   className?: string;
   showLabel?: boolean;
-  onTimezoneDetected?: (result: any) => void;
 }
 
 const TimezoneSelector: React.FC<TimezoneSelectoProps> = ({ 
@@ -80,84 +78,11 @@ const TimezoneSelector: React.FC<TimezoneSelectoProps> = ({
   onTimezoneChange, 
   theme,
   className = "",
-  showLabel = true,
-  onTimezoneDetected
+  showLabel = true
 }) => {
   const [showTimezones, setShowTimezones] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isDetecting, setIsDetecting] = useState(false);
-  const [vpnInfo, setVpnInfo] = useState<{
-    likelyVPN: boolean;
-    systemTimezone: string;
-    ipTimezone?: string;
-    confidence: 'high' | 'medium' | 'low';
-    reason?: string;
-    countryMatch?: boolean;
-    offsetDifference?: number;
-  } | null>(null);
-  const [detectionResult, setDetectionResult] = useState<any>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Enhanced timezone detection on component mount
-  useEffect(() => {
-    const performEnhancedDetection = async () => {
-      setIsDetecting(true);
-      try {
-        // Use improved VPN detection
-        const vpnDetection = await detectVPNUsage();
-        setVpnInfo(vpnDetection);
-
-        // Use improved timezone detection
-        const detection = await detectUserTimezone();
-        setDetectionResult(detection);
-
-        // Only auto-update timezone if it's different and from IP source with high confidence
-        if (detection.source === 'ip' && detection.confidence === 'high' && detection.timezone !== selectedTimezone) {
-          console.log(`🔄 Auto-updating timezone from ${selectedTimezone} to ${detection.timezone}`);
-          onTimezoneChange(detection.timezone);
-        }
-
-        // Notify parent component about detection results
-        if (onTimezoneDetected) {
-          onTimezoneDetected({
-            ...detection,
-            vpnInfo: vpnDetection
-          });
-        }
-
-      } catch (error) {
-        console.error('Enhanced timezone detection failed:', error);
-      } finally {
-        setIsDetecting(false);
-      }
-    };
-
-    // Only run detection once on mount
-    if (!detectionResult) {
-      performEnhancedDetection();
-    }
-  }, []); // Empty dependency array - only run on mount
-
-  // Manual re-detection function
-  const handleReDetect = async () => {
-    setIsDetecting(true);
-    try {
-      const vpnDetection = await detectVPNUsage();
-      setVpnInfo(vpnDetection);
-
-      const detection = await detectUserTimezone();
-      setDetectionResult(detection);
-      
-      // Only auto-change if high confidence VPN detection
-      if (detection.timezone !== selectedTimezone && detection.confidence === 'high') {
-        onTimezoneChange(detection.timezone);
-      }
-    } catch (error) {
-      console.error('Manual timezone re-detection failed:', error);
-    } finally {
-      setIsDetecting(false);
-    }
-  };
 
   const currentTimezoneLabel = useMemo(() => {
     const found = COMMON_TIMEZONES.find(tz => tz.value === selectedTimezone);
@@ -201,31 +126,6 @@ const TimezoneSelector: React.FC<TimezoneSelectoProps> = ({
     setSearchTerm('');
   };
 
-  // Get appropriate icon based on detection status - SIMPLIFIED
-  const getDetectionIcon = () => {
-    if (isDetecting) {
-      return <Clock className="h-4 w-4 flex-shrink-0 animate-spin" />;
-    }
-
-    // Only show VPN shield if HIGH confidence VPN detection
-    if (vpnInfo?.likelyVPN && vpnInfo.confidence === 'high') {
-      return (
-        <Shield 
-          className="h-3 w-3 flex-shrink-0" 
-          style={{ color: theme.highlightColor }}
-          title="VPN detected"
-        />
-      );
-    }
-
-    // Default globe icon for everything else
-    return <Globe className="h-4 w-4 flex-shrink-0" />;
-  };
-
-  // Determine if we should show any status info in dropdown - SIMPLIFIED
-  const shouldShowVPNStatus = vpnInfo?.likelyVPN && vpnInfo.confidence === 'high';
-  const shouldShowLocationInfo = detectionResult?.location && shouldShowVPNStatus;
-
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
       <button
@@ -234,9 +134,7 @@ const TimezoneSelector: React.FC<TimezoneSelectoProps> = ({
         style={{ color: theme.mainLightColor }}
         title="Select timezone"
       >
-        <div className="flex items-center space-x-1">
-          {getDetectionIcon()}
-        </div>
+        <Globe className="h-4 w-4 flex-shrink-0" />
         {showLabel && (
           <span className="truncate max-w-[150px]">{currentTimezoneLabel}</span>
         )}
@@ -252,7 +150,7 @@ const TimezoneSelector: React.FC<TimezoneSelectoProps> = ({
             boxShadow: theme.isDark ? '0 10px 25px rgba(0,0,0,0.5)' : '0 10px 25px rgba(0,0,0,0.15)'
           }}
         >
-          {/* Simplified Header */}
+          {/* Header */}
           <div 
             className="px-3 py-2 border-b"
             style={{ 
@@ -260,41 +158,9 @@ const TimezoneSelector: React.FC<TimezoneSelectoProps> = ({
               backgroundColor: theme.isDark ? '#2a2a2a' : '#f8f9fa'
             }}
           >
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium" style={{ color: theme.isDark ? '#fff' : '#000' }}>
-                Select Timezone
-              </span>
-              <button
-                onClick={handleReDetect}
-                disabled={isDetecting}
-                className="text-xs px-2 py-1 rounded hover:opacity-80 transition-opacity"
-                style={{ 
-                  color: theme.mainLightColor,
-                  backgroundColor: theme.isDark ? '#333' : '#e5e5e5'
-                }}
-                title="Re-detect timezone"
-              >
-                {isDetecting ? 'Detecting...' : 'Re-detect'}
-              </button>
-            </div>
-            
-            {/* Only show VPN status if actually detected with high confidence */}
-            {shouldShowVPNStatus && (
-              <div className="mt-2 space-y-1">
-                <div className="flex items-center space-x-2 text-xs" style={{ color: theme.highlightColor }}>
-                  <Shield className="h-3 w-3" />
-                  <span>VPN detected - showing VPN location</span>
-                </div>
-                
-                {/* Only show location if VPN is detected */}
-                {shouldShowLocationInfo && (
-                  <div className="flex items-center space-x-2 text-xs" style={{ color: theme.isDark ? '#888' : '#666' }}>
-                    <MapPin className="h-3 w-3" />
-                    <span>{detectionResult.location.city}, {detectionResult.location.country}</span>
-                  </div>
-                )}
-              </div>
-            )}
+            <span className="text-sm font-medium" style={{ color: theme.isDark ? '#fff' : '#000' }}>
+              Select Timezone
+            </span>
           </div>
 
           {/* Search Input */}
