@@ -86,7 +86,7 @@ const CustomerLeads = () => {
         </p>
         <div className="flex items-center justify-between mb-6 px-4 bg-[#EAEFFF] rounded-[14px]">
           <button
-            className={`h-12 rounded-full text-lg font-medium border border-gray-200 transition-all~ text-black`}
+            className={`h-12 rounded-full text-lg font-medium transition-all~ text-black`}
             style={{ outline: "none" }}
           >
             Contact Form

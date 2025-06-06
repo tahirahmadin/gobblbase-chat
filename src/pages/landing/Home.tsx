@@ -437,217 +437,6 @@ const features = [
   },
 ];
 
-const FeaturesSection = styled.article`
-  text-align: left;
-  padding: 6vh 2vw 5vh 2vw;
-  height: 100%;
-  background: #ffd2ba;
-  border: 1px solid #000000;
-  @media (max-width: 900px) {
-    padding: 2vh 3vw 2vh 3vw;
-    flex-direction: column;
-  }
-`;
-
-const FeaturesRow = styled.div`
-  margin-top: 6vh;
-  display: flex;
-  gap: 4vw;
-  width: 100%;
-  min-height: 380px;
-  background: #ffd2ba;
-  @media (max-width: 900px) {
-    flex-direction: column;
-    min-height: 500px;
-    margin-top: 0vh;
-  }
-  @media (max-width: 600px) {
-    min-height: 400px;
-  }
-`;
-
-const FeaturesLeft = styled.div`
-  width: 50%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 18px;
-  @media (max-width: 900px) {
-    width: 100%;
-    height: 50%;
-  }
-`;
-
-const FeaturesList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-  position: relative;
-  @media (max-width: 900px) {
-    width: 100%;
-    gap: 24px;
-  }
-  @media (max-width: 600px) {
-    width: 100%;
-  }
-`;
-
-const FeatureListLabelBox = styled.div`
-  display: flex;
-  align-items: center;
-  z-index: 2;
-  position: relative;
-`;
-const FeatureListItem = styled.button<{ selected: boolean }>`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  // background: ${({ selected }) => (selected ? "#6AFF97" : "#fff")};
-  background: #ffd2ba;
-  cursor: pointer;
-  width: 100%;
-  position: relative;
-  z-index: 20;
-  @media (max-width: 900px) {
-    min-height: 44px;
-    flex-direction: row-reverse
-    align-items: start;
-  }
-`;
-
-const FeatureListLabel = styled.div`
-  color: #444;
-  font-size: clamp(0.8rem, 4vw, 1rem);
-  font-weight: 800;
-  text-align: left;
-  border-radius: 900px;
-  width: calc(100%);
-  height: 100%;
-  padding: 2vh 2vw;
-  position: relative;
-  border: 1px solid black;
-  @media (max-width: 768px) {
-    width: 90%;
-    margin: 0 auto;
-    border: 1px solid #000000;
-    padding: 2vh 5vw 2vh 2vw;
-  }
-`;
-
-const FeatureListH1 = styled.h2`
-  font-family: "DM Sans", sans-serif;
-  font-size: clamp(15px, 4vw, 16px);
-  font-weight: 600;
-  color: #000000;
-  text-align: right;
-  white-space: nowrap;
-`;
-const FeatureIcon = styled.div`
-  width: 44px;
-  height: 44px;
-  border: 1px solid #000000;
-  border-radius: 50%;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  flex-shrink: 0;
-  z-index: 1;
-  @media (max-width: 900px) {
-    width: 48px;
-    height: 48px;
-  }
-  @media (max-width: 400px) {
-    width: 38px;
-    height: 38px;
-  }
-`;
-
-const FeatureListDesc = styled.div`
-  font-family: "DM Sans", sans-serif;
-  font-size: 1rem;
-  color: #222;
-  font-weight: 400;
-  text-align: right;
-  white-space: nowrap;
-  @media (max-width: 900px) {
-    white-space: wrap;
-  }
-`;
-
-const FeaturesRight = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 50%;
-  height: 100%;
-  @media (max-width: 900px) {
-    width: 100%;
-    height: 50%;
-  }
-  @media (max-width: 600px) {
-    width: 100%;
-  }
-`;
-const FeatureImageBoxContainer = styled.div`
-  border-radius: 18px;
-  align-items: center;
-  justify-content: center;
-  display: none;
-  width: 100%;
-  height: 100%;
-  @media (max-width: 900px) {
-    width: 100%;
-    display: flex
-  }
-
-    img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-    }
-  }
- `;
-const FeatureImageBox = styled.div`
-  border-radius: 18px;
-  align-items: center;
-  justify-content: center;
-  display: flex;
-  width: 100%;
-  height: 100%;
-  @media (max-width: 900px) {
-    width: 100%;
-    display: none;
-  }
-
-  img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-  }
-`;
-
-// Add icons for each feature (use emoji or SVG placeholder for now)
-const FeatureIcons = [
-  "/assets/icons/black-message-icon.svg",
-  "/assets/icons/black-buy-icon.svg", // Sell Products
-  "/assets/icons/black-calendar-icon.svg", // Book Appointments
-  "/assets/icons/black-profile-icon.svg", // Capture Leads
-  "/assets/icons/black-creditcard-icon.svg", // Accept Payments
-  "/assets/icons/black-popup-icon.svg", // Send Confirmations
-  "/assets/icons/black-link-icon.svg", // Integrates MCP Servers
-];
-
-const selectedFeatureIcons = [
-  "/assets/icons/message-icon.svg",
-  "/assets/icons/buy-icon.svg", // Sell Products
-  "/assets/icons/calendar-icon.svg", // Book Appointments
-  "/assets/icons/profile-icon.svg", // Capture Leads
-  "/assets/icons/creditcard-icon.svg", // Accept Payments
-  "/assets/icons/popup-icon.svg", // Send Confirmations
-  "/assets/icons/link-icon.svg", // Integrates MCP Servers
-];
 
 const PlatformSection = styled.section`
   text-align: left;
@@ -1655,25 +1444,25 @@ const Home = () => {
               </div>
               <article className="left-side w-[100%] lg:w-[fit-content] z-10">
                 <div className="headline flex gap-4 flex-col items-center lg:flex-row">
+                  <img
+                    src="/assets/landing-asset/assemble/homepage-logo.svg"
+                    alt="Sayy.ai Homepage Logo"
+                    className=""
+                  />
+                  <span className="flex flex-col items-end justify-end md:mt-8">
+                    <Headline>to your new Employee</Headline>
                     <img
-                      src="/assets/landing-asset/assemble/homepage-logo.svg"
-                      alt="Sayy.ai Homepage Logo"
-                      className=""
+                      src="/assets/landing-asset/assemble/underline.png"
+                      alt="Decorative underline"
                     />
-                    <span className="flex flex-col items-end justify-end md:mt-8">
-                      <Headline>to your new Employee</Headline>
-                      <img
-                        src="/assets/landing-asset/assemble/underline.png"
-                        alt="Decorative underline"
-                      />
-                    </span>
+                  </span>
                 </div>
 
                 <Subheadline>
                   <div className="headline-para mt-4 mb-10 lg:mt-0 lg:mb-8 w-[100%] text-center lg:text-start">
                     <p className="para-font text-[1rem]">
-                      Your practical AI Co-Pilot for business growth. <br /> Handle
-                      sales, support, and scheduling—all in one place.
+                      Your practical AI Co-Pilot for business growth. <br />{" "}
+                      Handle sales, support, and scheduling—all in one place.
                     </p>
                   </div>
                   <div className="w-fit flex flex-col">
@@ -1695,7 +1484,7 @@ const Home = () => {
                         return (
                           <button
                             key={id}
-                            className="relative inline-block"
+                            className="relative block w-full"
                             onClick={() => handleSelectBrain(id)}
                             aria-label={`Select ${btn.label} feature`}
                             role="button"
@@ -1707,10 +1496,10 @@ const Home = () => {
                                   : btn.defaultBubbleImg
                               }
                               alt={`${btn.label} feature button`}
-                              className="block w-fit h-[40px] sm:h-[50px]"
+                              className="block w-auto max-h-[40px] sm:max-h-[50px] mx-auto"
                             />
                             <div
-                              className={`para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap flex items-center justify-center text-center px-2 text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px] transition-all duration-200`}
+                              className={`para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap text-center text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px] transition-all duration-200`}
                               style={{
                                 color: isSelected ? btn.textColor : "#fff",
                                 fontWeight: isSelected ? "600" : "400",
@@ -1722,6 +1511,7 @@ const Home = () => {
                         );
                       })}
                     </div>
+
                     <div className="relative z-10 mt-12">
                       <CTAButton onClick={() => navigate("/admin")}>
                         LAUNCH MY FREE AI-MPLOYEE
@@ -1733,7 +1523,7 @@ const Home = () => {
               </article>
               <article className="right-side lg:block w-[80%] lg:w-[40%] z-10 lg:mt-16 ">
                 <div className="relative">
-                  <span className="relative">
+                  <div className="relative">
                     <img
                       src="/assets/landing-asset/assemble/hero-mascot.png"
                       alt="Sayy.ai AI Assistant Mascot"
@@ -1749,7 +1539,7 @@ const Home = () => {
                           width: part.style.width,
                           height: part.style.height,
                         }}
-                        className={`transition-opacity duration-300 ${
+                        className={`block transition-opacity duration-300 ${
                           selectedBrains.includes(index)
                             ? "opacity-100"
                             : "opacity-0 pointer-events-none"
@@ -1758,11 +1548,11 @@ const Home = () => {
                         <img
                           src={part.brainPart}
                           alt={`${part.label} brain part visualization`}
-                          className="w-fit h-full"
+                          className="block w-fit h-full"
                         />
                       </div>
                     ))}
-                  </span>
+                  </div>
                   <div
                     style={{
                       background:
