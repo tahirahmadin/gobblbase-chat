@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Send, Circle } from "lucide-react";
 import {
   getAdminSupportLogs,
@@ -19,29 +19,36 @@ const Support = () => {
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch admin chat logs on mount
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Scroll to bottom when messages change
   useEffect(() => {
-    const fetchLogs = async () => {
-      if (!adminId) return;
-      try {
-        const messagesArr = await getAdminSupportLogs(adminId);
-        setMessages(messagesArr);
-        // messagesArr is an array of { role, content, timestamp }
-        // const allMessages: Message[] = messagesArr.map(
-        //   (msg: any, idx: number) => ({
-        //     id: Date.now() + idx + Math.random(),
-        //     text: msg.content,
-        //     sender: msg.role,
-        //     timestamp: new Date(msg.timestamp),
-        //   })
-        // );
-        // setMessages(allMessages);
-      } catch (err) {
-        // Optionally show error
-      }
-    };
-    fetchLogs();
+    scrollToBottom();
+  }, [messages]);
+
+  const fetchLogs = async () => {
+    if (!adminId) return;
+    try {
+      const messagesArr = await getAdminSupportLogs(adminId);
+      setMessages(messagesArr);
+    } catch (err) {
+      // Optionally show error
+    }
+  };
+
+  // Initial fetch and setup polling
+  useEffect(() => {
+    fetchLogs(); // Initial fetch
+
+    // Set up polling every 10 seconds
+    const pollInterval = setInterval(fetchLogs, 10000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(pollInterval);
   }, [adminId]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -193,6 +200,7 @@ const Support = () => {
             </div>
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Message Input */}
