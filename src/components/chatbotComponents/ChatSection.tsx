@@ -23,10 +23,10 @@ const ClickableMessageText: React.FC<ClickableMessageTextProps> = ({
   isFeatureMessage = false
 }) => {
   const clickableFeatures = [
-    "booking appointments",
-    "browsing our products", 
-    "contacting us",
-    "answering questions about our knowledge base" 
+    "Booking appointments",
+    "Browsing our products", 
+    "Contacting us",
+    "Answering questions about our knowledge base" 
   ];
 
   const handleFeatureClick = (feature: string) => {
@@ -237,10 +237,10 @@ export default function ChatSection({
 }: ChatSectionProps) {
   const hasClickableFeatures = (content: string): boolean => {
     const clickableFeatures = [
-      "booking appointments",
-      "browsing our products", 
-      "contacting us",
-      "answering questions about our knowledge base"
+      "Booking appointments",
+      "Browsing our products", 
+      "Contacting us",
+      "Answering questions about our knowledge base"
     ];
     return clickableFeatures.some(feature => content.includes(feature));
   };

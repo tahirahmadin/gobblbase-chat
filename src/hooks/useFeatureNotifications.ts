@@ -55,15 +55,15 @@ export function useFeatureNotifications(
     const features: string[] = [];
     
     if (checkFeature(isBookingConfigured)) {
-      features.push("booking appointments");
+      features.push("Booking appointments");
     }
     
     if (checkFeature(hasProducts)) {
-      features.push("browsing our products");
+      features.push("Browsing our products");
     }
     
     if (checkFeature(customerLeadFlag)) {
-      features.push("contacting us");
+      features.push("Contacting us");
     }
     
     // Special handling for knowledge base feature - it comes with starting text
@@ -81,7 +81,7 @@ export function useFeatureNotifications(
     let content = baseMessage;
     
     if (hasKnowledgeBase) {
-      content += "\nanswering questions about our knowledge base";
+      content += "\nAnswering questions about our knowledge base";
       if (features.length > 0) {
         content += " " + features.join(" ");
       }
