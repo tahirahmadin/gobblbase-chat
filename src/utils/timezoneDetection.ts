@@ -1,11 +1,9 @@
 /**
- * Ultra simple timezone detection - just use IP timezone directly
- * No VPN detection, no system comparison, no complexity
+ * Simple timezone detection with session caching
  */
 
  import { isValidTimezone, getUserTimezone } from './timezoneUtils';
 
- // Single reliable IP service
  const IP_SERVICE_URL = 'https://ipapi.co/json/';
  
  interface IPLocationResponse {
@@ -16,39 +14,40 @@
    error?: boolean;
  }
  
+ interface CachedTimezone {
+   timezone: string;
+   timestamp: number;
+   isFromIP: boolean;
+ }
+ 
+ // In-memory cache for session (since we can't use localStorage)
+ let timezoneCache: CachedTimezone | null = null;
+ const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
+ 
  /**
   * Get timezone from IP geolocation
   */
  async function getTimezoneFromIP(): Promise<IPLocationResponse | null> {
    try {
-     console.log('🌐 Getting timezone from IP...');
-     
      const controller = new AbortController();
      const timeoutId = setTimeout(() => controller.abort(), 5000);
      
      const response = await fetch(IP_SERVICE_URL, {
        signal: controller.signal,
-       headers: {
-         'Accept': 'application/json',
-       }
+       headers: { 'Accept': 'application/json' }
      });
      
      clearTimeout(timeoutId);
      
      if (!response.ok) {
-       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+       throw new Error(`HTTP ${response.status}`);
      }
      
      const data = await response.json();
      
      if (data.error) {
-       throw new Error('IP service returned error');
+       throw new Error('IP service error');
      }
-     
-     console.log('✅ IP detection result:', {
-       timezone: data.timezone,
-       location: `${data.city}, ${data.country_name}`
-     });
      
      return {
        timezone: data.timezone,
@@ -59,44 +58,69 @@
      };
      
    } catch (error) {
-     console.warn('❌ IP timezone detection failed:', error.message);
      return null;
    }
  }
  
  /**
-  * Dead simple: just get timezone from IP and use it
-  * Falls back to system timezone if IP detection fails
+  * Get timezone with caching - main detection function
   */
  export async function detectUserTimezone(): Promise<string> {
+   // Check cache first
+   if (timezoneCache && (Date.now() - timezoneCache.timestamp) < CACHE_DURATION) {
+     return timezoneCache.timezone;
+   }
+ 
+   const systemTimezone = getUserTimezone();
+   
    try {
      const ipResult = await getTimezoneFromIP();
      
      if (ipResult?.timezone && isValidTimezone(ipResult.timezone)) {
-       console.log(`🌍 Using IP timezone: ${ipResult.timezone}`);
+       // Cache the IP timezone
+       timezoneCache = {
+         timezone: ipResult.timezone,
+         timestamp: Date.now(),
+         isFromIP: true
+       };
        return ipResult.timezone;
      }
      
-     throw new Error('No valid timezone from IP');
+     throw new Error('No valid IP timezone');
      
    } catch (error) {
-     console.warn('🔄 IP detection failed, using system timezone');
-     const systemTz = getUserTimezone();
-     console.log(`⚙️ Using system timezone: ${systemTz}`);
-     return systemTz;
+     // Cache the system timezone as fallback
+     timezoneCache = {
+       timezone: systemTimezone,
+       timestamp: Date.now(),
+       isFromIP: false
+     };
+     return systemTimezone;
    }
  }
  
  /**
-  * Quick timezone for immediate use (system timezone)
-  * Use this for initial display before IP detection completes
+  * Quick timezone for immediate use - checks cache first
   */
  export function getQuickTimezone(): string {
+   // If we have cached timezone, use it immediately
+   if (timezoneCache && (Date.now() - timezoneCache.timestamp) < CACHE_DURATION) {
+     return timezoneCache.timezone;
+   }
+   
+   // Otherwise return system timezone
    return getUserTimezone();
  }
  
  /**
-  * Get user's location info from IP (optional - for display purposes)
+  * Check if we have a cached timezone from IP detection
+  */
+ export function hasCachedIPTimezone(): boolean {
+   return timezoneCache?.isFromIP === true && (Date.now() - timezoneCache.timestamp) < CACHE_DURATION;
+ }
+ 
+ /**
+  * Get user's location info from IP (optional)
   */
  export async function getUserLocationFromIP(): Promise<{ city: string; country: string } | null> {
    try {
@@ -111,7 +135,6 @@
      
      return null;
    } catch (error) {
-     console.warn('Failed to get location from IP:', error);
      return null;
    }
  }

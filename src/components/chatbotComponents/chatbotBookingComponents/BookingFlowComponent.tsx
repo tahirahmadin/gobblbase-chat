@@ -42,14 +42,13 @@ import { useBotConfig } from "../../../store/useBotConfig";
 import { LoginCard } from "../otherComponents/LoginCard"; 
 import { BookingPaymentComponent } from "./BookingPaymentComponent";
 import TimezoneSelector from "./TimezoneSelector";
-import { detectUserTimezone, getQuickTimezone } from "../../../utils/timezoneDetection";
+import { detectUserTimezone, getQuickTimezone, hasCachedIPTimezone } from "../../../utils/timezoneDetection";
 import toast from "react-hot-toast";
 import { formatTimezone, isValidTimezone, getUserTimezone, getTimezoneDifference } from "../../../utils/timezoneUtils";
 import { DateTime } from 'luxon';
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-// Currency symbols mapping
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
   EUR: "€",
@@ -104,11 +103,9 @@ interface AppointmentSettings {
   locations: Array<"google_meet" | "zoom" | "teams" | "in_person">;
 }
 
-// Helper function to detect user's country based on timezone
 const getUserCountry = (): string => {
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   
-  // Map common timezones to countries
   const timezoneToCountry: Record<string, string> = {
     'Asia/Kolkata': 'IN',
     'Asia/Mumbai': 'IN',
@@ -161,7 +158,7 @@ const getUserCountry = (): string => {
     'Asia/Ho_Chi_Minh': 'VN',
   };
   
-  return timezoneToCountry[timezone] || 'US'; // Default to US if not found
+  return timezoneToCountry[timezone] || 'US';
 };
 
 const getConsistentDateString = (date) => {
@@ -199,7 +196,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   onClose,
   theme
 }) => {
-  // Get user information from the user store
   const { isLoggedIn, userEmail } = useUserStore();
   const { activeBotData } = useBotConfig();
   const globalCurrency = activeBotData?.currency || "USD";
@@ -218,7 +214,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const [phone, setPhone] = useState("");
   const [phoneError, setPhoneError] = useState("");
   
-  // Auto-detect user's country and initialize phone formatter
   const userCountry = getUserCountry();
   const [selectedCountryCode, setSelectedCountryCode] = useState(() => getCallingCode(userCountry));
   const [phoneFormatter] = useState(() => new SmartPhoneFormatter(userCountry));
@@ -232,7 +227,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [unavailableDates, setUnavailableDates] = useState<Record<string, UnavailableDate>>({});
   
-  // SIMPLIFIED TIMEZONE STATE - No VPN detection complexity
+  // CLEAN TIMEZONE STATE - Start with cached timezone to avoid transition
   const [userTimezone, setUserTimezone] = useState<string>(getQuickTimezone());
   const [businessTimezone, setBusinessTimezone] = useState<string>("UTC");
   
@@ -243,14 +238,10 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const [nameError, setNameError] = useState("");
   const [isFormValid, setIsFormValid] = useState(false);
   
-  // Add state for day-wise availability
   const [dayWiseAvailability, setDayWiseAvailability] = useState<Record<string, boolean>>({});
   const [loadingAvailability, setLoadingAvailability] = useState(false);
-  
-  // Add debug state to track availability issues
   const [availabilityDebug, setAvailabilityDebug] = useState<string>("");
 
-  // Check if any payment method is enabled
   const availablePaymentMethods = useMemo(() => {
     if (!activeBotData?.paymentMethods) return [];
     
@@ -297,7 +288,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     }, 0);
   };
   
-  // Store dynamic price info
   const [dynamicPrice, setDynamicPrice] = useState({
     isFree: servicePrice === "Free", 
     amount: servicePrice !== "Free" ? parseFloat(servicePrice.replace(/[^0-9.]/g, "")) || 0 : 0,
@@ -305,16 +295,13 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     displayPrice: servicePrice
   });
   
-  // Pre-fill the email if the user is logged in
   useEffect(() => {
     if (isLoggedIn && userEmail) {
       setEmail(userEmail);
-      // Also validate it immediately to avoid validation errors
       validateEmail(userEmail);
     }
   }, [isLoggedIn, userEmail]);
   
-  // Format price for display
   const formatPrice = useCallback((priceSettings?: PriceSettings): string => {
     if (!priceSettings) return "Free";
     if (priceSettings.isFree) return "Free";
@@ -346,7 +333,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
     
-    // Handle backspace/deletion
     if (input.length < phone.length) {
       setPhone(input);
       if (phoneError) {
@@ -358,22 +344,17 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       return;
     }
     
-    // Auto-detect country using optimized function
     const detectedCountry = autoDetectCountry(input, selectedCountry);
     
-    // Update country if different (with console log for debugging)
     if (detectedCountry !== selectedCountry) {
-      console.log(`🌍 Country detected: ${selectedCountry} → ${detectedCountry}`);
       setSelectedCountry(detectedCountry);
       setSelectedCountryCode(getCallingCode(detectedCountry));
       phoneFormatter.setCountry(detectedCountry);
     }
     
-    // Format the number with the detected country
     const result = phoneFormatter.formatAsYouType(input);
     setPhone(result.formatted);
     
-    // Validate with detected country
     setTimeout(() => {
       if (input.trim()) {
         const validation = validatePhoneNumber(input.trim(), detectedCountry);
@@ -385,47 +366,44 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     }, 0);
   };
 
-  // ULTRA SIMPLE TIMEZONE DETECTION - Just use IP timezone
+  // CLEAN TIMEZONE DETECTION - Only if not cached, no transition
   useEffect(() => {
-    const setIPTimezone = async () => {
+    const detectTimezoneIfNeeded = async () => {
+      // Only detect if we don't have cached IP timezone
+      if (hasCachedIPTimezone()) {
+        return; // Already have good timezone, skip detection
+      }
+
+      const initialTimezone = userTimezone;
+      
       try {
-        console.log('🚀 Detecting timezone from IP...');
-        const ipTimezone = await detectUserTimezone();
+        const detectedTimezone = await detectUserTimezone();
         
-        if (ipTimezone !== userTimezone) {
-          console.log(`🌍 Updating timezone: ${userTimezone} → ${ipTimezone}`);
-          setUserTimezone(ipTimezone);
-          
-          // Optional: Show a simple notification
-          toast.success(`Timezone set to ${formatTimezone(ipTimezone)}`, { duration: 3000 });
+        // Only update if different from what we started with
+        if (detectedTimezone !== initialTimezone) {
+          setUserTimezone(detectedTimezone);
+          // Only show toast for actual changes, not initial detection
+          toast.success(`Timezone updated to ${formatTimezone(detectedTimezone)}`, { duration: 2000 });
         }
       } catch (error) {
-        console.error('Failed to detect timezone:', error);
-        // Keep using system timezone (already set in state)
+        // Silent failure, keep current timezone
       }
     };
 
-    // Small delay to let component settle
-    const timeoutId = setTimeout(setIPTimezone, 500);
-    return () => clearTimeout(timeoutId);
-  }, []); // Run once on mount
+    detectTimezoneIfNeeded();
+  }, []); // Only run on mount
 
-  // Simple timezone change handler
   const handleTimezoneChange = useCallback((newTimezone: string) => {
-    console.log('🌍 Timezone changed to:', newTimezone);
     setUserTimezone(newTimezone);
     
-    // Reset selected date and slot when timezone changes
     setSelectedDate(null);
     setSelectedSlot(null);
     setSlots([]);
     
-    // Reset to date selection step
     if (step !== 'date') {
       setStep('date');
     }
     
-    // Show feedback to user
     toast.success(`Timezone changed to ${formatTimezone(newTimezone)}`);
   }, [step]);
 
@@ -449,7 +427,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     }
   }, [showCountryCodes]);
 
-  // Fetch day-wise availability with improved error handling
   const fetchDayWiseAvailability = async () => {
     if (!businessId) return;
     
@@ -457,22 +434,16 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     setAvailabilityDebug('');
     
     try {
-      console.log('🔍 Fetching availability for business:', businessId, 'timezone:', userTimezone);
       const availability = await getDayWiseAvailability(businessId, userTimezone);
       
-      console.log('📥 API Response:', availability);
-      
       if (typeof availability === 'object' && availability !== null) {
-        // Normalize all date keys to YYYY-MM-DD format
         const normalizedAvailability = {};
         Object.entries(availability).forEach(([dateStr, isAvailable]) => {
           let normalizedDate = dateStr;
           
-          // Handle different date formats that might come from API
           if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            normalizedDate = dateStr; // Already correct format
+            normalizedDate = dateStr;
           } else if (dateStr.match(/^\d{2}-[A-Z]{3}-\d{4}$/)) {
-            // Convert DD-MMM-YYYY to YYYY-MM-DD
             const [day, month, year] = dateStr.split('-');
             const monthMap = {
               'JAN': '01', 'FEB': '02', 'MAR': '03', 'APR': '04', 'MAY': '05', 'JUN': '06',
@@ -484,15 +455,12 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           normalizedAvailability[normalizedDate] = Boolean(isAvailable);
         });
         
-        console.log('✅ Normalized availability:', normalizedAvailability);
         setDayWiseAvailability(normalizedAvailability);
       } else {
-        console.error("Invalid availability response:", availability);
         setAvailabilityDebug("Invalid API response format");
         setDayWiseAvailability({});
       }
     } catch (error) {
-      console.error("Error fetching availability:", error);
       setAvailabilityDebug(`Error: ${error.message}`);
       setDayWiseAvailability({});
     } finally {
@@ -525,12 +493,10 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           if (isValidTimezone(data.timezone)) {
             setBusinessTimezone(data.timezone);
           } else {
-            console.warn('Invalid business timezone:', data.timezone);
             setBusinessTimezone('UTC');
           }
         }
 
-        // Get pricing data from settings
         if (data.price) {
           const formattedPrice = data.price.isFree ? "Free" : `${data.price.amount} ${globalCurrency}`;
           
@@ -640,29 +606,23 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     
       const dateStr = getConsistentDateString(date);
       
-      // PRIORITY 1: API day-wise availability (highest priority)
       if (dayWiseAvailability.hasOwnProperty(dateStr)) {
         const apiAvailability = dayWiseAvailability[dateStr];
-        console.log(`🎯 Date ${dateStr} API availability:`, apiAvailability);
         
-        // If API says false, it's unavailable
         if (apiAvailability === false) {
           return true;
         }
-        // If API says true, it's available (override other rules)
         if (apiAvailability === true) {
           return false;
         }
       }
     
-      // PRIORITY 2: Date-specific overrides from settings
       const apiDate = fmtApiDate(date);
       const unavailableDate = unavailableDates[apiDate];
       if (unavailableDate && unavailableDate.allDay === true) {
         return true;
       }
     
-      // PRIORITY 3: Weekly availability rules
       if (!settings) return false;
       
       const dayName = DateTime.fromJSDate(date).setZone(userTimezone).toFormat('cccc');
@@ -682,18 +642,12 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       const apiDate = fmtApiDate(d);
       const dateStr = getConsistentDateString(d);
       
-      console.log(`🎯 Selecting date: ${dateStr} (API: ${apiDate}) in timezone: ${userTimezone}`);
-      
       try {
         const slots = await getAvailableSlots(businessId, apiDate, userTimezone);
-        
-        console.log(`⏰ Slots for ${dateStr}:`, slots);
         
         if (slots && slots.length > 0) {
           setSlots(slots.map(slot => ({ ...slot, available: true })));
         } else {
-          console.log(`❌ No slots for ${dateStr}, updating availability`);
-          // Update local state to reflect no availability
           setDayWiseAvailability(prev => ({
             ...prev,
             [dateStr]: false
@@ -701,9 +655,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           setSlots([]);
         }
       } catch (error) {
-        console.error("Error fetching slots for", dateStr, ":", error);
         setSlots([]);
-        // Mark as unavailable on error
         setDayWiseAvailability(prev => ({
           ...prev,
           [dateStr]: false
@@ -861,10 +813,8 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                   const dn = i + 1;
                   const date = new Date(y, m, dn);
                   
-                  // Use consistent date formatting
                   const dateString = getConsistentDateString(date);
                   
-                  // Check availability with clear logging
                   const isUnavailable = isDateFullyUnavailable(date);
                   const hasApiData = dayWiseAvailability.hasOwnProperty(dateString);
                   const apiValue = dayWiseAvailability[dateString];
@@ -941,7 +891,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                 <div>{fmtDateFull(selectedDate)}</div>
               </div>
               
-              {/* Login Card */}
               <LoginCard theme={theme} />
             </div>
           );
@@ -1205,7 +1154,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                 </div>
               </div>
 
-              {/* Payment Warning for Paid Bookings */}
               {isPaidBooking && !hasEnabledPaymentMethods && (
                 <div 
                   className="mb-3 p-2 rounded-lg border text-center text-xs"
@@ -1263,7 +1211,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           userTimezone: userTimezone,
         };
       
-        // Create the price object from your dynamic price state
         const priceDetails = {
           amount: dynamicPrice.amount,
           currency: dynamicPrice.currency,
