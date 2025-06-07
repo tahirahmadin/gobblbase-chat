@@ -4,6 +4,19 @@ import { formatTimezone } from '../../../utils/timezoneUtils';
 import { DateTime } from 'luxon';
 import { Theme } from '../../types';
 
+const getConsistentTimezoneLabel = (timezone: string): string => {
+  const found = COMMON_TIMEZONES.find(tz => tz.value === timezone);
+  if (found) {
+    return found.label;
+  }
+  
+  try {
+    return formatTimezone(timezone);
+  } catch (error) {
+    return timezone.split('/').pop()?.replace(/_/g, ' ') || timezone;
+  }
+};
+
 // Common timezones list
 const COMMON_TIMEZONES = [
   { value: 'America/New_York', label: 'Eastern Time (ET)', region: 'North America' },
@@ -87,8 +100,7 @@ const TimezoneSelector: React.FC<TimezoneSelectoProps> = ({
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const currentTimezoneLabel = useMemo(() => {
-    const found = COMMON_TIMEZONES.find(tz => tz.value === selectedTimezone);
-    return found ? found.label : formatTimezone(selectedTimezone);
+    return getConsistentTimezoneLabel(selectedTimezone);
   }, [selectedTimezone]);
 
   const filteredTimezones = useMemo(() => {
@@ -358,5 +370,7 @@ const TimezoneSelector: React.FC<TimezoneSelectoProps> = ({
     </div>
   );
 };
+
+export { getConsistentTimezoneLabel };
 
 export default TimezoneSelector;

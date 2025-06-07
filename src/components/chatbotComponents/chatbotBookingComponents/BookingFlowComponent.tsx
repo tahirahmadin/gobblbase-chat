@@ -41,8 +41,8 @@ import { useUserStore } from "../../../store/useUserStore";
 import { useBotConfig } from "../../../store/useBotConfig";
 import { LoginCard } from "../otherComponents/LoginCard"; 
 import { BookingPaymentComponent } from "./BookingPaymentComponent";
-import TimezoneSelector from "./TimezoneSelector";
-import { useTimezone } from "../../../context/TimezoneContext"; // Use context instead
+import TimezoneSelector, { getConsistentTimezoneLabel } from "./TimezoneSelector";
+import { useTimezone } from "../../../context/TimezoneContext";
 import toast from "react-hot-toast";
 import { formatTimezone, isValidTimezone, getUserTimezone, getTimezoneDifference } from "../../../utils/timezoneUtils";
 import { DateTime } from 'luxon';
@@ -380,8 +380,8 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       setStep('date');
     }
     
-    // Show confirmation for manual changes
-    toast.success(`Timezone changed to ${formatTimezone(newTimezone)}`);
+    // Show confirmation for manual changes using consistent display
+    toast.success(`Timezone changed to ${getConsistentTimezoneLabel(newTimezone)}`);
   }, [step, setUserTimezone]);
 
   useEffect(() => {
@@ -1048,80 +1048,80 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
               </div>
       
               <div>
-  <div className="flex">
-    <div className="relative country-code-dropdown">
-      <button
-        type="button"
-        onClick={() => setShowCountryCodes(!showCountryCodes)}
-        className={`flex items-center justify-between h-full px-3 rounded-l border-r ${
-          theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
-        }`}
-        style={{ 
-          backgroundColor: theme.mainLightColor,
-          color: theme.isDark ? "black" : "white",
-          borderColor: theme.isDark ? "#444" : "#ddd"
-        }}
-      >
-        <span className="flex items-center">
-          {MAJOR_COUNTRIES.find(c => c.code === selectedCountry)?.flag || "🌍"}
-          <span className="ml-1 text-sm">{selectedCountryCode}</span>
-        </span>
-        <ChevronDown className="h-4 w-4 ml-1" />
-      </button>
+                <div className="flex">
+                  <div className="relative country-code-dropdown">
+                    <button
+                      type="button"
+                      onClick={() => setShowCountryCodes(!showCountryCodes)}
+                      className={`flex items-center justify-between h-full px-3 rounded-l border-r ${
+                        theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
+                      }`}
+                      style={{ 
+                        backgroundColor: theme.mainLightColor,
+                        color: theme.isDark ? "black" : "white",
+                        borderColor: theme.isDark ? "#444" : "#ddd"
+                      }}
+                    >
+                      <span className="flex items-center">
+                        {MAJOR_COUNTRIES.find(c => c.code === selectedCountry)?.flag || "🌍"}
+                        <span className="ml-1 text-sm">{selectedCountryCode}</span>
+                      </span>
+                      <ChevronDown className="h-4 w-4 ml-1" />
+                    </button>
 
-      {showCountryCodes && (
-        <div className="absolute z-10 mt-1 bg-white border rounded-lg shadow-lg w-80 max-h-60 overflow-y-auto" style={{ 
-          backgroundColor: theme.isDark ? "#222" : "#fff",
-          color: theme.isDark ? "#fff" : "#000"
-        }}>
-          {MAJOR_COUNTRIES.map((country) => (
-            <button
-              key={country.code}
-              type="button"
-              onClick={() => {
-                setSelectedCountry(country.code);
-                setSelectedCountryCode(country.callingCode);
-                phoneFormatter.setCountry(country.code);
-                setShowCountryCodes(false);
-                if (phoneInputRef.current) {
-                  phoneInputRef.current.focus();
-                }
-              }}
-              className="w-full text-left px-3 py-2 hover:bg-opacity-10 hover:bg-gray-500 text-sm flex items-center justify-between"
-            >
-              <div className="flex items-center">
-                <span className="mr-2">{country.flag}</span>
-                <span>{country.name}</span>
+                    {showCountryCodes && (
+                      <div className="absolute z-10 mt-1 bg-white border rounded-lg shadow-lg w-80 max-h-60 overflow-y-auto" style={{ 
+                        backgroundColor: theme.isDark ? "#222" : "#fff",
+                        color: theme.isDark ? "#fff" : "#000"
+                      }}>
+                        {MAJOR_COUNTRIES.map((country) => (
+                          <button
+                            key={country.code}
+                            type="button"
+                            onClick={() => {
+                              setSelectedCountry(country.code);
+                              setSelectedCountryCode(country.callingCode);
+                              phoneFormatter.setCountry(country.code);
+                              setShowCountryCodes(false);
+                              if (phoneInputRef.current) {
+                                phoneInputRef.current.focus();
+                              }
+                            }}
+                            className="w-full text-left px-3 py-2 hover:bg-opacity-10 hover:bg-gray-500 text-sm flex items-center justify-between"
+                          >
+                            <div className="flex items-center">
+                              <span className="mr-2">{country.flag}</span>
+                              <span>{country.name}</span>
+                            </div>
+                            <span className="text-xs opacity-75">{country.callingCode}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <input
+                    type="tel"
+                    value={phone}
+                    placeholder={getExamplePhoneNumber(selectedCountry) || "PHONE"}
+                    onChange={handlePhoneChange}
+                    ref={phoneInputRef}
+                    className={`w-full p-2 rounded-r ${
+                        theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
+                      }`}
+                    style={{ 
+                      backgroundColor: theme.mainLightColor,
+                      color: theme.isDark ? "black" : "white",
+                      borderColor: phoneError ? "red" : "transparent"
+                    }}
+                  />
+                </div>
+                {phoneError && (
+                  <div className="mt-1 text-red-500 text-xs">
+                    {phoneError}
+                  </div>
+                )}
               </div>
-              <span className="text-xs opacity-75">{country.callingCode}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-
-    <input
-      type="tel"
-      value={phone}
-      placeholder={getExamplePhoneNumber(selectedCountry) || "PHONE"}
-      onChange={handlePhoneChange}
-      ref={phoneInputRef}
-      className={`w-full p-2 rounded-r ${
-          theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
-        }`}
-      style={{ 
-        backgroundColor: theme.mainLightColor,
-        color: theme.isDark ? "black" : "white",
-        borderColor: phoneError ? "red" : "transparent"
-      }}
-    />
-  </div>
-  {phoneError && (
-    <div className="mt-1 text-red-500 text-xs">
-      {phoneError}
-    </div>
-  )}
-</div>
       
               <div>
                 <div className="relative">
@@ -1262,7 +1262,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                     TIMEZONE
                 </div>
                 <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
-                    {formatTimezone(userTimezone)}
+                    {getConsistentTimezoneLabel(userTimezone)}
                 </div>
                 </div>
                 
