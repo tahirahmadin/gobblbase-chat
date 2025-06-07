@@ -42,7 +42,7 @@ import { useBotConfig } from "../../../store/useBotConfig";
 import { LoginCard } from "../otherComponents/LoginCard"; 
 import { BookingPaymentComponent } from "./BookingPaymentComponent";
 import TimezoneSelector from "./TimezoneSelector";
-import { detectUserTimezone, getQuickTimezone, hasCachedIPTimezone } from "../../../utils/timezoneDetection";
+import { useTimezone } from "../../../context/TimezoneContext"; // Use context instead
 import toast from "react-hot-toast";
 import { formatTimezone, isValidTimezone, getUserTimezone, getTimezoneDifference } from "../../../utils/timezoneUtils";
 import { DateTime } from 'luxon';
@@ -196,6 +196,9 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   onClose,
   theme
 }) => {
+  // USE TIMEZONE FROM CONTEXT - No more local timezone detection!
+  const { userTimezone, setUserTimezone, isTimezoneReady } = useTimezone();
+  
   const { isLoggedIn, userEmail } = useUserStore();
   const { activeBotData } = useBotConfig();
   const globalCurrency = activeBotData?.currency || "USD";
@@ -227,8 +230,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [unavailableDates, setUnavailableDates] = useState<Record<string, UnavailableDate>>({});
   
-  // CLEAN TIMEZONE STATE - Start with cached timezone to avoid transition
-  const [userTimezone, setUserTimezone] = useState<string>(getQuickTimezone());
   const [businessTimezone, setBusinessTimezone] = useState<string>("UTC");
   
   const [paymentError, setPaymentError] = useState<string | null>(null);
@@ -366,36 +367,11 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     }, 0);
   };
 
-  // CLEAN TIMEZONE DETECTION - Only if not cached, no transition
-  useEffect(() => {
-    const detectTimezoneIfNeeded = async () => {
-      // Only detect if we don't have cached IP timezone
-      if (hasCachedIPTimezone()) {
-        return; // Already have good timezone, skip detection
-      }
-
-      const initialTimezone = userTimezone;
-      
-      try {
-        const detectedTimezone = await detectUserTimezone();
-        
-        // Only update if different from what we started with
-        if (detectedTimezone !== initialTimezone) {
-          setUserTimezone(detectedTimezone);
-          // Only show toast for actual changes, not initial detection
-          toast.success(`Timezone updated to ${formatTimezone(detectedTimezone)}`, { duration: 2000 });
-        }
-      } catch (error) {
-        // Silent failure, keep current timezone
-      }
-    };
-
-    detectTimezoneIfNeeded();
-  }, []); // Only run on mount
-
+  // CLEAN TIMEZONE CHANGE HANDLER - Only for manual changes
   const handleTimezoneChange = useCallback((newTimezone: string) => {
     setUserTimezone(newTimezone);
     
+    // Reset booking flow when timezone changes
     setSelectedDate(null);
     setSelectedSlot(null);
     setSlots([]);
@@ -404,8 +380,9 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       setStep('date');
     }
     
+    // Show confirmation for manual changes
     toast.success(`Timezone changed to ${formatTimezone(newTimezone)}`);
-  }, [step]);
+  }, [step, setUserTimezone]);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60_000);
@@ -469,16 +446,16 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   };
 
   useEffect(() => {
-    if (businessId) {
+    if (businessId && isTimezoneReady) {
       fetchDayWiseAvailability();
     }
-  }, [businessId, userTimezone]);
+  }, [businessId, userTimezone, isTimezoneReady]);
 
   useEffect(() => {
-    if (businessId) {
+    if (businessId && isTimezoneReady) {
       fetchDayWiseAvailability();
     }
-  }, [currentMonth.getMonth(), currentMonth.getFullYear()]);
+  }, [currentMonth.getMonth(), currentMonth.getFullYear(), isTimezoneReady]);
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -745,6 +722,18 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     }
   };
 
+  // SHOW LOADING WHILE TIMEZONE IS BEING DETECTED
+  if (!isTimezoneReady) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="animate-spin h-8 w-8" style={{ color: theme.mainLightColor }} />
+        <span className="ml-2 text-sm" style={{ color: theme.isDark ? '#fff' : '#000' }}>
+          Preparing booking system...
+        </span>
+      </div>
+    );
+  }
+
   const renderContent = () => {
     if (loadingSettings) {
       return (
@@ -816,8 +805,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                   const dateString = getConsistentDateString(date);
                   
                   const isUnavailable = isDateFullyUnavailable(date);
-                  const hasApiData = dayWiseAvailability.hasOwnProperty(dateString);
-                  const apiValue = dayWiseAvailability[dateString];
                   
                   return (
                     <button
@@ -852,7 +839,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       }
       
       if (step === "time" && selectedDate) {
-        const todayStr = selectedDate.toDateString();
         const availableSlots = slots.filter((s) => {
           if (!s.available) return false;
           if (selectedDate.toDateString() !== now.toDateString()) return true;

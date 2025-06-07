@@ -17,7 +17,7 @@ import PublicChat from "./pages/chatbot/PublicChat";
 import CustomerBooking from "./components/adminComponents/bookingComponents/CustomerBooking";
 import { Toaster } from "react-hot-toast";
 import { useBotConfig } from "./store/useBotConfig";
-
+import { TimezoneProvider } from "./context/TimezoneContext";
 import AdminLayout from "./components/adminComponents/AdminLayout";
 import Profile from "./pages/admin/TabsComponent/Dashboard/Profile";
 import AiModel from "./pages/admin/TabsComponent/Dashboard/AiModel";
@@ -184,43 +184,45 @@ function App() {
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <WagmiProvider config={config}>
-          <Router>
-            <Toaster position="top-right" />
-            <Routes>
-              <Route path="/admin/signup" element={<Login />} />
-              <Route
-                path="/admin/dashboard/create-bot"
-                element={<CreateNewBot />}
-              />
-              <Route path="/book/:agentId" element={<CustomerBookingPage />} />
-              <Route
-                path="/reschedule/:bookingId"
-                element={<RescheduleBookingWrapper />}
-              />
-              <Route
-                path=":botUsername"
-                element={
-                  <PublicChat
-                    chatHeight={null}
-                    previewConfig={null}
-                    isPreview={false}
-                    screenName=""
-                  />
-                }
-              />
-              <Route
-                path="/admin/payment-success"
-                element={<PaymentSuccessPage />}
-              />
-              <Route
-                path="/admin/payment-cancel"
-                element={<PaymentCancelPage />}
-              />
-              <Route path="/admin/*" element={<Dashboard />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/" element={<Home />} />
-            </Routes>
-          </Router>
+          <TimezoneProvider>
+            <Router>
+              <Toaster position="top-right" />
+              <Routes>
+                <Route path="/admin/signup" element={<Login />} />
+                <Route
+                  path="/admin/dashboard/create-bot"
+                  element={<CreateNewBot />}
+                />
+                <Route path="/book/:agentId" element={<CustomerBookingPage />} />
+                <Route
+                  path="/reschedule/:bookingId"
+                  element={<RescheduleBookingWrapper />}
+                />
+                <Route
+                  path=":botUsername"
+                  element={
+                    <PublicChat
+                      chatHeight={null}
+                      previewConfig={null}
+                      isPreview={false}
+                      screenName=""
+                    />
+                  }
+                />
+                <Route
+                  path="/admin/payment-success"
+                  element={<PaymentSuccessPage />}
+                />
+                <Route
+                  path="/admin/payment-cancel"
+                  element={<PaymentCancelPage />}
+                />
+                <Route path="/admin/*" element={<Dashboard />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/" element={<Home />} />
+              </Routes>
+            </Router>
+          </TimezoneProvider>
         </WagmiProvider>
       </QueryClientProvider>
     </HelmetProvider>

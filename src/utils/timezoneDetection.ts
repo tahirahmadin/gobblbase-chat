@@ -1,5 +1,6 @@
 /**
  * Simple timezone detection with session caching
+ * Optimized for use with TimezoneContext
  */
 
  import { isValidTimezone, getUserTimezone } from './timezoneUtils';
@@ -18,6 +19,7 @@
    timezone: string;
    timestamp: number;
    isFromIP: boolean;
+   source: 'ip' | 'system';
  }
  
  // In-memory cache for session (since we can't use localStorage)
@@ -81,7 +83,8 @@
        timezoneCache = {
          timezone: ipResult.timezone,
          timestamp: Date.now(),
-         isFromIP: true
+         isFromIP: true,
+         source: 'ip'
        };
        return ipResult.timezone;
      }
@@ -93,7 +96,8 @@
      timezoneCache = {
        timezone: systemTimezone,
        timestamp: Date.now(),
-       isFromIP: false
+       isFromIP: false,
+       source: 'system'
      };
      return systemTimezone;
    }
@@ -116,7 +120,25 @@
   * Check if we have a cached timezone from IP detection
   */
  export function hasCachedIPTimezone(): boolean {
-   return timezoneCache?.isFromIP === true && (Date.now() - timezoneCache.timestamp) < CACHE_DURATION;
+   return timezoneCache?.isFromIP === true && 
+          (Date.now() - timezoneCache.timestamp) < CACHE_DURATION;
+ }
+ 
+ /**
+  * Get cache status for debugging
+  */
+ export function getTimezoneCache(): CachedTimezone | null {
+   if (timezoneCache && (Date.now() - timezoneCache.timestamp) < CACHE_DURATION) {
+     return timezoneCache;
+   }
+   return null;
+ }
+ 
+ /**
+  * Clear timezone cache (useful for testing)
+  */
+ export function clearTimezoneCache(): void {
+   timezoneCache = null;
  }
  
  /**
