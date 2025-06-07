@@ -267,7 +267,6 @@ const TimezoneSelector: React.FC<TimezoneSelectoProps> = ({
                   color: theme.isDark ? '#fff' : '#000',
                   border: `1px solid ${theme.isDark ? '#333' : '#ddd'}`
                 }}
-                autoFocus
               />
             </div>
 
