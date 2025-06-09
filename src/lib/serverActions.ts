@@ -9,7 +9,7 @@ import {
 import { backendApiUrl } from "../utils/constants";
 import CryptoJS from "crypto-js";
 
-let apiUrl = backendApiUrl;
+let apiUrl = import.meta.env.PROD ? backendApiUrl : "/api";
 
 // Encryption function
 export const getCipherText = (inputBodyData: any) => {
@@ -470,7 +470,7 @@ export async function getAgentDetails(
       throw new Error("Either agentId or username must be provided");
     }
     let requestParams = `inputParam=${inputParam}&isfetchByUsername=${isfetchByUsername}`;
-    let url = `/api/agent/getAgentDetails?${requestParams}`;
+    let url = `${apiUrl}/agent/getAgentDetails?${requestParams}`;
 
     let hmacResponse = getHmacMessageFromBody(requestParams);
     if (!hmacResponse) {
