@@ -404,7 +404,7 @@ export async function getAgentDetails(
     }
 
     const response = await axios.get(
-      `${apiUrl}/client/getAgentDetails?inputParam=${inputParam}&isfetchByUsername=${isfetchByUsername}`
+      `${apiUrl}/agent/getAgentDetails?inputParam=${inputParam}&isfetchByUsername=${isfetchByUsername}`
     );
 
     if (response.data.error) {
@@ -425,8 +425,13 @@ export async function updateBotTheme(agentId: string, inputTheme: Theme) {
     };
 
     const response = await axios.put(
-      `${apiUrl}/client/updateAgentTheme/${agentId}`,
-      body
+      `${apiUrl}/agent/updateAgentTheme`, 
+      body,
+      {
+        params: {
+          agentId: agentId  
+        }
+      }
     );
 
     if (response.data.error) {
@@ -474,8 +479,16 @@ export async function updateAgentDetails(
     };
 
     const response = await axios.put(
-      `${apiUrl}/client/updateAgent/${agentId}`,
-      body
+      `${apiUrl}/agent/updateAgent`,
+      body,
+      {
+        params: {
+          agentId: agentId
+        },
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
     );
 
     if (response.data.error) {
@@ -488,11 +501,26 @@ export async function updateAgentDetails(
   }
 }
 
-export async function deleteAgent(agentId: string): Promise<void> {
+export async function deleteAgent(agentId: string, userId?: string): Promise<void> {
   try {
-    // Use POST instead of DELETE to avoid CORS issues
+    if (!agentId || agentId.trim() === '') {
+      throw new Error('Agent ID is required');
+    }
+
+    const queryParams: any = { agentId };
+    if (userId) {
+      queryParams.userId = userId;
+    }
+
     const response = await axios.post(
-      `${apiUrl}/client/deleteAgentPost/${agentId}`
+      `${apiUrl}/agent/deleteAgentPost`,
+      {}, 
+      {
+        params: queryParams,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
     );
 
     if (response.data.error) {
@@ -510,7 +538,7 @@ export async function deleteAgent(agentId: string): Promise<void> {
 export async function updateUserLogs(params: UpdateUserLogsParams) {
   try {
     const response = await axios.post(
-      `${apiUrl}/client/updateUserLogs`,
+      `${apiUrl}/agent/updateUserLogs`,
       params
     );
 
@@ -527,7 +555,12 @@ export async function updateUserLogs(params: UpdateUserLogsParams) {
 export async function getChatLogs(agentId: string) {
   try {
     const response = await axios.get(
-      `${apiUrl}/client/getAgentChatLogs/${agentId}`
+      `${apiUrl}/agent/getAgentChatLogs`, 
+      {
+        params: {
+          agentId: agentId  
+        }
+      }
     );
 
     if (response.data.error) {
@@ -557,7 +590,7 @@ export async function getIntegratedServices(agentId: string) {
 
 export async function updateAgentUsername(agentId: string, username: string) {
   try {
-    const response = await axios.post(`${apiUrl}/client/updateAgentUsername`, {
+    const response = await axios.post(`${apiUrl}/agent/updateAgentUsername`, {
       agentId,
       agentName: username,
     });
@@ -582,7 +615,7 @@ export async function uploadProfilePicture(
     formData.append("file", profilePicture);
 
     const response = await axios.post(
-      `${apiUrl}/client/uploadAgentLogo`,
+      `${apiUrl}/agent/uploadAgentLogo`,
       formData,
       {
         headers: {
@@ -603,7 +636,7 @@ export async function uploadProfilePicture(
 
 export async function updateCalendlyUrl(agentId: string, calendlyUrl: string) {
   try {
-    const response = await axios.post(`${apiUrl}/client/updateCalendlyUrl`, {
+    const response = await axios.post(`${apiUrl}/agent/updateCalendlyUrl`, {
       agentId,
       calendlyUrl,
     });
@@ -910,7 +943,7 @@ export const updateStripeAccountIdCurrency = async (data: {
 }) => {
   try {
     const response = await axios.post(
-      `${apiUrl}/client/updateStripeAccountIdCurrency`,
+      `${apiUrl}/agent/updateStripeAccountIdCurrency`,
       data
     );
 
@@ -931,7 +964,7 @@ export const getTransactions = async (
 ): Promise<{ orders: any[]; hasNext: boolean }> => {
   try {
     const response = await axios.get(
-      `${apiUrl}/client/getAgentOrders?agentId=${agentId}&page=${page}`
+      `${apiUrl}/agent/getAgentOrders?agentId=${agentId}&page=${page}`
     );
     return response.data.result;
   } catch (error) {
@@ -995,7 +1028,7 @@ export async function updateSocialHandles(
   socials: Record<string, string>
 ): Promise<boolean> {
   try {
-    await axios.post(`${apiUrl}/client/updateSocialHandles`, {
+    await axios.post(`${apiUrl}/agent/updateSocialHandles`, {
       agentId,
       socials,
     });
@@ -1013,7 +1046,7 @@ export async function updateAgentNameAndBio(
 ) {
   try {
     const response = await axios.post(
-      `${apiUrl}/client/updateAgentNameAndBio`,
+      `${apiUrl}/agent/updateAgentNameAndBio`,
       {
         agentId,
         name,
@@ -1037,7 +1070,7 @@ export async function updatePromotionalBanner(
   isPromoBannerEnabled?: boolean
 ): Promise<boolean> {
   try {
-    await axios.post(`${apiUrl}/client/updateAgentPromoBanner`, {
+    await axios.post(`${apiUrl}/agent/updateAgentPromoBanner`, {
       agentId,
       promotionalBanner,
       isPromoBannerEnabled,
@@ -1057,7 +1090,7 @@ export async function updateAgentVoicePersonality(
   }
 ): Promise<boolean> {
   try {
-    await axios.post(`${apiUrl}/client/updateAgentVoicePersonality`, {
+    await axios.post(`${apiUrl}/agent/updateAgentVoicePersonality`, {
       agentId,
       personalityType,
     });
@@ -1073,7 +1106,7 @@ export async function updateAgentWelcomeMessage(
   welcomeMessage: string
 ): Promise<boolean> {
   try {
-    await axios.post(`${apiUrl}/client/updateAgentWelcomeMessage`, {
+    await axios.post(`${apiUrl}/agent/updateAgentWelcomeMessage`, {
       agentId,
       welcomeMessage,
     });
@@ -1089,7 +1122,7 @@ export async function updateAgentPrompts(
   prompts: string[]
 ): Promise<boolean> {
   try {
-    await axios.post(`${apiUrl}/client/updateAgentPrompts`, {
+    await axios.post(`${apiUrl}/agent/updateAgentPrompts`, {
       agentId,
       prompts,
     });
@@ -1106,7 +1139,7 @@ export async function updateAgentBrain(
   smartenUpAnswers?: string[] | Record<string, string>
 ): Promise<boolean> {
   try {
-    await axios.post(`${apiUrl}/client/updateAgentBrain`, {
+    await axios.post(`${apiUrl}/agent/updateAgentBrain`, {
       agentId,
       language,
       smartenUpAnswers,
@@ -1142,7 +1175,7 @@ export async function updateCustomerLeadFlag(
 ): Promise<boolean> {
   try {
     const response = await axios.post(
-      `${apiUrl}/client/changeCustomerLeadFlag`,
+      `${apiUrl}/agent/changeCustomerLeadFlag`,
       {
         agentId,
         isEnabled,
@@ -1172,7 +1205,12 @@ export async function getCustomerLeads(
 ): Promise<CustomerLead[]> {
   try {
     const response = await axios.get(
-      `${apiUrl}/client/getCustomerLeads/${agentId}`
+      `${apiUrl}/agent/getCustomerLeads`, 
+      {
+        params: {
+          agentId: agentId 
+        }
+      }
     );
 
     if (response.data.error) {
@@ -1205,9 +1243,22 @@ export async function getAgentPolicies(
   agentId: string
 ): Promise<AgentPoliciesResponse> {
   try {
+    if (!agentId || agentId.trim() === '') {
+      throw new Error('Agent ID is required');
+    }
+
     const response = await axios.get(
-      `${apiUrl}/client/getAgentPolicies/${agentId}`
+      `${apiUrl}/agent/getAgentPolicies`,
+      {
+        params: {
+          agentId: agentId
+        },
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
     );
+
     return response.data;
   } catch (error) {
     console.error("Error fetching agent policies:", error);
@@ -1220,7 +1271,7 @@ export async function updateAgentModel(
   modelName: string
 ): Promise<any> {
   try {
-    const response = await axios.put(`${apiUrl}/client/updateAgentModel`, {
+    const response = await axios.put(`${apiUrl}/agent/updateAgentModel`, {
       agentId,
       model: modelName,
     });
@@ -1240,7 +1291,7 @@ export async function updateGeneratedPrompts(
 ): Promise<boolean> {
   try {
     const response = await axios.post(
-      `${apiUrl}/client/updateAgentGeneratedPrompts`,
+      `${apiUrl}/agent/updateAgentGeneratedPrompts`,
       {
         agentId,
         prompts: generatedPrompts,
@@ -1264,7 +1315,7 @@ export async function saveCustomerLead(
   }
 ): Promise<{ error: boolean; result?: string }> {
   try {
-    const response = await axios.post(`${apiUrl}/client/saveCustomerLeads`, {
+    const response = await axios.post(`${apiUrl}/agent/saveCustomerLeads`, {
       agentId,
       newLead: lead,
     });
@@ -1428,7 +1479,7 @@ export const updateProduct = async (data: {
 
 export async function getClientUsage(clientId: string) {
   try {
-    const response = await fetch(`${apiUrl}/client/getClientUsage/${clientId}`);
+    const response = await fetch(`${apiUrl}/client/getClientUsage?clientId=${encodeURIComponent(clientId)}`);
 
     if (!response.ok) {
       throw new Error("Failed to fetch client usage data");
@@ -1884,7 +1935,7 @@ export async function updateCustomHandles(
   customHandles: { label: string; url: string }[]
 ): Promise<boolean> {
   try {
-    await axios.post(`${apiUrl}/client/updateCustomHandles`, {
+    await axios.post(`${apiUrl}/agent/updateCustomHandles`, {
       agentId,
       customHandles,
     });

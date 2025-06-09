@@ -147,7 +147,7 @@ const Policies = () => {
     const selected = policies.find((p) => p.id === activePolicy);
     const enabled = selected ? selected.enabled : false;
     try {
-      const res = await fetch(`${backendApiUrl}/client/updateAgentPolicy`, {
+      const res = await fetch(`${backendApiUrl}/agent/updateAgentPolicy`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
