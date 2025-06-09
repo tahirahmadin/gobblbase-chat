@@ -82,11 +82,11 @@ const Support = () => {
         const data = JSON.parse(event.data);
         console.log("Received message:", data);
 
-        if (data.type === "message") {
+        if (data.message) {
           const newMessage: Message = {
-            content: data.content,
-            sender: data.sender,
-            timestamp: new Date(data.timestamp),
+            content: data.message.content,
+            sender: data.message.sender,
+            timestamp: new Date(data.message.timestamp),
           };
           setMessages((prev) => [...prev, newMessage]);
         }
@@ -129,19 +129,9 @@ const Support = () => {
     };
     setMessages((prev) => [...prev, adminMessage]);
     setNewMessage("");
-    setIsTyping(true);
+    // setIsTyping(true);
 
     try {
-      // Send message through WebSocket
-      wsRef.current.send(
-        JSON.stringify({
-          type: "message",
-          content: adminMessage.content,
-          sender: adminMessage.sender,
-          timestamp: adminMessage.timestamp.toISOString(),
-        })
-      );
-
       // Also update in the database
       await updateAdminChatLog({
         newUserLog: [

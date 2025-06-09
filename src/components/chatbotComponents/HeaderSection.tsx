@@ -783,6 +783,7 @@ function HeaderSection({
   );
 
   const getWhatsAppNumber = () => {
+    if (!currentConfig.whatsappNumber) return "";
     let countryCodeWithoutPlus =
       currentConfig.whatsappNumber.countryCode.replace("+", "");
     return `${countryCodeWithoutPlus}${currentConfig.whatsappNumber.number}`;

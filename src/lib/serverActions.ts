@@ -13,26 +13,33 @@ let apiUrl = backendApiUrl;
 
 // Encryption function
 export const getCipherText = (inputBodyData: any) => {
-  let secretKey = import.meta.env.VITE_CIPHER_KEY;
+  try {
+    let secretKey = import.meta.env.VITE_ENCRYPTION_KEY;
+    if (!secretKey) {
+      throw new Error("Encryption key not found");
+    }
 
-  const key = CryptoJS.enc.Utf8.parse(secretKey);
+    const key = CryptoJS.enc.Utf8.parse(secretKey);
+    const encrypted = CryptoJS.AES.encrypt(JSON.stringify(inputBodyData), key, {
+      mode: CryptoJS.mode.ECB,
+    });
 
-  const encrypted = CryptoJS.AES.encrypt(JSON.stringify(inputBodyData), key, {
-    mode: CryptoJS.mode.ECB,
-  });
-
-  const encryptedText = encrypted.toString();
-
-  return { data: encryptedText };
+    return { data: encrypted.toString() };
+  } catch (error) {
+    console.error("Error in encryption:", error);
+    throw error;
+  }
 };
 
 // Get HMAC message
 const getHmacMessageFromBody = (inputBodyData: string) => {
-  const apiSecret = import.meta.env.VITE_HMAC_KEY;
+  try {
+    const apiSecret = import.meta.env.VITE_HMAC_KEY;
+    if (!apiSecret) {
+      throw new Error("HMAC key not found");
+    }
 
-  if (apiSecret) {
     const currentTimestamp = (Date.now() / 1000).toString();
-
     const hmacHash = CryptoJS.HmacSHA256(
       inputBodyData + currentTimestamp,
       apiSecret
@@ -42,7 +49,8 @@ const getHmacMessageFromBody = (inputBodyData: string) => {
       hmacHash: hmacHash,
       currentTimestamp: currentTimestamp,
     };
-  } else {
+  } catch (error) {
+    console.error("Error generating HMAC:", error);
     return null;
   }
 };
@@ -191,19 +199,40 @@ export async function createNewAgentWithDocumentId(
   }
 ): Promise<CreateNewAgentResponse> {
   try {
-    const response = await axios.post(`${apiUrl}/milvus/create-new-agent`, {
+    let url = `/api/milvus/create-new-agent`;
+    let dataObj = {
       clientId: clientId,
       name: name,
       personalityType: personalityType,
       themeColors: themeColors,
-    });
+    };
+    let requestParams = JSON.stringify(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, dataObj, { headers: axiosHeaders });
 
     return response.data;
   } catch (error) {
     console.error("Error creating agent:", error);
     return {
       error: true,
-      result: error instanceof Error ? error.message : "Failed to create agent",
+      result: {
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Failed to create agent",
+        collectionName: "",
+        agentId: "",
+      },
     };
   }
 }
@@ -440,10 +469,18 @@ export async function getAgentDetails(
     if (!inputParam) {
       throw new Error("Either agentId or username must be provided");
     }
+    let requestParams = `inputParam=${inputParam}&isfetchByUsername=${isfetchByUsername}`;
+    let url = `/api/agent/getAgentDetails?${requestParams}`;
 
-    const response = await axios.get(
-      `${apiUrl}/agent/getAgentDetails?inputParam=${inputParam}&isfetchByUsername=${isfetchByUsername}`
-    );
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+    if (!hmacResponse) {
+      return null;
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+    const response = await axios.get(url, { headers: axiosHeaders });
 
     if (response.data.error) {
       throw new Error(response.data.result || "Error fetching agent details");
@@ -458,19 +495,28 @@ export async function getAgentDetails(
 
 export async function updateBotTheme(agentId: string, inputTheme: Theme) {
   try {
-    const body = {
+    let dataObj = {
+      agentId: agentId,
       themeColors: inputTheme,
     };
+    let url = `/api/agent/updateAgentTheme`;
+    //Encrypted data
+    let encryptedData = getCipherText(dataObj);
 
-    const response = await axios.put(
-      `${apiUrl}/agent/updateAgentTheme`, 
-      body,
-      {
-        params: {
-          agentId: agentId  
-        }
-      }
-    );
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
 
     if (response.data.error) {
       throw new Error("Error updating agent details");
@@ -516,18 +562,25 @@ export async function updateAgentDetails(
       themeColors: details.themeColors,
     };
 
-    const response = await axios.put(
-      `${apiUrl}/agent/updateAgent`,
-      body,
-      {
-        params: {
-          agentId: agentId
-        },
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+    let url = `/api/agent/updateAgent`;
+    //Encrypted data
+    let encryptedData = getCipherText(body);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      return null;
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.put(url, encryptedData, {
+      headers: axiosHeaders,
+      params: { agentId },
+    });
 
     if (response.data.error) {
       throw new Error("Error updating agent details");
@@ -539,27 +592,33 @@ export async function updateAgentDetails(
   }
 }
 
-export async function deleteAgent(agentId: string, userId?: string): Promise<void> {
+export async function deleteAgent(
+  agentId: string,
+  userId?: string
+): Promise<void> {
   try {
-    if (!agentId || agentId.trim() === '') {
-      throw new Error('Agent ID is required');
+    if (!agentId || agentId.trim() === "") {
+      throw new Error("Agent ID is required");
     }
 
-    const queryParams: any = { agentId };
-    if (userId) {
-      queryParams.userId = userId;
-    }
+    let url = `/api/agent/deleteAgent`;
+    let dataObj = { agentId, userId };
+    let encryptedData = getCipherText(dataObj);
 
-    const response = await axios.post(
-      `${apiUrl}/agent/deleteAgentPost`,
-      {}, 
-      {
-        params: queryParams,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
 
     if (response.data.error) {
       throw new Error(response.data.result || "Error deleting agent");
@@ -575,10 +634,23 @@ export async function deleteAgent(agentId: string, userId?: string): Promise<voi
 
 export async function updateUserLogs(params: UpdateUserLogsParams) {
   try {
-    const response = await axios.post(
-      `${apiUrl}/agent/updateUserLogs`,
-      params
-    );
+    let url = `/api/agent/updateUserLogs`;
+    let encryptedData = getCipherText(params);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      return null;
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
 
     if (response.data.error) {
       throw new Error("Error updating user logs");
@@ -592,14 +664,21 @@ export async function updateUserLogs(params: UpdateUserLogsParams) {
 
 export async function getChatLogs(agentId: string) {
   try {
-    const response = await axios.get(
-      `${apiUrl}/agent/getAgentChatLogs`, 
-      {
-        params: {
-          agentId: agentId  
-        }
-      }
-    );
+    let requestParams = `agentId=${agentId}`;
+    let url = `/api/agent/getAgentChatLogs?${requestParams}`;
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+
+    if (!hmacResponse) {
+      return null;
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.get(url, { headers: axiosHeaders });
 
     if (response.data.error) {
       throw new Error("Error fetching chat logs");
@@ -628,9 +707,22 @@ export async function getIntegratedServices(agentId: string) {
 
 export async function updateAgentUsername(agentId: string, username: string) {
   try {
-    const response = await axios.post(`${apiUrl}/agent/updateAgentUsername`, {
-      agentId,
-      agentName: username,
+    let url = `/api/agent/updateAgentUsername`;
+    let dataObj = { agentId, agentName: username };
+    let encryptedData = getCipherText(dataObj);
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
     });
 
     if (response.data.error) {
@@ -652,31 +744,12 @@ export async function uploadProfilePicture(
     formData.append("agentId", agentId);
     formData.append("file", profilePicture);
 
-    const response = await axios.post(
-      `${apiUrl}/agent/uploadAgentLogo`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
+    let url = `${apiUrl}/agent/uploadAgentLogo`;
 
-    if (response.data.error) {
-      throw new Error(response.data.error);
-    }
-    return response.data.result;
-  } catch (error) {
-    console.error("Error uploading profile picture:", error);
-    throw error;
-  }
-}
-
-export async function updateCalendlyUrl(agentId: string, calendlyUrl: string) {
-  try {
-    const response = await axios.post(`${apiUrl}/agent/updateCalendlyUrl`, {
-      agentId,
-      calendlyUrl,
+    const response = await axios.post(url, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     });
 
     if (response.data.error) {
@@ -684,7 +757,7 @@ export async function updateCalendlyUrl(agentId: string, calendlyUrl: string) {
     }
     return response.data.result;
   } catch (error) {
-    console.error("Error updating Calendly URL:", error);
+    console.error("Error uploading profile picture:", error);
     throw error;
   }
 }
@@ -974,36 +1047,27 @@ export const updateProductImage = async (data: {
   }
 };
 
-export const updateStripeAccountIdCurrency = async (data: {
-  agentId: string;
-  stripeAccountId: string;
-  currency: string;
-}) => {
-  try {
-    const response = await axios.post(
-      `${apiUrl}/agent/updateStripeAccountIdCurrency`,
-      data
-    );
-
-    if (response.data.error) {
-      throw new Error(response.data.error);
-    }
-
-    return response.data.result;
-  } catch (error) {
-    console.error("Error updating Stripe account ID and currency:", error);
-    throw new Error("Failed to update Stripe account ID and currency");
-  }
-};
-
 export const getTransactions = async (
   agentId: string,
   page: number
 ): Promise<{ orders: any[]; hasNext: boolean }> => {
   try {
-    const response = await axios.get(
-      `${apiUrl}/agent/getAgentOrders?agentId=${agentId}&page=${page}`
-    );
+    let url = `/api/agent/getAgentOrders?agentId=${agentId}&page=${page}`;
+    let requestParams = `agentId=${agentId}&page=${page}`;
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.get(url, { headers: axiosHeaders });
+
     return response.data.result;
   } catch (error) {
     console.error("Error fetching transactions:", error);
@@ -1066,10 +1130,22 @@ export async function updateSocialHandles(
   socials: Record<string, string>
 ): Promise<boolean> {
   try {
-    await axios.post(`${apiUrl}/agent/updateSocialHandles`, {
-      agentId,
-      socials,
-    });
+    let url = `/api/agent/updateSocialHandles`;
+    let dataObj = { agentId, socials };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    await axios.post(url, encryptedData, { headers: axiosHeaders });
     return true;
   } catch (error) {
     console.error("Error updating social handles:", error);
@@ -1083,14 +1159,25 @@ export async function updateAgentNameAndBio(
   bio?: string
 ) {
   try {
-    const response = await axios.post(
-      `${apiUrl}/agent/updateAgentNameAndBio`,
-      {
-        agentId,
-        name,
-        bio,
-      }
-    );
+    let url = `/api/agent/updateAgentNameAndBio`;
+
+    let dataObj = { agentId, name, bio };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
 
     if (response.data.error) {
       throw new Error(response.data.error);
@@ -1108,11 +1195,22 @@ export async function updatePromotionalBanner(
   isPromoBannerEnabled?: boolean
 ): Promise<boolean> {
   try {
-    await axios.post(`${apiUrl}/agent/updateAgentPromoBanner`, {
-      agentId,
-      promotionalBanner,
-      isPromoBannerEnabled,
-    });
+    let url = `/api/agent/updateAgentPromoBanner`;
+    let dataObj = { agentId, promotionalBanner, isPromoBannerEnabled };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    await axios.post(url, encryptedData, { headers: axiosHeaders });
     return true;
   } catch (error) {
     console.error("Error updating promotional banner:", error);
@@ -1128,10 +1226,22 @@ export async function updateAgentVoicePersonality(
   }
 ): Promise<boolean> {
   try {
-    await axios.post(`${apiUrl}/agent/updateAgentVoicePersonality`, {
-      agentId,
-      personalityType,
-    });
+    let url = `/api/agent/updateAgentVoicePersonality`;
+    let dataObj = { agentId, personalityType };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    await axios.post(url, encryptedData, { headers: axiosHeaders });
     return true;
   } catch (error) {
     console.error("Error updating voice personality:", error);
@@ -1144,10 +1254,22 @@ export async function updateAgentWelcomeMessage(
   welcomeMessage: string
 ): Promise<boolean> {
   try {
-    await axios.post(`${apiUrl}/agent/updateAgentWelcomeMessage`, {
-      agentId,
-      welcomeMessage,
-    });
+    let url = `/api/agent/updateAgentWelcomeMessage`;
+    let dataObj = { agentId, welcomeMessage };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    await axios.post(url, encryptedData, { headers: axiosHeaders });
     return true;
   } catch (error) {
     console.error("Error updating welcome message:", error);
@@ -1160,10 +1282,22 @@ export async function updateAgentPrompts(
   prompts: string[]
 ): Promise<boolean> {
   try {
-    await axios.post(`${apiUrl}/agent/updateAgentPrompts`, {
-      agentId,
-      prompts,
-    });
+    let url = `/api/agent/updateAgentPrompts`;
+    let dataObj = { agentId, prompts };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    await axios.post(url, encryptedData, { headers: axiosHeaders });
     return true;
   } catch (error) {
     console.error("Error updating prompts:", error);
@@ -1177,11 +1311,22 @@ export async function updateAgentBrain(
   smartenUpAnswers?: string[] | Record<string, string>
 ): Promise<boolean> {
   try {
-    await axios.post(`${apiUrl}/agent/updateAgentBrain`, {
-      agentId,
-      language,
-      smartenUpAnswers,
-    });
+    let url = `/api/agent/updateAgentBrain`;
+    let dataObj = { agentId, language, smartenUpAnswers };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    await axios.post(url, encryptedData, { headers: axiosHeaders });
     return true;
   } catch (error) {
     console.error("Error updating agent brain:", error);
@@ -1212,13 +1357,24 @@ export async function updateCustomerLeadFlag(
   isEnabled: boolean
 ): Promise<boolean> {
   try {
-    const response = await axios.post(
-      `${apiUrl}/agent/changeCustomerLeadFlag`,
-      {
-        agentId,
-        isEnabled,
-      }
-    );
+    let url = `/api/agent/changeCustomerLeadFlag`;
+    let dataObj = { agentId, isEnabled };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
 
     if (response.data.error) {
       throw new Error(response.data.error);
@@ -1242,14 +1398,21 @@ export async function getCustomerLeads(
   agentId: string
 ): Promise<CustomerLead[]> {
   try {
-    const response = await axios.get(
-      `${apiUrl}/agent/getCustomerLeads`, 
-      {
-        params: {
-          agentId: agentId 
-        }
-      }
-    );
+    let requestParams = `agentId=${agentId}`;
+    let url = `/api/agent/getCustomerLeads?${requestParams}`;
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.get(url, { headers: axiosHeaders });
 
     if (response.data.error) {
       throw new Error(response.data.error);
@@ -1281,21 +1444,25 @@ export async function getAgentPolicies(
   agentId: string
 ): Promise<AgentPoliciesResponse> {
   try {
-    if (!agentId || agentId.trim() === '') {
-      throw new Error('Agent ID is required');
+    if (!agentId || agentId.trim() === "") {
+      throw new Error("Agent ID is required");
     }
 
-    const response = await axios.get(
-      `${apiUrl}/agent/getAgentPolicies`,
-      {
-        params: {
-          agentId: agentId
-        },
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+    let requestParams = `agentId=${agentId}`;
+    let url = `/api/agent/getAgentPolicies?${requestParams}`;
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.get(url, { headers: axiosHeaders });
 
     return response.data;
   } catch (error) {
@@ -1309,9 +1476,23 @@ export async function updateAgentModel(
   modelName: string
 ): Promise<any> {
   try {
-    const response = await axios.put(`${apiUrl}/agent/updateAgentModel`, {
-      agentId,
-      model: modelName,
+    let url = `/api/agent/updateAgentModel`;
+    let dataObj = { agentId, model: modelName };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
     });
     if (response.data.error) {
       throw new Error(response.data.result || "Failed to update model");
@@ -1328,13 +1509,24 @@ export async function updateGeneratedPrompts(
   generatedPrompts: string[]
 ): Promise<boolean> {
   try {
-    const response = await axios.post(
-      `${apiUrl}/agent/updateAgentGeneratedPrompts`,
-      {
-        agentId,
-        prompts: generatedPrompts,
-      }
-    );
+    let url = `/api/agent/updateAgentGeneratedPrompts`;
+    let dataObj = { agentId, prompts: generatedPrompts };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
     return true;
   } catch (error) {
     console.error("Error updating generated prompts:", error);
@@ -1353,9 +1545,23 @@ export async function saveCustomerLead(
   }
 ): Promise<{ error: boolean; result?: string }> {
   try {
-    const response = await axios.post(`${apiUrl}/agent/saveCustomerLeads`, {
-      agentId,
-      newLead: lead,
+    let url = `/api/agent/saveCustomerLeads`;
+    let dataObj = { agentId, newLead: lead };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
     });
 
     if (response.data.error) {
@@ -1517,7 +1723,9 @@ export const updateProduct = async (data: {
 
 export async function getClientUsage(clientId: string) {
   try {
-    const response = await fetch(`${apiUrl}/client/getClientUsage?clientId=${encodeURIComponent(clientId)}`);
+    const response = await fetch(
+      `${apiUrl}/client/getClientUsage?clientId=${clientId}`
+    );
 
     if (!response.ok) {
       throw new Error("Failed to fetch client usage data");
@@ -1721,9 +1929,21 @@ export async function getMainProductsForUser(agentId: string) {
  */
 export async function getEmailTemplates(agentId: string): Promise<any> {
   try {
-    const response = await axios.get(`${apiUrl}/email/getEmailTemplates`, {
-      params: { agentId },
-    });
+    let requestParams = `agentId=${agentId}`;
+    let url = `/api/email/getEmailTemplates?${requestParams}`;
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.get(url, { headers: axiosHeaders });
     if (response.data.error) {
       throw new Error(
         response.data.result || "Failed to fetch email templates"
@@ -1748,11 +1968,22 @@ export async function updateEmailTemplates(
   emailTemplateId: string
 ): Promise<any> {
   try {
-    const response = await axios.post(`${apiUrl}/email/updateEmailTemplates`, {
-      agentId,
-      updatedData,
-      emailTemplateId,
-    });
+    let url = `/api/email/updateEmailTemplates`;
+    let dataObj = { agentId, updatedData, emailTemplateId };
+    let requestParams = JSON.stringify(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, dataObj, { headers: axiosHeaders });
     if (response.data.error) {
       throw new Error(
         response.data.result || "Failed to update email templates"
@@ -1973,10 +2204,22 @@ export async function updateCustomHandles(
   customHandles: { label: string; url: string }[]
 ): Promise<boolean> {
   try {
-    await axios.post(`${apiUrl}/agent/updateCustomHandles`, {
-      agentId,
-      customHandles,
-    });
+    let url = `/api/agent/updateCustomHandles`;
+    let dataObj = { agentId, customHandles };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    await axios.post(url, encryptedData, { headers: axiosHeaders });
     return true;
   } catch (error) {
     console.error("Error updating custom handles:", error);
@@ -2166,7 +2409,7 @@ export async function updateAdminChatLog(params: {
   clientId: string;
 }) {
   try {
-    let url = `${apiUrl}/admin/updateChatLog`;
+    let url = `/api/admin/updateChatLog`;
 
     //Encrypted data
     let encryptedData = getCipherText(params);
@@ -2182,10 +2425,48 @@ export async function updateAdminChatLog(params: {
       Timestamp: hmacResponse.currentTimestamp,
     };
 
-    const response = await axios.post(url, params, { headers: axiosHeaders });
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
     return response.data;
   } catch (error) {
     console.error("Error updating admin chat log:", error);
+    throw error;
+  }
+}
+
+export async function updateAgentPolicy(
+  agentId: string,
+  policyId: string,
+  enabled: boolean,
+  content: string
+): Promise<boolean> {
+  try {
+    let url = `/api/agent/updateAgentPolicy`;
+    let dataObj = { agentId, policyId, enabled, content };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
+
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+    return true;
+  } catch (error) {
+    console.error("Error updating agent policy:", error);
     throw error;
   }
 }
