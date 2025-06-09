@@ -34,11 +34,19 @@ interface UserState {
 export const useUserStore = create<UserState>()((set, get) => {
   // Initialize session when store is created
   const initializeStore = async () => {
-    const storedEmail = localStorage.getItem("userEmail");
-    if (storedEmail) {
-      await get().initializeSession();
+    try {
+      const storedEmail =
+        typeof window !== "undefined"
+          ? localStorage.getItem("userEmail")
+          : null;
+      if (storedEmail) {
+        await get().initializeSession();
+      }
+      set({ isInitialized: true });
+    } catch (error) {
+      console.warn("Failed to initialize user store:", error);
+      set({ isInitialized: true });
     }
-    set({ isInitialized: true });
   };
 
   // Call initialization
@@ -63,13 +71,16 @@ export const useUserStore = create<UserState>()((set, get) => {
 
     // Session management
     initializeSession: async () => {
-      const storedEmail = localStorage.getItem("userEmail");
-      if (!storedEmail) {
-        set({ isLoggedIn: false, isInitialized: true });
-        return false;
-      }
-
       try {
+        const storedEmail =
+          typeof window !== "undefined"
+            ? localStorage.getItem("userEmail")
+            : null;
+        if (!storedEmail) {
+          set({ isLoggedIn: false, isInitialized: true });
+          return false;
+        }
+
         set({ isLoading: true });
         const response = await signUpUser("google", storedEmail);
 
@@ -84,7 +95,9 @@ export const useUserStore = create<UserState>()((set, get) => {
             errorMessage.includes("unauthorized") ||
             errorMessage.includes("invalid")
           ) {
-            localStorage.removeItem("userEmail");
+            if (typeof window !== "undefined") {
+              localStorage.removeItem("userEmail");
+            }
             set({ isLoggedIn: false, isLoading: false, isInitialized: true });
           } else {
             set({ error: errorMessage, isLoading: false, isInitialized: true });
@@ -120,7 +133,9 @@ export const useUserStore = create<UserState>()((set, get) => {
           (error.message.includes("unauthorized") ||
             error.message.includes("invalid"))
         ) {
-          localStorage.removeItem("userEmail");
+          if (typeof window !== "undefined") {
+            localStorage.removeItem("userEmail");
+          }
           set({ isLoggedIn: false, isLoading: false, isInitialized: true });
         } else {
           set({

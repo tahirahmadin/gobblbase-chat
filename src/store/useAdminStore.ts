@@ -97,9 +97,16 @@ interface EmailTemplatesResponse {
 export const useAdminStore = create<AdminState>()((set, get) => {
   // Initialize session when store is created
   const initializeStore = async () => {
-    const storedEmail = localStorage.getItem("adminEmail");
-    if (storedEmail) {
-      await get().initializeSession();
+    try {
+      const storedEmail =
+        typeof window !== "undefined"
+          ? localStorage.getItem("adminEmail")
+          : null;
+      if (storedEmail) {
+        await get().initializeSession();
+      }
+    } catch (error) {
+      console.warn("Failed to initialize admin store:", error);
     }
   };
 
@@ -125,19 +132,21 @@ export const useAdminStore = create<AdminState>()((set, get) => {
 
     // Session management
     initializeSession: async () => {
-      const storedEmail = localStorage.getItem("adminEmail");
-
-      if (!storedEmail) {
-        set({ isAdminLoggedIn: false });
-        return false;
-      }
-
       try {
+        const storedEmail =
+          typeof window !== "undefined"
+            ? localStorage.getItem("adminEmail")
+            : null;
+
+        if (!storedEmail) {
+          set({ isAdminLoggedIn: false });
+          return false;
+        }
+
         set({ isLoading: true });
         const response = await signUpClient("google", storedEmail);
 
         if (response.error) {
-          // Only clear session if it's an authentication error
           const errorMessage =
             typeof response.result === "string"
               ? response.result
@@ -146,10 +155,11 @@ export const useAdminStore = create<AdminState>()((set, get) => {
             errorMessage.includes("unauthorized") ||
             errorMessage.includes("invalid")
           ) {
-            localStorage.removeItem("adminEmail");
+            if (typeof window !== "undefined") {
+              localStorage.removeItem("adminEmail");
+            }
             set({ isAdminLoggedIn: false, isLoading: false });
           } else {
-            // For other errors, keep the session but show error
             set({ error: errorMessage, isLoading: false });
           }
           return false;
