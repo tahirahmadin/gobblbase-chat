@@ -325,7 +325,10 @@ export default function AboutSection({
     const fetchPolicies = async () => {
       if (!activeBotData?.agentId) return;
       try {
-        const response = await getAgentPolicies(currentConfig.agentId);
+        const response = await getAgentPolicies(activeBotData.agentId);
+        if (response.error) throw new Error("Failed to fetch policies");
+
+        const data = response.result;
         if (!response.error) {
           setPolicies(response.result);
         }
