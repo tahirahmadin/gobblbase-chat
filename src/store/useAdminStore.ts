@@ -167,7 +167,6 @@ export const useAdminStore = create<AdminState>()((set, get) => {
           // Fetch client information
           const clientResponse = await getClient(adminId);
 
-          console.log("Client response:", clientResponse);
           set({
             adminId,
             adminEmail: result.signUpVia.handle,
