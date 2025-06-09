@@ -437,7 +437,6 @@ const features = [
   },
 ];
 
-
 const PlatformSection = styled.section`
   text-align: left;
   height: 100%;
@@ -1466,10 +1465,6 @@ const Home = () => {
                     </p>
                   </div>
                   <div className="w-fit flex flex-col">
-                    <p className="para-font text-[15px] font-[500] text-left mb-4">
-                      Your practical AI Co-Pilot for business growth. <br />
-                      Handle sales, support, and scheduling—all in one place.
-                    </p>
                     <span className="heading flex items-center">
                       <p className="text-[#AEB8FF]">Select their tasks</p>
                       <ChevronRight
