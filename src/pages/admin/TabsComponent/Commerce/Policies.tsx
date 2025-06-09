@@ -211,7 +211,7 @@ const Policies = () => {
                         }`}>
 
                         <div>
-                          <span className="main-font text-[1rem] text-black font-[500]">{policy.name}</span>
+                          <span className="para-font text-[1rem] text-black font-[500]">{policy.name}</span>
                         </div>
                         <label className="flex items-center cursor-pointer ml-2">
                           <input
@@ -226,8 +226,8 @@ const Policies = () => {
                           />
                           <div className="w-11 h-6 bg-[#CDCDCD] border border-black rounded-full relative transition-colors duration-200 peer-checked:bg-green-400">
                             <div
-                              className={`absolute border border-black top-0.0 left-0 w-[22px] h-[22px] bg-white rounded-full shadow transition-transform duration-200 ${
-                                policy.enabled ? "translate-x-5" : ""
+                              className={`absolute border border-black  -top-[1.2px] -left-[2px] w-[24px] h-[24px] bg-white rounded-full shadow transition-transform duration-200 ${
+                                policy.enabled ? "translate-x-[24px]" : ""
                               }`}
                             ></div>
                           </div>

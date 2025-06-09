@@ -3,7 +3,14 @@ import { getClientUsage, getClient } from "../../../../lib/serverActions";
 import { useAdminStore } from "../../../../store/useAdminStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-
+import { ChevronDown } from "lucide-react";
+const timeFrames = [
+  "All Time",
+  "This Year",
+  "This Month",
+  "This Week",
+  "Today",
+];
 interface ClientUsageData {
   creditsInfo: {
     totalCredits: number;
@@ -68,6 +75,8 @@ const Usage = () => {
   const [allDailyUsage, setAllDailyUsage] = useState<DailyUsage[]>([]);
   const [dataInitialized, setDataInitialized] = useState(false);
 
+  const [isOpen, setIsOpen] = useState(false);
+  const [isAgentDropdownOpen, setIsAgentDropdownOpen] = useState(false);
   useEffect(() => {
     const currentYear = new Date().getFullYear();
 
@@ -430,14 +439,12 @@ const Usage = () => {
     }
   };
 
-  const handleTimeFrameChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newTimeFrame = e.target.value;
+  const handleTimeFrameChange = (newTimeFrame: string) => {
     setTimeFrame(newTimeFrame);
     if (usageData) {
       generateUsageHistory(usageData, selectedAgent, newTimeFrame);
     }
   };
-
   const navigate = useNavigate();
   const navigateToPlans = () => {
     navigate("/admin/account/plans");
@@ -454,7 +461,7 @@ const Usage = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6 max-w-6xl mx-auto">
+    <div className="p-4 sm:p-6 mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
         <h1 className="text-xl font-bold">Usage</h1>
         {/* Filters */}
@@ -469,37 +476,65 @@ const Usage = () => {
               <option key={agent.id}>{agent.name}</option>
             ))}
           </select>
-          <select
-            className="border border-blue-300 rounded px-3 py-2 bg-blue-100 text-gray-800 mb-2 flex-1 sm:flex-none"
-            value={timeFrame}
-            onChange={handleTimeFrameChange}
-          >
-            <option>All Time</option>
-            <option>This Year</option>
-            <option>This Month</option>
-            <option>This Week</option>
-            <option>Today</option>
-          </select>
+          {/* all time drop down  */}
+          <div className="relative w-48 flex items-center ">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
+            >
+              {timeFrame}
+            </button>
+            <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
+              <ChevronDown
+                size={20}
+                className={`text-[#000000] stroke-[3px] transition-transform  ${
+                  isOpen ? "rotate-180" : ""
+                }`}
+              />
+            </div>
+
+            {isOpen && (
+              <div className="absolute z-10 mt-1 top-8 w-full bg-white border border-[#7D7D7D] shadow-sm rounded-sm">
+                {timeFrames.map((frame) => (
+                  <button
+                    key={frame}
+                    onClick={() => {
+                      handleTimeFrameChange(frame); // directly call with string
+                      setIsOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                      timeFrame === frame ? "bg-[#AEB8FF]" : ""
+                    }`}
+                  >
+                    {frame}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-4 mb-6">
+      <div className="flex flex-wrap gap-4 mb-6 w-full">
         {/* Current Plan */}
-        <div className="bg-green-100 rounded-lg p-4 flex flex-col justify-between w-full sm:w-56">
+        <div className="bg-[#CEFFDC] rounded-lg p-4 flex flex-col justify-between min-w-[200px] w-full max-w-[280px]">
           <span className="text-xs text-gray-600 mb-1">Current Plan</span>
-          <span className="font-bold text-lg mb-3">
-            {currentPlan || "FREE"}
-          </span>
-          <button
-            onClick={navigateToPlans}
-            className="bg-white border border-green-300 text-green-900 font-semibold px-4 py-1 rounded shadow hover:bg-green-200 w-full"
-          >
-            VIEW
-          </button>
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-lg">{currentPlan || "FREE"}</span>
+            <div className="relative z-10">
+              <div className="absolute top-[4px] left-[4px] -z-10 bg-[#6AFF97] border border-black w-full h-full"></div>
+              <button
+                onClick={navigateToPlans}
+                className="bg-[#6AFF97] border border-black text-black font-semibold px-4 py-1"
+              >
+                VIEW
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Credits Used */}
-        <div className="bg-blue-100 rounded-lg p-4 flex-1 flex flex-col justify-between min-w-[200px]">
+        <div className="bg-[#D4DEFF] rounded-lg p-4 flex flex-col justify-between min-w-[200px] w-full max-w-[280px]">
           <div className="flex items-center mb-2">
             <span className="text-2xl font-bold mr-2">{creditsUsed}</span>
             <span className="text-gray-700">
@@ -523,7 +558,7 @@ const Usage = () => {
         </div>
 
         {/* Agents Used */}
-        <div className="bg-blue-100 rounded-lg p-4 flex-1 flex flex-col justify-between min-w-[200px]">
+        <div className="bg-[#D4DEFF] rounded-lg p-4 flex flex-col justify-between min-w-[200px] w-full max-w-[280px]">
           <div className="flex items-center mb-2">
             <span className="text-2xl font-bold mr-2">{agentsUsed}</span>
             <span className="text-gray-700">
@@ -555,7 +590,7 @@ const Usage = () => {
         <h3 className="text-lg font-bold mb-2">Usage History</h3>
         <div className="border rounded-lg bg-white min-h-[220px] mb-2 w-full overflow-x-auto">
           {/* Chart */}
-          <div className="w-screen">
+          <div className="">
             <div
               className={`pt-6 px-4 h-44 flex items-end gap-2`}
               style={{ minWidth: 0 }}
