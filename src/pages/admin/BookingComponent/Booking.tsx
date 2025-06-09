@@ -19,6 +19,7 @@ import {
 } from "../../../lib/serverActions";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import TimezoneSelector, { getConsistentTimezoneLabel } from "../../../components/chatbotComponents/chatbotBookingComponents/TimezoneSelector";
 import { formatTimezone, isValidTimezone, getUserTimezone } from "../../../utils/timezoneUtils";
 
 interface TimeSlot {
@@ -142,21 +143,6 @@ const DEFAULT_AVAILABILITY = [
   { day: "Saturday", available: false, timeSlots: [] },
 ];
 
-const DEFAULT_TIMEZONES = [
-  { value: "UTC", label: "UTC (Coordinated Universal Time)" },
-  { value: "America/New_York", label: "Eastern Time (US & Canada)" },
-  { value: "America/Chicago", label: "Central Time (US & Canada)" },
-  { value: "America/Denver", label: "Mountain Time (US & Canada)" },
-  { value: "America/Los_Angeles", label: "Pacific Time (US & Canada)" },
-  { value: "Europe/London", label: "London" },
-  { value: "Europe/Paris", label: "Paris" },
-  { value: "Europe/Berlin", label: "Berlin" },
-  { value: "Asia/Tokyo", label: "Tokyo" },
-  { value: "Asia/Shanghai", label: "Shanghai" },
-  { value: "Asia/Kolkata", label: "India" },
-  { value: "Australia/Sydney", label: "Sydney" },
-];
-
 const Booking: React.FC<BookingProps> = ({
   onSetupComplete,
   isEditMode = false,
@@ -170,40 +156,8 @@ const Booking: React.FC<BookingProps> = ({
   const activeAgentId =
     propAgentId || agentIdFromUrl || activeBotId || activeBotData?.agentId;
   const globalCurrency = activeBotData?.currency || "USD";
-  const [timezones, setTimezones] = useState(DEFAULT_TIMEZONES);
-  const [detectedTimezoneInList, setDetectedTimezoneInList] = useState(false);
   const [sessionType, setSessionType] = useState("Consultation");
   const [priceError, setPriceError] = useState("");
-
-  useEffect(() => {
-    if (!isEditMode) {
-      const detectedTz = getUserTimezone();
-      setTimezone(detectedTz);
-  
-      const alreadyInList = DEFAULT_TIMEZONES.find(
-        (tz) => tz.value === detectedTz
-      );
-      setDetectedTimezoneInList(!!alreadyInList);
-  
-      if (!alreadyInList && detectedTz && isValidTimezone(detectedTz)) {
-        try {
-          const detectedTzEntry = {
-            value: detectedTz,
-            label: formatTimezoneDisplay(detectedTz), 
-          };
-  
-          setTimezones((prev) => [
-            detectedTzEntry,
-            ...prev.filter((tz) => tz.value !== detectedTz),
-          ]);
-        } catch (e) {
-          console.error("Error formatting detected timezone:", e);
-        }
-      } else {
-        setTimezones(DEFAULT_TIMEZONES);
-      }
-    }
-  }, [isEditMode]);
 
   // State for active step
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -223,9 +177,18 @@ const Booking: React.FC<BookingProps> = ({
   );
   const [selectedLocation, setSelectedLocation] =
     useState<string>("google_meet");
-  const [timezone, setTimezone] = useState<string>(
-    getUserTimezone()
-  );
+  
+  // IMPROVED: Use user's actual timezone with better detection
+  const [timezone, setTimezone] = useState<string>(() => {
+    try {
+      const userTz = getUserTimezone();
+      return isValidTimezone(userTz) ? userTz : "UTC";
+    } catch (error) {
+      console.error("Error getting user timezone:", error);
+      return "UTC";
+    }
+  });
+  
   const [isFree, setIsFree] = useState(false);
   const [priceAmount, setPriceAmount] = useState(0);
 
@@ -292,6 +255,16 @@ const Booking: React.FC<BookingProps> = ({
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
+  // IMPROVED: Timezone change handler using consistent display
+  const handleTimezoneChange = (newTimezone: string) => {
+    if (isValidTimezone(newTimezone)) {
+      setTimezone(newTimezone);
+      toast.success(`Timezone changed to ${getConsistentTimezoneLabel(newTimezone)}`);
+    } else {
+      toast.error("Invalid timezone selected");
+    }
+  };
+
   // Fetch existing settings if in edit mode
   useEffect(() => {
     const fetchSettings = async () => {
@@ -313,7 +286,6 @@ const Booking: React.FC<BookingProps> = ({
           );
 
           setBreaks(settings.breaks || []);
-
           setSessionType(settings.sessionType || "Consultation");
 
           if (settings.availability && settings.availability.length > 0) {
@@ -347,32 +319,9 @@ const Booking: React.FC<BookingProps> = ({
             }
           }
 
-          if (settings.timezone) {
-            if (isValidTimezone(settings.timezone)) {
-              setTimezone(settings.timezone);
-            
-              const tzInList = DEFAULT_TIMEZONES.find(
-                (tz) => tz.value === settings.timezone
-              );
-              if (!tzInList) {
-                try {
-                  const savedTzEntry = {
-                    value: settings.timezone,
-                    label: formatTimezoneDisplay(settings.timezone),
-                  };
-  
-                  setTimezones((prev) => [
-                    savedTzEntry,
-                    ...prev.filter((tz) => tz.value !== settings.timezone),
-                  ]);
-                } catch (e) {
-                  console.error("Error formatting saved timezone:", e);
-                }
-              }
-            } else {
-              console.warn('Invalid timezone in settings:', settings.timezone);
-              setTimezone('UTC');
-            }
+          // IMPROVED: Better timezone handling from settings
+          if (settings.timezone && isValidTimezone(settings.timezone)) {
+            setTimezone(settings.timezone);
           }
 
           // Load pricing data if available
@@ -383,6 +332,7 @@ const Booking: React.FC<BookingProps> = ({
         }
       } catch (error) {
         console.error("Error fetching booking settings:", error);
+        toast.error("Failed to load existing settings");
       } finally {
         setIsFetchingSettings(false);
       }
@@ -457,34 +407,6 @@ const Booking: React.FC<BookingProps> = ({
     }
   };
 
-  const formatTimezoneDisplay = (tz: string): string => {
-    try {
-      if (!isValidTimezone(tz)) {
-        return tz;
-      }
-      
-      const now = new Date();
-      const offset = new Intl.DateTimeFormat("en", {
-        timeZone: tz,
-        timeZoneName: "short",
-      })
-        .formatToParts()
-        .find((part) => part.type === "timeZoneName")?.value;
-
-      const userTime = new Date(now.toLocaleString("en-US", { timeZone: getUserTimezone() }));
-      const targetTime = new Date(now.toLocaleString("en-US", { timeZone: tz }));
-      const offsetHours = Math.round((targetTime.getTime() - userTime.getTime()) / (1000 * 60 * 60));
-      
-      const offsetString = offsetHours >= 0 ? `+${offsetHours}` : `${offsetHours}`;
-      const cityName = tz.split("/").pop() || tz;
-  
-      return `${cityName} (GMT${offsetString}) ${offset || ''}`;
-    } catch (e) {
-      console.error('Error formatting timezone:', e);
-      return tz;
-    }
-  };
-
   const getAvailableStartTimes = (dayIndex, currentSlotIndex) => {
     const currentSlots = availability[dayIndex].timeSlots;
     const allTimes = generateTimeOptions(0, 24);
@@ -539,8 +461,6 @@ const Booking: React.FC<BookingProps> = ({
       const currentDay = { ...updated[dayIndex] };
       const currentSlots = [...currentDay.timeSlots];
 
-      console.log("Before adding slot - current slots:", currentSlots);
-
       if (currentSlots.length === 0) {
         currentDay.timeSlots = [
           {
@@ -590,8 +510,6 @@ const Booking: React.FC<BookingProps> = ({
             endTime: newEndTime,
           };
           currentDay.timeSlots = [...currentSlots, newSlot];
-
-          console.log("After adding slot - all slots:", currentDay.timeSlots);
         }
       }
 
@@ -719,48 +637,6 @@ const Booking: React.FC<BookingProps> = ({
     });
   };
 
-  const validateAndFixSlots = (dayIndex) => {
-    setAvailability((prev) => {
-      const updated = [...prev];
-      const currentDay = { ...updated[dayIndex] };
-      let slots = [...currentDay.timeSlots];
-
-      // Sort slots by start time
-      slots.sort((a, b) => {
-        const aStart = a.startTime;
-        const bStart = b.startTime;
-        return aStart.localeCompare(bStart);
-      });
-
-      // Remove overlaps
-      const validSlots = [];
-      for (let i = 0; i < slots.length; i++) {
-        const currentSlot = slots[i];
-
-        // Check if this slot overlaps with any already valid slot
-        const hasOverlap = validSlots.some((validSlot) => {
-          return (
-            currentSlot.startTime < validSlot.endTime &&
-            currentSlot.endTime > validSlot.startTime
-          );
-        });
-
-        if (!hasOverlap) {
-          validSlots.push(currentSlot);
-        } else {
-          console.warn(
-            `Removing overlapping slot: ${currentSlot.startTime}-${currentSlot.endTime}`
-          );
-        }
-      }
-
-      currentDay.timeSlots = validSlots;
-      updated[dayIndex] = currentDay;
-
-      return updated;
-    });
-  };
-
   // Helper function to check if a time slot conflicts with breaks
   const hasBreakConflict = (startTime, endTime) => {
     return breaks.some((breakItem) => {
@@ -811,16 +687,12 @@ const Booking: React.FC<BookingProps> = ({
 
     try {
       await updateAppointmentSettings(payload);
+      toast.success(`Calendar settings saved with timezone ${getConsistentTimezoneLabel(timezone)}`);
 
       if (onSetupComplete) {
         onSetupComplete();
       } else {
-        // Use this simpler approach for testing
-        console.log("Navigation triggered to: /admin/commerce/calendar");
         navigate("/admin/commerce/calendar");
-
-        // If that doesn't work, try with the full path:
-        // window.location.href = '/admin/commerce/calendar';
       }
     } catch (error) {
       console.error("Failed to save booking settings:", error);
@@ -903,7 +775,7 @@ const Booking: React.FC<BookingProps> = ({
     </div>
   );
 
-  // Render step 1 - Booking Type
+  // Render step 1 - Booking Type (keeping existing implementation)
   const renderStep1 = () => (
     <div className="mt-6 md:mt-8 px-2 md:px-0">
     <div className="bg-blue-50 p-4 md:p-6 rounded-lg">
@@ -997,7 +869,7 @@ const Booking: React.FC<BookingProps> = ({
         {renderNavigationButtons()}
       </div>
   
-      {/* Step Progress - Following your exact design */}
+      {/* Step Progress */}
       <div className="mt-4 bg-white border border-gray-200 rounded-lg p-3 md:p-4">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-medium">
@@ -1036,7 +908,7 @@ const Booking: React.FC<BookingProps> = ({
     </div>
   );
 
-  // Step 2 - Duration
+  // IMPROVED: Step 2 - Duration with better timezone selector
   const renderStep2 = () => (
     <div className="mt-6 md:mt-8 px-2 md:px-0">
       {/* Completed Step 1 */}
@@ -1051,45 +923,41 @@ const Booking: React.FC<BookingProps> = ({
   
       {/* Active Step 2 */}
       <div className="bg-blue-50 p-6 md:p-6 rounded-lg">
-        <div className="flex items-center mb-6">
-          <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-medium">
-            2
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+          <div className="flex items-center mb-2 md:mb-0">
+            <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-medium">
+              2
+            </div>
+            <h3 className="ml-3 text-lg font-medium">Duration</h3>
           </div>
-          <h3 className="ml-3 text-lg font-medium">Duration</h3>
           
-          {/* Timezone Selector - Right aligned on desktop */}
-          <div className="ml-auto hidden md:flex items-center">
+          {/* IMPROVED: Better timezone selector with consistent display */}
+          <div className="flex items-center">
             <span className="text-sm font-medium mr-3">Your Time Zone</span>
-            <select
-              value={timezone}
-              onChange={(e) => setTimezone(e.target.value)}
-              className="p-2 border border-gray-300 rounded-md text-sm bg-white min-w-[200px]"
-            >
-              {timezones.map((tz) => (
-                <option key={tz.value} value={tz.value}>
-                  {tz.label}
-                </option>
-              ))}
-            </select>
+            <div className="min-w-[200px]">
+              <TimezoneSelector
+                selectedTimezone={timezone}
+                onTimezoneChange={handleTimezoneChange}
+                theme={{
+                  isDark: false,
+                  mainLightColor: "#3b82f6",
+                  highlightColor: "#3b82f6"
+                }}
+                showLabel={true}
+                className="w-full"
+              />
+            </div>
           </div>
         </div>
-  
-        {/* Mobile Timezone Selector */}
-        <div className="mb-6 md:hidden">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Your Time Zone
-          </label>
-          <select
-            value={timezone}
-            onChange={(e) => setTimezone(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-md text-sm bg-white"
-          >
-            {timezones.map((tz) => (
-              <option key={tz.value} value={tz.value}>
-                {tz.label}
-              </option>
-            ))}
-          </select>
+
+        {/* Timezone Display - Show current selection clearly */}
+        <div className="mb-6 p-3 bg-blue-100 border border-blue-200 rounded-lg">
+          <div className="flex items-center text-sm text-blue-800">
+            <Calendar className="h-4 w-4 mr-2" />
+            <span>
+              <strong>Selected Timezone:</strong> {getConsistentTimezoneLabel(timezone)}
+            </span>
+          </div>
         </div>
   
         {/* Duration Section */}

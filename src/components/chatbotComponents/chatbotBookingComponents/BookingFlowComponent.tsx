@@ -41,13 +41,14 @@ import { useUserStore } from "../../../store/useUserStore";
 import { useBotConfig } from "../../../store/useBotConfig";
 import { LoginCard } from "../otherComponents/LoginCard"; 
 import { BookingPaymentComponent } from "./BookingPaymentComponent";
+import TimezoneSelector, { getConsistentTimezoneLabel } from "./TimezoneSelector";
+import { useTimezone } from "../../../context/TimezoneContext";
 import toast from "react-hot-toast";
 import { formatTimezone, isValidTimezone, getUserTimezone, getTimezoneDifference } from "../../../utils/timezoneUtils";
 import { DateTime } from 'luxon';
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-// Currency symbols mapping
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
   EUR: "€",
@@ -102,11 +103,9 @@ interface AppointmentSettings {
   locations: Array<"google_meet" | "zoom" | "teams" | "in_person">;
 }
 
-// Helper function to detect user's country based on timezone
 const getUserCountry = (): string => {
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   
-  // Map common timezones to countries
   const timezoneToCountry: Record<string, string> = {
     'Asia/Kolkata': 'IN',
     'Asia/Mumbai': 'IN',
@@ -159,7 +158,7 @@ const getUserCountry = (): string => {
     'Asia/Ho_Chi_Minh': 'VN',
   };
   
-  return timezoneToCountry[timezone] || 'US'; // Default to US if not found
+  return timezoneToCountry[timezone] || 'US';
 };
 
 const getConsistentDateString = (date) => {
@@ -197,7 +196,9 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   onClose,
   theme
 }) => {
-  // Get user information from the user store
+  // USE TIMEZONE FROM CONTEXT - No more local timezone detection!
+  const { userTimezone, setUserTimezone, isTimezoneReady } = useTimezone();
+  
   const { isLoggedIn, userEmail } = useUserStore();
   const { activeBotData } = useBotConfig();
   const globalCurrency = activeBotData?.currency || "USD";
@@ -216,7 +217,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const [phone, setPhone] = useState("");
   const [phoneError, setPhoneError] = useState("");
   
-  // Auto-detect user's country and initialize phone formatter
   const userCountry = getUserCountry();
   const [selectedCountryCode, setSelectedCountryCode] = useState(() => getCallingCode(userCountry));
   const [phoneFormatter] = useState(() => new SmartPhoneFormatter(userCountry));
@@ -229,10 +229,9 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const [settings, setSettings] = useState<AppointmentSettings | null>(null);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [unavailableDates, setUnavailableDates] = useState<Record<string, UnavailableDate>>({});
-  const [userTimezone, setUserTimezone] = useState<string>(
-    getUserTimezone() 
-  );
+  
   const [businessTimezone, setBusinessTimezone] = useState<string>("UTC");
+  
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [stripeProcessing, setStripeProcessing] = useState(false);
@@ -240,14 +239,10 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const [nameError, setNameError] = useState("");
   const [isFormValid, setIsFormValid] = useState(false);
   
-  // Add state for day-wise availability
   const [dayWiseAvailability, setDayWiseAvailability] = useState<Record<string, boolean>>({});
   const [loadingAvailability, setLoadingAvailability] = useState(false);
-  
-  // Add debug state to track availability issues
   const [availabilityDebug, setAvailabilityDebug] = useState<string>("");
 
-  // Check if any payment method is enabled
   const availablePaymentMethods = useMemo(() => {
     if (!activeBotData?.paymentMethods) return [];
     
@@ -294,7 +289,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     }, 0);
   };
   
-  // Store dynamic price info
   const [dynamicPrice, setDynamicPrice] = useState({
     isFree: servicePrice === "Free", 
     amount: servicePrice !== "Free" ? parseFloat(servicePrice.replace(/[^0-9.]/g, "")) || 0 : 0,
@@ -302,16 +296,13 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     displayPrice: servicePrice
   });
   
-  // Pre-fill the email if the user is logged in
   useEffect(() => {
     if (isLoggedIn && userEmail) {
       setEmail(userEmail);
-      // Also validate it immediately to avoid validation errors
       validateEmail(userEmail);
     }
   }, [isLoggedIn, userEmail]);
   
-  // Format price for display
   const formatPrice = useCallback((priceSettings?: PriceSettings): string => {
     if (!priceSettings) return "Free";
     if (priceSettings.isFree) return "Free";
@@ -343,7 +334,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
     
-    // Handle backspace/deletion
     if (input.length < phone.length) {
       setPhone(input);
       if (phoneError) {
@@ -355,22 +345,17 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       return;
     }
     
-    // Auto-detect country using optimized function
     const detectedCountry = autoDetectCountry(input, selectedCountry);
     
-    // Update country if different (with console log for debugging)
     if (detectedCountry !== selectedCountry) {
-      console.log(`🌍 Country detected: ${selectedCountry} → ${detectedCountry}`);
       setSelectedCountry(detectedCountry);
       setSelectedCountryCode(getCallingCode(detectedCountry));
       phoneFormatter.setCountry(detectedCountry);
     }
     
-    // Format the number with the detected country
     const result = phoneFormatter.formatAsYouType(input);
     setPhone(result.formatted);
     
-    // Validate with detected country
     setTimeout(() => {
       if (input.trim()) {
         const validation = validatePhoneNumber(input.trim(), detectedCountry);
@@ -381,6 +366,23 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       setIsFormValid(validateForm());
     }, 0);
   };
+
+  // CLEAN TIMEZONE CHANGE HANDLER - Only for manual changes
+  const handleTimezoneChange = useCallback((newTimezone: string) => {
+    setUserTimezone(newTimezone);
+    
+    // Reset booking flow when timezone changes
+    setSelectedDate(null);
+    setSelectedSlot(null);
+    setSlots([]);
+    
+    if (step !== 'date') {
+      setStep('date');
+    }
+    
+    // Show confirmation for manual changes using consistent display
+    toast.success(`Timezone changed to ${getConsistentTimezoneLabel(newTimezone)}`);
+  }, [step, setUserTimezone]);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60_000);
@@ -402,7 +404,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     }
   }, [showCountryCodes]);
 
-  // Fetch day-wise availability with improved error handling
   const fetchDayWiseAvailability = async () => {
     if (!businessId) return;
     
@@ -410,22 +411,16 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     setAvailabilityDebug('');
     
     try {
-      console.log('🔍 Fetching availability for business:', businessId);
       const availability = await getDayWiseAvailability(businessId, userTimezone);
       
-      console.log('📥 API Response:', availability);
-      
       if (typeof availability === 'object' && availability !== null) {
-        // Normalize all date keys to YYYY-MM-DD format
         const normalizedAvailability = {};
         Object.entries(availability).forEach(([dateStr, isAvailable]) => {
           let normalizedDate = dateStr;
           
-          // Handle different date formats that might come from API
           if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            normalizedDate = dateStr; // Already correct format
+            normalizedDate = dateStr;
           } else if (dateStr.match(/^\d{2}-[A-Z]{3}-\d{4}$/)) {
-            // Convert DD-MMM-YYYY to YYYY-MM-DD
             const [day, month, year] = dateStr.split('-');
             const monthMap = {
               'JAN': '01', 'FEB': '02', 'MAR': '03', 'APR': '04', 'MAY': '05', 'JUN': '06',
@@ -437,15 +432,12 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           normalizedAvailability[normalizedDate] = Boolean(isAvailable);
         });
         
-        console.log('✅ Normalized availability:', normalizedAvailability);
         setDayWiseAvailability(normalizedAvailability);
       } else {
-        console.error("Invalid availability response:", availability);
         setAvailabilityDebug("Invalid API response format");
         setDayWiseAvailability({});
       }
     } catch (error) {
-      console.error("Error fetching availability:", error);
       setAvailabilityDebug(`Error: ${error.message}`);
       setDayWiseAvailability({});
     } finally {
@@ -454,16 +446,16 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   };
 
   useEffect(() => {
-    if (businessId) {
+    if (businessId && isTimezoneReady) {
       fetchDayWiseAvailability();
     }
-  }, [businessId, userTimezone]);
+  }, [businessId, userTimezone, isTimezoneReady]);
 
   useEffect(() => {
-    if (businessId) {
+    if (businessId && isTimezoneReady) {
       fetchDayWiseAvailability();
     }
-  }, [currentMonth.getMonth(), currentMonth.getFullYear()]);
+  }, [currentMonth.getMonth(), currentMonth.getFullYear(), isTimezoneReady]);
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -478,12 +470,10 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           if (isValidTimezone(data.timezone)) {
             setBusinessTimezone(data.timezone);
           } else {
-            console.warn('Invalid business timezone:', data.timezone);
             setBusinessTimezone('UTC');
           }
         }
 
-        // Get pricing data from settings
         if (data.price) {
           const formattedPrice = data.price.isFree ? "Free" : `${data.price.amount} ${globalCurrency}`;
           
@@ -517,14 +507,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       setSelectedLocation(settings.locations[0]);
     }
   }, [settings]);
-
-  useEffect(() => {
-    const detectedTimezone = getUserTimezone();
-    if (detectedTimezone !== userTimezone) {
-      console.log('Updating user timezone from', userTimezone, 'to', detectedTimezone);
-      setUserTimezone(detectedTimezone);
-    }
-  }, []);
 
   const getTimezoneDifferenceDisplay = (): string => {
     return getTimezoneDifference(userTimezone, businessTimezone);
@@ -601,29 +583,23 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     
       const dateStr = getConsistentDateString(date);
       
-      // PRIORITY 1: API day-wise availability (highest priority)
       if (dayWiseAvailability.hasOwnProperty(dateStr)) {
         const apiAvailability = dayWiseAvailability[dateStr];
-        console.log(`🎯 Date ${dateStr} API availability:`, apiAvailability);
         
-        // If API says false, it's unavailable
         if (apiAvailability === false) {
           return true;
         }
-        // If API says true, it's available (override other rules)
         if (apiAvailability === true) {
           return false;
         }
       }
     
-      // PRIORITY 2: Date-specific overrides from settings
       const apiDate = fmtApiDate(date);
       const unavailableDate = unavailableDates[apiDate];
       if (unavailableDate && unavailableDate.allDay === true) {
         return true;
       }
     
-      // PRIORITY 3: Weekly availability rules
       if (!settings) return false;
       
       const dayName = DateTime.fromJSDate(date).setZone(userTimezone).toFormat('cccc');
@@ -643,18 +619,12 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       const apiDate = fmtApiDate(d);
       const dateStr = getConsistentDateString(d);
       
-      console.log(`🎯 Selecting date: ${dateStr} (API: ${apiDate})`);
-      
       try {
         const slots = await getAvailableSlots(businessId, apiDate, userTimezone);
-        
-        console.log(`⏰ Slots for ${dateStr}:`, slots);
         
         if (slots && slots.length > 0) {
           setSlots(slots.map(slot => ({ ...slot, available: true })));
         } else {
-          console.log(`❌ No slots for ${dateStr}, updating availability`);
-          // Update local state to reflect no availability
           setDayWiseAvailability(prev => ({
             ...prev,
             [dateStr]: false
@@ -662,9 +632,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           setSlots([]);
         }
       } catch (error) {
-        console.error("Error fetching slots for", dateStr, ":", error);
         setSlots([]);
-        // Mark as unavailable on error
         setDayWiseAvailability(prev => ({
           ...prev,
           [dateStr]: false
@@ -754,21 +722,17 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     }
   };
 
-  const renderTimezoneInfo = () => (
-    <div className="flex items-start text-xs mb-4">
-      <Globe className="h-4 w-4 mr-1 flex-shrink-0 mt-0.5" style={{ color: theme.mainLightColor }} />
-      <div>
-        <p>
-          Timezone: <strong>{formatTimezone(userTimezone)}</strong>
-          {businessTimezone !== userTimezone && (
-            <span className="text-xs block opacity-75">
-              ({getTimezoneDifferenceDisplay()})
-            </span>
-          )}
-        </p>
+  // SHOW LOADING WHILE TIMEZONE IS BEING DETECTED
+  if (!isTimezoneReady) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="animate-spin h-8 w-8" style={{ color: theme.mainLightColor }} />
+        <span className="ml-2 text-sm" style={{ color: theme.isDark ? '#fff' : '#000' }}>
+          Preparing booking system...
+        </span>
       </div>
-    </div>
-  );
+    );
+  }
 
   const renderContent = () => {
     if (loadingSettings) {
@@ -777,10 +741,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           <Loader2 className="animate-spin h-8 w-8" style={{ color: theme.mainLightColor }} />
         </div>
       );
-    }
-
-    if (loadingSettings) {
-      return <LoadingSkeleton theme={theme} />;
     }
 
     if (step === "date") {
@@ -793,7 +753,11 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           <div>
             <div className="flex justify-between items-center text-sm mb-4" style={{ borderColor: theme.isDark ? "#333" : "#ddd" }}>
               <h3 className="font-medium">SELECT SLOT</h3>
-              <div className="text-sm">Timezone: {formatTimezone(userTimezone)}</div>
+              <TimezoneSelector
+                selectedTimezone={userTimezone}
+                onTimezoneChange={handleTimezoneChange}
+                theme={theme}
+              />
             </div>
 
             {loadingAvailability ? (
@@ -803,12 +767,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
             </div>
           ) : (
             <div className="mb-4">
-              {/* Debug info */}
-              {availabilityDebug && (
-                <div className="text-xs mb-2 p-1 bg-gray-100 rounded">
-                  Debug: {availabilityDebug}
-                </div>
-              )}
               <div className="flex items-center justify-between mb-2">
                 <button
                   onClick={prevMonth}
@@ -844,18 +802,9 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                   const dn = i + 1;
                   const date = new Date(y, m, dn);
                   
-                  // Use consistent date formatting
                   const dateString = getConsistentDateString(date);
                   
-                  // Check availability with clear logging
                   const isUnavailable = isDateFullyUnavailable(date);
-                  const hasApiData = dayWiseAvailability.hasOwnProperty(dateString);
-                  const apiValue = dayWiseAvailability[dateString];
-                  
-                  // Debug logging (remove in production)
-                  if (hasApiData) {
-                    console.log(`📅 ${dateString}: API=${apiValue}, Final=${!isUnavailable}`);
-                  }
                   
                   return (
                     <button
@@ -877,7 +826,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                           ? (theme.isDark ? "#555" : "#aaa") 
                           : (theme.isDark ? "#fff" : "#000"),
                       }}
-                      title={hasApiData ? `API: ${apiValue}` : "No API data"}
                     >
                       {dn}
                     </button>
@@ -891,7 +839,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       }
       
       if (step === "time" && selectedDate) {
-        const todayStr = selectedDate.toDateString();
         const availableSlots = slots.filter((s) => {
           if (!s.available) return false;
           if (selectedDate.toDateString() !== now.toDateString()) return true;
@@ -918,7 +865,11 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                 >
                   <ArrowLeft className="h-4 w-4 mr-1" /> BACK
                 </button>
-                <div className="text-sm">Timezone: {formatTimezone(userTimezone)}</div>
+                <TimezoneSelector
+                  selectedTimezone={userTimezone}
+                  onTimezoneChange={handleTimezoneChange}
+                  theme={theme}
+                />
               </div>
               
               <div className="mb-4 flex justify-between">
@@ -926,7 +877,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                 <div>{fmtDateFull(selectedDate)}</div>
               </div>
               
-              {/* Login Card */}
               <LoginCard theme={theme} />
             </div>
           );
@@ -942,7 +892,11 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
               >
                 <ArrowLeft className="h-4 w-4 mr-1" /> BACK
               </button>
-              <div className="text-sm">Timezone: {formatTimezone(userTimezone)}</div>
+              <TimezoneSelector
+                selectedTimezone={userTimezone}
+                onTimezoneChange={handleTimezoneChange}
+                theme={theme}
+              />
             </div>
       
             <div className="mb-4 flex justify-between">
@@ -1003,7 +957,11 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
               >
                 <ArrowLeft className="h-4 w-4 mr-1" /> BACK
               </button>
-              <div className="text-sm">Timezone: {formatTimezone(userTimezone)}</div>
+              <TimezoneSelector
+                selectedTimezone={userTimezone}
+                onTimezoneChange={handleTimezoneChange}
+                theme={theme}
+              />
             </div>
       
             <div className="mb-4 flex justify-between items-center">
@@ -1090,80 +1048,80 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
               </div>
       
               <div>
-  <div className="flex">
-    <div className="relative country-code-dropdown">
-      <button
-        type="button"
-        onClick={() => setShowCountryCodes(!showCountryCodes)}
-        className={`flex items-center justify-between h-full px-3 rounded-l border-r ${
-          theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
-        }`}
-        style={{ 
-          backgroundColor: theme.mainLightColor,
-          color: theme.isDark ? "black" : "white",
-          borderColor: theme.isDark ? "#444" : "#ddd"
-        }}
-      >
-        <span className="flex items-center">
-          {MAJOR_COUNTRIES.find(c => c.code === selectedCountry)?.flag || "🌍"}
-          <span className="ml-1 text-sm">{selectedCountryCode}</span>
-        </span>
-        <ChevronDown className="h-4 w-4 ml-1" />
-      </button>
+                <div className="flex">
+                  <div className="relative country-code-dropdown">
+                    <button
+                      type="button"
+                      onClick={() => setShowCountryCodes(!showCountryCodes)}
+                      className={`flex items-center justify-between h-full px-3 rounded-l border-r ${
+                        theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
+                      }`}
+                      style={{ 
+                        backgroundColor: theme.mainLightColor,
+                        color: theme.isDark ? "black" : "white",
+                        borderColor: theme.isDark ? "#444" : "#ddd"
+                      }}
+                    >
+                      <span className="flex items-center">
+                        {MAJOR_COUNTRIES.find(c => c.code === selectedCountry)?.flag || "🌍"}
+                        <span className="ml-1 text-sm">{selectedCountryCode}</span>
+                      </span>
+                      <ChevronDown className="h-4 w-4 ml-1" />
+                    </button>
 
-      {showCountryCodes && (
-        <div className="absolute z-10 mt-1 bg-white border rounded-lg shadow-lg w-80 max-h-60 overflow-y-auto" style={{ 
-          backgroundColor: theme.isDark ? "#222" : "#fff",
-          color: theme.isDark ? "#fff" : "#000"
-        }}>
-          {MAJOR_COUNTRIES.map((country) => (
-            <button
-              key={country.code}
-              type="button"
-              onClick={() => {
-                setSelectedCountry(country.code);
-                setSelectedCountryCode(country.callingCode);
-                phoneFormatter.setCountry(country.code);
-                setShowCountryCodes(false);
-                if (phoneInputRef.current) {
-                  phoneInputRef.current.focus();
-                }
-              }}
-              className="w-full text-left px-3 py-2 hover:bg-opacity-10 hover:bg-gray-500 text-sm flex items-center justify-between"
-            >
-              <div className="flex items-center">
-                <span className="mr-2">{country.flag}</span>
-                <span>{country.name}</span>
+                    {showCountryCodes && (
+                      <div className="absolute z-10 mt-1 bg-white border rounded-lg shadow-lg w-80 max-h-60 overflow-y-auto" style={{ 
+                        backgroundColor: theme.isDark ? "#222" : "#fff",
+                        color: theme.isDark ? "#fff" : "#000"
+                      }}>
+                        {MAJOR_COUNTRIES.map((country) => (
+                          <button
+                            key={country.code}
+                            type="button"
+                            onClick={() => {
+                              setSelectedCountry(country.code);
+                              setSelectedCountryCode(country.callingCode);
+                              phoneFormatter.setCountry(country.code);
+                              setShowCountryCodes(false);
+                              if (phoneInputRef.current) {
+                                phoneInputRef.current.focus();
+                              }
+                            }}
+                            className="w-full text-left px-3 py-2 hover:bg-opacity-10 hover:bg-gray-500 text-sm flex items-center justify-between"
+                          >
+                            <div className="flex items-center">
+                              <span className="mr-2">{country.flag}</span>
+                              <span>{country.name}</span>
+                            </div>
+                            <span className="text-xs opacity-75">{country.callingCode}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <input
+                    type="tel"
+                    value={phone}
+                    placeholder={getExamplePhoneNumber(selectedCountry) || "PHONE"}
+                    onChange={handlePhoneChange}
+                    ref={phoneInputRef}
+                    className={`w-full p-2 rounded-r ${
+                        theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
+                      }`}
+                    style={{ 
+                      backgroundColor: theme.mainLightColor,
+                      color: theme.isDark ? "black" : "white",
+                      borderColor: phoneError ? "red" : "transparent"
+                    }}
+                  />
+                </div>
+                {phoneError && (
+                  <div className="mt-1 text-red-500 text-xs">
+                    {phoneError}
+                  </div>
+                )}
               </div>
-              <span className="text-xs opacity-75">{country.callingCode}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-
-    <input
-      type="tel"
-      value={phone}
-      placeholder={getExamplePhoneNumber(selectedCountry) || "PHONE"}
-      onChange={handlePhoneChange}
-      ref={phoneInputRef}
-      className={`w-full p-2 rounded-r ${
-          theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
-        }`}
-      style={{ 
-        backgroundColor: theme.mainLightColor,
-        color: theme.isDark ? "black" : "white",
-        borderColor: phoneError ? "red" : "transparent"
-      }}
-    />
-  </div>
-  {phoneError && (
-    <div className="mt-1 text-red-500 text-xs">
-      {phoneError}
-    </div>
-  )}
-</div>
       
               <div>
                 <div className="relative">
@@ -1182,7 +1140,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                 </div>
               </div>
 
-              {/* Payment Warning for Paid Bookings */}
               {isPaidBooking && !hasEnabledPaymentMethods && (
                 <div 
                   className="mb-3 p-2 rounded-lg border text-center text-xs"
@@ -1240,7 +1197,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           userTimezone: userTimezone,
         };
       
-        // Create the price object from your dynamic price state
         const priceDetails = {
           amount: dynamicPrice.amount,
           currency: dynamicPrice.currency,
@@ -1295,6 +1251,18 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                 </div>
                 <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
                     {fmtTime(selectedSlot.startTime)} - {fmtTime(selectedSlot.endTime)}
+                </div>
+                </div>
+
+                <div className="flex justify-between items-center">
+                <div 
+                    className="font-medium uppercase"
+                    style={{ color: theme.highlightColor }}
+                >
+                    TIMEZONE
+                </div>
+                <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
+                    {getConsistentTimezoneLabel(userTimezone)}
                 </div>
                 </div>
                 
