@@ -82,7 +82,7 @@ const Support = () => {
         const data = JSON.parse(event.data);
         console.log("Received message:", data);
 
-        if (data.message) {
+        if (data.message && data.type === "chatUpdated") {
           const newMessage: Message = {
             content: data.message.content,
             sender: data.message.sender,
@@ -138,7 +138,7 @@ const Support = () => {
           {
             sender: "admin",
             content: adminMessage.content,
-            timestamp: adminMessage.timestamp.toISOString(),
+            timestamp: adminMessage.timestamp,
           },
         ],
         clientId: adminId,
@@ -227,7 +227,7 @@ const Support = () => {
                   message.sender === "admin" ? "text-blue-100" : "text-gray-500"
                 }`}
               >
-                {formatTimestamp(message.timestamp)}
+                {formatTimestamp(new Date(message.timestamp))}
               </span>
             </div>
           </div>
