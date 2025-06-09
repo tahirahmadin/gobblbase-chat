@@ -10,6 +10,7 @@ import {
   Video,
   Link as LinkIcon
 } from 'lucide-react';
+import { getConsistentTimezoneLabel } from "../../../components/chatbotComponents/chatbotBookingComponents/TimezoneSelector";
 
 interface MeetingDetailsProps {
   meeting: any;
@@ -105,13 +106,18 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({
           </div>
         )}
         
-        {/* Timezone */}
+        {/* IMPROVED: Timezone with consistent display */}
         <div>
           <div className="flex items-center text-gray-500 mb-1 text-xs">
             <Globe className="h-3 w-3 mr-1" />
             <span>Timezone</span>
           </div>
-          <div className="text-sm">{meeting.userTimezone || businessTimezone}</div>
+          <div className="text-sm">
+            {meeting.userTimezone 
+              ? getConsistentTimezoneLabel(meeting.userTimezone)
+              : getConsistentTimezoneLabel(businessTimezone)
+            }
+          </div>
         </div>
         
         {/* Session Type */}
