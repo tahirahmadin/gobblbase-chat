@@ -306,7 +306,7 @@ const CustomLinksSection = () => {
           disabled={isSaving || !hasCustomLinksChanged()}
           className={`transition-colors ${
             isSaving || !hasCustomLinksChanged()
-              ? "opacity-50 cursor-not-allowed"
+              ? "cursor-not-allowed"
               : ""
           }`}
         >

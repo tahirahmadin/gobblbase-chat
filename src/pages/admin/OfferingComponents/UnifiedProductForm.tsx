@@ -737,9 +737,9 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
               <label className="font-semibold block">Upload Product</label>
 
               <div className="border border-[#7D7D7D] w-full rounded-lg p-4">
-                <div className="flex flex-col gap-2 ">
-                  <label className="flex flex-col items-start sm:flex-row sm:items-center gap-2 lg:flex-col lg:items-start 2xl:flex-row 2xl:items-center">
-                    <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-4">
+                  <label className="flex flex-col items-start xs:flex-row sm:items-center gap-2 lg:flex-col lg:items-start xl:flex-row 2xl:items-center">
+                    <div className="flex items-center gap-4">
                       <input
                         type="radio"
                         name="uploadType"
@@ -768,7 +768,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       <span>Upload</span>
                     </div>
 
-                    <div className="flex gap-2 xs:flex-row items-start ml-2 lg:flex-col lg:ml-0 lg:mt-2 xl:flex-row">
+                    <div className="">
                       <input
                         type="file"
                         className="hidden"
@@ -805,7 +805,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       />
                       <label
                         htmlFor="digital-upload-file"
-                        className={`border-2 whitespace-nowrap border-dashed border-gray-300 rounded px-2 py-1 bg-gray-50 cursor-pointer ${
+                        className={`border-2 whitespace-nowrap border-dashed border-gray-300 rounded px-7 py-1 bg-gray-50 cursor-pointer ${
                           form.uploadType !== "upload"
                             ? "opacity-50 cursor-not-allowed"
                             : ""
@@ -813,44 +813,39 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       >
                         Drag & Drop File
                       </label>
-                      <Button
-                        type="button"
-                        className=""
-                        disabled={form.uploadType !== "upload" || !form.file}
-                      >
-                        UPLOAD
-                      </Button>
                     </div>
                   </label>
-                  <label className="flex items-center gap-2 mt-8">
-                    <input
-                      type="radio"
-                      name="uploadType"
-                      value="redirect"
-                      checked={form.uploadType === "redirect"}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, uploadType: e.target.value }))
-                      }
-                      className="hidden"
-                    />
-                    {/* Custom Circle Visual */}
-                    <div
-                      className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
-                        ${
-                          form.uploadType === "redirect"
-                            ? "bg-[#CEFFDC]"
-                            : "bg-[#CDCDCD]"
-                        }
-                          `}
-                    >
-                      {form.uploadType === "redirect" && (
-                        <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]" />
-                      )}
-                    </div>
-                    <span>Redirect to URL</span>
+                  <label className="flex gap-2 flex-col  items-start  xs:flex-row xs:items-center lg:flex-col lg:items-start lg:ml-0 lg:mt-2 xl:flex-row xl:items-center" >
+                      <span className="flex items-center gap-4">
+                        <input
+                          type="radio"
+                          name="uploadType"
+                          value="redirect"
+                          checked={form.uploadType === "redirect"}
+                          onChange={(e) =>
+                            setForm((f) => ({ ...f, uploadType: e.target.value }))
+                          }
+                          className="hidden"
+                        />
+                        {/* Custom Circle Visual */}
+                          <div
+                            className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
+                            ${
+                              form.uploadType === "redirect"
+                                ? "bg-[#CEFFDC]"
+                                : "bg-[#CDCDCD]"
+                            }
+                              `}
+                          >
+                            {form.uploadType === "redirect" && (
+                              <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]" />
+                            )}
+                          </div>
+                        <span>Redirect to URL</span>
+                      </span>
                     <input
                       type="text"
-                      className="ml-2 border border-[#7d7d7d] p-1 bg-white"
+                      className="border border-[#7d7d7d] p-1 bg-white"
                       placeholder="http://"
                       value={form.fileUrl || ""}
                       onChange={(e) =>

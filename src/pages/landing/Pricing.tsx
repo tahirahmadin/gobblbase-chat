@@ -226,7 +226,7 @@ const PurpleBackground = styled.span`
     &::after {
       content: "";
       position: absolute;
-      transform: translate(0.6rem, 0.04rem);
+      transform: translate(0.62rem, 0.044rem);
       bottom: 0px;
       right: 0;
       width: 0;

@@ -31,6 +31,7 @@ import {
   updateUnavailableDates,
 } from "../../../lib/serverActions";
 import { AvailabilityDay } from "./Booking";
+import { getConsistentTimezoneLabel } from "../../../components/chatbotComponents/chatbotBookingComponents/TimezoneSelector";
 
 // Format time for display
 const formatTime12 = (t24) => {
@@ -38,25 +39,6 @@ const formatTime12 = (t24) => {
   const suffix = h >= 12 ? "pm" : "am";
   const hr12 = h % 12 === 0 ? 12 : h % 12;
   return `${hr12}:${m.toString().padStart(2, "0")}${suffix}`;
-};
-
-// Format timezone for display
-const formatTimezone = (tz) => {
-  try {
-    const date = new Date();
-    const options = {
-      timeZone: tz,
-      timeZoneName: "short",
-    };
-    const tzName =
-      new Intl.DateTimeFormat("en-US", options)
-        .formatToParts(date)
-        .find((part) => part.type === "timeZoneName")?.value || tz;
-
-    return tzName;
-  } catch (e) {
-    return tz;
-  }
 };
 
 // Calendar component for Schedule view
@@ -781,7 +763,8 @@ const AvailabilitySchedule = ({ activeAgentId }) => {
     <div className="bg-white rounded-lg p-4">
       <div className="flex justify-between items-center mb-4">
         <span className="text-sm text-gray-500">Select Day</span>
-        <span className="text-xs text-gray-500">Timezone: {formatTimezone(userTimezone)}</span>
+        {/* IMPROVED: Use consistent timezone display */}
+        <span className="text-xs text-gray-500">Timezone: {getConsistentTimezoneLabel(userTimezone)}</span>
       </div>
       
       <div className="flex justify-between items-center mb-4 bg-blue-600 text-white px-4 py-2 rounded-lg">

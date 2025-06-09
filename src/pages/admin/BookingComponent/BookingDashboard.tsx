@@ -23,6 +23,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useBotConfig } from "../../../store/useBotConfig";
+import { getConsistentTimezoneLabel } from "../../../components/chatbotComponents/chatbotBookingComponents/TimezoneSelector";
 import { formatTimezone, isValidTimezone, getTimezoneDifference, getUserTimezone, convertTime } from "../../../utils/timezoneUtils";
 import {
   getAppointmentSettings,
@@ -219,11 +220,11 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
           <div className="text-xs text-gray-500">
             <div className="font-medium text-green-600">
               {formatTime(meeting.convertedStartTime!)} - {formatTime(meeting.convertedEndTime!)}
-              <span className="text-xs ml-1">({formatTimezone(businessTimezone)})</span>
+              <span className="text-xs ml-1">({getConsistentTimezoneLabel(businessTimezone)})</span>
             </div>
             <div className="text-xs text-gray-400">
               was {formatTime(meeting.startTime)} - {formatTime(meeting.endTime)}
-              <span className="text-xs ml-1">({formatTimezone(bookingSettings?.timezone || businessTimezone)})</span>
+              <span className="text-xs ml-1">({getConsistentTimezoneLabel(meeting.originalTimezone || bookingSettings?.timezone || businessTimezone)})</span>
             </div>
           </div>
         );
@@ -514,7 +515,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
 
   const { totalMeetings, totalPages, startIndex, endIndex, paginatedMeetings } = paginationData;
 
-  // Memoized components
+  // IMPROVED: Calendar Settings Sidebar with consistent timezone display
   const CalendarSettingsSidebar = useMemo(() => {
     if (!bookingSettings) return null;
 
@@ -552,7 +553,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
           <div>
             <div className="text-sm font-medium mb-1">Time zone</div>
             <div className="bg-gray-100 rounded-md p-2 text-sm">
-              {formatTimezone(bookingSettings.timezone)}
+              {getConsistentTimezoneLabel(bookingSettings.timezone)}
             </div>
           </div>
 
@@ -634,7 +635,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
     );
   }, [bookingSettings, globalCurrency, handleEditSettingsClick]);
 
-  // Mobile Calendar Settings Dropdown Component
+  // IMPROVED: Mobile Calendar Settings Dropdown Component with consistent timezone display
   const MobileCalendarSettingsDropdown = useMemo(() => {
     if (!bookingSettings || !showMobileCalendarSettings) return null;
 
@@ -672,7 +673,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
           <div>
             <div className="text-sm font-medium mb-2">Time zone</div>
             <div className="bg-gray-100 rounded-md p-3 text-sm">
-              {formatTimezone(bookingSettings.timezone)}
+              {getConsistentTimezoneLabel(bookingSettings.timezone)}
             </div>
           </div>
 
@@ -885,7 +886,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                 <div className="text-amber-700">
                   Some meetings were created in a different timezone. Times shown in{" "}
                   <strong className="text-green-600">green</strong> reflect your current timezone 
-                  ({formatTimezone(businessTimezone)}). Crossed-out times show the original timezone.
+                  ({getConsistentTimezoneLabel(businessTimezone)}). Crossed-out times show the original timezone.
                 </div>
               </div>
             </div>
@@ -1540,7 +1541,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
                                           {meeting.userId}
                                         </div>
                                       </div>
-                                      <div className="flex flex-wrap gap-1">
+                                      <div className="flex flex-wrap gap-1 justify-end items-start">
                                         <span
                                           className={`px-2 py-1 rounded-full text-xs ${
                                             meeting.status === "confirmed"

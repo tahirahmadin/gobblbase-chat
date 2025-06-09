@@ -4,7 +4,36 @@ import { useBotConfig } from "../../store/useBotConfig";
 import { useAdminStore } from "../../store/useAdminStore";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useServerHook } from "../../hooks/useServerHook";
+import styled from "styled-components";
+const Button = styled.button`
+  position: relative;
+  background: #6AFF97;
+  padding: 0.6vh 1vw;
+  border: 1px solid black;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: clamp(8px, 4vw, 16px);
+  &::before {
+    content: "";
+    position: absolute;
+    top: 5px;
+    right: -5px;
+    width: 100%;
+    height: 100%;
+    border: 1px solid #000000;
+    z-index: -1; // place it behind the button
+    background: #6AFF97;
+  }
 
+  &:disabled {
+    background:rgb(113, 240, 151);
+    color: #b0b0b0;
+    cursor: not-allowed;
+  }
+  &:disabled::before {
+    background: rgb(113, 240, 151);
+  }
+`;
 interface Agent {
   agentId: string;
   name: string;
@@ -48,16 +77,19 @@ const Header = () => {
 
   return (
     <header
-      className="bg-white border-b border-gray-200 shadow-lg z-10"
+      className="bg-white relative border-b border-gray-200 shadow-lg z-[20]"
       style={{ backgroundColor: "#eaefff" }}
     >
       <div className="flex justify-between items-center px-6 py-2">
-        <div className="flex items-center  pl-[40px] md:pl-0">
+        <div className={`flex items-center   
+          ${isAllAgentsPage ? "" : "ml-12  lg:ml-0" }
+          `}>
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center space-x-2 bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="flex items-center space-x-2 bg-white border border-black px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
+              <div className="absolute z-[-1] top-[3px] left-[3px] w-full h-full bg-white border border-black"></div>
               {activeBotData?.logo ? (
                 <img
                   key={`${activeBotData.logo}?t=${Date.now()}`}
@@ -80,7 +112,7 @@ const Header = () => {
               <ChevronDown className="w-4 h-4 text-gray-500" />
             </button>
             {isDropdownOpen && (
-              <div className="absolute z-20 mt-2 w-72 rounded-lg shadow-lg bg-[#4b5cff] ring-1 ring-black ring-opacity-5 border border-blue-300">
+              <div className="absolute z-100 mt-2 w-72 rounded-lg shadow-lg bg-[#4b5cff] ring-1 ring-black ring-opacity-5 border border-blue-300">
                 <div className="py-3 max-h-72 overflow-y-auto">
                   <div className="px-4 pb-2 text-white font-semibold text-base">
                     YOUR AGENTS
@@ -160,45 +192,42 @@ const Header = () => {
         </div>
         <div className="">
           <div className="flex items-center space-x-2 ">
-            <div className="relative inline-block">
-              <div className="absolute top-1 left-1 w-full h-full bg-[#6aff97] rounded"></div>
-            </div>
-            <div className="truncate  text-xs text-black  hyphens-auto hidden md:block">
+           
+            <div className="truncate  text-xs text-black hyphens-auto hidden md:block">
               {adminEmail}
             </div>
 
-            <div className="truncate max:w-[100%] ">
+            <div className="max:w-[100%]">
+
               {isAllAgentsPage ? (
-                <div className="relative inline-block">
-                  <div className="absolute top-1 left-1 w-full h-full bg-[#6aff97] rounded"></div>
-                  <div className="relative inline-block">
-                    <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
-                    <button
-                      disabled
-                      className="relative bg-[#6aff97] text-black font-semibold px-4 py-2 border border-black flex items-center gap-2 cursor-not-allowed"
+                  <div className="relative z-10">
+                    <Button
+                      className="text-black font-semibold flex items-center gap-2"
                     >
-                      <Eye className="w-5 h-5" /> View Agent
-                    </button>
+                      <Eye className="w-5 h-5" /> 
+                      <span className="hidden xs:flex">View Agent</span>
+                    </Button>
                   </div>
-                </div>
               ) : (
-                <a
-                  href={`https://Sayy.ai/${activeBotData?.username}`}
-                  target="_blank"
-                >
-                  <div className="relative inline-block">
-                    <div className="absolute top-1 left-1 w-full h-full bg-[#6aff97] rounded"></div>
+                <div className="relative">
+
+                  <a
+                    href={`https://Sayy.ai/${activeBotData?.username}`}
+                    target="_blank"
+                  >
                     <div className="relative inline-block">
-                      <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
-                      <button
-                        disabled={!activeBotId}
-                        className="relative bg-[#6aff97] text-black font-semibold px-4 py-2 border border-black flex items-center gap-2"
-                      >
-                        <Eye className="w-5 h-5" /> View Agent
-                      </button>
+                      <div className="relative inline-block">
+                        <Button
+                          disabled={!activeBotId}
+                          className="relative bg-[#6aff97] text-black font-semibold px-4 py-2 border border-black flex items-center gap-2"
+                        >
+                          <Eye className="w-5 h-5" />
+                          <span className="hidden xs:flex">View Agent</span>
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </a>
+                  </a>
+                </div>
               )}
             </div>
           </div>
