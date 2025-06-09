@@ -8,6 +8,9 @@ import {
 // export const backendApiUrl = "https://kifortestapi.gobbl.ai";
 export const backendApiUrl = "https://kiforapi.gobbl.ai";
 
+export const backendSocketUrl = "wss://kifortestapi.gobbl.ai";
+// export const backendSocketUrl = "wss://kiforapi.gobbl.ai";
+
 export const AVAILABLE_THEMES: Theme[] = [
   {
     id: "light-yellow",

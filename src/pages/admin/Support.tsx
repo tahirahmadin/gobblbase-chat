@@ -5,9 +5,9 @@ import {
   updateAdminChatLog,
 } from "../../lib/serverActions";
 import { useAdminStore } from "../../store/useAdminStore";
+import { backendSocketUrl } from "../../utils/constants";
 
 interface Message {
-  id: number;
   content: string;
   sender: "admin" | "support";
   timestamp: Date;
@@ -20,6 +20,8 @@ const Support = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -30,7 +32,7 @@ const Support = () => {
     scrollToBottom();
   }, [messages]);
 
-  const fetchLogs = async () => {
+  const fetchInitialLogs = async () => {
     if (!adminId) return;
     try {
       const messagesArr = await getAdminSupportLogs(adminId);
@@ -40,24 +42,87 @@ const Support = () => {
     }
   };
 
-  // Initial fetch and setup polling
+  const connectWebSocket = () => {
+    if (!adminId) return;
+
+    // Close existing connection if any
+    if (wsRef.current) {
+      wsRef.current.close();
+    }
+
+    // Create new WebSocket connection with client-id in URL
+    const wsUrl = `${backendSocketUrl}/socket.io/?client-id=${adminId}`;
+    console.log("Connecting to:", wsUrl);
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log("WebSocket connected");
+      setIsOnline(true);
+    };
+
+    ws.onclose = (event) => {
+      console.log("WebSocket disconnected:", event.code, event.reason);
+      setIsOnline(false);
+
+      // Attempt to reconnect after 2 seconds
+      reconnectTimeoutRef.current = setTimeout(() => {
+        console.log("Attempting to reconnect...");
+        connectWebSocket();
+      }, 2000);
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+      setIsOnline(false);
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("Received message:", data);
+
+        if (data.type === "message") {
+          const newMessage: Message = {
+            content: data.content,
+            sender: data.sender,
+            timestamp: new Date(data.timestamp),
+          };
+          setMessages((prev) => [...prev, newMessage]);
+        }
+      } catch (err) {
+        console.error("Error parsing message:", err);
+      }
+    };
+  };
+
+  // WebSocket setup and cleanup
   useEffect(() => {
-    fetchLogs(); // Initial fetch
+    if (!adminId) return;
 
-    // Set up polling every 10 seconds
-    const pollInterval = setInterval(fetchLogs, 10000);
+    // Initial fetch of messages
+    fetchInitialLogs();
 
-    // Cleanup interval on component unmount
-    return () => clearInterval(pollInterval);
+    // Connect WebSocket
+    connectWebSocket();
+
+    // Cleanup on unmount
+    return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
   }, [adminId]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !adminId) return;
+    if (!newMessage.trim() || !adminId || !wsRef.current) return;
 
     // Add user message optimistically
     const adminMessage: Message = {
-      id: Date.now(),
       content: newMessage,
       sender: "admin",
       timestamp: new Date(),
@@ -67,6 +132,17 @@ const Support = () => {
     setIsTyping(true);
 
     try {
+      // Send message through WebSocket
+      wsRef.current.send(
+        JSON.stringify({
+          type: "message",
+          content: adminMessage.content,
+          sender: adminMessage.sender,
+          timestamp: adminMessage.timestamp.toISOString(),
+        })
+      );
+
+      // Also update in the database
       await updateAdminChatLog({
         newUserLog: [
           {
@@ -77,12 +153,7 @@ const Support = () => {
         ],
         clientId: adminId,
       });
-      // Simulate support response (replace with actual API call if needed)
-      // setTimeout(() => {
-      //   setIsTyping(false);
-
-      //   // Optionally, also call updateAdminChatLog for support reply
-      // }, 2000);
+      setIsTyping(false);
     } catch (err) {
       setIsTyping(false);
       // Optionally show error
@@ -148,7 +219,7 @@ const Support = () => {
 
         {messages.map((message) => (
           <div
-            key={message.id}
+            key={message.timestamp.toString()}
             className={`flex ${
               message.sender === "admin" ? "justify-end" : "justify-start"
             }`}
