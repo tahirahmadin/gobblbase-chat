@@ -1739,6 +1739,29 @@ export async function sendRescheduleRequestEmail(payload: {
   }
 }
 
+export async function bookAppointment(payload: BookingPayload): Promise<any> {
+  let url = `/api/appointment/book`;
+  let dataObj = payload;
+  let encryptedData = getCipherText(dataObj);
+
+  // HMAC Response
+  let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+  if (!hmacResponse) {
+    throw new Error("Failed to generate HMAC");
+  }
+  let axiosHeaders = {
+    HMAC: hmacResponse.hmacHash,
+    Timestamp: hmacResponse.currentTimestamp,
+  };
+  const response = await axios.post(url, encryptedData, {
+    headers: axiosHeaders,
+  });
+
+  if (response.data.error) throw new Error(response.data.error);
+  return response.data.result;
+}
+
 // ************** PRODUCT FUNCTIONS ************** //
 export async function getMainProducts(agentId: string) {
   try {
