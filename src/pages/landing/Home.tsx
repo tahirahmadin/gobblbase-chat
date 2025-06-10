@@ -268,7 +268,7 @@ const buttonData = [
     activeBubbleImg: "/assets/landing-asset/assemble/green-btn-bubble.svg",
     textColor: "#CDFF6A",
     brainPart: "/assets/landing-asset/Brains/green-brain-part.svg",
-    style: { top: "20%", right: "18.6%", width: "24.6%", height: "12.8%" },
+    style: { top: "20%", left: "56.8%", width: "24.6%", height: "12.8%" },
   },
   {
     id: 3,
@@ -304,7 +304,7 @@ const buttonData = [
     activeBubbleImg: "/assets/landing-asset/assemble/red-btn-bubble.svg",
     textColor: "#FF6363",
     brainPart: "/assets/landing-asset/Brains/red-brain-part.svg",
-    style: { top: "23.2%", right: "31.7%", width: "18.5%", height: "17.2%" },
+    style: { top: "23.2%", left: "49.8%", width: "18.5%", height: "17.2%" },
   },
 ];
 const CTAButton = styled.button`

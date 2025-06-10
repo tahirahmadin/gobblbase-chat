@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { RefreshCw, AlertCircle, CheckCircle2 } from "lucide-react";
+import {
+  RefreshCw,
+  AlertCircle,
+  CheckCircle2,
+  ChevronDown,
+} from "lucide-react";
 import { useBotConfig } from "../../../../store/useBotConfig";
 import {
   getTransactions,
@@ -70,6 +75,10 @@ const Payments = () => {
   const [isStripeActive, setIsStripeActive] = useState(false);
   const [isLoadingStripe, setIsLoadingStripe] = useState(false);
 
+  // drop down options for currency and preferred methodconst [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
+  const currencies = ["USD", "AED", "EUR", "GBP", "INR"];
+  const [isMethodOpen, setIsMethodOpen] = useState(false);
   // Calculate pagination
   const itemsPerPage = 5;
   const totalPages = Math.ceil(transactions.length / itemsPerPage);
@@ -251,90 +260,137 @@ const Payments = () => {
   };
 
   return (
-    <div className="container flex flex-col lg:flex-row min-h-screen w-full bg-white">
+    <div className="min-h-screen w-full bg-white  overflow-y-auto">
       {/* Payment Methods Configuration */}
-      <div className="w-full lg:w-2/3 p-4 lg:p-6 overflow-y-auto lg:h-screen min-h-[50vh]">
+      <div className="w-full lg:w-2/3 p-4 lg:p-6 lg:h-screen min-h-[50vh]">
         <div className="bg-white pb-4 z-10">
           <h2 className="text-xl font-bold text-black">Payment Methods</h2>
         </div>
 
         <div className="space-y-6 py-4 pb-20">
-          <div className="text-md font-semibold">
-            Currency & Preferred Method
-          </div>
           {/* Currency and Preferred Method Selection */}
           <div className="flex flex-col lg:flex-row lg:space-x-4 space-y-4 lg:space-y-0">
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">
+            <div className="flex items-center gap-4">
+              <label className="para-font block text-[1rem] text-black">
                 Currency
               </label>
-              <select
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="border border-gray-300 rounded px-3 py-2 w-full lg:w-32 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="USD">USD</option>
-                <option value="AED">AED</option>
-                <option value="EUR">EUR</option>
-                <option value="GBP">GBP</option>
-                <option value="INR">INR</option>
-              </select>
+              <div className="relative w-30 xs:w-48 flex items-center">
+                <button
+                  onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
+                  className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
+                >
+                  {currency}
+                </button>
+                <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
+                  <ChevronDown
+                    size={20}
+                    className={`text-[#000000] stroke-[3px] transition-transform  ${
+                      isCurrencyOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </div>
+                {isCurrencyOpen && (
+                  <div className="absolute z-10 mt-1 top-8 w-full bg-white border border-[#7D7D7D] shadow-sm rounded-sm">
+                    {currencies.map((curr) => (
+                      <button
+                        key={curr}
+                        onClick={() => {
+                          setCurrency(curr);
+                          setIsCurrencyOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                          currency === curr ? "bg-[#AEB8FF]" : ""
+                        }`}
+                      >
+                        {curr}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">
+            <div className="flex items-center gap-4">
+              <label className="para-font block text-[1rem] text-black">
                 Preferred Method
               </label>
-              <select
-                value={preferredMethod}
-                onChange={(e) => setPreferredMethod(e.target.value)}
-                className="border border-gray-300 rounded px-3 py-2 w-full lg:w-32 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="stripe" disabled={!stripeEnabled}>
-                  Stripe
-                </option>
-                <option value="razorpay" disabled={!razorpayEnabled}>
-                  Razorpay
-                </option>
-                <option value="crypto" disabled={!cryptoEnabled}>
-                  Crypto
-                </option>
-              </select>
+              <div className="relative w-30 xs:w-48 flex items-center">
+                <button
+                  onClick={() => setIsMethodOpen(!isMethodOpen)}
+                  className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
+                >
+                  {preferredMethod.charAt(0).toUpperCase() +
+                    preferredMethod.slice(1)}
+                
+                </button>
+                  <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
+                  <ChevronDown
+                    size={20}
+                    className={`text-[#000000] stroke-[3px] transition-transform  ${
+                    isMethodOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </div>
+                {isMethodOpen && (
+                  <div className="absolute z-10 mt-1 top-8 w-full bg-white border border-[#7D7D7D] shadow-sm rounded-sm">
+                    {[
+                      {
+                        label: "Stripe",
+                        value: "stripe",
+                        enabled: stripeEnabled,
+                      },
+                      {
+                        label: "Razorpay",
+                        value: "razorpay",
+                        enabled: razorpayEnabled,
+                      },
+                      {
+                        label: "Crypto",
+                        value: "crypto",
+                        enabled: cryptoEnabled,
+                      },
+                    ].map(({ label, value, enabled }) => (
+                      <button
+                        key={value}
+                        disabled={!enabled}
+                        onClick={() => {
+                          if (enabled) {
+                            setPreferredMethod(value);
+                            setIsMethodOpen(false);
+                          }
+                        }}
+                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                          !enabled
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "hover:bg-gray-100"
+                        } ${preferredMethod === value ? "bg-[#AEB8FF]" : ""}`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-          <div className="flex justify-start items-center">
+          <div className="w-fit flex justify-start items-center relative z-10">
+            <div className="absolute top-[4px] left-[4px] bg-[#6AFF97] w-full h-full border border-black"></div>
             <button
               onClick={handleSave}
-              className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+              className="z-10 px-6 py-2 bg-[#6AFF97] border border-black text-sm font-semibold transition-colors disabled:cursor-not-allowed"
+            > 
               Save
             </button>
           </div>
 
           {/* Stripe Configuration */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div className="">
             <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-blue-50 p-2 rounded-lg">
-                    <svg
-                      className="w-6 h-6 text-blue-600"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585 1.02 3.445 1.664 3.445 2.775 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.594-7.305h.003z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                  </div>
+              <div className="flex items-center bg-[#EAEFFF] px-2 rounded-xl justify-between mb-6 w-1/3">
+                <div className="flex items-center space-x-3 p-3 ">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
                       Stripe Payments
                     </h3>
-                    <p className="text-sm text-gray-500">
-                      Accept credit card payments securely
-                    </p>
                   </div>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
@@ -344,7 +400,7 @@ const Payments = () => {
                     checked={isStripeEnabled}
                     onChange={(e) => handleEnableStripe()}
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-[#CDCDCD] peer-focus:outline-none peer-focus:ring-none peer-focus:ring-none rounded-full border border-black peer peer-checked:after:translate-x-full peer-checked:after:border-black after:content-[''] after:absolute after:top-[0px] after:left-[0px] after:bg-white after:border-black after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[#6AFF97]"></div>
                 </label>
               </div>
 

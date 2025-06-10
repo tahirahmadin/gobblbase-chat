@@ -330,61 +330,62 @@ const Income = () => {
         </div>
 
         {/* table for mobile  */}
-        {isLoadingTransactions ? (
-          <tr>
-            <td colSpan={6} className="text-center py-8">
-              <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
-            </td>
-          </tr>
-        ) : currentTransactions.length === 0 ? (
-          <tr>
-            <td colSpan={6} className="text-center py-8 text-gray-500">
-              No transactions found
-            </td>
-          </tr>
-        ) : (
-          currentTransactions.map((transaction) => {
-            const item = transaction.items[0] || {};
-            return (
-              <div className="flex flex-col gap-4">
-                <div
-                  key={transaction._id}
-                  className="bg-white w-[95%] mx-auto flex flex-col sm:flex-row justify-between p-4 rounded-lg mt-4"
-                >
-                  <div className="left">
-                    {transaction.shipping?.name || "Customer Name"}
-                    <div className="truncate">{transaction.userEmail}</div>
-                    <div>Ph: {transaction.shipping?.phone}</div>
-                    {item.title || "Product Name"}
-                  </div>
-                  <div className="right text-right">
-                    <div className="date">
-                      {new Date(transaction.createdAt).toLocaleDateString()}{" "}
-                      {new Date(transaction.createdAt).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+      <div className="mob-transaction flex flex-col sm:hidden w-full overflow-x-auto">
+              {isLoadingTransactions ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-8">
+                    <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
+                  </td>
+                </tr>
+              ) : currentTransactions.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-8 text-gray-500">
+                    No transactions found
+                  </td>
+                </tr>
+              ) : (
+                currentTransactions.map((transaction) => {
+                  const item = transaction.items[0] || {};
+                  return (
+                    <div className="flex flex-col gap-4">
+                      <div
+                        key={transaction._id}
+                        className="bg-white w-[95%] mx-auto flex flex-col sm:flex-row justify-between p-4 rounded-lg mt-4"
+                      >
+                        <div className="left">
+                          {transaction.shipping?.name || "Customer Name"}
+                          <div className="truncate">{transaction.userEmail}</div>
+                          <div>Ph: {transaction.shipping?.phone}</div>
+                          {item.title || "Product Name"}
+                        </div>
+                        <div className="right text-right">
+                          <div className="date">
+                            {new Date(transaction.createdAt).toLocaleDateString()}{" "}
+                            {new Date(transaction.createdAt).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </div>
+                          <div className="">Amount</div>
+                          <div className="">
+                            Paid via{" "}
+                            {transaction.paymentMethod === "FIAT"
+                              ? "Stripe"
+                              : transaction.paymentMethod}
+                          </div>
+                          <div className="flex items-center justify-end">
+                            <p> Qty: {item.quantity || "XX"}</p>
+                            <p>
+                              {transaction.currency} {item.price}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="">Amount</div>
-                    <div className="">
-                      Paid via{" "}
-                      {transaction.paymentMethod === "FIAT"
-                        ? "Stripe"
-                        : transaction.paymentMethod}
-                    </div>
-                    <div className="flex items-center justify-end">
-                      <p> Qty: {item.quantity || "XX"}</p>
-                      <p>
-                        {transaction.currency} {item.price}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })
-        )}
-
+                  );
+                })
+              )}
+      </div>
         {/* Pagination Controls */}
         <div className="flex justify-center items-center gap-4 py-4">
           <button
