@@ -1795,11 +1795,24 @@ export async function deleteMainProduct(productId: string) {
 
 export async function pauseProduct(productId: string, isPaused: boolean) {
   try {
-    const response = await axios.post(`${apiUrl}/product/pauseProduct`, {
-      productId,
-      isPaused,
-    });
+    let url = `/api/product/pauseProduct`;
+    let dataObj = { productId, isPaused };
+    let encryptedData = getCipherText(dataObj);
 
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
     if (response.data.error) {
       throw new Error("Failed to update product status");
     }
