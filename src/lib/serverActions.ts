@@ -131,7 +131,7 @@ export async function signUpUser(
   handle: string
 ): Promise<SignUpClientResponse> {
   try {
-    let url = `/api/user/signupUser`;
+    let url = `${apiUrl}/user/signupUser`;
     let dataObj = {
       via,
       handle,
@@ -185,7 +185,7 @@ export async function fetchClientAgents(
 ): Promise<AdminAgent[]> {
   try {
     let requestParams = `clientId=${clientId}`;
-    let url = `/api/client/agents?${requestParams}`;
+    let url = `${apiUrl}/client/agents?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -212,7 +212,7 @@ export async function fetchClientAgents(
 export async function getClient(clientId: string) {
   try {
     let requestParams = `clientId=${clientId}`;
-    let url = `/api/client/getClient?${requestParams}`;
+    let url = `${apiUrl}/client/getClient?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -243,7 +243,7 @@ export async function getClientAnalytics(
 ): Promise<AnalyticsData> {
   try {
     let requestParams = `clientId=${clientId}`;
-    let url = `/api/client/getAnalytics?${requestParams}`;
+    let url = `${apiUrl}/client/getAnalytics?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -307,7 +307,7 @@ export async function getAgentDetails(
 
 export async function updateAgentUsername(agentId: string, username: string) {
   try {
-    let url = `/api/agent/updateAgentUsername`;
+    let url = `${apiUrl}/agent/updateAgentUsername`;
     let dataObj = { agentId, agentName: username };
     let encryptedData = getCipherText(dataObj);
     // HMAC Response
@@ -364,12 +364,11 @@ export async function uploadProfilePicture(
 
 export async function updateBotTheme(agentId: string, inputTheme: Theme) {
   try {
+    let url = `${apiUrl}/agent/updateAgentTheme`;
     let dataObj = {
       agentId: agentId,
       themeColors: inputTheme,
     };
-    let url = `/api/agent/updateAgentTheme`;
-    //Encrypted data
     let encryptedData = getCipherText(dataObj);
 
     // HMAC Response
@@ -402,11 +401,7 @@ export async function deleteAgent(
   userId?: string
 ): Promise<void> {
   try {
-    if (!agentId || agentId.trim() === "") {
-      throw new Error("Agent ID is required");
-    }
-
-    let url = `/api/agent/deleteAgent`;
+    let url = `${apiUrl}/agent/deleteAgent`;
     let dataObj = { agentId, userId };
     let encryptedData = getCipherText(dataObj);
 
@@ -442,7 +437,7 @@ export async function getTransactions(
   page: number
 ): Promise<{ orders: any[]; hasNext: boolean }> {
   try {
-    let url = `/api/agent/getAgentOrders?agentId=${agentId}&page=${page}`;
+    let url = `${apiUrl}/agent/getAgentOrders?agentId=${agentId}&page=${page}`;
     let requestParams = `agentId=${agentId}&page=${page}`;
 
     // HMAC Response
@@ -470,7 +465,7 @@ export async function updateSocialHandles(
   socials: Record<string, string>
 ): Promise<boolean> {
   try {
-    let url = `/api/agent/updateSocialHandles`;
+    let url = `${apiUrl}/agent/updateSocialHandles`;
     let dataObj = { agentId, socials };
     let encryptedData = getCipherText(dataObj);
 
@@ -499,7 +494,7 @@ export async function updateAgentNameAndBio(
   bio?: string
 ) {
   try {
-    let url = `/api/agent/updateAgentNameAndBio`;
+    let url = `${apiUrl}/agent/updateAgentNameAndBio`;
 
     let dataObj = { agentId, name, bio };
     let encryptedData = getCipherText(dataObj);
@@ -535,7 +530,7 @@ export async function updatePromotionalBanner(
   isPromoBannerEnabled?: boolean
 ): Promise<boolean> {
   try {
-    let url = `/api/agent/updateAgentPromoBanner`;
+    let url = `${apiUrl}/agent/updateAgentPromoBanner`;
     let dataObj = { agentId, promotionalBanner, isPromoBannerEnabled };
     let encryptedData = getCipherText(dataObj);
 
@@ -566,7 +561,7 @@ export async function updateAgentVoicePersonality(
   }
 ): Promise<boolean> {
   try {
-    let url = `/api/agent/updateAgentVoicePersonality`;
+    let url = `${apiUrl}/agent/updateAgentVoicePersonality`;
     let dataObj = { agentId, personalityType };
     let encryptedData = getCipherText(dataObj);
 
@@ -594,7 +589,7 @@ export async function updateAgentWelcomeMessage(
   welcomeMessage: string
 ): Promise<boolean> {
   try {
-    let url = `/api/agent/updateAgentWelcomeMessage`;
+    let url = `${apiUrl}/agent/updateAgentWelcomeMessage`;
     let dataObj = { agentId, welcomeMessage };
     let encryptedData = getCipherText(dataObj);
 
@@ -622,7 +617,7 @@ export async function updateAgentPrompts(
   prompts: string[]
 ): Promise<boolean> {
   try {
-    let url = `/api/agent/updateAgentPrompts`;
+    let url = `${apiUrl}/agent/updateAgentPrompts`;
     let dataObj = { agentId, prompts };
     let encryptedData = getCipherText(dataObj);
 
@@ -651,7 +646,7 @@ export async function updateAgentBrain(
   smartenUpAnswers?: string[] | Record<string, string>
 ): Promise<boolean> {
   try {
-    let url = `/api/agent/updateAgentBrain`;
+    let url = `${apiUrl}/agent/updateAgentBrain`;
     let dataObj = { agentId, language, smartenUpAnswers };
     let encryptedData = getCipherText(dataObj);
 
@@ -677,7 +672,7 @@ export async function updateAgentBrain(
 export async function getChatLogs(agentId: string) {
   try {
     let requestParams = `agentId=${agentId}`;
-    let url = `/api/agent/getAgentChatLogs?${requestParams}`;
+    let url = `${apiUrl}/agent/getAgentChatLogs?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -704,7 +699,7 @@ export async function getChatLogs(agentId: string) {
 
 export async function updateUserLogs(params: UpdateUserLogsParams) {
   try {
-    let url = `/api/agent/updateUserLogs`;
+    let url = `${apiUrl}/agent/updateUserLogs`;
     let encryptedData = getCipherText(params);
 
     // HMAC Response
@@ -737,7 +732,7 @@ export async function updateCustomerLeadFlag(
   isEnabled: boolean
 ): Promise<boolean> {
   try {
-    let url = `/api/agent/changeCustomerLeadFlag`;
+    let url = `${apiUrl}/agent/changeCustomerLeadFlag`;
     let dataObj = { agentId, isEnabled };
     let encryptedData = getCipherText(dataObj);
 
@@ -771,7 +766,7 @@ export async function getCustomerLeads(
 ): Promise<CustomerLead[]> {
   try {
     let requestParams = `agentId=${agentId}`;
-    let url = `/api/agent/getCustomerLeads?${requestParams}`;
+    let url = `${apiUrl}/agent/getCustomerLeads?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -800,12 +795,8 @@ export async function getAgentPolicies(
   agentId: string
 ): Promise<AgentPoliciesResponse> {
   try {
-    if (!agentId || agentId.trim() === "") {
-      throw new Error("Agent ID is required");
-    }
-
     let requestParams = `agentId=${agentId}`;
-    let url = `/api/agent/getAgentPolicies?${requestParams}`;
+    let url = `${apiUrl}/agent/getAgentPolicies?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -832,7 +823,7 @@ export async function updateAgentModel(
   modelName: string
 ): Promise<any> {
   try {
-    let url = `/api/agent/updateAgentModel`;
+    let url = `${apiUrl}/agent/updateAgentModel`;
     let dataObj = { agentId, model: modelName };
     let encryptedData = getCipherText(dataObj);
 
@@ -865,7 +856,7 @@ export async function updateGeneratedPrompts(
   generatedPrompts: string[]
 ): Promise<boolean> {
   try {
-    let url = `/api/agent/updateAgentGeneratedPrompts`;
+    let url = `${apiUrl}/agent/updateAgentGeneratedPrompts`;
     let dataObj = { agentId, prompts: generatedPrompts };
     let encryptedData = getCipherText(dataObj);
 
@@ -901,7 +892,7 @@ export async function saveCustomerLead(
   }
 ): Promise<{ error: boolean; result?: string }> {
   try {
-    let url = `/api/agent/saveCustomerLeads`;
+    let url = `${apiUrl}/agent/saveCustomerLeads`;
     let dataObj = { agentId, newLead: lead };
     let encryptedData = getCipherText(dataObj);
 
@@ -942,7 +933,7 @@ export async function updateAgentPolicy(
   content: string
 ): Promise<boolean> {
   try {
-    let url = `/api/agent/updateAgentPolicy`;
+    let url = `${apiUrl}/agent/updateAgentPolicy`;
     let dataObj = { agentId, policyId, enabled, content };
     let encryptedData = getCipherText(dataObj);
 
@@ -976,7 +967,7 @@ export async function updateCustomHandles(
   customHandles: { label: string; url: string }[]
 ): Promise<boolean> {
   try {
-    let url = `/api/agent/updateCustomHandles`;
+    let url = `${apiUrl}/agent/updateCustomHandles`;
     let dataObj = { agentId, customHandles };
     let encryptedData = getCipherText(dataObj);
 
@@ -1004,7 +995,7 @@ export async function submitWhatsapp(
   number: string
 ): Promise<boolean> {
   try {
-    let url = `/api/agent/updateWhatsappNumber`;
+    let url = `${apiUrl}/agent/updateWhatsappNumber`;
     let dataObj = { agentId, whatsappNumber: { countryCode, number } };
     let encryptedData = getCipherText(dataObj);
 
@@ -1046,7 +1037,7 @@ export async function createNewAgent(
   }
 ): Promise<CreateNewAgentResponse> {
   try {
-    let url = `/api/milvus/create-new-agent`;
+    let url = `${apiUrl}/milvus/create-new-agent`;
     let dataObj = {
       clientId: clientId,
       name: name,
@@ -1084,7 +1075,7 @@ export async function createNewAgentWithDocumentId(
   }
 ): Promise<CreateNewAgentResponse> {
   try {
-    let url = `/api/milvus/create-new-agent`;
+    let url = `${apiUrl}/milvus/create-new-agent`;
     let dataObj = {
       clientId: clientId,
       name: name,
@@ -1127,7 +1118,7 @@ export async function listAgentDocuments(
 ): Promise<DocumentListResponse> {
   try {
     let requestParams = `agentId=${agentId}`;
-    let url = `/api/milvus/list-documents?${requestParams}`;
+    let url = `${apiUrl}/milvus/list-documents?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -1159,7 +1150,7 @@ export async function addDocumentToAgent(
   documentSize?: number
 ): Promise<DocumentResponse> {
   try {
-    let url = `/api/milvus/add-document`;
+    let url = `${apiUrl}/milvus/add-document`;
     let dataObj = {
       agentId,
       textContent,
@@ -1197,7 +1188,7 @@ export async function removeDocumentFromAgent(
   documentId: string
 ): Promise<RemoveDocumentResponse> {
   try {
-    let url = `/api/milvus/remove-document`;
+    let url = `${apiUrl}/milvus/remove-document`;
     let dataObj = { agentId, documentId };
     let encryptedData = getCipherText(dataObj);
 
@@ -1232,7 +1223,7 @@ export async function updateDocumentInAgent(
   documentTitle?: string
 ): Promise<DocumentResponse> {
   try {
-    let url = `/api/milvus/update-document`;
+    let url = `${apiUrl}/milvus/update-document`;
     let dataObj = { agentId, documentId, textContent, documentTitle };
     let encryptedData = getCipherText(dataObj);
 
@@ -1265,7 +1256,7 @@ export async function queryDocument(
   query: string
 ): Promise<QueryDocumentResponse> {
   try {
-    let url = `/api/milvus/query-document`;
+    let url = `${apiUrl}/milvus/query-document`;
     let dataObj = { agentId, query };
     let encryptedData = getCipherText(dataObj);
 
@@ -1294,7 +1285,7 @@ export async function queryDocument(
 export async function getIntegratedServices(agentId: string) {
   try {
     let requestParams = `agentId=${agentId}`;
-    let url = `/api/client/getServices?${requestParams}`;
+    let url = `${apiUrl}/client/getServices?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -1335,7 +1326,7 @@ export async function updateAppointmentSettings(payload: {
   };
 }) {
   try {
-    let url = `/api/appointment/settings`;
+    let url = `${apiUrl}/appointment/settings`;
     let dataObj = payload;
     let encryptedData = getCipherText(dataObj);
 
@@ -1364,7 +1355,7 @@ export async function updateAppointmentSettings(payload: {
 export async function getAppointmentSettings(agentId: string) {
   try {
     let requestParams = `agentId=${agentId}`;
-    let url = `/api/appointment/settings?${requestParams}`;
+    let url = `${apiUrl}/appointment/settings?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -1393,7 +1384,7 @@ export async function getAvailableSlots(
 ): Promise<TimeSlot[]> {
   try {
     let requestParams = `agentId=${agentId}&date=${date}&userTimezone=${userTimezone}`;
-    let url = `/api/appointment/available-slots?${requestParams}`;
+    let url = `${apiUrl}/appointment/available-slots?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -1428,7 +1419,7 @@ export async function updateUnavailableDates(
   datesToMakeAvailable?: string[]
 ): Promise<any> {
   try {
-    let url = `/api/appointment/update-unavailable-dates`;
+    let url = `${apiUrl}/appointment/update-unavailable-dates`;
     let dataObj = { agentId, unavailableDates, datesToMakeAvailable };
     let encryptedData = getCipherText(dataObj);
 
@@ -1464,7 +1455,7 @@ export async function getDayWiseAvailability(
 ): Promise<Record<string, boolean>> {
   try {
     let requestParams = `agentId=${agentId}&userTimezone=${userTimezone}`;
-    let url = `/api/appointment/day-wise-availability?${requestParams}`;
+    let url = `${apiUrl}/appointment/day-wise-availability?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -1489,7 +1480,7 @@ export async function getDayWiseAvailability(
 export async function getUnavailableDates(agentId: string): Promise<string[]> {
   try {
     let requestParams = `agentId=${agentId}`;
-    let url = `/api/appointment/unavailable-dates?${requestParams}`;
+    let url = `${apiUrl}/appointment/unavailable-dates?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -1514,7 +1505,7 @@ export async function getUnavailableDates(agentId: string): Promise<string[]> {
 export async function getBookings(agentId: string) {
   try {
     let requestParams = `agentId=${agentId}`;
-    let url = `/api/appointment/bookings?${requestParams}`;
+    let url = `${apiUrl}/appointment/bookings?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -1538,7 +1529,7 @@ export async function getBookings(agentId: string) {
 
 export async function cancelBooking(bookingId: string) {
   try {
-    let url = `/api/appointment/cancel-booking`;
+    let url = `${apiUrl}/appointment/cancel-booking`;
     let dataObj = { bookingId };
     let encryptedData = getCipherText(dataObj);
 
@@ -1568,7 +1559,7 @@ export async function cancelBooking(bookingId: string) {
 export async function getUserBookingHistory(userId: string, agentId: string) {
   try {
     let requestParams = `userId=${userId}&agentId=${agentId}`;
-    let url = `/api/appointment/user-bookings?${requestParams}`;
+    let url = `${apiUrl}/appointment/user-bookings?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -1600,7 +1591,7 @@ export async function userRescheduleBooking(payload: {
   notes?: string;
 }): Promise<any> {
   try {
-    let url = `/api/appointment/user-reschedule`;
+    let url = `${apiUrl}/appointment/user-reschedule`;
     let dataObj = payload;
     let encryptedData = getCipherText(dataObj);
 
@@ -1636,7 +1627,7 @@ export async function getBookingForReschedule(
 ): Promise<any> {
   try {
     let requestParams = `bookingId=${bookingId}&userId=${userId}`;
-    let url = `/api/appointment/booking-for-reschedule?${requestParams}`;
+    let url = `${apiUrl}/appointment/booking-for-reschedule?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -1666,7 +1657,7 @@ export async function getBookingForReschedule(
 
 export async function cancelUserBooking(bookingId: string, userId: string) {
   try {
-    let url = `/api/appointment/cancel-booking`;
+    let url = `${apiUrl}/appointment/cancel-booking`;
     let dataObj = { bookingId, userId };
     let encryptedData = getCipherText(dataObj);
 
@@ -1707,7 +1698,7 @@ export async function sendRescheduleRequestEmail(payload: {
   userTimezone: string;
 }): Promise<any> {
   try {
-    let url = `/api/appointment/send-reschedule-email`;
+    let url = `${apiUrl}/appointment/send-reschedule-email`;
     let dataObj = payload;
     let encryptedData = getCipherText(dataObj);
 
@@ -1740,33 +1731,38 @@ export async function sendRescheduleRequestEmail(payload: {
 }
 
 export async function bookAppointment(payload: BookingPayload): Promise<any> {
-  let url = `/api/appointment/book`;
-  let dataObj = payload;
-  let encryptedData = getCipherText(dataObj);
+  try {
+    let url = `${apiUrl}/appointment/book`;
+    let dataObj = payload;
+    let encryptedData = getCipherText(dataObj);
 
-  // HMAC Response
-  let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
 
-  if (!hmacResponse) {
-    throw new Error("Failed to generate HMAC");
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
+
+    if (response.data.error) throw new Error(response.data.error);
+    return response.data.result;
+  } catch (error) {
+    console.error("Error booking appointment:", error);
+    throw error;
   }
-  let axiosHeaders = {
-    HMAC: hmacResponse.hmacHash,
-    Timestamp: hmacResponse.currentTimestamp,
-  };
-  const response = await axios.post(url, encryptedData, {
-    headers: axiosHeaders,
-  });
-
-  if (response.data.error) throw new Error(response.data.error);
-  return response.data.result;
 }
 
 // ************** PRODUCT FUNCTIONS ************** //
 export async function getMainProducts(agentId: string) {
   try {
     let requestParams = `agentId=${agentId}`;
-    let url = `/api/product/getProducts?${requestParams}`;
+    let url = `${apiUrl}/product/getProducts?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -1790,7 +1786,7 @@ export async function getMainProducts(agentId: string) {
 
 export async function deleteMainProduct(productId: string) {
   try {
-    let url = `/api/product/deleteProduct`;
+    let url = `${apiUrl}/product/deleteProduct`;
     let dataObj = { productId };
     let encryptedData = getCipherText(dataObj);
 
@@ -1818,7 +1814,7 @@ export async function deleteMainProduct(productId: string) {
 
 export async function pauseProduct(productId: string, isPaused: boolean) {
   try {
-    let url = `/api/product/pauseProduct`;
+    let url = `${apiUrl}/product/pauseProduct`;
     let dataObj = { productId, isPaused };
     let encryptedData = getCipherText(dataObj);
 
@@ -1851,7 +1847,7 @@ export async function pauseProduct(productId: string, isPaused: boolean) {
 export async function getMainProductsForUser(agentId: string) {
   try {
     let requestParams = `agentId=${agentId}`;
-    let url = `/api/user/getAgentProducts?${requestParams}`;
+    let url = `${apiUrl}/user/getAgentProducts?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -1910,7 +1906,7 @@ export async function savePhysicalProduct(
       JSON.stringify(form.customerDetails)
     );
   }
-  let url = `/api/product/addPhysicalProduct`;
+  let url = `${apiUrl}/product/addPhysicalProduct`;
 
   let currentTimestamp = new Date().getTime();
   let dataObj = { timestamp: currentTimestamp.toString() };
@@ -1981,7 +1977,7 @@ export async function saveDigitalProduct(
 
   let encryptedData = getCipherText(dataObj);
 
-  let url = `/api/product/addDigitalProduct`;
+  let url = `${apiUrl}/product/addDigitalProduct`;
   formData.append("encryptedData", JSON.stringify(encryptedData));
 
   const response = await axios.post(url, formData, {
@@ -2042,7 +2038,7 @@ export async function saveServiceProduct(
 
   let encryptedData = getCipherText(dataObj);
 
-  let url = `/api/product/addService`;
+  let url = `${apiUrl}/product/addService`;
   formData.append("encryptedData", JSON.stringify(encryptedData));
 
   const response = await axios.post(url, formData, {
@@ -2105,7 +2101,7 @@ export async function saveEventProduct(
 
   let encryptedData = getCipherText(dataObj);
 
-  let url = `/api/product/addEvent`;
+  let url = `${apiUrl}/product/addEvent`;
   formData.append("encryptedData", JSON.stringify(encryptedData));
 
   const response = await axios.post(url, formData, {
@@ -2127,7 +2123,7 @@ export async function saveEventProduct(
 // ************** PAYMENT FUNCTIONS ************** //
 export async function payOutStripe(clientId: string) {
   try {
-    let url = `/api/client/payOut`;
+    let url = `${apiUrl}/client/payOut`;
     let dataObj = { clientId };
     let encryptedData = getCipherText(dataObj);
 
@@ -2162,7 +2158,7 @@ export async function getStripeBillingSession(
 ): Promise<string> {
   try {
     let requestParams = `clientId=${clientId}`;
-    let url = `/api/product/createBillingSession?${requestParams}`;
+    let url = `${apiUrl}/product/createBillingSession?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -2194,7 +2190,7 @@ export async function enableStripePayment(
   isStripeEnabled: boolean
 ): Promise<boolean> {
   try {
-    let url = `/api/client/enableStripePayment`;
+    let url = `${apiUrl}/client/enableStripePayment`;
     let dataObj = { clientId, enabled: isStripeEnabled };
     let encryptedData = getCipherText(dataObj);
 
@@ -2232,7 +2228,7 @@ export async function completeStripeOnboarding(
   clientId: string
 ): Promise<string | null> {
   try {
-    let url = `/api/client/completeStripeOnboarding`;
+    let url = `${apiUrl}/client/completeStripeOnboarding`;
     let dataObj = { clientId };
     let encryptedData = getCipherText(dataObj);
 
@@ -2273,7 +2269,7 @@ export async function enableCryptoPayment(
   chainIds: string[]
 ): Promise<{ success: boolean; message: string }> {
   try {
-    let url = `/api/client/enableCryptoPayment`;
+    let url = `${apiUrl}/client/enableCryptoPayment`;
     let dataObj = { clientId, isEnabled, walletAddress, chainIds };
     let encryptedData = getCipherText(dataObj);
 
@@ -2318,7 +2314,7 @@ export async function updateClientPaymentSettings(
   preferredMethod: string
 ): Promise<boolean> {
   try {
-    let url = `/api/client/updateCurrencyAndPreferredMethod`;
+    let url = `${apiUrl}/client/updateCurrencyAndPreferredMethod`;
     let dataObj = { clientId, currency, preferredMethod };
     let encryptedData = getCipherText(dataObj);
 
@@ -2351,7 +2347,7 @@ export async function updateClientPaymentSettings(
 export async function getPlans(clientId: string): Promise<PlanData[]> {
   try {
     let requestParams = `clientId=${clientId}`;
-    let url = `/api/client/getPlans?${requestParams}`;
+    let url = `${apiUrl}/client/getPlans?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -2378,7 +2374,7 @@ export async function subscribeToPlan(
   planId: string
 ): Promise<any> {
   try {
-    let url = `/api/product/subscribeOrChangePlan`;
+    let url = `${apiUrl}/product/subscribeOrChangePlan`;
     let dataObj = { clientId, planId };
     let encryptedData = getCipherText(dataObj);
 
@@ -2417,7 +2413,7 @@ export async function updateClientBillingDetails(
   }
 ): Promise<any> {
   try {
-    let url = `/api/client/updateClientBillingDetails`;
+    let url = `${apiUrl}/client/updateClientBillingDetails`;
     let dataObj = { clientId, billingDetails };
     let encryptedData = getCipherText(dataObj);
 
@@ -2454,7 +2450,7 @@ export async function updateClientBillingMethod(
   }>
 ): Promise<any> {
   try {
-    let url = `/api/client/updateClientBillingMethod`;
+    let url = `${apiUrl}/client/updateClientBillingMethod`;
     let dataObj = { clientId, billingMethod };
     let encryptedData = getCipherText(dataObj);
 
@@ -2483,7 +2479,7 @@ export async function updateClientBillingMethod(
 export async function getClientUsage(clientId: string) {
   try {
     let requestParams = `clientId=${clientId}`;
-    let url = `/api/client/getClientUsage?${requestParams}`;
+    let url = `${apiUrl}/client/getClientUsage?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -2514,7 +2510,7 @@ export async function getClientUsage(clientId: string) {
 export async function getEmailTemplates(agentId: string): Promise<any> {
   try {
     let requestParams = `agentId=${agentId}`;
-    let url = `/api/email/getEmailTemplates?${requestParams}`;
+    let url = `${apiUrl}/email/getEmailTemplates?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -2546,7 +2542,7 @@ export async function updateEmailTemplates(
   emailTemplateId: string
 ): Promise<any> {
   try {
-    let url = `/api/email/updateEmailTemplates`;
+    let url = `${apiUrl}/email/updateEmailTemplates`;
     let dataObj = { agentId, updatedData, emailTemplateId };
     let requestParams = JSON.stringify(dataObj);
 
@@ -2578,7 +2574,7 @@ export async function updateEmailTemplates(
 export async function getAdminSupportLogs(clientId: string) {
   try {
     let requestParams = `clientId=${clientId}`;
-    let url = `/api/admin/getAdminSupportLogs?${requestParams}`;
+    let url = `${apiUrl}/admin/getAdminSupportLogs?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -2609,7 +2605,7 @@ export async function updateAdminChatLog(params: {
   clientId: string;
 }) {
   try {
-    let url = `/api/admin/updateChatLog`;
+    let url = `${apiUrl}/admin/updateChatLog`;
 
     //Encrypted data
     let encryptedData = getCipherText(params);
