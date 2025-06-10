@@ -252,14 +252,20 @@ const Subheadline = styled.div`
   }
 `;
 const buttonData = [
-  {
+   {
     id: 0,
     label: "Answer Queries",
     defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.svg",
     activeBubbleImg: "/assets/landing-asset/assemble/pink-btn-bubble.svg",
     textColor: "#FF8FFF",
     brainPart: "/assets/landing-asset/Brains/pink-brain-part.svg",
-    style: { top: "19.9%", left: "31.2%", width: "24.6%", height: "12.8%" },
+    style: {
+      top: "0",
+      left: "0",
+      width: "24.6%",
+      height: "12.8%",
+      transform: "translate(126%, 155%)",
+    },
   },
   {
     id: 1,
@@ -1530,7 +1536,7 @@ const Home = () => {
                           position: "absolute",
                           top: part.style.top,
                           left: part.style.left,
-                          right: part.style.right,
+                          transform: part.style.transform,
                           width: part.style.width,
                           height: part.style.height,
                         }}

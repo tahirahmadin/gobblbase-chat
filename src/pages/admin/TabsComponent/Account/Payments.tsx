@@ -609,30 +609,14 @@ const Payments = () => {
           </div> */}
 
           {/* Crypto Configuration */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div className="">
             <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center bg-[#EAEFFF] px-2 rounded-xl justify-between mb-6 w-1/3">
                 <div className="flex items-center space-x-3">
-                  <div className="bg-blue-50 p-2 rounded-lg">
-                    <svg
-                      className="w-6 h-6 text-blue-600"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                  </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
                       Crypto Payments
                     </h3>
-                    <p className="text-sm text-gray-500">
-                      Accept cryptocurrency payments
-                    </p>
                   </div>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
@@ -642,7 +626,7 @@ const Payments = () => {
                     checked={cryptoEnabled}
                     onChange={(e) => setCryptoEnabled(e.target.checked)}
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-[#CDCDCD] peer-focus:outline-none peer-focus:ring-none peer-focus:ring-none rounded-full border border-black peer peer-checked:after:translate-x-full peer-checked:after:border-black after:content-[''] after:absolute after:top-[0px] after:left-[0px] after:bg-white after:border-black after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[#6AFF97]"></div>
                 </label>
               </div>
 
