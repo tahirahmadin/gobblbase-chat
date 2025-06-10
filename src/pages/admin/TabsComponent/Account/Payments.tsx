@@ -260,60 +260,60 @@ const Payments = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white  overflow-y-auto">
+    <div className="min-h-screen w-full bg-white h-full overflow-y-auto">
       {/* Payment Methods Configuration */}
-      <div className="w-full lg:w-2/3 p-4 lg:p-6 lg:h-screen min-h-[50vh]">
-        <div className="bg-white pb-4 z-10">
+      <div className="w-full lg:h-screen min-h-[50vh]">
+        <div className="bg-white pb-4 z-10 px-6 lg:px-12 pt-12">
           <h2 className="text-xl font-bold text-black">Payment Methods</h2>
         </div>
 
-        <div className="space-y-6 py-4 pb-20">
+        <div className="space-y-6 lg:px-12 pb-28">
           {/* Currency and Preferred Method Selection */}
-          <div className="flex flex-col lg:flex-row lg:space-x-4 space-y-4 lg:space-y-0">
-            <div className="flex items-center gap-4">
-              <label className="para-font block text-[1rem] text-black">
-                Currency
-              </label>
-              <div className="relative w-30 xs:w-48 flex items-center">
-                <button
-                  onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
-                  className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
-                >
-                  {currency}
-                </button>
-                <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
-                  <ChevronDown
-                    size={20}
-                    className={`text-[#000000] stroke-[3px] transition-transform  ${
-                      isCurrencyOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </div>
-                {isCurrencyOpen && (
-                  <div className="absolute z-10 mt-1 top-8 w-full bg-white border border-[#7D7D7D] shadow-sm rounded-sm">
-                    {currencies.map((curr) => (
-                      <button
-                        key={curr}
-                        onClick={() => {
-                          setCurrency(curr);
-                          setIsCurrencyOpen(false);
-                        }}
-                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
-                          currency === curr ? "bg-[#AEB8FF]" : ""
-                        }`}
-                      >
-                        {curr}
-                      </button>
-                    ))}
+          <div className="flex flex-col flex-wrap lg:flex-row lg:space-x-12 space-y-4 lg:space-y-0">
+              <div className="flex items-center gap-2 px-6 lg:px-0">
+                <label className="para-font block text-[1rem] text-black whitespace-nowrap">
+                  Currency
+                </label>
+                <div className="relative w-40 lg:w-48  flex items-center">
+                  <button
+                    onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
+                    className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
+                  >
+                    {currency}
+                  </button>
+                  <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
+                    <ChevronDown
+                      size={20}
+                      className={`text-[#000000] stroke-[3px] transition-transform  ${
+                        isCurrencyOpen ? "rotate-180" : ""
+                      }`}
+                    />
                   </div>
-                )}
+                  {isCurrencyOpen && (
+                    <div className="absolute z-10 mt-1 top-8 w-full bg-white border border-[#7D7D7D] shadow-sm rounded-sm">
+                      {currencies.map((curr) => (
+                        <button
+                          key={curr}
+                          onClick={() => {
+                            setCurrency(curr);
+                            setIsCurrencyOpen(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                            currency === curr ? "bg-[#AEB8FF]" : ""
+                          }`}
+                        >
+                          {curr}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <label className="para-font block text-[1rem] text-black">
+              <div className="flex items-center gap-2 px-6 lg:px-0">
+              <label className="para-font block text-[1rem] text-black whitespace-nowrap">
                 Preferred Method
               </label>
-              <div className="relative w-30 xs:w-48 flex items-center">
+              <div className="relative w-40 lg:w-48 flex items-center">
                 <button
                   onClick={() => setIsMethodOpen(!isMethodOpen)}
                   className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
@@ -370,29 +370,24 @@ const Payments = () => {
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-          <div className="w-fit flex justify-start items-center relative z-10">
-            <div className="absolute top-[4px] left-[4px] bg-[#6AFF97] w-full h-full border border-black"></div>
-            <button
-              onClick={handleSave}
-              className="z-10 px-6 py-2 bg-[#6AFF97] border border-black text-sm font-semibold transition-colors disabled:cursor-not-allowed"
-            > 
-              Save
-            </button>
+              </div>
+              <div className="w-fit flex justify-start items-center relative z-10 ml-6 lg:ml-0">
+                <div className="absolute top-[4px] left-[4px] bg-[#6AFF97] w-full h-full border border-black"></div>
+                <button
+                  onClick={handleSave}
+                  className="z-10 px-6 py-2 bg-[#6AFF97] border border-black text-sm font-semibold transition-colors disabled:cursor-not-allowed"
+                > 
+                  Save
+                </button>
+              </div>
           </div>
 
           {/* Stripe Configuration */}
-          <div className="">
-            <div className="p-6">
-              <div className="flex items-center bg-[#EAEFFF] px-2 rounded-xl justify-between mb-6 w-1/3">
-                <div className="flex items-center space-x-3 p-3 ">
-                  <div>
+          <div className="pt-6 px-6 lg:px-0 border-y border-black pb-6 lg:border-none">
+              <div className="flex items-center bg-[#EAEFFF] p-4 rounded-xl justify-between mb-6 w-1/1 sm:w-1/2 lg:w-1/3">
                     <h3 className="text-lg font-semibold text-gray-900">
                       Stripe Payments
                     </h3>
-                  </div>
-                </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -406,7 +401,7 @@ const Payments = () => {
 
               {isStripeActive ? (
                 <div className="space-y-4">
-                  <div className="bg-green-50 rounded-lg p-4">
+                  <div className="bg-green-50 w-full lg:w-1/1 rounded-lg p-4">
                     <div className="flex items-start space-x-3">
                       <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                       <div>
@@ -421,26 +416,23 @@ const Payments = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2 text-sm text-gray-500">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    <span>Account ID: {stripeId}</span>
+                  <div className="flex flex-col items-start lg:flex-row lg:items-center space-y-4 lg:space-y-0 lg:space-x-4 text-sm text-black">
+                    <span className="para-font text-[1rem]">Connected Account</span>
+                    <span className="py-2 px-2 bg-[#CEFFDC] w-full lg:w-1/4 border-2 border-[#6AFF97]">{stripeId}</span>
+                    {/* disconnect button is active  */}
+                    <div className="w-fit flex justify-start items-center relative z-10">
+                      <div className="absolute top-[4px] left-[4px] bg-[#6AFF97] w-full h-full border border-black"></div>
+                        <button
+                          className="z-10 px-6 py-2 bg-[#6AFF97] border border-black text-sm font-semibold transition-colors disabled:cursor-not-allowed"
+                        > 
+                          Disconnect
+                        </button>
+                    </div>
                   </div>
                 </div>
               ) : !isStripeEnabled ? (
                 <div className="space-y-4">
-                  <div className="bg-yellow-50 rounded-lg p-4">
+                  <div className="bg-yellow-50 w-full lg:w-1/1 rounded-lg p-4">
                     <div className="flex items-start space-x-3">
                       <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
                       <div>
@@ -473,8 +465,8 @@ const Payments = () => {
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <div className="bg-blue-50 rounded-lg p-4">
+                <div className="flex flex-col lg:flex-row items-center gap-8">
+                  <div className="bg-blue-50 w-full lg:w-1/1 rounded-lg p-4">
                     <div className="flex items-start space-x-3">
                       <AlertCircle className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
                       <div>
@@ -490,41 +482,30 @@ const Payments = () => {
                       </div>
                     </div>
                   </div>
-
-                  <button
-                    onClick={handleProceedKYC}
-                    disabled={isLoadingStripe}
-                    className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isLoadingStripe ? (
-                      <>
-                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                        <span>Processing...</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M13 7l5 5m0 0l-5 5m5-5H6"
-                          />
-                        </svg>
-                        {clientData?.paymentMethods?.stripe?.reasons?.status ===
-                          "PENDING_VERIFICATION" && <span>VISIT STRIPE</span>}
-                        {clientData?.paymentMethods?.stripe?.reasons?.status !=
-                          "PENDING_VERIFICATION" && (
-                          <span>PROCEED WITH KYC</span>
-                        )}
-                      </>
-                    )}
-                  </button>
+                  <div className="relative w-fit z-10">
+                    <div className="absolute top-[4px] left-[4px] w-full h-full -z-10 bg-[#6AFF97] border border-black"></div>
+                    <button
+                      onClick={handleProceedKYC}
+                      disabled={isLoadingStripe}
+                      className="w-full z-10 flex items-center justify-center space-x-2 px-6 py-3 bg-[#6AFF97] border border-black text-sm font-semibold transition-colors disabled:cursor-not-allowed"
+                    >
+                      {isLoadingStripe ? (
+                        <>
+                          <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                          <span>Processing...</span>
+                        </>
+                      ) : (
+                        <>
+                          {clientData?.paymentMethods?.stripe?.reasons?.status ===
+                            "PENDING_VERIFICATION" && <span>VISIT STRIPE</span>}
+                          {clientData?.paymentMethods?.stripe?.reasons?.status !=
+                            "PENDING_VERIFICATION" && (
+                            <span className="whitespace-nowrap" >PROCEED WITH KYC</span>
+                          )}
+                        </>
+                      )}
+                    </button>
+                  </div>
 
                   {clientData?.paymentMethods?.stripe?.reasons &&
                     clientData.paymentMethods.stripe.reasons?.reasons?.length >
@@ -572,7 +553,6 @@ const Payments = () => {
                     )}
                 </div>
               )}
-            </div>
           </div>
 
           {/* Razorpay */}
@@ -609,16 +589,11 @@ const Payments = () => {
           </div> */}
 
           {/* Crypto Configuration */}
-          <div className="">
-            <div className="p-6">
-              <div className="flex items-center bg-[#EAEFFF] px-2 rounded-xl justify-between mb-6 w-1/3">
-                <div className="flex items-center space-x-3">
-                  <div>
+            <div className="pt-4 px-6 lg:px-0 border-b border-black pb-8 lg:border-none">
+              <div className="flex items-center bg-[#EAEFFF] p-4 rounded-xl justify-between mb-6 w-1/1 sm:w-1/2 lg:w-1/3">
                     <h3 className="text-lg font-semibold text-gray-900">
                       Crypto Payments
                     </h3>
-                  </div>
-                </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -631,11 +606,11 @@ const Payments = () => {
               </div>
 
               <div
-                className={`space-y-6 ${!cryptoEnabled ? "opacity-50" : ""}`}
+                className={`space-y-6`}
               >
                 {cryptoEnabled ? (
                   <>
-                    <div className="bg-blue-50 rounded-lg p-4">
+                    <div className="bg-blue-50 w-1/1 rounded-lg p-4">
                       <div className="flex items-start space-x-3">
                         <svg
                           className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"
@@ -663,41 +638,55 @@ const Payments = () => {
                       </div>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-4 ">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Wallet Address
+                          Connect your wallet and select your accepted chains
                         </label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={cryptoAddress}
-                            onChange={(e) => setCryptoAddress(e.target.value)}
-                            placeholder="Enter your wallet address..."
-                            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50"
-                            disabled={!cryptoEnabled}
-                          />
-                          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                            <svg
-                              className="w-5 h-5 text-gray-400"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                        <div className="flex items-center space-x-4">
+                          <div className="relative w-full lg:w-1/3">
+                            <input
+                              type="text"
+                              value={cryptoAddress}
+                              onChange={(e) => setCryptoAddress(e.target.value)}
+                              placeholder="Enter your wallet address..."
+                              className={`w-full border border-[#7d7d7d] px-4 py-2.5 text-sm focus:outline-none focus:border-transparent disabled:bg-gray-50
+                                ${
+                                  hasCryptoChanges
+                                    ? "border-2 border-[#6AFF97] bg-[#CEFFDC] focus:ring-2 focus:ring-[#6AFF97]"
+                                    : "focus:ring-2 focus:ring-[#7d7d7d]"
+                                      }`}
+                              disabled={!cryptoEnabled}
+                            />
+                          </div>
+                          
+                          <div className="relative w-fit z-10">
+                            <div className="absolute top-[4px] left-[4px] bg-[#6AFF97] w-full h-full -z-10 border border-black"></div>
+                            <button
+                              onClick={handleEnableCrypto}
+                              disabled={!hasCryptoChanges || isSaving}
+                              className={`bg-[#6AFF97] border border-black z-10 px-6 py-2.5 text-sm font-semibold transition-colors ${
+                                !hasCryptoChanges || isSaving
+                                  ? "cursor-not-allowed"
+                                  : ""
+                              }`}
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                              />
-                            </svg>
+                              {isSaving ? (
+                                <>
+                                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                                  <span>Saving...</span>
+                                </>
+                              ) : (
+                                  <span>Save</span>
+                              )}
+                            </button>
                           </div>
                         </div>
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Supported Networks
+                      <div className="flex space-x-4 items-start sm:items-center pt-8 lg:pt-0">
+                        <label className="block para-font text-[1rem] font-medium text-gray-700">
+                          Select
                         </label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {[
@@ -713,19 +702,18 @@ const Payments = () => {
                               key={chain.id}
                               onClick={() => handleChainToggle(chain.id)}
                               disabled={!cryptoEnabled}
-                              className={`flex items-center space-x-2 px-4 py-2.5 border rounded-lg text-sm font-medium transition-colors ${
+                              className={`flex items-center space-x-2 px-4 py-1 border rounded-full text-sm font-medium transition-colors ${
                                 selectedCryptoChains.includes(chain.id)
-                                  ? "bg-blue-50 border-blue-200 text-blue-700"
-                                  : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                                  ? "bg-black border-[#AEB8FF] text-[#AEB8FF]"
+                                  : "border-[#7D7D7D] text-black hover:bg-gray-50"
                               } ${
                                 !cryptoEnabled
                                   ? "opacity-50 cursor-not-allowed"
                                   : ""
                               }`}
                             >
-                              <span className="text-lg">{chain.icon}</span>
                               <span>{chain.name}</span>
-                              {selectedCryptoChains.includes(chain.id) && (
+                              {/* {selectedCryptoChains.includes(chain.id) && (
                                 <svg
                                   className="w-4 h-4 text-blue-500 ml-auto"
                                   fill="none"
@@ -739,70 +727,22 @@ const Payments = () => {
                                     d="M5 13l4 4L19 7"
                                   />
                                 </svg>
-                              )}
+                              )} */}
                             </button>
                           ))}
                         </div>
                       </div>
                     </div>
-
-                    <div className="flex justify-end">
-                      <button
-                        onClick={handleEnableCrypto}
-                        disabled={!hasCryptoChanges || isSaving}
-                        className={`flex items-center space-x-2 px-6 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm font-semibold transition-colors ${
-                          !hasCryptoChanges || isSaving
-                            ? "opacity-50 cursor-not-allowed"
-                            : ""
-                        }`}
-                      >
-                        {isSaving ? (
-                          <>
-                            <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                            <span>Saving...</span>
-                          </>
-                        ) : (
-                          <>
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
-                            <span>Save Changes</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
                   </>
                 ) : (
-                  <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="bg-yellow-50 w-1/3 rounded-lg p-4">
                     <div className="flex items-start space-x-3">
-                      <svg
-                        className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
+                      <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
                       <div>
-                        <h4 className="text-sm font-medium text-gray-800">
+                        <h4 className="text-sm font-medium text-yellow-800">
                           Enable Crypto Payments
                         </h4>
-                        <p className="mt-1 text-sm text-gray-600">
+                        <p className="mt-1 text-sm text-yellow-700">
                           Toggle the switch above to enable cryptocurrency
                           payments. You'll need to provide your wallet address
                           and select supported networks.
@@ -813,7 +753,6 @@ const Payments = () => {
                 )}
               </div>
             </div>
-          </div>
         </div>
       </div>
     </div>

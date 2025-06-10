@@ -353,27 +353,34 @@ const Income = () => {
                         className="bg-white w-[95%] mx-auto flex flex-col sm:flex-row justify-between p-4 rounded-lg mt-4"
                       >
                         <div className="left">
-                          {transaction.shipping?.name || "Customer Name"}
-                          <div className="truncate">{transaction.userEmail}</div>
-                          <div>Ph: {transaction.shipping?.phone}</div>
-                          {item.title || "Product Name"}
+                          <h1 className="font-semibold text-[1.2rem]">
+                            {transaction.shipping?.name || "Customer Name"}
+                          </h1>
+                          
+                          <h2 className="truncate">{transaction.userEmail}</h2>
+                          <h2>Ph: {transaction.shipping?.phone}</h2>
+                          <h2 className="text-blue-600 text-[1.2rem] font-medium cursor-pointer">
+                            {item.title || "Product Name"}
+                          </h2>
+                          
                         </div>
-                        <div className="right text-right">
-                          <div className="date">
-                            {new Date(transaction.createdAt).toLocaleDateString()}{" "}
-                            {new Date(transaction.createdAt).toLocaleTimeString([], {
+                        <div className="right text-right mt-8">
+                          <span className="date text-grey-100 text-[0.9rem] flex gap-4 items-center justify-end">
+                            
+                            <p>{new Date(transaction.createdAt).toLocaleDateString()}</p>
+                            <p>{new Date(transaction.createdAt).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
-                            })}
-                          </div>
-                          <div className="">Amount</div>
-                          <div className="">
+                            })}</p>
+                          </span>
+                          <div className="text-blue-600 text-[1.1rem] font-medium cursor-pointer">Amount</div>
+                          <div className="text-grey-100 text-[0.9rem]">
                             Paid via{" "}
                             {transaction.paymentMethod === "FIAT"
                               ? "Stripe"
                               : transaction.paymentMethod}
                           </div>
-                          <div className="flex items-center justify-end">
+                          <div className="flex items-center justify-end gap-4 font-semibold">
                             <p> Qty: {item.quantity || "XX"}</p>
                             <p>
                               {transaction.currency} {item.price}
