@@ -90,7 +90,7 @@ export async function signUpClient(
   handle: string
 ): Promise<SignUpClientResponse> {
   try {
-    let url = `/client/signupClient`;
+    let url = `${apiUrl}/client/signupClient`;
     let dataObj = {
       via,
       handle,
