@@ -1,17 +1,41 @@
-import axios from "axios";
+// ==================== Types ====================
 import {
   AdminAgent,
   AnalyticsData,
   CreateNewAgentResponse,
   Theme,
   UserDetails,
+  QueryDocumentResponse,
+  ExtractContentResponse,
+  AvailabilityDay,
+  SignUpClientResponse,
+  UpdateUserLogsParams,
+  AddProductData,
+  DocumentListResponse,
+  DocumentResponse,
+  RemoveDocumentResponse,
+  PlanData,
+  TimeSlot,
+  BookingPayload,
+  AgentPoliciesResponse,
+  CustomerLead,
 } from "../types";
-import { backendApiUrl } from "../utils/constants";
-import CryptoJS from "crypto-js";
 
+// ==================== Utils ====================
+import axios from "axios";
+import CryptoJS from "crypto-js";
+import { backendApiUrl } from "../utils/constants";
+
+// ==================== Constants ====================
 let apiUrl = import.meta.env.PROD ? backendApiUrl : "/api";
 
-// Encryption function
+// ==================== Encryption & Security ====================
+
+/**
+ * Encrypts input data using AES encryption
+ * @param inputBodyData - The data to be encrypted
+ * @returns Object containing encrypted data
+ */
 export const getCipherText = (inputBodyData: any) => {
   try {
     let secretKey = import.meta.env.VITE_ENCRYPTION_KEY;
@@ -31,7 +55,11 @@ export const getCipherText = (inputBodyData: any) => {
   }
 };
 
-// Get HMAC message
+/**
+ * Generates HMAC message for API security
+ * @param inputBodyData - The data to generate HMAC for
+ * @returns Object containing HMAC hash and timestamp
+ */
 const getHmacMessageFromBody = (inputBodyData: string) => {
   try {
     const apiSecret = import.meta.env.VITE_HMAC_KEY;
@@ -55,158 +83,109 @@ const getHmacMessageFromBody = (inputBodyData: string) => {
   }
 };
 
-interface QueryDocumentResponse {
-  context: any; // You might want to define a more specific type based on the actual response
-  calendlyUrl?: string;
-}
+// ==================== Functions ====================
 
-interface ExtractContentResponse {
-  success: boolean;
-  content?: string;
-  error?: string;
-  platform?: string;
-}
-
-interface AvailabilityDay {
-  day: string;
-  available: boolean;
-  timeSlots: {
-    startTime: string;
-    endTime: string;
-  }[];
-}
-
-interface SignUpResult {
-  _id: string;
-  signUpVia: {
-    via: string;
-    handle: string;
-  };
-  agents: any[];
-}
-
-interface SignUpClientResponse {
-  error: boolean;
-  result: string | SignUpResult;
-}
-
-interface UserLog {
-  role: string;
-  content: string;
-  timestamp?: string;
-}
-
-interface UpdateUserLogsParams {
-  userId: string;
-  sessionId: string;
-  agentId: string;
-  newUserLogs: UserLog[];
-}
-
-interface AddProductData {
-  file: File;
-  title: string;
-  description: string;
-  image: string;
-  price: string;
-  about: string;
-  agentId: string;
-}
-
-interface Document {
-  documentId: string;
-  title: string;
-  addedAt: string;
-  updatedAt: string;
-}
-
-interface DocumentListResponse {
-  error: boolean;
-  result:
-    | {
-        agentId: string;
-        agentName: string;
-        documentCount: number;
-        documents: Document[];
-      }
-    | string;
-}
-
-export interface DocumentResponse {
-  error: boolean;
-  result:
-    | {
-        message: string;
-        agentId: string;
-        documentId: string;
-        title: string;
-        size?: number;
-      }
-    | string;
-}
-
-export interface RemoveDocumentResponse {
-  error: boolean;
-  result:
-    | {
-        message: string;
-        agentId: string;
-        documentId: string;
-        remainingDocumentCount: number;
-      }
-    | string;
-}
-
-interface PlanData {
-  id: string;
-  name: string;
-  price: number;
-  currency: string;
-  credits: number;
-  recurrence: string;
-  description: string;
-  isCurrentPlan: boolean;
-  features: string[];
-}
-
-export async function extractContentFromURL(
-  url: string
-): Promise<ExtractContentResponse> {
+export async function signUpClient(
+  via: string,
+  handle: string
+): Promise<SignUpClientResponse> {
   try {
-    const response = await axios.post(`${apiUrl}/content/extract`, {
-      url,
+    let url = `/api/client/signupClient`;
+    let dataObj = {
+      via,
+      handle,
+    };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
     });
+
+    if (!response.data) {
+      throw new Error("No data received from server");
+    }
 
     return response.data;
   } catch (error) {
-    console.error("Error extracting content from URL:", error);
+    console.error("Error signing up client:", error);
     return {
-      success: false,
-      error: "Failed to extract content from URL",
+      error: true,
+      result: "Failed to sign up client",
     };
   }
 }
 
-export async function createNewAgentWithDocumentId(
-  clientId: string,
-  name: string,
-  personalityType: { name: string; value: string[] },
-  themeColors: {
-    mainDarkColor: string;
-    mainLightColor: string;
-    highlightColor: string;
-    isDark: boolean;
-  }
-): Promise<CreateNewAgentResponse> {
+export async function signUpUser(
+  via: string,
+  handle: string
+): Promise<SignUpClientResponse> {
   try {
-    let url = `/api/milvus/create-new-agent`;
+    let url = `/api/user/signupUser`;
     let dataObj = {
-      clientId: clientId,
-      name: name,
-      personalityType: personalityType,
-      themeColors: themeColors,
+      via,
+      handle,
     };
-    let requestParams = JSON.stringify(dataObj);
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
+
+    if (!response.data) {
+      throw new Error("No data received from server");
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Error signing up client:", error);
+    throw new Error("Failed to sign up client");
+  }
+}
+
+export async function getUserDetails(userId: string): Promise<UserDetails> {
+  try {
+    const response = await axios.get(
+      `${apiUrl}/user/getUserDetails?userId=${userId}`
+    );
+
+    if (response.data.error) {
+      throw new Error(response.data.result || "Failed to fetch user details");
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching user details:", error);
+    throw error;
+  }
+}
+export async function fetchClientAgents(
+  clientId: string
+): Promise<AdminAgent[]> {
+  try {
+    let requestParams = `clientId=${clientId}`;
+    let url = `/api/client/agents?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -219,237 +198,7 @@ export async function createNewAgentWithDocumentId(
       Timestamp: hmacResponse.currentTimestamp,
     };
 
-    const response = await axios.post(url, dataObj, { headers: axiosHeaders });
-
-    return response.data;
-  } catch (error) {
-    console.error("Error creating agent:", error);
-    return {
-      error: true,
-      result: {
-        success: false,
-        message:
-          error instanceof Error ? error.message : "Failed to create agent",
-        collectionName: "",
-        agentId: "",
-      },
-    };
-  }
-}
-
-export async function addDocumentToAgent(
-  agentId: string,
-  textContent: string,
-  documentTitle?: string,
-  documentSize?: number
-): Promise<DocumentResponse> {
-  try {
-    const calculatedSize =
-      documentSize || new TextEncoder().encode(textContent).length;
-    const response = await axios.post(`${apiUrl}/milvus/add-document`, {
-      agentId,
-      textContent,
-      documentTitle: documentTitle || "Untitled Document",
-      documentSize: calculatedSize,
-    });
-
-    return response.data;
-  } catch (error) {
-    console.error("Error adding document:", error);
-    return {
-      error: true,
-      result: error instanceof Error ? error.message : "Failed to add document",
-    };
-  }
-}
-
-export async function removeDocumentFromAgent(
-  agentId: string,
-  documentId: string
-): Promise<RemoveDocumentResponse> {
-  try {
-    const response = await axios.post(`${apiUrl}/milvus/remove-document`, {
-      agentId,
-      documentId,
-    });
-
-    return response.data;
-  } catch (error) {
-    console.error("Error removing document:", error);
-    return {
-      error: true,
-      result:
-        error instanceof Error ? error.message : "Failed to remove document",
-    };
-  }
-}
-
-export async function updateDocumentInAgent(
-  agentId: string,
-  documentId: string,
-  textContent: string,
-  documentTitle?: string
-): Promise<DocumentResponse> {
-  try {
-    const response = await axios.post(`${apiUrl}/milvus/update-document`, {
-      agentId,
-      documentId,
-      textContent,
-      documentTitle,
-    });
-
-    return response.data;
-  } catch (error) {
-    console.error("Error updating document:", error);
-    return {
-      error: true,
-      result:
-        error instanceof Error ? error.message : "Failed to update document",
-    };
-  }
-}
-
-export async function listAgentDocuments(
-  agentId: string
-): Promise<DocumentListResponse> {
-  try {
-    const response = await axios.get(
-      `${apiUrl}/milvus/list-documents/${agentId}`
-    );
-
-    return response.data;
-  } catch (error) {
-    console.error("Error listing documents:", error);
-    return {
-      error: true,
-      result:
-        error instanceof Error ? error.message : "Failed to list documents",
-    };
-  }
-}
-
-export async function createNewAgent(
-  clientId: string,
-  name: string,
-  personalityType: { name: string; value: string[] },
-  themeColors: {
-    mainDarkColor: string;
-    mainLightColor: string;
-    highlightColor: string;
-    isDark: boolean;
-  }
-): Promise<CreateNewAgentResponse> {
-  try {
-    const response = await axios.post(`${apiUrl}/milvus/create-new-agent`, {
-      clientId: clientId,
-      name: name,
-      personalityType: personalityType,
-      themeColors: themeColors,
-    });
-
-    return response.data;
-  } catch (error) {
-    console.error("Error processing document:", error);
-    throw new Error("Failed to process document");
-  }
-}
-
-export async function queryDocument(
-  agentId: string,
-  query: string
-): Promise<QueryDocumentResponse> {
-  try {
-    const response = await axios.post(`${apiUrl}/milvus/query-document`, {
-      agentId,
-      query,
-    });
-
-    return response.data.result;
-  } catch (error) {
-    console.error("Error querying document:", error);
-    throw new Error("Failed to query document");
-  }
-}
-
-export async function signUpClient(
-  via: string,
-  handle: string
-): Promise<SignUpClientResponse> {
-  try {
-    const response = await axios.post(`${apiUrl}/client/signupClient`, {
-      via,
-      handle,
-    });
-
-    if (!response.data) {
-      throw new Error("No data received from server");
-    }
-
-    return response.data;
-  } catch (error) {
-    console.error("Error signing up client:", error);
-    if (axios.isAxiosError(error)) {
-      console.error("Axios error details:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
-      });
-
-      // Handle different types of errors
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        return {
-          error: true,
-          result: "Authentication failed. Please log in again.",
-        };
-      } else if (error.response?.status === 429) {
-        return {
-          error: true,
-          result: "Too many requests. Please try again later.",
-        };
-      } else if (error.response?.status === 500) {
-        return {
-          error: true,
-          result: "Server error. Please try again later.",
-        };
-      }
-
-      return {
-        error: true,
-        result: error.response?.data?.message || "Failed to sign up client",
-      };
-    }
-    return {
-      error: true,
-      result:
-        error instanceof Error ? error.message : "Failed to sign up client",
-    };
-  }
-}
-
-export async function signUpUser(
-  via: string,
-  handle: string
-): Promise<SignUpClientResponse> {
-  try {
-    const response = await axios.post(`${apiUrl}/user/signupUser`, {
-      via,
-      handle,
-    });
-
-    return response.data;
-  } catch (error) {
-    console.error("Error signing up client:", error);
-    throw new Error("Failed to sign up client");
-  }
-}
-
-export async function fetchClientAgents(
-  clientId: string
-): Promise<AdminAgent[]> {
-  try {
-    const response = await axios.get(
-      `${apiUrl}/client/agents?clientId=${clientId}`
-    );
+    const response = await axios.get(url, { headers: axiosHeaders });
     if (response.data.error) {
       throw new Error("Failed to fetch client agents");
     }
@@ -460,6 +209,69 @@ export async function fetchClientAgents(
   }
 }
 
+export async function getClient(clientId: string) {
+  try {
+    let requestParams = `clientId=${clientId}`;
+    let url = `/api/client/getClient?${requestParams}`;
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.get(url, { headers: axiosHeaders });
+
+    if (response.data.error) {
+      throw new Error(response.data.result || "Failed to fetch client data");
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching client data:", error);
+    throw error;
+  }
+}
+
+export async function getClientAnalytics(
+  clientId: string
+): Promise<AnalyticsData> {
+  try {
+    let requestParams = `clientId=${clientId}`;
+    let url = `/api/client/getAnalytics?${requestParams}`;
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.get(url, { headers: axiosHeaders });
+
+    if (response.data.error) {
+      throw new Error(response.data.result || "Failed to fetch analytics");
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching analytics:", error);
+    throw new Error(
+      error instanceof Error ? error.message : "Failed to fetch analytics data"
+    );
+  }
+}
+
+// ************** AGENT RELATED FUNCTIONS ************** //
 export async function getAgentDetails(
   inputParam: string | null,
   isfetchByUsername: boolean
@@ -489,218 +301,6 @@ export async function getAgentDetails(
     return response.data.result;
   } catch (error) {
     console.error("Error fetching agent details:", error);
-    throw error;
-  }
-}
-
-export async function updateBotTheme(agentId: string, inputTheme: Theme) {
-  try {
-    let dataObj = {
-      agentId: agentId,
-      themeColors: inputTheme,
-    };
-    let url = `/api/agent/updateAgentTheme`;
-    //Encrypted data
-    let encryptedData = getCipherText(dataObj);
-
-    // HMAC Response
-    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
-
-    if (!hmacResponse) {
-      throw new Error("Failed to generate HMAC");
-    }
-    let axiosHeaders = {
-      HMAC: hmacResponse.hmacHash,
-      Timestamp: hmacResponse.currentTimestamp,
-    };
-
-    const response = await axios.post(url, encryptedData, {
-      headers: axiosHeaders,
-    });
-
-    if (response.data.error) {
-      throw new Error("Error updating agent details");
-    }
-    return response.data.result;
-  } catch (error) {
-    console.error("Error updating agent details:", error);
-    throw error;
-  }
-}
-
-export async function updateAgentDetails(
-  agentId: string,
-  details: {
-    model: string;
-    systemPrompt: string;
-    username?: string;
-    logo?: string;
-    calendlyUrl?: string;
-    personalityType?: string;
-    isCustomPersonality?: boolean;
-    customPersonalityPrompt?: string;
-    personalityAnalysis?: any;
-    lastPersonalityUrl?: string;
-    lastPersonalityContent?: string;
-    themeColors?: any;
-    [key: string]: any;
-  }
-) {
-  try {
-    const body = {
-      model: details.model,
-      systemPrompt: details.systemPrompt,
-      username: details.username,
-      logo: details.logo,
-      calendlyUrl: details.calendlyUrl,
-      personalityType: details.personalityType,
-      isCustomPersonality: details.isCustomPersonality,
-      customPersonalityPrompt: details.customPersonalityPrompt,
-      personalityAnalysis: details.personalityAnalysis,
-      lastPersonalityUrl: details.lastPersonalityUrl,
-      lastPersonalityContent: details.lastPersonalityContent,
-      themeColors: details.themeColors,
-    };
-
-    let url = `/api/agent/updateAgent`;
-    //Encrypted data
-    let encryptedData = getCipherText(body);
-
-    // HMAC Response
-    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
-
-    if (!hmacResponse) {
-      return null;
-    }
-    let axiosHeaders = {
-      HMAC: hmacResponse.hmacHash,
-      Timestamp: hmacResponse.currentTimestamp,
-    };
-
-    const response = await axios.put(url, encryptedData, {
-      headers: axiosHeaders,
-      params: { agentId },
-    });
-
-    if (response.data.error) {
-      throw new Error("Error updating agent details");
-    }
-    return response.data.result;
-  } catch (error) {
-    console.error("Error updating agent details:", error);
-    throw error;
-  }
-}
-
-export async function deleteAgent(
-  agentId: string,
-  userId?: string
-): Promise<void> {
-  try {
-    if (!agentId || agentId.trim() === "") {
-      throw new Error("Agent ID is required");
-    }
-
-    let url = `/api/agent/deleteAgent`;
-    let dataObj = { agentId, userId };
-    let encryptedData = getCipherText(dataObj);
-
-    // HMAC Response
-    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
-
-    if (!hmacResponse) {
-      throw new Error("Failed to generate HMAC");
-    }
-    let axiosHeaders = {
-      HMAC: hmacResponse.hmacHash,
-      Timestamp: hmacResponse.currentTimestamp,
-    };
-
-    const response = await axios.post(url, encryptedData, {
-      headers: axiosHeaders,
-    });
-
-    if (response.data.error) {
-      throw new Error(response.data.result || "Error deleting agent");
-    }
-
-    console.log("Agent deleted successfully:", response.data.result);
-    return response.data.result;
-  } catch (error) {
-    console.error("Error deleting agent:", error);
-    throw error;
-  }
-}
-
-export async function updateUserLogs(params: UpdateUserLogsParams) {
-  try {
-    let url = `/api/agent/updateUserLogs`;
-    let encryptedData = getCipherText(params);
-
-    // HMAC Response
-    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
-
-    if (!hmacResponse) {
-      return null;
-    }
-    let axiosHeaders = {
-      HMAC: hmacResponse.hmacHash,
-      Timestamp: hmacResponse.currentTimestamp,
-    };
-
-    const response = await axios.post(url, encryptedData, {
-      headers: axiosHeaders,
-    });
-
-    if (response.data.error) {
-      throw new Error("Error updating user logs");
-    }
-    return response.data.result;
-  } catch (error) {
-    console.error("Error updating user logs:", error);
-    throw error;
-  }
-}
-
-export async function getChatLogs(agentId: string) {
-  try {
-    let requestParams = `agentId=${agentId}`;
-    let url = `/api/agent/getAgentChatLogs?${requestParams}`;
-
-    // HMAC Response
-    let hmacResponse = getHmacMessageFromBody(requestParams);
-
-    if (!hmacResponse) {
-      return null;
-    }
-    let axiosHeaders = {
-      HMAC: hmacResponse.hmacHash,
-      Timestamp: hmacResponse.currentTimestamp,
-    };
-
-    const response = await axios.get(url, { headers: axiosHeaders });
-
-    if (response.data.error) {
-      throw new Error("Error fetching chat logs");
-    }
-    return response.data.result;
-  } catch (error) {
-    console.error("Error fetching chat logs:", error);
-    throw error;
-  }
-}
-
-export async function getIntegratedServices(agentId: string) {
-  try {
-    const response = await axios.get(
-      `${apiUrl}/client/getServices?agentId=${agentId}`
-    );
-    if (response.data.error) {
-      throw new Error("Failed to fetch integrated services");
-    }
-    return response.data.result;
-  } catch (error) {
-    console.error("Error fetching integrated services:", error);
     throw error;
   }
 }
@@ -762,295 +362,85 @@ export async function uploadProfilePicture(
   }
 }
 
-export async function updateAppointmentSettings(payload: {
-  agentId: string;
-  bookingType: string;
-  bookingsPerSlot: number;
-  meetingDuration: number;
-  bufferTime: number;
-  breaks: { startTime: string; endTime: string }[];
-  availability: AvailabilityDay[];
-  locations: string[];
-  timezone: string;
-  price: {
-    isFree: boolean;
-    amount: number;
-    currency: string;
-  };
-}) {
+export async function updateBotTheme(agentId: string, inputTheme: Theme) {
   try {
-    const response = await axios.post(
-      `${apiUrl}/appointment/settings`,
-      payload
-    );
-    if (response.data.error) throw new Error(response.data.error);
-    return response.data;
-  } catch (error) {
-    console.error("Error updating appointment settings:", error);
-    throw error;
-  }
-}
+    let dataObj = {
+      agentId: agentId,
+      themeColors: inputTheme,
+    };
+    let url = `/api/agent/updateAgentTheme`;
+    //Encrypted data
+    let encryptedData = getCipherText(dataObj);
 
-export async function getAppointmentSettings(agentId: string) {
-  try {
-    const response = await axios.get(
-      `${apiUrl}/appointment/settings?agentId=${agentId}`
-    );
-    if (response.data.error) throw new Error(response.data.error);
-    return response.data.result;
-  } catch (error) {
-    console.error("Error fetching appointment settings:", error);
-    throw error;
-  }
-}
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
 
-export interface TimeSlot {
-  startTime: string;
-  endTime: string;
-}
-
-export async function getAvailableSlots(
-  agentId: string,
-  date: string,
-  userTimezone?: string // Added userTimezone parameter
-): Promise<TimeSlot[]> {
-  const response = await axios.get(`${apiUrl}/appointment/available-slots`, {
-    params: { agentId, date, userTimezone }, // Add userTimezone to params
-  });
-  if (response.data.error) {
-    throw new Error(response.data.result || "No slots found");
-  }
-  // backend returns result: [ { startTime, endTime }, ... ]
-  return response.data.result as TimeSlot[];
-}
-
-export interface BookingPayload {
-  agentId: string;
-  userId: string;
-  email?: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  location: string;
-  userTimezone?: string;
-  name?: string;
-  phone?: string;
-  notes?: string;
-}
-
-export async function bookAppointment(payload: BookingPayload): Promise<any> {
-  const response = await axios.post(`${apiUrl}/appointment/book`, payload);
-  if (response.data.error) throw new Error(response.data.error);
-  return response.data.result;
-}
-
-export async function updateUnavailableDates(
-  agentId: string,
-  unavailableDates: Array<{
-    date: string;
-    startTime: string;
-    endTime: string;
-    allDay: boolean;
-    timezone?: string;
-    timeSlots?: Array<{ start: string; end: string }>;
-  }>,
-  datesToMakeAvailable?: string[]
-): Promise<any> {
-  try {
-    console.log("updateUnavailableDates called with:", {
-      agentId,
-      unavailableDates,
-      datesToMakeAvailable,
-    });
-
-    const response = await axios.post(
-      `${apiUrl}/appointment/update-unavailable-dates`,
-      {
-        agentId,
-        unavailableDates,
-        datesToMakeAvailable,
-      }
-    );
-
-    console.log("API response:", response.data);
-
-    if (response.data.error) {
-      throw new Error(response.data.error);
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
     }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
 
-    return response.data.result;
-  } catch (error) {
-    console.error("Error updating unavailable dates:", error);
-
-    // Log more details about the error
-    if (axios.isAxiosError(error)) {
-      console.error("Axios error details:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
-      });
-    }
-
-    throw error;
-  }
-}
-
-export async function getDayWiseAvailability(
-  agentId: string,
-  userTimezone?: string // Added userTimezone parameter
-): Promise<Record<string, boolean>> {
-  try {
-    const response = await axios.get(
-      `${apiUrl}/appointment/day-wise-availability`,
-      {
-        params: { agentId, userTimezone },
-      }
-    );
-    if (response.data.error) throw new Error(response.data.error);
-    return response.data.result || {};
-  } catch (error) {
-    console.error("Error fetching day-wise availability:", error);
-    return {};
-  }
-}
-
-export async function getUnavailableDates(agentId: string): Promise<string[]> {
-  try {
-    const response = await axios.get(
-      `${apiUrl}/appointment/unavailable-dates?agentId=${agentId}`
-    );
-    if (response.data.error) throw new Error(response.data.error);
-    return response.data.result || [];
-  } catch (error) {
-    console.error("Error fetching unavailable dates:", error);
-    return [];
-  }
-}
-
-export async function getBookings(agentId: string) {
-  try {
-    const response = await axios.get(
-      `${apiUrl}/appointment/bookings?agentId=${agentId}`
-    );
-    if (response.data.error) throw new Error(response.data.error);
-    return response.data.result;
-  } catch (error) {
-    console.error("Error fetching bookings:", error);
-    throw error;
-  }
-}
-
-export async function cancelBooking(bookingId: string) {
-  try {
-    const response = await axios.post(`${apiUrl}/appointment/cancel-booking`, {
-      bookingId,
-    });
-    if (response.data.error) throw new Error(response.data.error);
-    return response.data.result;
-  } catch (error) {
-    console.error("Error cancelling booking:", error);
-    throw error;
-  }
-}
-
-export const addProduct = async (data: AddProductData) => {
-  try {
-    const formData = new FormData();
-    formData.append("file", data.file);
-    formData.append("title", data.title);
-    formData.append("description", data.description);
-    formData.append("image", data.image);
-    formData.append("price", data.price);
-    formData.append("about", data.about);
-    formData.append("agentId", data.agentId);
-
-    const response = await fetch(`${apiUrl}/product/addProduct`, {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to add product");
-    }
-
-    const result = await response.json();
-    return result;
-  } catch (error) {
-    console.error("Error adding product:", error);
-    throw error;
-  }
-};
-
-export const deleteProduct = async (id: string, agentId: string) => {
-  try {
-    const response = await axios.delete(`${apiUrl}/product/deleteProduct`, {
-      data: {
-        productId: id,
-        agentId,
-      },
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
     });
 
     if (response.data.error) {
-      throw new Error("Failed to delete product");
+      throw new Error("Error updating agent details");
     }
-
     return response.data.result;
   } catch (error) {
-    console.error("Error deleting product:", error);
+    console.error("Error updating agent details:", error);
     throw error;
   }
-};
+}
 
-export const getProducts = async (agentId: string) => {
-  // try {
-  //   let url = `https://rag.gobbl.ai/zoho/items?agentId=${agentId}`;
-  //   const response = await axios.get(url);
-  //   if (response.data.error) {
-  //     throw new Error("Failed to fetch products");
-  //   }
-  //   return response.data.result;
-  // } catch (error) {
-  //   console.error("Error fetching products:", error);
-  //   throw error;
-  // }
-};
-
-export const updateProductImage = async (data: {
-  file: File;
-  agentId: string;
-  productId: string;
-}) => {
+export async function deleteAgent(
+  agentId: string,
+  userId?: string
+): Promise<void> {
   try {
-    const formData = new FormData();
-    formData.append("file", data.file);
-    formData.append("agentId", data.agentId);
-    formData.append("productId", data.productId);
+    if (!agentId || agentId.trim() === "") {
+      throw new Error("Agent ID is required");
+    }
 
-    const response = await axios.post(
-      `${apiUrl}/product/updateProductImage`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
+    let url = `/api/agent/deleteAgent`;
+    let dataObj = { agentId, userId };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
 
     if (response.data.error) {
-      throw new Error("Failed to update product image");
+      throw new Error(response.data.result || "Error deleting agent");
     }
 
+    console.log("Agent deleted successfully:", response.data.result);
     return response.data.result;
   } catch (error) {
-    console.error("Error updating product image:", error);
+    console.error("Error deleting agent:", error);
     throw error;
   }
-};
+}
 
-export const getTransactions = async (
+export async function getTransactions(
   agentId: string,
   page: number
-): Promise<{ orders: any[]; hasNext: boolean }> => {
+): Promise<{ orders: any[]; hasNext: boolean }> {
   try {
     let url = `/api/agent/getAgentOrders?agentId=${agentId}&page=${page}`;
     let requestParams = `agentId=${agentId}&page=${page}`;
@@ -1073,56 +463,6 @@ export const getTransactions = async (
     console.error("Error fetching transactions:", error);
     throw new Error("Failed to fetch transactions");
   }
-};
-
-export const payOutStripe = async (clientId: string) => {
-  try {
-    const response = await axios.post(`${apiUrl}/client/payOut`, { clientId });
-    return response.data;
-  } catch (error: any) {
-    if (axios.isAxiosError(error)) {
-      return {
-        error: true,
-        result:
-          error.response?.data?.result ||
-          error.message ||
-          "Failed to cash out via Stripe",
-      };
-    }
-    return {
-      error: true,
-      result:
-        error instanceof Error
-          ? error.message
-          : "Failed to cash out via Stripe",
-    };
-  }
-};
-
-export async function getUserDetails(userId: string): Promise<UserDetails> {
-  try {
-    const response = await axios.get(
-      `${apiUrl}/user/getUserDetails?userId=${userId}`
-    );
-
-    if (response.data.error) {
-      throw new Error(response.data.result || "Failed to fetch user details");
-    }
-
-    return response.data.result;
-  } catch (error) {
-    console.error("Error fetching user details:", error);
-    throw error;
-  }
-}
-
-export interface AdminUser {
-  _id: string;
-  email: string;
-  name?: string;
-  role: "user" | "admin";
-  createdAt: string;
-  lastLogin: string;
 }
 
 export async function updateSocialHandles(
@@ -1334,21 +674,61 @@ export async function updateAgentBrain(
   }
 }
 
-export async function updateClientPaymentSettings(
-  clientId: string,
-  currency: string,
-  preferredMethod: string
-): Promise<boolean> {
+export async function getChatLogs(agentId: string) {
   try {
-    await axios.post(`${apiUrl}/client/updateCurrencyAndPreferredMethod`, {
-      clientId,
-      currency,
-      preferredMethod,
-    });
-    return true;
+    let requestParams = `agentId=${agentId}`;
+    let url = `/api/agent/getAgentChatLogs?${requestParams}`;
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+
+    if (!hmacResponse) {
+      return null;
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.get(url, { headers: axiosHeaders });
+
+    if (response.data.error) {
+      throw new Error("Error fetching chat logs");
+    }
+    return response.data.result;
   } catch (error) {
-    console.error("Error updating payment settings:", error);
-    throw new Error("Failed to update payment settings");
+    console.error("Error fetching chat logs:", error);
+    throw error;
+  }
+}
+
+export async function updateUserLogs(params: UpdateUserLogsParams) {
+  try {
+    let url = `/api/agent/updateUserLogs`;
+    let encryptedData = getCipherText(params);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      return null;
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
+
+    if (response.data.error) {
+      throw new Error("Error updating user logs");
+    }
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating user logs:", error);
+    throw error;
   }
 }
 
@@ -1386,14 +766,6 @@ export async function updateCustomerLeadFlag(
   }
 }
 
-interface CustomerLead {
-  name: string;
-  email: string;
-  phone: string;
-  queryMessage: string;
-  createdAt: string;
-}
-
 export async function getCustomerLeads(
   agentId: string
 ): Promise<CustomerLead[]> {
@@ -1422,22 +794,6 @@ export async function getCustomerLeads(
     console.error("Error fetching customer leads:", error);
     throw new Error("Failed to fetch customer leads");
   }
-}
-
-interface PolicyContent {
-  enabled: boolean;
-  content: string;
-}
-
-interface AgentPoliciesResponse {
-  error: boolean;
-  result: {
-    shipping: PolicyContent;
-    returns: PolicyContent;
-    privacy: PolicyContent;
-    terms: PolicyContent;
-    [key: string]: PolicyContent;
-  };
 }
 
 export async function getAgentPolicies(
@@ -1579,167 +935,523 @@ export async function saveCustomerLead(
   }
 }
 
-export async function getPlans(clientId: string): Promise<PlanData[]> {
+export async function updateAgentPolicy(
+  agentId: string,
+  policyId: string,
+  enabled: boolean,
+  content: string
+): Promise<boolean> {
   try {
-    const response = await axios.get(
-      `${apiUrl}/client/getPlans?clientId=${clientId}`
-    );
+    let url = `/api/agent/updateAgentPolicy`;
+    let dataObj = { agentId, policyId, enabled, content };
+    let encryptedData = getCipherText(dataObj);
 
-    if (response.data.error) {
-      throw new Error("Failed to fetch plans");
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
     }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
 
-    return response.data.result;
-  } catch (error) {
-    console.error("Error fetching plans:", error);
-    throw error;
-  }
-}
-
-export async function subscribeToPlan(
-  clientId: string,
-  planId: string
-): Promise<any> {
-  try {
-    const response = await axios.post(
-      `${apiUrl}/product/subscribeOrChangePlan`,
-      {
-        clientId,
-        planId,
-      }
-    );
-
-    if (response.data.error) {
-      throw new Error(response.data.error || "Failed to subscribe to plan");
-    }
-
-    return response.data.result;
-  } catch (error) {
-    console.error("Error subscribing to plan:", error);
-    throw error;
-  }
-}
-
-export async function getClient(clientId: string) {
-  try {
-    const response = await axios.get(
-      `${apiUrl}/client/getClient?clientId=${clientId}`
-    );
-
-    if (response.data.error) {
-      throw new Error(response.data.result || "Failed to fetch client data");
-    }
-
-    return response.data.result;
-  } catch (error) {
-    console.error("Error fetching client data:", error);
-    throw error;
-  }
-}
-
-export async function updateClientBillingDetails(
-  clientId: string,
-  billingDetails: {
-    "Individual/Organization Name": string;
-    Email: string;
-    Country: string;
-    State: string;
-    "Zip Code": string;
-    "Address Line 1": string;
-    "Address Line 2": string;
-  }
-): Promise<any> {
-  try {
-    const response = await axios.post(
-      `${apiUrl}/client/updateClientBillingDetails`,
-      {
-        clientId,
-        billingDetails,
-      }
-    );
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
 
     if (response.data.error) {
       throw new Error(response.data.error);
     }
-
-    return response.data.result;
+    return true;
   } catch (error) {
-    console.error("Error updating billing details:", error);
-    throw new Error("Failed to update billing details");
+    console.error("Error updating agent policy:", error);
+    throw error;
   }
 }
 
-export async function updateClientBillingMethod(
-  clientId: string,
-  billingMethod: Array<{
-    cardType: string;
-    cardNumber: number;
-    expiry: string;
-    default: boolean;
-  }>
-): Promise<any> {
+export async function updateCustomHandles(
+  agentId: string,
+  customHandles: { label: string; url: string }[]
+): Promise<boolean> {
   try {
-    const response = await axios.post(
-      `${apiUrl}/client/updateClientBillingMethod`,
-      {
-        clientId,
-        billingMethod,
-      }
-    );
+    let url = `/api/agent/updateCustomHandles`;
+    let dataObj = { agentId, customHandles };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    await axios.post(url, encryptedData, { headers: axiosHeaders });
+    return true;
+  } catch (error) {
+    console.error("Error updating custom handles:", error);
+    throw new Error("Failed to update custom links");
+  }
+}
+export async function submitWhatsapp(
+  agentId: string,
+  countryCode: string,
+  number: string
+): Promise<boolean> {
+  try {
+    let url = `/api/agent/updateWhatsappNumber`;
+    let dataObj = { agentId, whatsappNumber: { countryCode, number } };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
 
     if (response.data.error) {
       throw new Error(response.data.error);
     }
-
-    return response.data.result;
+    return true;
   } catch (error) {
-    console.error("Error updating billing method:", error);
-    throw new Error("Failed to update billing method");
+    console.error("Error submitting WhatsApp number:", error);
+    return false;
   }
 }
 
-export const updateProduct = async (data: {
-  productId: string;
-  title: string;
-  description: string;
-  price: string;
-  about?: string;
+// ************** DOCUMENT OR BRAIN FUNCTIONS ************** //
+export async function createNewAgent(
+  clientId: string,
+  name: string,
+  personalityType: { name: string; value: string[] },
+  themeColors: {
+    mainDarkColor: string;
+    mainLightColor: string;
+    highlightColor: string;
+    isDark: boolean;
+  }
+): Promise<CreateNewAgentResponse> {
+  try {
+    const response = await axios.post(`${apiUrl}/milvus/create-new-agent`, {
+      clientId: clientId,
+      name: name,
+      personalityType: personalityType,
+      themeColors: themeColors,
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error processing document:", error);
+    throw new Error("Failed to process document");
+  }
+}
+
+export async function extractContentFromURL(
+  url: string
+): Promise<ExtractContentResponse> {
+  try {
+    const response = await axios.post(`${apiUrl}/content/extract`, { url });
+    return response.data;
+  } catch (error) {
+    console.error("Error extracting content from URL:", error);
+    return {
+      success: false,
+      error: "Failed to extract content from URL",
+    };
+  }
+}
+
+export async function createNewAgentWithDocumentId(
+  clientId: string,
+  name: string,
+  personalityType: { name: string; value: string[] },
+  themeColors: {
+    mainDarkColor: string;
+    mainLightColor: string;
+    highlightColor: string;
+    isDark: boolean;
+  }
+): Promise<CreateNewAgentResponse> {
+  try {
+    let url = `/api/milvus/create-new-agent`;
+    let dataObj = {
+      clientId: clientId,
+      name: name,
+      personalityType: personalityType,
+      themeColors: themeColors,
+    };
+    let requestParams = JSON.stringify(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, dataObj, { headers: axiosHeaders });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error creating agent:", error);
+    return {
+      error: true,
+      result: {
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Failed to create agent",
+        collectionName: "",
+        agentId: "",
+      },
+    };
+  }
+}
+
+export async function listAgentDocuments(
+  agentId: string
+): Promise<DocumentListResponse> {
+  try {
+    let requestParams = `agentId=${agentId}`;
+    let url = `/api/milvus/list-documents?${requestParams}`;
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.get(url, { headers: axiosHeaders });
+    return response.data;
+  } catch (error) {
+    console.error("Error listing documents:", error);
+    return {
+      error: true,
+      result:
+        error instanceof Error ? error.message : "Failed to list documents",
+    };
+  }
+}
+
+export async function addDocumentToAgent(
+  agentId: string,
+  textContent: string,
+  documentTitle?: string,
+  documentSize?: number
+): Promise<DocumentResponse> {
+  try {
+    const calculatedSize =
+      documentSize || new TextEncoder().encode(textContent).length;
+    const response = await axios.post(`${apiUrl}/milvus/add-document`, {
+      agentId,
+      textContent,
+      documentTitle: documentTitle || "Untitled Document",
+      documentSize: calculatedSize,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error adding document:", error);
+    return {
+      error: true,
+      result: error instanceof Error ? error.message : "Failed to add document",
+    };
+  }
+}
+
+export async function removeDocumentFromAgent(
+  agentId: string,
+  documentId: string
+): Promise<RemoveDocumentResponse> {
+  try {
+    const response = await axios.post(`${apiUrl}/milvus/remove-document`, {
+      agentId,
+      documentId,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error removing document:", error);
+    return {
+      error: true,
+      result:
+        error instanceof Error ? error.message : "Failed to remove document",
+    };
+  }
+}
+
+export async function updateDocumentInAgent(
+  agentId: string,
+  documentId: string,
+  textContent: string,
+  documentTitle?: string
+): Promise<DocumentResponse> {
+  try {
+    const response = await axios.post(`${apiUrl}/milvus/update-document`, {
+      agentId,
+      documentId,
+      textContent,
+      documentTitle,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating document:", error);
+    return {
+      error: true,
+      result:
+        error instanceof Error ? error.message : "Failed to update document",
+    };
+  }
+}
+
+export async function queryDocument(
+  agentId: string,
+  query: string
+): Promise<QueryDocumentResponse> {
+  try {
+    const response = await axios.post(`${apiUrl}/milvus/query-document`, {
+      agentId,
+      query,
+    });
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error querying document:", error);
+    throw new Error("Failed to query document");
+  }
+}
+
+// ==================== Booking Functions ====================
+
+export async function getIntegratedServices(agentId: string) {
+  try {
+    const response = await axios.get(
+      `${apiUrl}/client/getServices?agentId=${agentId}`
+    );
+    if (response.data.error) {
+      throw new Error("Failed to fetch integrated services");
+    }
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching integrated services:", error);
+    throw error;
+  }
+}
+
+export async function updateAppointmentSettings(payload: {
   agentId: string;
-  stock: number;
-}) => {
+  bookingType: string;
+  bookingsPerSlot: number;
+  meetingDuration: number;
+  bufferTime: number;
+  breaks: { startTime: string; endTime: string }[];
+  availability: AvailabilityDay[];
+  locations: string[];
+  timezone: string;
+  price: {
+    isFree: boolean;
+    amount: number;
+    currency: string;
+  };
+}) {
   try {
-    const response = await axios.put(`${apiUrl}/product/updateProduct`, data);
+    let url = `/api/appointment/settings`;
+    let dataObj = payload;
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
+    if (response.data.error) throw new Error(response.data.error);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating appointment settings:", error);
+    throw error;
+  }
+}
+
+export async function getAppointmentSettings(agentId: string) {
+  try {
+    let requestParams = `agentId=${agentId}`;
+    let url = `/api/appointment/settings?${requestParams}`;
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.get(url, { headers: axiosHeaders });
+    if (response.data.error) throw new Error(response.data.error);
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching appointment settings:", error);
+    throw error;
+  }
+}
+
+export async function getAvailableSlots(
+  agentId: string,
+  date: string,
+  userTimezone?: string // Added userTimezone parameter
+): Promise<TimeSlot[]> {
+  const response = await axios.get(`${apiUrl}/appointment/available-slots`, {
+    params: { agentId, date, userTimezone }, // Add userTimezone to params
+  });
+  if (response.data.error) {
+    throw new Error(response.data.result || "No slots found");
+  }
+  // backend returns result: [ { startTime, endTime }, ... ]
+  return response.data.result as TimeSlot[];
+}
+
+export async function bookAppointment(payload: BookingPayload): Promise<any> {
+  const response = await axios.post(`${apiUrl}/appointment/book`, payload);
+  if (response.data.error) throw new Error(response.data.error);
+  return response.data.result;
+}
+
+export async function updateUnavailableDates(
+  agentId: string,
+  unavailableDates: Array<{
+    date: string;
+    startTime: string;
+    endTime: string;
+    allDay: boolean;
+    timezone?: string;
+    timeSlots?: Array<{ start: string; end: string }>;
+  }>,
+  datesToMakeAvailable?: string[]
+): Promise<any> {
+  try {
+    console.log("updateUnavailableDates called with:", {
+      agentId,
+      unavailableDates,
+      datesToMakeAvailable,
+    });
+
+    const response = await axios.post(
+      `${apiUrl}/appointment/update-unavailable-dates`,
+      {
+        agentId,
+        unavailableDates,
+        datesToMakeAvailable,
+      }
+    );
+
+    console.log("API response:", response.data);
 
     if (response.data.error) {
-      throw new Error("Failed to update product");
+      throw new Error(response.data.error);
     }
 
     return response.data.result;
   } catch (error) {
-    console.error("Error updating product:", error);
+    console.error("Error updating unavailable dates:", error);
+
+    // Log more details about the error
+    if (axios.isAxiosError(error)) {
+      console.error("Axios error details:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+    }
+
     throw error;
   }
-};
+}
 
-export async function getClientUsage(clientId: string) {
+export async function getDayWiseAvailability(
+  agentId: string,
+  userTimezone?: string // Added userTimezone parameter
+): Promise<Record<string, boolean>> {
   try {
-    const response = await fetch(
-      `${apiUrl}/client/getClientUsage?clientId=${clientId}`
+    const response = await axios.get(
+      `${apiUrl}/appointment/day-wise-availability`,
+      {
+        params: { agentId, userTimezone },
+      }
     );
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch client usage data");
-    }
-
-    const data = await response.json();
-
-    if (data.error) {
-      throw new Error(data.result || "Failed to fetch client usage data");
-    }
-
-    return data.result;
+    if (response.data.error) throw new Error(response.data.error);
+    return response.data.result || {};
   } catch (error) {
-    console.error("Error fetching client usage data:", error);
+    console.error("Error fetching day-wise availability:", error);
+    return {};
+  }
+}
+
+export async function getUnavailableDates(agentId: string): Promise<string[]> {
+  try {
+    const response = await axios.get(
+      `${apiUrl}/appointment/unavailable-dates?agentId=${agentId}`
+    );
+    if (response.data.error) throw new Error(response.data.error);
+    return response.data.result || [];
+  } catch (error) {
+    console.error("Error fetching unavailable dates:", error);
+    return [];
+  }
+}
+
+export async function getBookings(agentId: string) {
+  try {
+    const response = await axios.get(
+      `${apiUrl}/appointment/bookings?agentId=${agentId}`
+    );
+    if (response.data.error) throw new Error(response.data.error);
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching bookings:", error);
+    throw error;
+  }
+}
+
+export async function cancelBooking(bookingId: string) {
+  try {
+    const response = await axios.post(`${apiUrl}/appointment/cancel-booking`, {
+      bookingId,
+    });
+    if (response.data.error) throw new Error(response.data.error);
+    return response.data.result;
+  } catch (error) {
+    console.error("Error cancelling booking:", error);
     throw error;
   }
 }
@@ -1860,21 +1572,32 @@ export async function sendRescheduleRequestEmail(payload: {
   }
 }
 
+// ************** PRODUCT FUNCTIONS ************** //
 export async function getMainProducts(agentId: string) {
   try {
-    const response = await fetch(
-      `${apiUrl}/product/getProducts?agentId=${agentId}`
-    );
-    if (!response.ok) throw new Error("Failed to fetch products");
-    const data = await response.json();
-    return data.result || [];
+    let requestParams = `agentId=${agentId}`;
+    let url = `/api/product/getProducts?${requestParams}`;
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.get(url, { headers: axiosHeaders });
+    if (response.data.error) throw new Error("Failed to fetch products");
+    return response.data.result || [];
   } catch (err) {
     console.error("Error fetching products:", err);
     return [];
   }
 }
 
-// Delete main product by productId and agentId
 export async function deleteMainProduct(productId: string, agentId: string) {
   try {
     const response = await axios.delete(`${apiUrl}/product/deleteProduct`, {
@@ -1887,7 +1610,7 @@ export async function deleteMainProduct(productId: string, agentId: string) {
   }
 }
 
-export const pauseProduct = async (productId: string, isPaused: boolean) => {
+export async function pauseProduct(productId: string, isPaused: boolean) {
   try {
     const response = await axios.post(`${apiUrl}/product/pauseProduct`, {
       productId,
@@ -1904,33 +1627,12 @@ export const pauseProduct = async (productId: string, isPaused: boolean) => {
     throw error;
     return false;
   }
-};
+}
 
 export async function getMainProductsForUser(agentId: string) {
   try {
-    const response = await fetch(
-      `${apiUrl}/user/getAgentProducts?agentId=${agentId}`
-    );
-    if (!response.ok) throw new Error("Failed to fetch products");
-    const data = await response.json();
-    return data.result || [];
-  } catch (err) {
-    console.error("Error fetching products:", err);
-    return [];
-  }
-}
-
-// EMAIL TEMPLATES
-
-/**
- * Fetch email templates for a given agentId
- * @param agentId string
- * @returns Promise<any>
- */
-export async function getEmailTemplates(agentId: string): Promise<any> {
-  try {
     let requestParams = `agentId=${agentId}`;
-    let url = `/api/email/getEmailTemplates?${requestParams}`;
+    let url = `/api/user/getAgentProducts?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -1944,59 +1646,13 @@ export async function getEmailTemplates(agentId: string): Promise<any> {
     };
 
     const response = await axios.get(url, { headers: axiosHeaders });
-    if (response.data.error) {
-      throw new Error(
-        response.data.result || "Failed to fetch email templates"
-      );
-    }
-    return response.data.result;
-  } catch (error) {
-    console.error("Error fetching email templates:", error);
-    throw error;
+    if (response.data.error) throw new Error("Failed to fetch products");
+    return response.data.result || [];
+  } catch (err) {
+    console.error("Error fetching products:", err);
+    return [];
   }
 }
-
-/**
- * Update email templates for a given agentId
- * @param agentId string
- * @param updatedData Array<any>
- * @returns Promise<any>
- */
-export async function updateEmailTemplates(
-  agentId: string,
-  updatedData: any,
-  emailTemplateId: string
-): Promise<any> {
-  try {
-    let url = `/api/email/updateEmailTemplates`;
-    let dataObj = { agentId, updatedData, emailTemplateId };
-    let requestParams = JSON.stringify(dataObj);
-
-    // HMAC Response
-    let hmacResponse = getHmacMessageFromBody(requestParams);
-
-    if (!hmacResponse) {
-      throw new Error("Failed to generate HMAC");
-    }
-    let axiosHeaders = {
-      HMAC: hmacResponse.hmacHash,
-      Timestamp: hmacResponse.currentTimestamp,
-    };
-
-    const response = await axios.post(url, dataObj, { headers: axiosHeaders });
-    if (response.data.error) {
-      throw new Error(
-        response.data.result || "Failed to update email templates"
-      );
-    }
-    return response.data.result;
-  } catch (error) {
-    console.error("Error updating email templates:", error);
-    throw error;
-  }
-}
-
-// --- REFACTORED PRODUCT ENDPOINTS ---
 
 export async function savePhysicalProduct(
   form: any,
@@ -2180,6 +1836,39 @@ export async function saveEventProduct(
   return await response.json();
 }
 
+// ************** PAYMENT FUNCTIONS ************** //
+export async function payOutStripe(clientId: string) {
+  try {
+    let url = `/api/client/payOut`;
+    let dataObj = { clientId };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
+    if (response.data.error) {
+      throw new Error(response.data.error);
+    }
+    return response.data;
+  } catch (error: any) {
+    return {
+      error: true,
+      result: "Failed to cash out via Stripe",
+    };
+  }
+}
+
 export async function getStripeBillingSession(
   clientId: string
 ): Promise<string> {
@@ -2196,34 +1885,6 @@ export async function getStripeBillingSession(
   } catch (error) {
     console.error("Error creating Stripe billing session:", error);
     throw error;
-  }
-}
-
-export async function updateCustomHandles(
-  agentId: string,
-  customHandles: { label: string; url: string }[]
-): Promise<boolean> {
-  try {
-    let url = `/api/agent/updateCustomHandles`;
-    let dataObj = { agentId, customHandles };
-    let encryptedData = getCipherText(dataObj);
-
-    // HMAC Response
-    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
-
-    if (!hmacResponse) {
-      throw new Error("Failed to generate HMAC");
-    }
-    let axiosHeaders = {
-      HMAC: hmacResponse.hmacHash,
-      Timestamp: hmacResponse.currentTimestamp,
-    };
-
-    await axios.post(url, encryptedData, { headers: axiosHeaders });
-    return true;
-  } catch (error) {
-    console.error("Error updating custom handles:", error);
-    throw new Error("Failed to update custom links");
   }
 }
 
@@ -2312,65 +1973,244 @@ export async function enableCryptoPayment(
   }
 }
 
-/**
- * Submit WhatsApp number for an agent
- * @param agentId string
- * @param countryCode string (e.g. '+971')
- * @param number string (phone number without country code)
- * @returns Promise<boolean>
- */
-export async function submitWhatsapp(
-  agentId: string,
-  countryCode: string,
-  number: string
+export async function updateClientPaymentSettings(
+  clientId: string,
+  currency: string,
+  preferredMethod: string
 ): Promise<boolean> {
   try {
-    const response = await axios.post(`${apiUrl}/client/updateWhatsappNumber`, {
-      agentId,
-      whatsappNumber: {
-        countryCode,
-        number,
-      },
+    await axios.post(`${apiUrl}/client/updateCurrencyAndPreferredMethod`, {
+      clientId,
+      currency,
+      preferredMethod,
     });
-    if (response.data.error) {
-      throw new Error(response.data.error);
-    }
     return true;
   } catch (error) {
-    console.error("Error submitting WhatsApp number:", error);
-    return false;
+    console.error("Error updating payment settings:", error);
+    throw new Error("Failed to update payment settings");
   }
 }
 
-/**
- * Fetch analytics for a given clientId
- * @param clientId string
- * @returns Promise<AnalyticsData>
- */
-export async function getClientAnalytics(
-  clientId: string
-): Promise<AnalyticsData> {
+export async function getPlans(clientId: string): Promise<PlanData[]> {
   try {
-    const response = await axios.get(`${apiUrl}/client/getAnalytics`, {
-      params: { clientId },
+    let requestParams = `clientId=${clientId}`;
+    let url = `/api/client/getPlans?${requestParams}`;
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.get(url, { headers: axiosHeaders });
+    if (response.data.error) throw new Error("Failed to fetch plans");
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching plans:", error);
+    throw error;
+  }
+}
+
+export async function subscribeToPlan(
+  clientId: string,
+  planId: string
+): Promise<any> {
+  try {
+    let url = `/api/product/subscribeOrChangePlan`;
+    let dataObj = { clientId, planId };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
     });
+    if (response.data.error) throw new Error("Failed to subscribe to plan");
+    return response.data.result;
+  } catch (error) {
+    console.error("Error subscribing to plan:", error);
+    throw error;
+  }
+}
+
+export async function updateClientBillingDetails(
+  clientId: string,
+  billingDetails: {
+    "Individual/Organization Name": string;
+    Email: string;
+    Country: string;
+    State: string;
+    "Zip Code": string;
+    "Address Line 1": string;
+    "Address Line 2": string;
+  }
+): Promise<any> {
+  try {
+    let url = `/api/client/updateClientBillingDetails`;
+    let dataObj = { clientId, billingDetails };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
+    if (response.data.error)
+      throw new Error("Failed to update billing details");
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating billing details:", error);
+    throw new Error("Failed to update billing details");
+  }
+}
+
+export async function updateClientBillingMethod(
+  clientId: string,
+  billingMethod: Array<{
+    cardType: string;
+    cardNumber: number;
+    expiry: string;
+    default: boolean;
+  }>
+): Promise<any> {
+  try {
+    const response = await axios.post(
+      `${apiUrl}/client/updateClientBillingMethod`,
+      {
+        clientId,
+        billingMethod,
+      }
+    );
 
     if (response.data.error) {
-      throw new Error(response.data.result || "Failed to fetch analytics");
+      throw new Error(response.data.error);
     }
 
     return response.data.result;
   } catch (error) {
-    console.error("Error fetching analytics:", error);
-    throw new Error(
-      error instanceof Error ? error.message : "Failed to fetch analytics data"
-    );
+    console.error("Error updating billing method:", error);
+    throw new Error("Failed to update billing method");
   }
 }
 
-/**
- * Fetch all admin/support chat logs
- */
+export async function getClientUsage(clientId: string) {
+  try {
+    let requestParams = `clientId=${clientId}`;
+    let url = `/api/client/getClientUsage?${requestParams}`;
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.get(url, { headers: axiosHeaders });
+    if (response.data.error) {
+      throw new Error(
+        response.data.result || "Failed to fetch client usage data"
+      );
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching client usage data:", error);
+    throw error;
+  }
+}
+
+// ************** EMAIL TEMPLATES ************** //
+export async function getEmailTemplates(agentId: string): Promise<any> {
+  try {
+    let requestParams = `agentId=${agentId}`;
+    let url = `/api/email/getEmailTemplates?${requestParams}`;
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.get(url, { headers: axiosHeaders });
+    if (response.data.error) {
+      throw new Error(
+        response.data.result || "Failed to fetch email templates"
+      );
+    }
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching email templates:", error);
+    throw error;
+  }
+}
+
+export async function updateEmailTemplates(
+  agentId: string,
+  updatedData: any,
+  emailTemplateId: string
+): Promise<any> {
+  try {
+    let url = `/api/email/updateEmailTemplates`;
+    let dataObj = { agentId, updatedData, emailTemplateId };
+    let requestParams = JSON.stringify(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, dataObj, { headers: axiosHeaders });
+    if (response.data.error) {
+      throw new Error(
+        response.data.result || "Failed to update email templates"
+      );
+    }
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating email templates:", error);
+    throw error;
+  }
+}
+
+// ************** ADMIN SUPPORT LOGS ************** //
 export async function getAdminSupportLogs(clientId: string) {
   try {
     let requestParams = `clientId=${clientId}`;
@@ -2400,10 +2240,6 @@ export async function getAdminSupportLogs(clientId: string) {
   }
 }
 
-/**
- * Update (append) a new message to the admin/support chat log
- * @param {Object} params - { newUserLog: Message[], userId: string }
- */
 export async function updateAdminChatLog(params: {
   newUserLog: any[];
   clientId: string;
@@ -2431,42 +2267,6 @@ export async function updateAdminChatLog(params: {
     return response.data;
   } catch (error) {
     console.error("Error updating admin chat log:", error);
-    throw error;
-  }
-}
-
-export async function updateAgentPolicy(
-  agentId: string,
-  policyId: string,
-  enabled: boolean,
-  content: string
-): Promise<boolean> {
-  try {
-    let url = `/api/agent/updateAgentPolicy`;
-    let dataObj = { agentId, policyId, enabled, content };
-    let encryptedData = getCipherText(dataObj);
-
-    // HMAC Response
-    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
-
-    if (!hmacResponse) {
-      throw new Error("Failed to generate HMAC");
-    }
-    let axiosHeaders = {
-      HMAC: hmacResponse.hmacHash,
-      Timestamp: hmacResponse.currentTimestamp,
-    };
-
-    const response = await axios.post(url, encryptedData, {
-      headers: axiosHeaders,
-    });
-
-    if (response.data.error) {
-      throw new Error(response.data.error);
-    }
-    return true;
-  } catch (error) {
-    console.error("Error updating agent policy:", error);
     throw error;
   }
 }
