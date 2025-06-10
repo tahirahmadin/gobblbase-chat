@@ -34,7 +34,6 @@ import Login from "./pages/admin/Login";
 import { useAdminStore } from "./store/useAdminStore";
 import CreateNewBot from "./pages/admin/CreateNewBot";
 import Plans from "./pages/admin/TabsComponent/Account/Plans";
-import Billing from "./pages/admin/Billing";
 import Usage from "./pages/admin/TabsComponent/Account/Usage";
 
 import Commerce from "./pages/admin/TabsComponent/Commerce/Commerce";
@@ -50,6 +49,7 @@ import RescheduleBookingWrapper from "./components/chatbotComponents/chatbotBook
 import Payments from "./pages/admin/TabsComponent/Account/Payments";
 import Income from "./pages/admin/TabsComponent/Account/Income";
 import Overview from "./pages/admin/TabsComponent/Dashboard/Overview";
+import Team from "./pages/admin/TabsComponent/Account/Team";
 
 // Add type definition for window
 declare global {
@@ -155,6 +155,7 @@ function Dashboard() {
         <Route path="account/income" element={<Income />} />
         <Route path="account/plans" element={<Plans />} />
         <Route path="account/usage" element={<Usage />} />
+        <Route path="account/team" element={<Team />} />
         <Route path="all-agents" element={<AllAgents />} />
         <Route path="dashboard/overview" element={<Overview />} />
         <Route path="*" element={<Navigate to="dashboard/profile" replace />} />

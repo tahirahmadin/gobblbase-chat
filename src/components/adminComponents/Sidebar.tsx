@@ -98,6 +98,7 @@ const navItems: NavItem[] = [
       { name: "Payments", path: "/admin/account/payments" },
       { name: "Plans", path: "/admin/account/plans" },
       { name: "Usage", path: "/admin/account/usage" },
+      {name: "Team", path: "/admin/account/team" },
     ],
   },
 ];
