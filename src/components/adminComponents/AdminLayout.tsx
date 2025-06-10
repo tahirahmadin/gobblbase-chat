@@ -23,12 +23,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           <button
             className="bg-white p-2 relative text-black border border-black"
             onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-            >
-              <div className="absolute z-[-1] left-1 top-1 bg-white w-full h-full border border-black"></div>
+          >
+            <div className="absolute z-[-1] left-1 top-1 bg-white w-full h-full border border-black"></div>
             {isMobileSidebarOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
-        
       ) : (
         <button className="hidden"></button>
       )}

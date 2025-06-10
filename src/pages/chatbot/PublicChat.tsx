@@ -416,11 +416,11 @@ export default function PublicChat({
     let responseContent = "";
 
     // Extract the feature type from the message
-    const isBookingRequest = featureText.includes("Booking appointments");
-    const isProductRequest = featureText.includes("Browsing our products");
-    const isContactRequest = featureText.includes("Contacting us");
+    const isBookingRequest = featureText.includes("booking appointments");
+    const isProductRequest = featureText.includes("browsing our products");
+    const isContactRequest = featureText.includes("contacting us");
     const isKnowledgeBaseRequest = featureText.includes(
-      "Answering questions about our knowledge base"
+      "answering questions about our knowledge base"
     );
 
     // Process contact requests first (including lead collection)

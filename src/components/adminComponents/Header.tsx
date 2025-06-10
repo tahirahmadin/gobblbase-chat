@@ -7,7 +7,7 @@ import { useServerHook } from "../../hooks/useServerHook";
 import styled from "styled-components";
 const Button = styled.button`
   position: relative;
-  background: #6AFF97;
+  background: #6aff97;
   padding: 0.6vh 1vw;
   border: 1px solid black;
   cursor: pointer;
@@ -22,11 +22,11 @@ const Button = styled.button`
     height: 100%;
     border: 1px solid #000000;
     z-index: -1; // place it behind the button
-    background: #6AFF97;
+    background: #6aff97;
   }
 
   &:disabled {
-    background:rgb(113, 240, 151);
+    background: rgb(113, 240, 151);
     color: #b0b0b0;
     cursor: not-allowed;
   }
@@ -81,9 +81,11 @@ const Header = () => {
       style={{ backgroundColor: "#eaefff" }}
     >
       <div className="flex justify-between items-center px-6 py-2">
-        <div className={`flex items-center   
-          ${isAllAgentsPage ? "" : "ml-12  lg:ml-0" }
-          `}>
+        <div
+          className={`flex items-center   
+          ${isAllAgentsPage ? "" : "ml-12  lg:ml-0"}
+          `}
+        >
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -192,25 +194,20 @@ const Header = () => {
         </div>
         <div className="">
           <div className="flex items-center space-x-2 ">
-           
             <div className="truncate  text-xs text-black hyphens-auto hidden md:block">
               {adminEmail}
             </div>
 
             <div className="max:w-[100%]">
-
               {isAllAgentsPage ? (
-                  <div className="relative z-10">
-                    <Button
-                      className="text-black font-semibold flex items-center gap-2"
-                    >
-                      <Eye className="w-5 h-5" /> 
-                      <span className="hidden xs:flex">View Agent</span>
-                    </Button>
-                  </div>
+                <div className="relative z-10">
+                  <Button className="text-black font-semibold flex items-center gap-2">
+                    <Eye className="w-5 h-5" />
+                    <span className="hidden xs:flex">View Agent</span>
+                  </Button>
+                </div>
               ) : (
                 <div className="relative">
-
                   <a
                     href={`https://Sayy.ai/${activeBotData?.username}`}
                     target="_blank"

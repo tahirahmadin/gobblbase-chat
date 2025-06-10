@@ -815,34 +815,34 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       </label>
                     </div>
                   </label>
-                  <label className="flex gap-2 flex-col  items-start  xs:flex-row xs:items-center lg:flex-col lg:items-start lg:ml-0 lg:mt-2 xl:flex-row xl:items-center" >
-                      <span className="flex items-center gap-4">
-                        <input
-                          type="radio"
-                          name="uploadType"
-                          value="redirect"
-                          checked={form.uploadType === "redirect"}
-                          onChange={(e) =>
-                            setForm((f) => ({ ...f, uploadType: e.target.value }))
-                          }
-                          className="hidden"
-                        />
-                        {/* Custom Circle Visual */}
-                          <div
-                            className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
+                  <label className="flex gap-2 flex-col  items-start  xs:flex-row xs:items-center lg:flex-col lg:items-start lg:ml-0 lg:mt-2 xl:flex-row xl:items-center">
+                    <span className="flex items-center gap-4">
+                      <input
+                        type="radio"
+                        name="uploadType"
+                        value="redirect"
+                        checked={form.uploadType === "redirect"}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, uploadType: e.target.value }))
+                        }
+                        className="hidden"
+                      />
+                      {/* Custom Circle Visual */}
+                      <div
+                        className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
                             ${
                               form.uploadType === "redirect"
                                 ? "bg-[#CEFFDC]"
                                 : "bg-[#CDCDCD]"
                             }
                               `}
-                          >
-                            {form.uploadType === "redirect" && (
-                              <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]" />
-                            )}
-                          </div>
-                        <span>Redirect to URL</span>
-                      </span>
+                      >
+                        {form.uploadType === "redirect" && (
+                          <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]" />
+                        )}
+                      </div>
+                      <span>Redirect to URL</span>
+                    </span>
                     <input
                       type="text"
                       className="border border-[#7d7d7d] p-1 bg-white"
