@@ -232,12 +232,6 @@ const HeroSection = styled.section`
   }
 `;
 
-const Headline = styled.h1`
-  font-size: clamp(1.3rem, 4vw, 2rem);
-  font-weight: 700;
-  color: #aeb8ff;
-  white-space: nowrap;
-`;
 
 const Subheadline = styled.div`
   display: flex;
@@ -1448,27 +1442,16 @@ const Home = () => {
                 />
               </div>
               <article className="left-side w-[100%] lg:w-[fit-content] z-10">
-                <div className="headline flex gap-4 flex-col items-center lg:flex-row">
-                  <img
-                    src="/assets/landing-asset/assemble/homepage-logo.svg"
-                    alt="Sayy.ai Homepage Logo"
-                    className=""
-                  />
-                  <span className="flex flex-col items-end justify-end md:mt-8">
-                    <Headline>to your new Employee</Headline>
-                    <img
-                      src="/assets/landing-asset/assemble/underline.png"
-                      alt="Decorative underline"
-                    />
-                  </span>
-                </div>
+                
 
                 <Subheadline>
                   <div className="headline-para mt-4 mb-10 lg:mt-0 lg:mb-8 w-[100%] text-center lg:text-start">
-                    <p className="para-font text-[1rem]">
-                      Your practical AI Co-Pilot for business growth. <br />{" "}
-                      Handle sales, support, and scheduling—all in one place.
-                    </p>
+                      <span className="flex flex-col space-y-2 ">
+                      <h1 className="para-font text-[1.5rem] font-[700] text-[#aeb8ff]">Sayy AI to your new Employee!</h1>
+                      <p className="para-font text-[1rem]">
+                        Handle sales, support, and scheduling—all <br className="hidden md:block"/> in one place.
+                      </p>
+                      </span>
                   </div>
                   <div className="w-fit flex flex-col">
                     <span className="heading flex items-center">
@@ -1500,7 +1483,7 @@ const Home = () => {
                               className="block w-auto max-h-[40px] sm:max-h-[50px] mx-auto"
                             />
                             <div
-                              className={`para-font absolute top-2 sm:top-3 left-2 xs:left-4 whitespace-nowrap text-center text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px] transition-all duration-200`}
+                              className={`para-font absolute top-2 sm:top-3 left-4 xs:left-4 whitespace-nowrap text-center text-[14px] sm:text-[16px] md:text-[14px] lg:text-[16px] transition-all duration-200`}
                               style={{
                                 color: isSelected ? btn.textColor : "#fff",
                                 fontWeight: isSelected ? "600" : "400",
