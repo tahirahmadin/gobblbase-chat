@@ -1642,7 +1642,13 @@ export async function getBookingForReschedule(
   userId: string
 ): Promise<any> {
   try {
-    let requestParams = `bookingId=${bookingId}&userId=${userId}`;
+    let dataObj = {
+      bookingId,
+      userId
+    };
+    let encryptedData = getCipherText(dataObj);
+
+    let requestParams = `data=${encodeURIComponent(encryptedData.data)}`;
     let url = `${apiUrl}/appointment/booking-for-reschedule?${requestParams}`;
 
     // HMAC Response
