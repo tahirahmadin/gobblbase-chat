@@ -65,7 +65,7 @@ interface AdminState {
     agentId: string,
     updatedData: any,
     emailTemplateId: string
-  ) => Promise<void>;
+  ) => Promise<boolean>;
   setEmailTemplates: (templates: EmailTemplatesResponse) => void;
   isAgentsLoaded: boolean;
   // Session management
@@ -372,11 +372,15 @@ export const useAdminStore = create<AdminState>()((set, get) => {
           updatedData,
           emailTemplateId
         );
-        // Optionally, you can refetch templates after update
-        if (response) {
+        console.log("response", response);
+        if (!response?.error && response?.result) {
           set({ emailTemplates: response });
+          return true;
+        } else {
+          return false;
         }
       } catch (err: any) {
+        return false;
       } finally {
       }
     },

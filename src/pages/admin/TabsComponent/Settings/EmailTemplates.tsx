@@ -80,8 +80,16 @@ const EmailTemplates = () => {
 
     setSaving(true);
     try {
-      await updateEmailTemplate(activeBotId, template, selectedId);
-      toast.success("Template updated successfully");
+      let response = await updateEmailTemplate(
+        activeBotId,
+        template,
+        selectedId
+      );
+      if (response) {
+        toast.success("Template updated successfully");
+      } else {
+        toast.error("Failed to update template");
+      }
     } catch (error) {
       toast.error("Failed to update template");
     } finally {
@@ -147,7 +155,7 @@ const EmailTemplates = () => {
               .filter(([_, value]) => typeof value !== "string")
               .map(([key, value]) => {
                 const template = value as EmailTemplate;
-                console.log(template, "template");
+
                 return (
                   <div
                     key={key}
@@ -250,7 +258,7 @@ const EmailTemplates = () => {
                     onClick={handlePreview}
                     className="para-font bg-[#AEB8FF] border border-black z-10 text-black px-2 py-1.5 text-[1rem]"
                   >
-                    <Eye/>
+                    <Eye />
                   </button>
                 </div>
                 <div className="relative z-10">

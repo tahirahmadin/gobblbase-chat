@@ -2544,10 +2544,10 @@ export async function updateEmailTemplates(
   try {
     let url = `${apiUrl}/email/updateEmailTemplates`;
     let dataObj = { agentId, updatedData, emailTemplateId };
-    let requestParams = JSON.stringify(dataObj);
+    let encryptedData = getCipherText(dataObj);
 
     // HMAC Response
-    let hmacResponse = getHmacMessageFromBody(requestParams);
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
 
     if (!hmacResponse) {
       throw new Error("Failed to generate HMAC");
@@ -2557,13 +2557,10 @@ export async function updateEmailTemplates(
       Timestamp: hmacResponse.currentTimestamp,
     };
 
-    const response = await axios.post(url, dataObj, { headers: axiosHeaders });
-    if (response.data.error) {
-      throw new Error(
-        response.data.result || "Failed to update email templates"
-      );
-    }
-    return response.data.result;
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
+    return response.data;
   } catch (error) {
     console.error("Error updating email templates:", error);
     throw error;
