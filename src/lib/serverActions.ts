@@ -1158,7 +1158,8 @@ export async function addDocumentToAgent(
   agentId: string,
   textContent: string,
   documentTitle?: string,
-  documentSize?: number
+  documentSize?: number,
+  videoMetadata?: any
 ): Promise<DocumentResponse> {
   try {
     let url = `${apiUrl}/milvus/add-document`;
@@ -1168,7 +1169,9 @@ export async function addDocumentToAgent(
       documentTitle: documentTitle || "Untitled Document",
       documentSize:
         documentSize || new TextEncoder().encode(textContent).length,
+      videoMetadata: videoMetadata || undefined,
     };
+    
     let encryptedData = getCipherText(dataObj);
 
     // HMAC Response
@@ -1184,6 +1187,8 @@ export async function addDocumentToAgent(
     const response = await axios.post(url, encryptedData, {
       headers: axiosHeaders,
     });
+
+    console.log("🔍 Backend response:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error adding document:", error);
