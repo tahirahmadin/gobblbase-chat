@@ -154,6 +154,16 @@ export const MODEL_PRESETS: ModelOption[] = [
     details: "Credits Cost: 1",
     creditsCost: 1,
   },
+  {
+    id: "mistral-saba",
+    name: "Mistral Saba",
+    image: "https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/mistral-ai-icon.svg",
+    contextWindow: "32k",
+    description: "Specialized Arabic language model with 24B parameters. Outperforms models 5x its size on Arabic tasks while being faster and more cost-effective. Excellent for Arabic chat, content generation, and customer support.",
+    traits: ["Arabic specialized", "Cost-effective", "High performance"],
+    details: "Credits Cost: 3",
+    creditsCost: 3,
+  },
   // {
   //   id: "llama-3-pro",
   //   name: "Llama 3 Pro",
