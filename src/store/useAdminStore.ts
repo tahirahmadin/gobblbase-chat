@@ -6,6 +6,7 @@ import {
   getEmailTemplates,
   updateEmailTemplates,
   getClient,
+  getClientUsage,
 } from "../lib/serverActions";
 import { toast } from "react-hot-toast";
 import { AdminAgent } from "../types";
@@ -38,20 +39,50 @@ interface ClientData {
     available: number;
     pending: number;
   };
+  teamMembers: {
+    email: string;
+    role: string;
+    status: string;
+  }[];
+}
+
+interface ClientUsageData {
+  creditsInfo: {
+    totalCredits: number;
+    availableCredits: number;
+  };
+  usage: {
+    agentUsage: {
+      totalTokensUsed: number;
+      usageData: {
+        _id: string;
+        clientId: string;
+        agentId: string;
+        date: string;
+        totalTokensUsed: number;
+      }[];
+      agentId: string;
+      agentName: string;
+    }[];
+    totalTokensUsedAllAgents: number;
+    planId: string;
+    agentLimit: number;
+  };
+  totalAgentCount: number;
 }
 
 interface AdminState {
   // Admin data state
   adminId: string | null;
   adminEmail: string | null;
-  clientData: ClientData | null;
   isAdminLoggedIn: boolean;
-  agents: AdminAgent[];
   isLoading: boolean;
   error: string | null;
+  clientData: ClientData | null;
+  agents: AdminAgent[];
   totalAgents: number;
   emailTemplates: EmailTemplatesResponse | null;
-
+  clientUsage: ClientUsageData | null;
   setError: (error: string | null) => void;
   // Admin operations
   fetchAllAgents: () => Promise<void>;
@@ -71,6 +102,7 @@ interface AdminState {
   // Session management
   initializeSession: () => Promise<boolean>;
   refetchClientData: () => Promise<void>;
+  fetchClientUsage: (params: { clientId: string }) => Promise<ClientUsageData>;
 }
 
 // Add a type for the expected result
@@ -124,8 +156,9 @@ export const useAdminStore = create<AdminState>()((set, get) => {
     error: null,
     totalAgents: 0,
     emailTemplates: null,
-
+    clientData: null,
     clientInfo: null,
+    clientUsage: null,
 
     // Basic setters
     setError: (error) => set({ error }),
@@ -187,6 +220,8 @@ export const useAdminStore = create<AdminState>()((set, get) => {
             error: null, // Clear any previous errors
             clientData: clientResponse.error ? null : clientResponse,
           });
+          // Fetch usage data after adminId is set
+          await get().fetchClientUsage({ clientId: adminId });
           return true;
         }
         return false;
@@ -386,5 +421,16 @@ export const useAdminStore = create<AdminState>()((set, get) => {
     },
 
     setEmailTemplates: (templates) => set({ emailTemplates: templates }),
+
+    fetchClientUsage: async (params: { clientId: string }) => {
+      try {
+        const usage = await getClientUsage(params.clientId);
+        set({ clientUsage: usage });
+        return usage;
+      } catch (error) {
+        toast.error("Failed to fetch client usage");
+        throw error;
+      }
+    },
   };
 });

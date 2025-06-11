@@ -166,9 +166,20 @@ export async function signUpUser(
 
 export async function getUserDetails(userId: string): Promise<UserDetails> {
   try {
-    const response = await axios.get(
-      `${apiUrl}/user/getUserDetails?userId=${userId}`
-    );
+    let requestParams = `userId=${userId}`;
+    let url = `${apiUrl}/user/getUserDetails?${requestParams}`;
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+    const response = await axios.get(url, { headers: axiosHeaders });
 
     if (response.data.error) {
       throw new Error(response.data.result || "Failed to fetch user details");
@@ -2624,6 +2635,67 @@ export async function updateAdminChatLog(params: {
     return response.data;
   } catch (error) {
     console.error("Error updating admin chat log:", error);
+    throw error;
+  }
+}
+
+export async function inviteTeamMember(
+  dataObj: any
+): Promise<{ error: boolean; result: string }> {
+  try {
+    let url = `${apiUrl}/client/inviteTeamMember`;
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
+
+    if (!response.data) {
+      throw new Error("No data received from server");
+    }
+    return response.data;
+  } catch (error) {
+    console.error("Error inviting team member:", error);
+    return {
+      error: true,
+      result: "Failed to invite team member",
+    };
+  }
+}
+
+export async function getTeamInvites(clientId: string) {
+  try {
+    let requestParams = `clientId=${clientId}`;
+    let url = `${apiUrl}/client/getMyInvites?${requestParams}`;
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.get(url, { headers: axiosHeaders });
+    if (response.data.error) {
+      throw new Error(response.data.result || "Failed to fetch invites");
+    }
+    return response.data.result;
+  } catch (error) {
+    console.error("Error fetching team invites:", error);
     throw error;
   }
 }
