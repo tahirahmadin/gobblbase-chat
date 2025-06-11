@@ -372,7 +372,7 @@ export const useAdminStore = create<AdminState>()((set, get) => {
           updatedData,
           emailTemplateId
         );
-        console.log("response", response);
+
         if (!response?.error && response?.result) {
           set({ emailTemplates: response.result });
           return true;
