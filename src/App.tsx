@@ -34,7 +34,6 @@ import Login from "./pages/admin/Login";
 import { useAdminStore } from "./store/useAdminStore";
 import CreateNewBot from "./pages/admin/CreateNewBot";
 import Plans from "./pages/admin/TabsComponent/Account/Plans";
-import Billing from "./pages/admin/Billing";
 import Usage from "./pages/admin/TabsComponent/Account/Usage";
 
 import Commerce from "./pages/admin/TabsComponent/Commerce/Commerce";
@@ -51,6 +50,7 @@ import Payments from "./pages/admin/TabsComponent/Account/Payments";
 import Income from "./pages/admin/TabsComponent/Account/Income";
 import Overview from "./pages/admin/TabsComponent/Dashboard/Overview";
 import Support from "./pages/admin/Support";
+import Team from "./pages/admin/TabsComponent/Account/Team";
 
 // Add type definition for window
 declare global {
@@ -156,6 +156,7 @@ function Dashboard() {
         <Route path="account/income" element={<Income />} />
         <Route path="account/plans" element={<Plans />} />
         <Route path="account/usage" element={<Usage />} />
+        <Route path="account/team" element={<Team />} />
         <Route path="all-agents" element={<AllAgents />} />
         <Route path="support" element={<Support />} />
         <Route path="dashboard/overview" element={<Overview />} />
@@ -195,7 +196,10 @@ function App() {
                   path="/admin/dashboard/create-bot"
                   element={<CreateNewBot />}
                 />
-                <Route path="/book/:agentId" element={<CustomerBookingPage />} />
+                <Route
+                  path="/book/:agentId"
+                  element={<CustomerBookingPage />}
+                />
                 <Route
                   path="/reschedule/:bookingId"
                   element={<RescheduleBookingWrapper />}

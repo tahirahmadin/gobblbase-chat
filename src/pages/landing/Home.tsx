@@ -252,14 +252,20 @@ const Subheadline = styled.div`
   }
 `;
 const buttonData = [
-  {
+   {
     id: 0,
     label: "Answer Queries",
     defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.svg",
     activeBubbleImg: "/assets/landing-asset/assemble/pink-btn-bubble.svg",
     textColor: "#FF8FFF",
     brainPart: "/assets/landing-asset/Brains/pink-brain-part.svg",
-    style: { top: "19.9%", left: "31.2%", width: "24.6%", height: "12.8%" },
+    style: {
+      top: "0",
+      left: "0",
+      width: "24.6%",
+      height: "12.8%",
+      transform: "translate(126%, 155%)",
+    },
   },
   {
     id: 1,
@@ -268,7 +274,7 @@ const buttonData = [
     activeBubbleImg: "/assets/landing-asset/assemble/green-btn-bubble.svg",
     textColor: "#CDFF6A",
     brainPart: "/assets/landing-asset/Brains/green-brain-part.svg",
-    style: { top: "20%", right: "18.6%", width: "24.6%", height: "12.8%" },
+    style: { top: "20%", left: "56.8%", width: "24.6%", height: "12.8%" },
   },
   {
     id: 3,
@@ -304,7 +310,7 @@ const buttonData = [
     activeBubbleImg: "/assets/landing-asset/assemble/red-btn-bubble.svg",
     textColor: "#FF6363",
     brainPart: "/assets/landing-asset/Brains/red-brain-part.svg",
-    style: { top: "23.2%", right: "31.7%", width: "18.5%", height: "17.2%" },
+    style: { top: "23.2%", left: "49.8%", width: "18.5%", height: "17.2%" },
   },
 ];
 const CTAButton = styled.button`
@@ -1530,7 +1536,7 @@ const Home = () => {
                           position: "absolute",
                           top: part.style.top,
                           left: part.style.left,
-                          right: part.style.right,
+                          transform: part.style.transform,
                           width: part.style.width,
                           height: part.style.height,
                         }}

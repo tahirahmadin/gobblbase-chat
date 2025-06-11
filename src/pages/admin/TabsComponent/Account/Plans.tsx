@@ -213,9 +213,9 @@ const UpgradeButton = styled.button<{ current?: boolean; upgrading?: boolean; lo
   &:hover {
     background: ${(props) =>
       props.lowerTier
-        ? 'rgba(0, 0, 0, 0.8)' // yellow-400
+        ? 'rgba(0, 0, 0, 1)' // yellow-400
         : !props.current && !props.upgrading
-        ? 'rgba(255, 252, 69, 0.78)' // green-400
+        ? 'rgba(255, 252, 69, 1)' // green-400
         : ''};
   }
   &::before {
