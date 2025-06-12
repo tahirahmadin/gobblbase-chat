@@ -151,7 +151,7 @@ export default function BrowseSection({
                 </h2>
 
                 {/* Product grid always visible */} 
-                <div className={` ${isPreview ? "grid-cols-2" : "flex flex-wrap"} gap-12 px-4`}>
+                <div className={` ${isPreview ? "grid grid-cols-2 gap-4 " : "flex flex-wrap gap-12"} px-4`}>
                   {products.map((product) => (
                     <div
                       key={product._id}
@@ -160,9 +160,9 @@ export default function BrowseSection({
                       style={{
                         backgroundColor: theme.isDark ? "#000" : "#fff",
                         color: theme.isDark ? "#fff" : "#000",
-                        maxWidth: "400px",
-                        width: "200px",
-                        minWidth: "180px",
+                        maxWidth: "200px",
+                        width: "100%",
+                        minWidth: "145px",
                       }}
                     >
                       {/* Product Type Bubble */}
@@ -185,7 +185,7 @@ export default function BrowseSection({
                         alt={product.title}
                         className={`w-full object-cover px-6 py-4 ${isPreview ? "h-32" : " h-40 "}`}
                       />
-                      <div className="p-2">
+                      <div className="px-6 py-2">
                         <h3
                           className="text-sm mb-1"
                           style={{ fontWeight: 500 }}
