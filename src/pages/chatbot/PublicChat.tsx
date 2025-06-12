@@ -672,6 +672,7 @@ export default function PublicChat({
               {activeScreen === "browse" && (
                 <div className="flex-1 overflow-y-auto">
                   <BrowseSection
+                    isPreview={isPreview}
                     theme={theme}
                     currentConfig={{
                       agentId: currentConfig?.agentId,

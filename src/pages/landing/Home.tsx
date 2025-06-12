@@ -232,7 +232,6 @@ const HeroSection = styled.section`
   }
 `;
 
-
 const Subheadline = styled.div`
   display: flex;
   flex-direction: column;
@@ -246,7 +245,7 @@ const Subheadline = styled.div`
   }
 `;
 const buttonData = [
-   {
+  {
     id: 0,
     label: "Answer Queries",
     defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.svg",
@@ -254,11 +253,10 @@ const buttonData = [
     textColor: "#FF8FFF",
     brainPart: "/assets/landing-asset/Brains/pink-brain-part.svg",
     style: {
-      top: "0",
-      left: "0",
+      top: "26%",
+      left: "37.2%",
       width: "24.6%",
       height: "12.8%",
-      transform: "translate(126%, 155%)",
     },
   },
   {
@@ -268,7 +266,7 @@ const buttonData = [
     activeBubbleImg: "/assets/landing-asset/assemble/green-btn-bubble.svg",
     textColor: "#CDFF6A",
     brainPart: "/assets/landing-asset/Brains/green-brain-part.svg",
-    style: { top: "20%", left: "56.8%", width: "24.6%", height: "12.8%" },
+    style: { top: "26%", left: "62.9%", width: "24.6%", height: "12.8%" },
   },
   {
     id: 3,
@@ -277,7 +275,7 @@ const buttonData = [
     activeBubbleImg: "/assets/landing-asset/assemble/purple-btn-bubble.svg",
     textColor: "#766AFF",
     brainPart: "/assets/landing-asset/Brains/purple-brain-part.svg",
-    style: { top: "19.29%", left: "40.75%", width: "18.2%", height: "13%" },
+    style: { top: "25.4%", left: "49.9%", width: "18.2%", height: "13%" },
   },
   {
     id: 4,
@@ -286,7 +284,7 @@ const buttonData = [
     activeBubbleImg: "/assets/landing-asset/assemble/cyan-btn-bubble.svg",
     textColor: "#6AFFF0",
     brainPart: "/assets/landing-asset/Brains/cyan-brain-part.svg",
-    style: { top: "23.2%", left: "31.7%", width: "18.2%", height: "17.2%" },
+    style: { top: "31.5%", left: "40.7%", width: "18.2%", height: "17.2%" },
   },
   {
     id: 5,
@@ -295,7 +293,7 @@ const buttonData = [
     activeBubbleImg: "/assets/landing-asset/assemble/orange-btn-bubble.svg",
     textColor: "#FF9D5C",
     brainPart: "/assets/landing-asset/Brains/orange-brain-part.svg",
-    style: { top: "15.3%", left: "38%", width: "24%", height: "10%" },
+    style: { top: "19.9%", left: "50%", width: "24%", height: "10%" },
   },
   {
     id: 6,
@@ -304,7 +302,7 @@ const buttonData = [
     activeBubbleImg: "/assets/landing-asset/assemble/red-btn-bubble.svg",
     textColor: "#FF6363",
     brainPart: "/assets/landing-asset/Brains/red-brain-part.svg",
-    style: { top: "23.2%", left: "49.8%", width: "18.5%", height: "17.2%" },
+    style: { top: "31.5%", left: "59%", width: "18.5%", height: "17.2%" },
   },
 ];
 const CTAButton = styled.button`
@@ -1508,35 +1506,48 @@ const Home = () => {
               </article>
               <article className="right-side lg:block w-[80%] lg:w-[40%] z-10 lg:mt-16 ">
                 <div className="relative">
-                  <div className="relative">
-                    <img
-                      src="/assets/landing-asset/assemble/hero-mascot.png"
-                      alt="Sayy.ai AI Assistant Mascot"
-                    />
-                    {buttonData.map((part, index) => (
-                      <div
-                        key={part.id}
-                        style={{
-                          position: "absolute",
-                          top: part.style.top,
-                          left: part.style.left,
-                          transform: part.style.transform,
-                          width: part.style.width,
-                          height: part.style.height,
-                        }}
-                        className={`block transition-opacity duration-300 ${
-                          selectedBrains.includes(index)
-                            ? "opacity-100"
-                            : "opacity-0 pointer-events-none"
-                        }`}
-                      >
-                        <img
-                          src={part.brainPart}
-                          alt={`${part.label} brain part visualization`}
-                          className="block w-fit h-full"
-                        />
-                      </div>
-                    ))}
+                  <div className="relative w-full">
+                    <div
+                      className="relative"
+                      style={{
+                        width: "100%",
+                        maxWidth: "600px",
+                        margin: "0 auto",
+                      }}
+                    >
+                      {/* Mascot Image */}
+                      <img
+                        src="/assets/landing-asset/assemble/hero-mascot.png"
+                        alt="Sayy.ai AI Assistant Mascot"
+                        className="w-full h-auto block"
+                      />
+
+                      {/* Buttons Over Image */}
+                      {buttonData.map((part, index) => (
+                        <div
+                          key={part.id}
+                          style={{
+                            position: "absolute",
+                            top: part.style.top,
+                            left: part.style.left,
+                            width: part.style.width,
+                            height: part.style.height,
+                            transform: "translate(-50%, -50%)",
+                          }}
+                          className={`transition-opacity duration-300 ${
+                            selectedBrains.includes(index)
+                              ? "opacity-100"
+                              : "opacity-0 pointer-events-none"
+                          }`}
+                        >
+                          <img
+                            src={part.brainPart}
+                            alt={`${part.label} brain part visualization`}
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   <div
                     style={{
