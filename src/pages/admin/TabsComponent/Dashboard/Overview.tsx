@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useBotConfig } from "../../../../store/useBotConfig";
 import { PERSONALITY_OPTIONS } from "../../../../utils/constants";
 import styled from "styled-components";
-import { getClientAnalytics } from "../../../../lib/serverActions";
+import { getTeamAnalytics } from "../../../../lib/serverActions";
 import { useAdminStore } from "../../../../store/useAdminStore";
 import { AnalyticsData } from "../../../../types";
 import { useNavigate } from "react-router-dom";
@@ -70,7 +70,7 @@ const Overview = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const data = await getClientAnalytics(adminId);
+        const data = await getTeamAnalytics(adminId);
         setAnalyticsData(data);
       } catch (err) {
         setError(
@@ -125,8 +125,9 @@ const Overview = () => {
     {
       label: "Credits Used",
       value: `${
-        (clientData?.creditsPerMonth || 0) - (clientData?.availableCredits || 0)
-      } / ${clientData?.creditsPerMonth || 0}`,
+        (analyticsData?.totalCredits || 0) -
+        (analyticsData?.availableCredits || 0)
+      } / ${analyticsData?.totalCredits || 0}`,
     },
     {
       label: "Leads",

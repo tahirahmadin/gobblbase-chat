@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  getClient,
-  getClientUsage,
   inviteTeamMember,
   getTeamInvites,
   acceptOrRejectInvite,
@@ -213,7 +211,8 @@ const Team = () => {
     try {
       if (!adminId) return;
       const res = await acceptOrRejectInvite({
-        clientId: adminId,
+        teamId: adminId,
+        adminId: adminId,
         email: invite.email,
         inviteStatus: status,
         teamName: invite.teamName,
@@ -351,57 +350,13 @@ const Team = () => {
                         <td className="py-1.5 px-2 text-sm text-center">
                           {member.email}
                         </td>
-                        <td className="mx-auto py-2 relative w-30 xs:w-48 flex items-center">
-                          <div
-                            className="relative w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white cursor-pointer"
-                            onClick={() =>
-                              setOpenDropdown(
-                                openDropdown === member.email
-                                  ? null
-                                  : member.email
-                              )
-                            }
-                          >
-                            {selectedRoles[member.email] || member.role}
-                          </div>
-                          <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0 rounded-r-sm">
-                            <ChevronDown
-                              size={20}
-                              className={`text-[#000000] stroke-[3px] transition-transform ${
-                                openDropdown === member.email
-                                  ? "rotate-180"
-                                  : ""
-                              }`}
-                            />
-                          </div>
-                          {openDropdown === member.email && (
-                            <div className="absolute z-10 mt-1 top-12 w-full bg-white border border-[#7D7D7D] shadow-lg rounded-sm">
-                              {availableRoles.map((roleOption) => (
-                                <div
-                                  key={roleOption.value}
-                                  onClick={() =>
-                                    handleRoleChange(
-                                      member.email,
-                                      roleOption.label
-                                    )
-                                  }
-                                  className={`w-full text-left px-3 py-2 text-sm hover:bg-blue-100 transition-colors flex flex-col cursor-pointer ${
-                                    (selectedRoles[member.email] ||
-                                      member.role) === roleOption.label
-                                      ? "bg-[#AEB8FF]"
-                                      : ""
-                                  }`}
-                                >
-                                  <span className="text-gray-800 font-medium">
-                                    {roleOption.label}
-                                  </span>
-                                  <span className="text-gray-500 text-xs">
-                                    {roleOption.value}
-                                  </span>
-                                </div>
-                              ))}
+                        <td className="py-1.5 px-12 text-sm text-left rounded-l-[12px]">
+                          <div className="flex items-center gap-1.5 justify-start ">
+                            {/* No avatar/name in API, just show email prefix as name */}
+                            <div className="uppercase text-[0.9rem]">
+                              {member.role}
                             </div>
-                          )}
+                          </div>
                         </td>
                         <td className="py-1.5 px-2 rounded-r-[12px] ">
                           <div className="flex gap-1.5 items-center justify-center">
@@ -583,7 +538,8 @@ const Team = () => {
                       );
                       try {
                         const res = await inviteTeamMember({
-                          clientId: adminId,
+                          teamId: adminId,
+                          adminId: adminId,
                           email: newMembers[0].email,
                           role: newMembers[0].role,
                         });

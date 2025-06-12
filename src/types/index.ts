@@ -269,6 +269,8 @@ export interface AnalyticsData {
   ordersReceived: number;
   totalIncome: number;
   planId: string;
+  totalCredits: number;
+  availableCredits: number;
 }
 
 export interface QueryDocumentResponse {

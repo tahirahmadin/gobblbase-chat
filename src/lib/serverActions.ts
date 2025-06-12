@@ -195,7 +195,7 @@ export async function fetchClientAgents(
   clientId: string
 ): Promise<AdminAgent[]> {
   try {
-    let requestParams = `clientId=${clientId}`;
+    let requestParams = `teamId=${clientId}`;
     let url = `${apiUrl}/client/agents?${requestParams}`;
 
     // HMAC Response
@@ -249,11 +249,11 @@ export async function getClient(clientId: string) {
   }
 }
 
-export async function getClientAnalytics(
+export async function getTeamAnalytics(
   clientId: string
 ): Promise<AnalyticsData> {
   try {
-    let requestParams = `clientId=${clientId}`;
+    let requestParams = `teamId=${clientId}`;
     let url = `${apiUrl}/client/getAnalytics?${requestParams}`;
 
     // HMAC Response
@@ -2146,7 +2146,7 @@ export async function saveEventProduct(
 export async function payOutStripe(clientId: string) {
   try {
     let url = `${apiUrl}/client/payOut`;
-    let dataObj = { clientId };
+    let dataObj = { teamId: clientId, adminId: clientId };
     let encryptedData = getCipherText(dataObj);
 
     // HMAC Response
@@ -2213,7 +2213,12 @@ export async function enableStripePayment(
 ): Promise<boolean> {
   try {
     let url = `${apiUrl}/client/enableStripePayment`;
-    let dataObj = { clientId, enabled: isStripeEnabled };
+    let dataObj = {
+      teamId: clientId,
+      enabled: isStripeEnabled,
+      adminId: clientId,
+    };
+    clientId;
     let encryptedData = getCipherText(dataObj);
 
     // HMAC Response
@@ -2251,7 +2256,7 @@ export async function completeStripeOnboarding(
 ): Promise<string | null> {
   try {
     let url = `${apiUrl}/client/completeStripeOnboarding`;
-    let dataObj = { clientId };
+    let dataObj = { teamId: clientId, adminId: clientId };
     let encryptedData = getCipherText(dataObj);
 
     // HMAC Response
@@ -2292,7 +2297,13 @@ export async function enableCryptoPayment(
 ): Promise<{ success: boolean; message: string }> {
   try {
     let url = `${apiUrl}/client/enableCryptoPayment`;
-    let dataObj = { clientId, isEnabled, walletAddress, chainIds };
+    let dataObj = {
+      teamId: clientId,
+      isEnabled,
+      walletAddress,
+      chainIds,
+      adminId: clientId,
+    };
     let encryptedData = getCipherText(dataObj);
 
     // HMAC Response
@@ -2337,7 +2348,12 @@ export async function updateClientPaymentSettings(
 ): Promise<boolean> {
   try {
     let url = `${apiUrl}/client/updateCurrencyAndPreferredMethod`;
-    let dataObj = { clientId, currency, preferredMethod };
+    let dataObj = {
+      teamId: clientId,
+      currency,
+      preferredMethod,
+      adminId: clientId,
+    };
     let encryptedData = getCipherText(dataObj);
 
     // HMAC Response
@@ -2368,7 +2384,7 @@ export async function updateClientPaymentSettings(
 
 export async function getPlans(clientId: string): Promise<PlanData[]> {
   try {
-    let requestParams = `clientId=${clientId}`;
+    let requestParams = `teamId=${clientId}`;
     let url = `${apiUrl}/client/getPlans?${requestParams}`;
 
     // HMAC Response
@@ -2498,10 +2514,10 @@ export async function updateClientBillingMethod(
   }
 }
 
-export async function getClientUsage(clientId: string) {
+export async function getTeamUsage(clientId: string) {
   try {
-    let requestParams = `clientId=${clientId}`;
-    let url = `${apiUrl}/client/getClientUsage?${requestParams}`;
+    let requestParams = `teamId=${clientId}`;
+    let url = `${apiUrl}/client/getTeamUsage?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -2686,7 +2702,7 @@ export async function inviteTeamMember(
 
 export async function getTeamInvites(clientId: string) {
   try {
-    let requestParams = `clientId=${clientId}`;
+    let requestParams = `teamId=${clientId}`;
     let url = `${apiUrl}/client/getMyInvites?${requestParams}`;
 
     // HMAC Response
@@ -2712,19 +2728,21 @@ export async function getTeamInvites(clientId: string) {
 }
 
 export async function acceptOrRejectInvite({
-  clientId,
+  teamId,
+  adminId,
   email,
   inviteStatus,
   teamName,
 }: {
-  clientId: string;
+  teamId: string;
+  adminId: string;
   email: string;
   inviteStatus: string;
   teamName: string;
 }) {
   try {
     let url = `${apiUrl}/client/acceptOrRejectInvite`;
-    let dataObj = { clientId, email, inviteStatus, teamName };
+    let dataObj = { teamId, adminId, email, inviteStatus, teamName };
     console.log("dataObj", dataObj);
     let encryptedData = getCipherText(dataObj);
 
