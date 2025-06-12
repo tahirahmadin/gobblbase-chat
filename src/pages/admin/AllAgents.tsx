@@ -123,7 +123,7 @@ const AllAgents: React.FC = () => {
           <div className="absolute top-1 left-1 w-full h-full bg-[#6aff97] rounded"></div>
           <div className="relative inline-block">
             {/* Bottom layer for shadow effect */}
-            <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
+            <div className="absolute top-[3px] left-[3px] w-full h-full border border-black "></div>
 
             {/* Main button */}
             <button
@@ -167,7 +167,7 @@ const AllAgents: React.FC = () => {
                 <div className="absolute top-1 left-1 w-full h-full bg-[#AEB8FF] rounded"></div>
                 <div className="relative inline-block">
                   {/* Bottom layer for shadow effect */}
-                  <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
+                  <div className="absolute top-[3px] left-[3px] w-full h-full border border-black "></div>
 
                   {/* Main button */}
                   <button
