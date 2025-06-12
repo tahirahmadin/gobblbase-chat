@@ -13,6 +13,7 @@ import { CreditCard, Wallet } from "lucide-react";
 import { backendApiUrl } from "../../../utils/constants";
 import { useCryptoPayment } from "../../../hooks/useCryptoHook";
 import { useAdminStore } from "../../../store/useAdminStore";
+import { createPaymentIntent } from "../../../lib/serverActions";
 
 interface PaymentSectionProps {
   theme: {
@@ -553,7 +554,7 @@ export function PaymentSection({
   }, [activeBotData?.paymentMethods.stripe?.accountId]);
 
   useEffect(() => {
-    const createPaymentIntent = async () => {
+    const initializePayment = async () => {
       if (!product || !product.price || product.price <= 0) {
         setError("Invalid product price");
         return;
@@ -563,7 +564,12 @@ export function PaymentSection({
         clientSecret ||
         !activeBotData ||
         selectedMethod !== "stripe" ||
-        !stripePromise
+        !stripePromise ||
+        !activeBotId ||
+        !activeBotData.clientId ||
+        !userId ||
+        !userEmail ||
+        !activeBotData.paymentMethods.stripe.accountId
       ) {
         return;
       }
@@ -573,37 +579,20 @@ export function PaymentSection({
 
       try {
         console.log("Creating payment intent for product:", product);
-        const response = await fetch(
-          `${backendApiUrl}/product/create-payment-intent`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              cart: [product],
-              agentId: activeBotId,
-              clientId: activeBotData?.clientId,
-              userId: userId,
-              userEmail: userEmail,
-              stripeAccountId: activeBotData.paymentMethods.stripe.accountId,
-              amount: Math.round(product.price * 100) * product.quantity,
-              currency: activeBotData.currency || "USD",
-              shipping: shipping,
-              checkType: product.checkType,
-              checkQuantity: product.quantity,
-            }),
-          }
-        );
+        const data = await createPaymentIntent({
+          cart: [product],
+          agentId: activeBotId,
+          clientId: activeBotData.clientId,
+          userId: userId,
+          userEmail: userEmail,
+          stripeAccountId: activeBotData.paymentMethods.stripe.accountId,
+          amount: Math.round(product.price * 100) * product.quantity,
+          currency: activeBotData.currency || "USD",
+          shipping: shipping,
+          checkType: product.checkType,
+          checkQuantity: product.quantity,
+        });
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(
-            errorData.message || "Failed to create payment intent"
-          );
-        }
-
-        const data = await response.json();
         console.log("Payment intent created successfully:", data);
         if (userId) {
           fetchUserDetails(userId);
@@ -618,7 +607,7 @@ export function PaymentSection({
       }
     };
 
-    createPaymentIntent();
+    initializePayment();
   }, [
     product,
     activeBotData,

@@ -4,6 +4,7 @@ import {
   getClientUsage,
   inviteTeamMember,
   getTeamInvites,
+  acceptOrRejectInvite,
 } from "../../../../lib/serverActions";
 import { useAdminStore } from "../../../../store/useAdminStore";
 import { useNavigate } from "react-router-dom";
@@ -193,7 +194,7 @@ const Team = () => {
     const fetchInvites = async () => {
       if (!adminId) return;
       try {
-        const res = await getTeamInvites(adminId);
+        const res = await getTeamInvites(adminId || "");
         setInvites(res || []);
       } catch (e) {
         setInvites([]);
@@ -205,9 +206,33 @@ const Team = () => {
   const [showAddMemberPanel, setShowAddMemberPanel] = useState(false);
 
   // Accept invite handler (mock)
-  const handleAcceptInvite = (invite: any) => {
-    toast.success(`Accepted invite for ${invite.email}`);
-    // TODO: Wire up to API if needed
+  const handleInviteAction = async (
+    invite: any,
+    status: "accepted" | "rejected"
+  ) => {
+    try {
+      if (!adminId) return;
+      const res = await acceptOrRejectInvite({
+        clientId: adminId,
+        email: invite.email,
+        inviteStatus: status,
+        teamName: invite.teamName,
+      });
+      if (!res.error) {
+        toast.success(
+          `Invite ${status === "accepted" ? "accepted" : "rejected"} for ${
+            invite.email
+          }`
+        );
+        // Optionally refresh invites
+        const updated = await getTeamInvites(adminId || "");
+        setInvites(updated || []);
+      } else {
+        toast.error(res.result || `Failed to ${status} invite`);
+      }
+    } catch (err) {
+      toast.error(`Failed to ${status} invite`);
+    }
   };
 
   return (
@@ -430,12 +455,18 @@ const Team = () => {
                     <td className="py-3 px-4 text-sm text-gray-600">
                       {invite.email}
                     </td>
-                    <td className="py-3 px-4 rounded-r-lg">
+                    <td className="py-3 px-4 rounded-r-lg flex gap-2 items-center justify-center">
                       <button
                         className="bg-[#6AFF97] border border-black px-4 py-2 rounded text-black font-semibold hover:bg-[#4D65FF] hover:text-white transition-colors shadow"
-                        onClick={() => handleAcceptInvite(invite)}
+                        onClick={() => handleInviteAction(invite, "accepted")}
                       >
                         Accept
+                      </button>
+                      <button
+                        className="bg-[#FF9797] border border-black px-4 py-2 rounded text-black font-semibold hover:bg-[#FF4D4D] hover:text-white transition-colors shadow"
+                        onClick={() => handleInviteAction(invite, "rejected")}
+                      >
+                        Reject
                       </button>
                     </td>
                   </tr>

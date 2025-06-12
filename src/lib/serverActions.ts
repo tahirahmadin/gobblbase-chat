@@ -2710,3 +2710,100 @@ export async function getTeamInvites(clientId: string) {
     throw error;
   }
 }
+
+export async function acceptOrRejectInvite({
+  clientId,
+  email,
+  inviteStatus,
+  teamName,
+}: {
+  clientId: string;
+  email: string;
+  inviteStatus: string;
+  teamName: string;
+}) {
+  try {
+    let url = `${apiUrl}/client/acceptOrRejectInvite`;
+    let dataObj = { clientId, email, inviteStatus, teamName };
+    console.log("dataObj", dataObj);
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
+
+    if (!response.data) {
+      throw new Error("No data received from server");
+    }
+    return response.data;
+  } catch (error) {
+    console.error("Error accepting/rejecting invite:", error);
+    return {
+      error: true,
+      result: "Failed to accept/reject invite",
+    };
+  }
+}
+
+export async function createPaymentIntent(payload: {
+  cart: any[];
+  agentId: string;
+  clientId: string;
+  userId: string;
+  userEmail: string;
+  stripeAccountId: string;
+  amount: number;
+  currency: string;
+  shipping: {
+    name: string;
+    email: string;
+    phone: string;
+    country: string;
+    address1: string;
+    address2: string;
+    city: string;
+    zipcode: string;
+    saveDetails: boolean;
+  };
+  checkType?: string;
+  checkQuantity?: number;
+}): Promise<{ clientSecret: string }> {
+  try {
+    let url = `${apiUrl}/product/create-payment-intent`;
+    let encryptedData = getCipherText(payload);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
+
+    if (!response.data) {
+      throw new Error("No data received from server");
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Error creating payment intent:", error);
+    throw error;
+  }
+}
