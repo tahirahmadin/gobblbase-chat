@@ -612,7 +612,7 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
                     selectedVideo === video.id ? 'ring-2 ring-blue-300' : ''
                   }`}
                 >
-                  {/* Action buttons */}
+                  {/* Action buttons - Only trash button, removed cross button */}
                   <div className="absolute top-1 right-1 flex space-x-1">
                     {video.savedToAgent && video.documentId && (
                       <button
@@ -631,16 +631,6 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
                         )}
                       </button>
                     )}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeVideo(video.id);
-                      }}
-                      className="text-gray-400 hover:text-red-500"
-                      title="Remove from list"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
                   </div>
                   
                   <div className="flex space-x-2">
