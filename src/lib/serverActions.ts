@@ -222,8 +222,8 @@ export async function fetchClientAgents(
 
 export async function getClient(clientId: string) {
   try {
-    let requestParams = `clientId=${clientId}`;
-    let url = `${apiUrl}/client/getClient?${requestParams}`;
+    let requestParams = `teamId=${clientId}`;
+    let url = `${apiUrl}/client/getTeam?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -1171,7 +1171,7 @@ export async function addDocumentToAgent(
         documentSize || new TextEncoder().encode(textContent).length,
       videoMetadata: videoMetadata || undefined,
     };
-    
+
     let encryptedData = getCipherText(dataObj);
 
     // HMAC Response
@@ -1644,7 +1644,7 @@ export async function getBookingForReschedule(
   try {
     let dataObj = {
       bookingId,
-      userId
+      userId,
     };
     let encryptedData = getCipherText(dataObj);
 
@@ -2829,35 +2829,32 @@ export async function createFreeProductOrder(payload: {
   checkQuantity?: number;
   stripeAccountId: string;
 }): Promise<{ orderId: string }> {
-  const response = await fetch(
-    `${backendApiUrl}/product/createFreeProductOrder`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        lineItems: [],
-        agentId: payload.agentId,
-        clientId: payload.clientId,
-        userId: payload.userId,
-        userEmail: payload.userEmail,
-        amount: 0,
-        currency: "USD",
-        cart: payload.cart,
-        shipping: payload.shipping,
-        checkType: payload.checkType,
-        checkQuantity: payload.checkQuantity,
-        stripeAccountId: payload.stripeAccountId,
-      }),
+  try {
+    let url = `${apiUrl}/product/createFreeProductOrder`;
+    let encryptedData = getCipherText(payload);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
     }
-  );
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || "Failed to create free order");
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
+
+    if (!response.data) {
+      throw new Error("No data received from server");
+    }
+
+    return { orderId: response.data.orderId || response.data._id };
+  } catch (error) {
+    console.error("Error creating free product order:", error);
+    throw error;
   }
-
-  const data = await response.json();
-  return { orderId: data.orderId || data._id };
 }
