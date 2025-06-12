@@ -16,8 +16,8 @@ const Icon = styled.button`
   cursor: pointer;
   transition: background 0.3s;
   font-size: clamp(8px, 4vw, 16px);
-  fant-family: "DM Sans", sans-serif;
-
+  font-family: "DM Sans", sans-serif;
+  font-weight: 400;
   &:hover {
     background: #aeb8ff;
   }

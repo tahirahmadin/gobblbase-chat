@@ -16,7 +16,6 @@ import { useProductsLogic } from "../../hooks/useProductsLogic";
 import { useContactLogic } from "../../hooks/useContactLogic";
 import { useChatMessages } from "../../hooks/useChatMessages";
 import { useFeatureNotifications } from "../../hooks/useFeatureNotifications";
-import ClickableMessageText from "./ClickableMessageText";
 
 type Screen = "about" | "chat" | "browse";
 
@@ -52,7 +51,6 @@ export default function PublicChat({
   const [activeScreen, setActiveScreen] = useState<Screen>("chat");
   const [showCues, setShowCues] = useState<boolean>(true);
 
-  // Initialize user session
   useEffect(() => {
     if (!isPreview) {
       initializeSession();
@@ -132,6 +130,12 @@ export default function PublicChat({
   };
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      (window as any).featureMessageShown = false;
+    }
+  }, []);
+
+  useEffect(() => {
     if (!previewConfig && botUsername) {
       fetchBotData(botUsername, true);
     }
@@ -162,62 +166,28 @@ export default function PublicChat({
       return;
     }
 
-    const currBooking = checkFeature(isBookingConfigured);
-    const currProducts = checkFeature(hasProducts);
-    const currContact = checkFeature(currentConfig?.customerLeadFlag);
-    const currQueryable = checkFeature(currentConfig?.isQueryable);
-    const currActive = checkFeature(currentConfig?.isActive);
+    const timeoutId = setTimeout(() => {
+      const currBooking = checkFeature(isBookingConfigured);
+      const currProducts = checkFeature(hasProducts);
+      const currContact = checkFeature(currentConfig?.customerLeadFlag);
+      const currQueryable = checkFeature(currentConfig?.isQueryable);
+      const currActive = checkFeature(currentConfig?.isActive);
 
-    const bookingChanged =
-      prevFeaturesRef.current.isBookingConfigured !== null &&
-      prevFeaturesRef.current.isBookingConfigured !== currBooking;
-    const productsChanged =
-      prevFeaturesRef.current.hasProducts !== null &&
-      prevFeaturesRef.current.hasProducts !== currProducts;
-    const contactChanged =
-      prevFeaturesRef.current.customerLeadFlag !== null &&
-      prevFeaturesRef.current.customerLeadFlag !== currContact;
-    const queryableChanged =
-      prevFeaturesRef.current.isQueryable !== null &&
-      prevFeaturesRef.current.isQueryable !== currQueryable;
-    const activeChanged =
-      prevFeaturesRef.current.isActive !== null &&
-      prevFeaturesRef.current.isActive !== currActive;
-
-    if (
-      bookingChanged ||
-      productsChanged ||
-      contactChanged ||
-      queryableChanged ||
-      activeChanged
-    ) {
-      console.log("Features changed:", {
-        bookingBefore: prevFeaturesRef.current.isBookingConfigured,
-        bookingNow: currBooking,
-        productsBefore: prevFeaturesRef.current.hasProducts,
-        productsNow: currProducts,
-        contactBefore: prevFeaturesRef.current.customerLeadFlag,
-        contactNow: currContact,
-        queryableBefore: prevFeaturesRef.current.isQueryable,
-        queryableNow: currQueryable,
-        activeBefore: prevFeaturesRef.current.isActive,
-        activeNow: currActive,
-      });
-
-      updateFeatures();
-
-      if (messages.length >= 1) {
+      const hasAnyFeature = currBooking || currProducts || currContact || currQueryable;
+      if (messages.length >= 1 && hasAnyFeature) {
         showFeatureNotification(setMessages, scrollToBottom);
       }
-    }
 
-    prevFeaturesRef.current = {
-      isBookingConfigured: currBooking,
-      hasProducts: currProducts,
-      customerLeadFlag: currContact,
-      isQueryable: currQueryable,
-      isActive: currActive,
-    };
+      prevFeaturesRef.current = {
+        isBookingConfigured: currBooking,
+        hasProducts: currProducts,
+        customerLeadFlag: currContact,
+        isQueryable: currQueryable,
+        isActive: currActive,
+      };
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
   }, [
     currentIsLoading,
     loadingPricing,
@@ -226,11 +196,10 @@ export default function PublicChat({
     currentConfig?.customerLeadFlag,
     currentConfig?.isQueryable,
     currentConfig?.isActive,
-    updateFeatures,
-    showFeatureNotification,
     messages.length,
     setMessages,
     scrollToBottom,
+    showFeatureNotification,
   ]);
 
   useEffect(() => {
@@ -256,20 +225,13 @@ export default function PublicChat({
       if (!hasFeatureMessage) {
         setTimeout(() => {
           showFeatureNotification(setMessages, scrollToBottom);
-        }, 100);
+        }, 1000);
       }
     }
   }, [
-    messages,
+    messages.length,
     currentIsLoading,
     loadingPricing,
-    isBookingConfigured,
-    hasProducts,
-    currentConfig?.customerLeadFlag,
-    currentConfig?.isQueryable,
-    showFeatureNotification,
-    setMessages,
-    scrollToBottom,
   ]);
 
   const logConversation = async (
@@ -290,7 +252,6 @@ export default function PublicChat({
 
     if (!msgToSend.trim() || !currentConfig?.agentId) return;
 
-    // Add user message to chat
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       content: msgToSend,
@@ -305,7 +266,6 @@ export default function PublicChat({
     const messageCountBefore = messages.length + 1;
     let responseContent = "";
 
-    // Process contact requests first (including lead collection)
     const contactHandled = await handleContactRequest(
       msgToSend,
       setMessages,
@@ -328,7 +288,6 @@ export default function PublicChat({
       return;
     }
 
-    // Process booking-related messages
     const bookingHandled = handleBookingRequest(
       msgToSend,
       setMessages,
@@ -341,7 +300,6 @@ export default function PublicChat({
       return;
     }
 
-    // Process product-related messages
     const productHandled = handleProductRequest(
       msgToSend,
       setMessages,
@@ -357,7 +315,6 @@ export default function PublicChat({
     try {
       await handleAIResponse(msgToSend);
 
-      // Wait for the AI response to be added to messages
       setTimeout(() => {
         const currentMessages = messages;
         const latestAgentMessage = currentMessages
@@ -400,7 +357,6 @@ export default function PublicChat({
   const handleFeatureClick = async (featureText: string): Promise<void> => {
     if (!currentConfig?.agentId) return;
 
-    // Add user message to chat
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       content: featureText,
@@ -415,15 +371,13 @@ export default function PublicChat({
     const messageCountBefore = messages.length + 1;
     let responseContent = "";
 
-    // Extract the feature type from the message
-    const isBookingRequest = featureText.includes("Booking appointments");
-    const isProductRequest = featureText.includes("Browsing our products");
-    const isContactRequest = featureText.includes("Contacting us");
-    const isKnowledgeBaseRequest = featureText.includes(
-      "Answering questions about our knowledge base"
-    );
+    const lowerFeatureText = featureText.toLowerCase();
 
-    // Process contact requests first (including lead collection)
+    const isBookingRequest = lowerFeatureText.includes("booking appointments");
+    const isProductRequest = lowerFeatureText.includes("browsing our products");
+    const isContactRequest = lowerFeatureText.includes("contacting us");
+    const isKnowledgeBaseRequest = lowerFeatureText.includes("answering questions about our knowledge base");
+
     if (isContactRequest) {
       const contactHandled = await handleContactRequest(
         featureText,
@@ -448,7 +402,6 @@ export default function PublicChat({
       }
     }
 
-    // Process booking-related messages
     if (isBookingRequest) {
       const bookingHandled = handleBookingRequest(
         featureText,
@@ -463,7 +416,6 @@ export default function PublicChat({
       }
     }
 
-    // Process product-related messages
     if (isProductRequest) {
       const productHandled = handleProductRequest(
         featureText,
@@ -478,15 +430,10 @@ export default function PublicChat({
       }
     }
 
-    // For other queries, use AI response
-    if (
-      isKnowledgeBaseRequest ||
-      (!isBookingRequest && !isProductRequest && !isContactRequest)
-    ) {
+    if (isKnowledgeBaseRequest) {
       try {
         await handleAIResponse(featureText);
 
-        // Wait for the AI response to be added to messages
         setTimeout(() => {
           const currentMessages = messages;
           const latestAgentMessage = currentMessages
@@ -506,7 +453,6 @@ export default function PublicChat({
     }
   };
 
-  // Function to check if message contains clickable features
   const hasClickableFeatures = (content: string): boolean => {
     const clickableFeatures = [
       "Booking appointments",
@@ -516,7 +462,7 @@ export default function PublicChat({
     ];
     return clickableFeatures.some((feature) => content.includes(feature));
   };
-  // Show BotNotFound component if there's an error fetching bot config
+
   if (botConfigError && !isPreview) {
     return (
       <div className="w-full h-screen flex items-center justify-center">
