@@ -95,7 +95,6 @@ const TimezoneSelector: React.FC<TimezoneSelectoProps> = ({
 }) => {
   const [showTimezones, setShowTimezones] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [dropdownPosition, setDropdownPosition] = useState<'left' | 'right'>('right');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -120,26 +119,6 @@ const TimezoneSelector: React.FC<TimezoneSelectoProps> = ({
     return filtered;
   }, [searchTerm]);
 
-  // Calculate optimal dropdown position
-  const calculateDropdownPosition = () => {
-    if (!buttonRef.current) return;
-    
-    const buttonRect = buttonRef.current.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    const dropdownWidth = 280; // Approximate dropdown width
-    
-    // Check if there's enough space on the right
-    const spaceOnRight = viewportWidth - buttonRect.right;
-    const spaceOnLeft = buttonRect.left;
-    
-    // Prefer right alignment, but switch to left if not enough space
-    if (spaceOnRight < dropdownWidth && spaceOnLeft > spaceOnRight) {
-      setDropdownPosition('left');
-    } else {
-      setDropdownPosition('right');
-    }
-  };
-
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -148,19 +127,13 @@ const TimezoneSelector: React.FC<TimezoneSelectoProps> = ({
       }
     };
 
-    const handleResize = () => {
-      if (showTimezones) {
-        calculateDropdownPosition();
-      }
-    };
-
     if (showTimezones) {
-      calculateDropdownPosition();
       document.addEventListener('mousedown', handleOutsideClick);
-      window.addEventListener('resize', handleResize);
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden';
       return () => {
         document.removeEventListener('mousedown', handleOutsideClick);
-        window.removeEventListener('resize', handleResize);
+        document.body.style.overflow = 'unset';
       };
     }
   }, [showTimezones]);
@@ -175,42 +148,22 @@ const TimezoneSelector: React.FC<TimezoneSelectoProps> = ({
     setShowTimezones(!showTimezones);
   };
 
-  // Responsive dropdown styles
+  // Always use modal-style UI (previously mobile-only)
   const getDropdownStyles = () => {
-    const baseStyles = {
+    return {
       backgroundColor: theme.isDark ? '#1a1a1a' : '#ffffff',
       borderColor: theme.isDark ? '#333' : '#e5e5e5',
       boxShadow: theme.isDark ? '0 8px 20px rgba(0,0,0,0.6)' : '0 8px 20px rgba(0,0,0,0.15)',
-      maxHeight: '280px',
-      overflowY: 'hidden' as const,
+      position: 'fixed' as const,
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: 'calc(100vw - 32px)',
+      maxWidth: '420px',
+      maxHeight: '50vh',
+      borderRadius: '12px',
       zIndex: 9999,
-    };
-
-    // Mobile responsive
-    if (window.innerWidth < 640) {
-      return {
-        ...baseStyles,
-        position: 'fixed' as const,
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 'calc(100vw - 32px)',
-        maxWidth: '350px',
-        maxHeight: '70vh',
-        borderRadius: '12px',
-      };
-    }
-
-    // Desktop positioning
-    return {
-      ...baseStyles,
-      position: 'absolute' as const,
-      [dropdownPosition]: 0,
-      top: '100%',
-      marginTop: '4px',
-      width: 'clamp(260px, 75vw, 300px)',
-      maxWidth: 'calc(100vw - 20px)',
-      borderRadius: '8px',
+      overflowY: 'hidden' as const,
     };
   };
 
@@ -232,38 +185,35 @@ const TimezoneSelector: React.FC<TimezoneSelectoProps> = ({
 
       {showTimezones && (
         <>
-          {/* Mobile backdrop */}
-          {window.innerWidth < 640 && (
-            <div 
-              className="fixed inset-0 bg-black bg-opacity-50 z-[9998]"
-              onClick={() => setShowTimezones(false)}
-            />
-          )}
+          {/* Always show backdrop (modal-style) */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-[9998]"
+            onClick={() => setShowTimezones(false)}
+          />
           
           <div 
             className="rounded-lg shadow-lg border overflow-hidden"
             style={getDropdownStyles()}
           >
-            {/* Header */}
+            {/* Header - Always show close button */}
             <div 
-              className="px-3 py-2 border-b flex items-center justify-between"
+              className="px-4 py-2 border-b flex items-center justify-between"
               style={{ 
                 borderColor: theme.isDark ? '#333' : '#e5e5e5',
                 backgroundColor: theme.isDark ? '#2a2a2a' : '#f8f9fa'
               }}
             >
-              <span className="text-xs font-medium" style={{ color: theme.isDark ? '#fff' : '#000' }}>
+              <span className="text-sm font-medium" style={{ color: theme.isDark ? '#fff' : '#000' }}>
                 Select Timezone
               </span>
-              {window.innerWidth < 640 && (
-                <button
-                  onClick={() => setShowTimezones(false)}
-                  className="text-xs opacity-70 hover:opacity-100"
-                  style={{ color: theme.isDark ? '#fff' : '#000' }}
-                >
-                  ✕
-                </button>
-              )}
+              <button
+                onClick={() => setShowTimezones(false)}
+                className="text-lg opacity-70 hover:opacity-100 transition-opacity p-1 rounded hover:bg-black hover:bg-opacity-10"
+                style={{ color: theme.isDark ? '#fff' : '#000' }}
+                title="Close"
+              >
+                ✕
+              </button>
             </div>
 
             {/* Search Input */}
@@ -273,22 +223,24 @@ const TimezoneSelector: React.FC<TimezoneSelectoProps> = ({
                 placeholder="Search timezones..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-2 py-1.5 rounded text-xs outline-none"
+                className="w-full px-3 py-1.5 rounded-md text-sm outline-none transition-colors focus:ring-2"
                 style={{
                   backgroundColor: theme.isDark ? '#2a2a2a' : '#f8f9fa',
                   color: theme.isDark ? '#fff' : '#000',
-                  border: `1px solid ${theme.isDark ? '#333' : '#ddd'}`
+                  border: `1px solid ${theme.isDark ? '#333' : '#ddd'}`,
+                  focusRingColor: theme.mainLightColor
                 }}
+                autoFocus
               />
             </div>
 
             {/* Timezone List */}
-            <div className="max-h-48 overflow-y-auto">
+            <div className="max-h-56 overflow-y-auto">
               {Object.entries(filteredTimezones).map(([region, timezones]) => (
                 <div key={region}>
                   {/* Region Header */}
                   <div 
-                    className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wide sticky top-0"
+                    className="px-4 py-1.5 text-xs font-semibold uppercase tracking-wide sticky top-0 z-10"
                     style={{
                       backgroundColor: theme.isDark ? '#2a2a2a' : '#f8f9fa',
                       color: theme.isDark ? '#888' : '#666',
@@ -307,7 +259,7 @@ const TimezoneSelector: React.FC<TimezoneSelectoProps> = ({
                       <button
                         key={timezone.value}
                         onClick={() => handleTimezoneSelect(timezone.value)}
-                        className={`w-full text-left px-3 py-2 text-xs hover:bg-opacity-10 hover:bg-gray-500 transition-colors ${
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-opacity-10 hover:bg-gray-500 transition-colors ${
                           isSelected ? 'font-medium' : ''
                         }`}
                         style={{
@@ -317,19 +269,19 @@ const TimezoneSelector: React.FC<TimezoneSelectoProps> = ({
                             'transparent'
                         }}
                       >
-                        <div className="flex justify-between items-center gap-2">
+                        <div className="flex justify-between items-center gap-3">
                           <div className="flex-1 min-w-0">
                             <div className="truncate font-medium">{timezone.label}</div>
                             {isSelected && (
-                              <div className="text-xs opacity-75 truncate mt-0.5">{timezone.value}</div>
+                              <div className="text-xs opacity-75 truncate">{timezone.value}</div>
                             )}
                           </div>
                           <div className="flex items-center space-x-2 flex-shrink-0">
                             {isSelected && (
-                              <span className="text-xs opacity-75">✓</span>
+                              <span className="text-sm opacity-75">✓</span>
                             )}
                             <span 
-                              className="text-xs font-mono px-1.5 py-0.5 rounded"
+                              className="text-xs font-mono px-2 py-0.5 rounded"
                               style={{
                                 backgroundColor: theme.isDark ? '#333' : '#f0f0f0',
                                 color: theme.isDark ? '#ccc' : '#666'
@@ -346,23 +298,24 @@ const TimezoneSelector: React.FC<TimezoneSelectoProps> = ({
               ))}
               
               {Object.keys(filteredTimezones).length === 0 && (
-                <div className="px-3 py-8 text-center text-xs" style={{ color: theme.isDark ? '#888' : '#666' }}>
+                <div className="px-4 py-8 text-center text-sm" style={{ color: theme.isDark ? '#888' : '#666' }}>
                   <Globe className="h-6 w-6 mx-auto mb-2 opacity-50" />
-                  <div>No timezones found</div>
-                  <div className="text-xs opacity-75 mt-1">Try a different search</div>
+                  <div className="font-medium mb-1">No timezones found</div>
+                  <div className="text-xs opacity-75">Try a different search term</div>
                 </div>
               )}
             </div>
 
             {/* Footer */}
             <div 
-              className="px-3 py-1.5 border-t text-xs opacity-75"
+              className="px-4 py-1.5 border-t text-xs text-center opacity-75"
               style={{ 
                 borderColor: theme.isDark ? '#333' : '#e5e5e5',
-                color: theme.isDark ? '#888' : '#666'
+                color: theme.isDark ? '#888' : '#666',
+                backgroundColor: theme.isDark ? '#2a2a2a' : '#f8f9fa'
               }}
             >
-              Current local times
+              Showing current local times
             </div>
           </div>
         </>
