@@ -177,21 +177,29 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
 
   // Memoized timezone conversion function
   const convertMeetingToCurrentTimezone = useCallback((meeting: Meeting): Meeting => {
-    if (meeting.originalTimezone && meeting.originalTimezone !== businessTimezone) {
+    // Only convert if there's an original timezone different from business timezone
+    if (meeting.originalTimezone && 
+        meeting.originalTimezone !== businessTimezone && 
+        isValidTimezone(meeting.originalTimezone) && 
+        isValidTimezone(businessTimezone)) {
+      
       try {
-        const meetingDate = new Date(meeting.date);
-        const dateStr = meetingDate.toISOString().split('T')[0];
+        // Parse meeting date consistently
+        let meetingDateStr = meeting.date;
+        if (meetingDateStr.includes('T')) {
+          meetingDateStr = meetingDateStr.split('T')[0];
+        }
         
         const convertedStartTime = convertTime(
           meeting.startTime, 
-          dateStr, 
+          meetingDateStr, 
           meeting.originalTimezone, 
           businessTimezone
         );
         
         const convertedEndTime = convertTime(
           meeting.endTime, 
-          dateStr, 
+          meetingDateStr, 
           meeting.originalTimezone, 
           businessTimezone
         );
@@ -210,7 +218,7 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
     }
     
     return { ...meeting, needsTimezoneConversion: false };
-  }, [businessTimezone]); 
+  }, [businessTimezone]);
 
   // Memoized TimeDisplay component
   const TimeDisplay = useMemo(() => {
@@ -389,102 +397,180 @@ const BookingDashboard: React.FC<BookingDashboardProps> = ({
   // Memoized filtered meetings with performance optimization
   const filteredMeetings = useMemo(() => {
     if (!meetings.length) return [];
-
+  
+    console.log('=== FILTERING DEBUG ===');
+    console.log('Business timezone:', businessTimezone);
+    console.log('Current time:', DateTime.now().setZone(businessTimezone).toISO());
+    console.log('Total meetings:', meetings.length);
+  
     return meetings
       .map(meeting => convertMeetingToCurrentTimezone(meeting))
       .filter((meeting) => {
+        // Skip cancelled meetings that were rescheduled
         if (meeting.status === "cancelled" && meeting.isRescheduled) {
           return false;
         }
-
+  
+        // Get current time in business timezone
         const now = DateTime.now().setZone(businessTimezone);
         
-        const meetingDate = DateTime.fromISO(meeting.date).setZone(businessTimezone);
-        
+        // Parse meeting date correctly in business timezone
+        let meetingDate;
+        try {
+          if (meeting.date.includes('T')) {
+            // Full ISO string - parse it and convert to business timezone
+            meetingDate = DateTime.fromISO(meeting.date).setZone(businessTimezone);
+          } else {
+            // Date-only string (YYYY-MM-DD) - create it directly in business timezone
+            meetingDate = DateTime.fromISO(meeting.date + 'T00:00:00', { 
+              zone: businessTimezone 
+            });
+          }
+        } catch (error) {
+          console.error('Error parsing meeting date:', meeting.date, error);
+          return false;
+        }
+  
+        if (!meetingDate.isValid) {
+          console.error('Invalid meeting date:', meeting.date);
+          return false;
+        }
+  
+        // Get the correct time to use (converted or original)
         const businessStartTime = meeting.needsTimezoneConversion 
           ? meeting.convertedStartTime! 
           : meeting.startTime;
         const businessEndTime = meeting.needsTimezoneConversion 
           ? meeting.convertedEndTime! 
           : meeting.endTime;
-
+  
+        // Validate time format
         if (!businessStartTime?.match(/^\d{2}:\d{2}$/) || !businessEndTime?.match(/^\d{2}:\d{2}$/)) {
-          console.warn('Invalid time format for meeting:', meeting._id);
+          console.warn('Invalid time format for meeting:', meeting._id, businessStartTime, businessEndTime);
           return false;
         }
         
+        // Parse times correctly
         const [startHours, startMinutes] = businessStartTime.split(':').map(Number);
         const [endHours, endMinutes] = businessEndTime.split(':').map(Number);
-
+  
+        // Create precise meeting start/end DateTimes in business timezone
         const meetingStartDateTime = meetingDate.set({ 
           hour: startHours, 
           minute: startMinutes, 
           second: 0, 
           millisecond: 0 
         });
-
+  
         const meetingEndDateTime = meetingDate.set({ 
           hour: endHours, 
           minute: endMinutes, 
           second: 0, 
           millisecond: 0 
         });
-
-        if (activeTab === "upcoming") {
-          if (meetingEndDateTime <= now) return false;
-        } else if (activeTab === "past") {
-          if (meetingEndDateTime > now) return false;
+  
+        // Debug specific meeting
+        if (meeting._id === 'check7' || meeting.userId?.includes('priyanshu')) {
+          console.log('=== SPECIFIC MEETING DEBUG ===');
+          console.log('Meeting ID:', meeting._id);
+          console.log('Meeting date string:', meeting.date);
+          console.log('Parsed meeting date:', meetingDate.toISO());
+          console.log('Business start time:', businessStartTime);
+          console.log('Business end time:', businessEndTime);
+          console.log('Meeting start DateTime:', meetingStartDateTime.toISO());
+          console.log('Meeting end DateTime:', meetingEndDateTime.toISO());
+          console.log('Current time:', now.toISO());
+          console.log('Meeting ended?', meetingEndDateTime <= now);
+          console.log('Meeting ended (strict)?', meetingEndDateTime.toMillis() <= now.toMillis());
+          console.log('Time difference (minutes):', meetingEndDateTime.diff(now, 'minutes').minutes);
+          console.log('Active tab:', activeTab);
         }
-
+  
+        // Apply tab filtering FIRST (most important filter)
+        if (activeTab === "upcoming") {
+          // For upcoming: show meetings that haven't ended yet
+          if (meetingEndDateTime <= now) {
+            return false;
+          }
+        } else if (activeTab === "past") {
+          // For past: show meetings that have ended
+          if (meetingEndDateTime > now) {
+            return false;
+          }
+        }
+  
+        // Apply other filters only after tab filtering
         if (filters.location && meeting.location !== filters.location) {
           return false;
         }
-
+  
         if (filters.status && meeting.status !== filters.status) {
           return false;
         }
-
+  
+        // Date range filtering
         if (filters.dateRange !== "all") {
-          const today = DateTime.now().setZone(businessTimezone).startOf('day');
-
+          const today = now.startOf('day');
+  
           if (filters.dateRange === "today") {
             const todayEnd = today.endOf('day');
-            if (meetingEndDateTime < today || meetingStartDateTime > todayEnd) return false;
+            if (meetingStartDateTime < today || meetingStartDateTime > todayEnd) {
+              return false;
+            }
           } else if (filters.dateRange === "week") {
-            const weekStart = new Date(today);
-            weekStart.setDate(today.getDate() - today.getDay());
-            const weekEnd = new Date(weekStart);
-            weekEnd.setDate(weekStart.getDate() + 6);
-            weekEnd.setHours(23, 59, 59, 999);
-            if (meetingEndDateTime < weekStart || meetingStartDateTime > weekEnd) return false;
+            const weekStart = today.startOf('week');
+            const weekEnd = today.endOf('week');
+            if (meetingStartDateTime < weekStart || meetingStartDateTime > weekEnd) {
+              return false;
+            }
           } else if (filters.dateRange === "month") {
-            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-            const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-            monthEnd.setHours(23, 59, 59, 999);
-            if (meetingEndDateTime < monthStart || meetingStartDateTime > monthEnd) return false;
+            const monthStart = today.startOf('month');
+            const monthEnd = today.endOf('month');
+            if (meetingStartDateTime < monthStart || meetingStartDateTime > monthEnd) {
+              return false;
+            }
           }
         }
-
+  
         return true;
       })
       .map((meeting) => {
         const updatedMeeting = { ...meeting };
-
+  
+        // Update status for past meetings
         if (activeTab === "past" && meeting.status === "confirmed") {
           updatedMeeting.status = "completed";
         }
-
+  
         return updatedMeeting;
       })
       .sort((a, b) => {
         const createSortDate = (meeting: Meeting) => {
-          const meetingDate = new Date(meeting.date);
-          const timeToUse = meeting.needsTimezoneConversion 
-            ? meeting.convertedStartTime! 
-            : meeting.startTime;
-          const [hours, minutes] = timeToUse.split(':').map(Number);
-          meetingDate.setHours(hours, minutes, 0, 0);
-          return meetingDate;
+          try {
+            let meetingDate;
+            if (meeting.date.includes('T')) {
+              meetingDate = DateTime.fromISO(meeting.date).setZone(businessTimezone);
+            } else {
+              meetingDate = DateTime.fromISO(meeting.date + 'T00:00:00', { 
+                zone: businessTimezone 
+              });
+            }
+  
+            const timeToUse = meeting.needsTimezoneConversion 
+              ? meeting.convertedStartTime! 
+              : meeting.startTime;
+            const [hours, minutes] = timeToUse.split(':').map(Number);
+            
+            return meetingDate.set({ 
+              hour: hours, 
+              minute: minutes, 
+              second: 0, 
+              millisecond: 0 
+            }).toJSDate();
+          } catch (error) {
+            console.error('Error parsing date for sorting:', meeting.date, error);
+            return new Date(meeting.date); // Fallback
+          }
         };
         
         const dateA = createSortDate(a);
