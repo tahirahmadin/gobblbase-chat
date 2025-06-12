@@ -1,7 +1,6 @@
 import { useState, useEffect, Dispatch, SetStateAction, useCallback } from "react";
 import { ChatMessage } from "../types";
 
-// Template messages for feature notifications
 const featureNotificationMessages = [
   "I can help you with:",
   "I'm here to help with:",
@@ -23,7 +22,6 @@ export function useFeatureNotifications(
   customerLeadFlag: boolean | undefined | null,
   isQueryable: boolean | undefined | null,
 ): UseFeatureNotificationsReturn {
-  // Window state to track across renders
   const getMessageShown = () => {
     if (typeof window !== "undefined") {
       return (window as any).featureMessageShown === true;
@@ -37,11 +35,9 @@ export function useFeatureNotifications(
     }
   };
 
-  // Simple state to track if features notification has been shown
   const [featureMessageShown, setFeatureMessageShown] = useState<boolean>(getMessageShown());
   const [featuresChanged, setFeaturesChanged] = useState<boolean>(false);
   
-  // More robust feature checking
   const checkFeature = (value: any): boolean => {
     if (typeof value === 'boolean') return value;
     if (typeof value === 'string') return value.toLowerCase() === 'true' || value === '1';
@@ -50,7 +46,6 @@ export function useFeatureNotifications(
     return false;
   };
 
-  // Generate the feature notification message
   const generateFeatureMessage = useCallback(() => {
     const features: string[] = [];
     
@@ -66,38 +61,25 @@ export function useFeatureNotifications(
       features.push("Contacting us");
     }
     
-    // Special handling for knowledge base feature - it comes with starting text
-    const hasKnowledgeBase = checkFeature(isQueryable);
+    if (checkFeature(isQueryable)) {
+      features.push("Answering questions about our knowledge base");
+    }
     
-    if (features.length === 0 && !hasKnowledgeBase) {
+    if (features.length === 0) {
       return "";
     }
     
-    // Get random template message
     const messageIndex = Math.floor(Math.random() * featureNotificationMessages.length);
     const baseMessage = featureNotificationMessages[messageIndex];
-    
-    // Create the content with line break separation
-    let content = baseMessage;
-    
-    if (hasKnowledgeBase) {
-      content += "\nAnswering questions about our knowledge base";
-      if (features.length > 0) {
-        content += " " + features.join(" ");
-      }
-    } else {
-      content += "\n" + features.join(" ");
-    }
+    const content = baseMessage + "\n" + features.join(" ");
     
     return content;
   }, [isBookingConfigured, hasProducts, customerLeadFlag, isQueryable, checkFeature]);
   
-  // Update features state
   const updateFeatures = useCallback(() => {
     setFeaturesChanged(true);
   }, []);
   
-  // Show feature notification in chat
   const showFeatureNotification = useCallback((
     setMessages: Dispatch<SetStateAction<ChatMessage[]>>,
     scrollToBottom: () => void
@@ -107,15 +89,33 @@ export function useFeatureNotifications(
       return;
     }
     
-    if (featureMessageShown || getMessageShown()) {
-      if (featuresChanged) {
-        setMessages(messages => {
-          const updatedMessages = messages.filter(msg => 
-            !(msg.sender === "agent" && 
+    const currentFeatureCount = (featureMessage.match(/\b(Booking appointments|Browsing our products|Contacting us|Answering questions about our knowledge base)\b/g) || []).length;
+    
+    setMessages(messages => {
+      const existingFeatureMessage = messages.find(msg => 
+        msg.sender === "agent" && 
+        (msg.content.includes("capabilities include") || 
+         msg.content.includes("I can help you with") ||
+         msg.content.includes("I'm here to help with") ||
+         msg.type === "features-combined")
+      );
+      
+      if (existingFeatureMessage) {
+        const existingFeatureCount = (existingFeatureMessage.content.match(/\b(Booking appointments|Browsing our products|Contacting us|Answering questions about our knowledge base)\b/g) || []).length;
+        const shouldUpdate = currentFeatureCount > existingFeatureCount;
+        
+        if (shouldUpdate) {
+          const updatedMessages = messages.filter(msg => {
+            const isFeatureMessage = (
+              msg.sender === "agent" && 
               (msg.content.includes("capabilities include") || 
                msg.content.includes("I can help you with") ||
-               msg.content.includes("I'm here to help with")))
-          );
+               msg.content.includes("I'm here to help with") ||
+               msg.type === "features-combined" ||
+               (msg.id && String(msg.id).includes("features")))
+            );
+            return !isFeatureMessage;
+          });
           
           const newFeatureMsg: ChatMessage = {
             id: "features-" + Date.now().toString(),
@@ -125,43 +125,28 @@ export function useFeatureNotifications(
             type: "features-combined", 
           };
           
+          scrollToBottom();
           return [...updatedMessages, newFeatureMsg];
-        });
+        } else {
+          return messages;
+        }
+      } else {
+        const featureMsg: ChatMessage = {
+          id: "features-" + Date.now().toString(),
+          content: featureMessage,
+          timestamp: new Date(),
+          sender: "agent",
+          type: "features-combined", 
+        };
         
-        scrollToBottom();
-        setFeaturesChanged(false);
+        return [...messages, featureMsg];
       }
-      return;
-    }
-    
-    const featureMsg: ChatMessage = {
-      id: "features-" + Date.now().toString(),
-      content: featureMessage,
-      timestamp: new Date(),
-      sender: "agent",
-      type: "features-combined", 
-    };
-    
-    setMessages(messages => {
-      // Check if we already have a feature message in the chat
-      const hasFeatureMessage = messages.some(msg => 
-        msg.sender === "agent" && 
-        (msg.content.includes("capabilities include") || 
-         msg.content.includes("I can help you with") ||
-         msg.content.includes("I'm here to help with"))
-      );
-      
-      if (hasFeatureMessage) {
-        return messages; 
-      }
-      
-      return [...messages, featureMsg];
     });
     
     setFeatureMessageShown(true);
     setMessageShown(true);
     scrollToBottom();
-  }, [featureMessageShown, featuresChanged, generateFeatureMessage, getMessageShown, setMessageShown]);
+  }, [generateFeatureMessage, getMessageShown, setMessageShown]);
   
   const resetFeatures = useCallback(() => {
     setFeatureMessageShown(false);
