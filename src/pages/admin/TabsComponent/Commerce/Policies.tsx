@@ -8,20 +8,22 @@ const Button = styled.button`
   position: relative;
   background: #6AFF97;
   padding: 0.6vh 1vw;
-  border: 2px solid black;
+  border: 1px solid black;
   cursor: pointer;
   transition: background 0.3s;
-  font-size: clamp(8px, 4vw, 16px);
+  font-size: clamp(8px, 4vw, 15px);
+  font-weight: 400;
+  font-family: "DM Sans", sans-serif;
   min-width: 120px;
 
   &::before {
     content: "";
     position: absolute;
-    top: 5px;
-    right: -5px;
+    top: 4px;
+    right: -4px;
     width: 100%;
     height: 100%;
-    border: 2px solid #000000;
+    border: 1px solid #000000;
     z-index: -1;
     background: #6AFF97;
   }
@@ -32,7 +34,7 @@ const Button = styled.button`
     color: black;
   }
   &:disabled::before {
-    background: #d6ffe0;
+    background: #6AFF97;
   }
 `;
 interface Policy {
@@ -226,7 +228,7 @@ const Policies = () => {
                           />
                           <div className="w-11 h-6 bg-[#CDCDCD] border border-black rounded-full relative transition-colors duration-200 peer-checked:bg-green-400">
                             <div
-                              className={`absolute border border-black  -top-[1.2px] -left-[2px] w-[24px] h-[24px] bg-white rounded-full shadow transition-transform duration-200 ${
+                              className={`absolute border border-black  -top-[1px] -left-[2px] w-[24px] h-[24px] bg-white rounded-full shadow transition-transform duration-200 ${
                                 policy.enabled ? "translate-x-[24px]" : ""
                               }`}
                             ></div>

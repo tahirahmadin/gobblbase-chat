@@ -15,21 +15,22 @@ const Button = styled.button`
   position: relative;
   background: #6aff97;
   padding: 0.6vh 1vw;
-  border: 2px solid black;
+  border: 1px solid black;
   cursor: pointer;
   transition: background 0.3s;
-  font-size: clamp(8px, 4vw, 16px);
+  font-size: clamp(8px, 4vw, 15px);
+  font-weight: 400;
+  font-family: "DM Sans", sans-serif;
   min-width: 120px;
 
   &::before {
     content: "";
     position: absolute;
-    transform: translate(6px, 6px);
-    top: 0px;
-    left: 0px;
+    top: 4px;
+    left: 4px;
     width: 100%;
     height: 100%;
-    border: 2px solid #000000;
+    border: 1px solid #000000;
     z-index: -1;
     background: #6aff97;
   }
@@ -40,7 +41,7 @@ const Button = styled.button`
     color: black;
   }
   &:disabled::before {
-    background: #d6ffe0;
+    background: #6aff97;
   }
 `;
 // Helper for plus/minus icons

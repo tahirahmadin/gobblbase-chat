@@ -12,12 +12,14 @@ const Button = styled.button`
   border: 1px solid black;
   cursor: pointer;
   transition: background 0.3s;
-  font-size: clamp(8px, 4vw, 16px);
+  font-size: clamp(8px, 4vw, 15px);
+  font-weight: 500;
+  font-family: "DM Sans", sans-serif;
   &::before {
     content: "";
     position: absolute;
-    top: 5px;
-    right: -5px;
+    top: 4px;
+    right: -4px;
     width: 100%;
     height: 100%;
     border: 1px solid #000000;
@@ -135,7 +137,7 @@ const Header = () => {
                     <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
                       <span className="text-xs text-gray-500">A</span>
                     </div>
-                    <span className="font-medium">All Agents</span>
+                    <span className="font-medium para-font">All Agents</span>
                     {isAllAgentsPage && (
                       <span className="ml-auto text-xs text-green-200 font-semibold">
                         Selected

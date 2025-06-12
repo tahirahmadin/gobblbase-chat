@@ -578,8 +578,21 @@ export default function PublicChat({
             />
             <meta name="twitter:image" content={currentConfig.logo} />
           </Helmet>
+          {
+            !isPreview ? (
+              <div className="w-1/3  hidden md:block overflow-y-auto h-screen border-r-2 border-black">
+                  <AboutSection
+                    theme={currentConfig.themeColors}
+                    currentConfig={currentConfig}
+                    socials={currentConfig?.socials}
+                    customHandles={currentConfig?.customHandles}
+                  />
+                </div>
+            ) : null
+          }
+          
           <div
-            className="w-full max-w-md shadow-2xl overflow-hidden flex flex-col relative"
+            className="w-full max-w-md md:max-w-full shadow-2xl overflow-hidden flex flex-col relative"
             style={{
               height: previewConfig
                 ? chatHeight
@@ -588,24 +601,53 @@ export default function PublicChat({
                 : `${viewportHeight}px`,
             }}
           >
+            
             <div className="flex flex-col h-full">
+              {isPreview ? (
               <HeaderSection
                 theme={currentConfig.themeColors}
                 currentConfig={currentConfig}
                 activeScreen={activeScreen}
                 setActiveScreen={setActiveScreen}
-              />
+                
+                isPreview={true}
+              /> ) : (
+              <HeaderSection
+                theme={currentConfig.themeColors}
+                currentConfig={currentConfig}
+                activeScreen={activeScreen}
+                setActiveScreen={setActiveScreen}
+                isPreview={false}
+              /> 
+                )
+              }
 
-              {activeScreen === "about" && (
+              {isPreview ? (
+               activeScreen === "about" && (
                 <div className="flex-1 overflow-y-auto">
                   <AboutSection
                     theme={currentConfig.themeColors}
                     currentConfig={currentConfig}
                     socials={currentConfig?.socials}
                     customHandles={currentConfig?.customHandles}
+                    
                   />
                 </div>
+              )
+              ) : (
+                activeScreen === "about" && (
+                 <div className="w-full md:hidden flex-1 block overflow-y-auto">
+                <AboutSection
+                    theme={currentConfig.themeColors}
+                    currentConfig={currentConfig}
+                    socials={currentConfig?.socials}
+                    customHandles={currentConfig?.customHandles}
+                    
+                  />
+                  </div>
+                  )
               )}
+              
 
               {activeScreen === "chat" && (
                 <>

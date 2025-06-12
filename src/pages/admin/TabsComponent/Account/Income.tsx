@@ -193,9 +193,9 @@ const Income = () => {
                   </span>
                 </div>
                 <div className="relative z-10 w-fit">
-                  <div className="absolute top-[4px] left-[4px] w-full h-full bg-[#6AFF97] border border-black"></div>
+                  <div className="absolute top-[3.5px] left-[3px] w-full h-full bg-[#6AFF97] border border-black"></div>
                   <button
-                    className="relative whitespace-nowrap  px-4 py-2 bg-[#6AFF97] border border-black text-lg font-semibold hover:bg-[#4eea7a] transition-all shadow-none"
+                    className="relative whitespace-nowrap para-font px-4 py-1 bg-[#6AFF97] border border-black text-lg font-[400] hover:bg-[#4eea7a] transition-all shadow-none"
                     onClick={handleStripeCashout}
                     disabled={
                       clientData?.payoutBalance?.available === 0 ||
@@ -223,9 +223,9 @@ const Income = () => {
                   <span className="text-xl font-semibold">$0.00</span>
                 </div>
                 <div className="relative z-10">
-                  <div className="absolute top-[4px] left-[4px] w-full h-full bg-[#6AFF97] border border-black"></div>
+                  <div className="absolute top-[3.5px] left-[3px] w-full h-full bg-[#6AFF97] border border-black"></div>
                   <button
-                    className="relative px-4 py-2 bg-[#6AFF97] border border-black text-lg font-semibold hover:bg-[#4eea7a] transition-all shadow-none"
+                    className="relative whitespace-nowrap para-font px-4 py-1 bg-[#6AFF97] border border-black text-lg font-[400] hover:bg-[#4eea7a] transition-all shadow-none"
                     disabled
                   >
                     CASH OUT

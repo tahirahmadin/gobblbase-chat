@@ -24,7 +24,7 @@ const Icon = styled.button`
   align-items: center;
   justify-content: center;
   background: #aeb8ff;
-  border: 2px solid black;
+  border: 1px solid black;
   cursor: pointer;
   transition: background 0.3s;
   font-size: clamp(8px, 4vw, 16px);
@@ -40,25 +40,26 @@ const Icon = styled.button`
   &::before {
     content: "";
     position: absolute;
-    top: 5px;
-    right: -5px;
+    top: 4px;
+    right: -4px;
     width: 100%;
     height: 100%;
-    border: 2px solid #000000;
+    border: 1px solid #000000;
     z-index: -1; // place it behind the button
     background: #aeb8ff;
   }
 `;
 const Button = styled.button`
   position: relative;
-  background: #4d65ff;
   padding: 0.6vh 1vw;
-  border: 2px solid black;
+  border: 1px solid black;
   cursor: pointer;
   transition: background 0.3s;
-  font-size: clamp(8px, 4vw, 16px);
+  font-size: clamp(8px, 4vw, 15px);
+  font-weight: 400;
+  font-family: "DM Sans", sans-serif;
   background: #6aff97;
-  font-weight: bold;
+  color: #000000;
   @media (max-width: 600px) {
     min-width: 120px;
   }
@@ -70,17 +71,17 @@ const Button = styled.button`
     right: -5px;
     width: 100%;
     height: 100%;
-    border: 2px solid #000000;
+    border: 1px solid #000000;
     z-index: -1; // place it behind the button
     background: #6aff97;
   }
 
   &:disabled {
-    background: #d6ffe0;
+    background: #6aff97;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #d6ffe0;
+    background: #6aff97;
   }
 `;
 const Card = styled.div`

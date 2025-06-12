@@ -46,6 +46,7 @@ declare global {
 interface HeaderSectionProps {
   theme: Theme;
   currentConfig: BotConfig;
+  isPreview: boolean;
   activeScreen: "about" | "chat" | "browse";
   setActiveScreen: (screen: "about" | "chat" | "browse") => void;
 }
@@ -83,6 +84,7 @@ function HeaderSection({
   theme,
   currentConfig,
   activeScreen,
+  isPreview,
   setActiveScreen,
 }: HeaderSectionProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -898,31 +900,62 @@ function HeaderSection({
 
       {/* Navigation Bar */}
       <div
-        className="flex justify-around pt-2"
-        style={{ backgroundColor: theme.isDark ? "black" : "white" }}
+        className={`flex pt-2 gap-4 ${
+          isPreview ? "justify-around" : "justify-around md:justify-start"}`}
+        style={{ backgroundColor: theme.isDark ? "black" : "white" ,
+        }}
       >
-        <button
-          onClick={() => setActiveScreen("about")}
-          className={`text-xs  px-4 py-1 flex items-center space-x-1 pb-2`}
-          style={{
-            fontWeight: 500,
-            color: activeScreen === "about" ? theme.highlightColor : "#bfbfbf",
-            borderBlockEnd:
-              activeScreen === "about"
-                ? `4px solid ${theme.highlightColor}`
-                : "none",
-          }}
-        >
-          <Info
-            className="h-3.5 w-3.5"
+        {isPreview ? (
+          <button
+            onClick={() => setActiveScreen("about")}
+            className={`text-xs  px-4 py-1 flex items-center space-x-1 pb-2`}
             style={{
-              marginRight: 3,
+              fontWeight: 500,
               color:
                 activeScreen === "about" ? theme.highlightColor : "#bfbfbf",
+              borderBlockEnd:
+                activeScreen === "about"
+                  ? `4px solid ${theme.highlightColor}`
+                  : "none",
             }}
-          />
-          ABOUT
-        </button>
+          >
+            <Info
+              className="h-3.5 w-3.5"
+              style={{
+                marginRight: 3,
+                color:
+                  activeScreen === "about" ? theme.highlightColor : "#bfbfbf",
+              }}
+            />
+            ABOUT
+          </button>
+        ) : 
+        (
+          <button
+            onClick={() => setActiveScreen("about")}
+            className={`text-xs  px-4 py-1 md:hidden flex items-center space-x-1 pb-2`}
+            style={{
+              fontWeight: 500,
+              color:
+                activeScreen === "about" ? theme.highlightColor : "#bfbfbf",
+              borderBlockEnd:
+                activeScreen === "about"
+                  ? `4px solid ${theme.highlightColor}`
+                  : "none",
+            }}
+          >
+            <Info
+              className="h-3.5 w-3.5"
+              style={{
+                marginRight: 3,
+                color:
+                  activeScreen === "about" ? theme.highlightColor : "#bfbfbf",
+              }}
+            />
+            ABOUT
+          </button>
+        )}
+
         <button
           onClick={() => setActiveScreen("chat")}
           className={`text-xs  px-4 py-1 relative flex items-center space-x-1`}

@@ -375,7 +375,11 @@ const Payments = () => {
                 <div className="absolute top-[4px] left-[4px] bg-[#6AFF97] w-full h-full border border-black"></div>
                 <button
                   onClick={handleSave}
-                  className="z-10 px-6 py-2 bg-[#6AFF97] border border-black text-sm font-semibold transition-colors disabled:cursor-not-allowed"
+                  style={{
+                    fontSize: "clamp(8px,4vw, 15px)",
+                    fontWeight: "400",
+                  }}
+                  className="z-10 para-font  px-6 py-2 bg-[#6AFF97] border border-black transition-colors disabled:cursor-not-allowed"
                 > 
                   Save
                 </button>
@@ -487,7 +491,11 @@ const Payments = () => {
                     <button
                       onClick={handleProceedKYC}
                       disabled={isLoadingStripe}
-                      className="w-full z-10 flex items-center justify-center space-x-2 px-6 py-3 bg-[#6AFF97] border border-black text-sm font-semibold transition-colors disabled:cursor-not-allowed"
+                      style={{
+                        fontSize: "clamp(8px,4vw, 15px)",
+                        fontWeight: "400",
+                      }}
+                      className="w-full z-10 flex items-center justify-center space-x-2 px-6 py-3 bg-[#6AFF97] border border-black transition-colors disabled:cursor-not-allowed"
                     >
                       {isLoadingStripe ? (
                         <>
@@ -665,7 +673,11 @@ const Payments = () => {
                             <button
                               onClick={handleEnableCrypto}
                               disabled={!hasCryptoChanges || isSaving}
-                              className={`bg-[#6AFF97] border border-black z-10 px-6 py-2.5 text-sm font-semibold transition-colors ${
+                              style={{
+                                fontSize: "clamp(8px,4vw, 15px)",
+                                fontWeight: "400",
+                              }}
+                              className={`para-font bg-[#6AFF97] border border-black z-10 px-6 py-2.5 transition-colors ${
                                 !hasCryptoChanges || isSaving
                                   ? "cursor-not-allowed"
                                   : ""

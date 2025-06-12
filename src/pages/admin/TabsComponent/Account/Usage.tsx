@@ -556,11 +556,15 @@ const Usage = () => {
           <span className="text-xs text-gray-600 mb-1">Current Plan</span>
           <div className="flex items-center justify-between">
             <span className="font-bold text-lg">{currentPlan || "FREE"}</span>
-            <div className="relative z-10">
-              <div className="absolute top-[4px] left-[4px] -z-10 bg-[#6AFF97] border border-black w-full h-full"></div>
+            <div className="relative z-10 ">
+              <div className="absolute top-[3.5px] left-[3px] -z-10 bg-[#6AFF97] border border-black w-full h-full"></div>
               <button
+              style={{
+                    fontSize: "clamp(8px,4vw, 15px)",
+                    fontWeight: "400",
+                  }}
                 onClick={navigateToPlans}
-                className="bg-[#6AFF97] border border-black text-black font-semibold px-4 py-1"
+                className="bg-[#6AFF97] para-font border border-black text-black px-4 py-1 min-w-[120px]"
               >
                 VIEW
               </button>

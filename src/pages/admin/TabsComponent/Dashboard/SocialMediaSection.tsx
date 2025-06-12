@@ -8,13 +8,15 @@ import styled from "styled-components";
 
 const Button = styled.button`
   position: relative;
-  background: #4d65ff;
+  background: #6aff97;
   padding: 0.6vh 1vw;
-  border: 2px solid black;
+  border: 1px solid black;
   cursor: pointer;
   transition: background 0.3s;
-  font-size: clamp(8px, 4vw, 16px);
-  color: white;
+  font-size: clamp(8px, 4vw, 15px);
+  font-family: "DM Sans", sans-serif;
+  font-weight: 400;
+
   @media (max-width: 600px) {
     min-width: 120px;
   }
@@ -22,22 +24,22 @@ const Button = styled.button`
   &::before {
     content: "";
     position: absolute;
-    top: 5px;
-    right: -5px;
+    top: 4px;
+    right: -4px;
     width: 100%;
     height: 100%;
-    border: 2px solid #000000;
+    border: 1px solid #000000;
     z-index: -1; // place it behind the button
     background: #6aff97;
   }
 
   &:disabled {
-    background: #d4deff;
-    color: #b0b0b0;
+    background:rgb(120, 255, 160);
+    color: #000;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #d4deff;
+    background: #6aff97;
   }
 `;
 const socialMediaIcons = {

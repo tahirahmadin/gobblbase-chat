@@ -254,7 +254,7 @@ const EmailTemplates = () => {
                   </button>
                 </div>
                 <div className="relative z-10">
-                  <div className="absolute left-[4px] top-[4px] -z-10 w-full h-full bg-[#6AFF97] border border-black"></div>
+                  <div className="absolute left-[3.5px] top-[3.5px] -z-10 w-full h-full bg-[#6AFF97] border border-black"></div>
 
                   <button
                     onClick={handleSave}
