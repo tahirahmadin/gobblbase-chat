@@ -2807,3 +2807,57 @@ export async function createPaymentIntent(payload: {
     throw error;
   }
 }
+
+export async function createFreeProductOrder(payload: {
+  agentId: string;
+  clientId: string;
+  userId: string;
+  userEmail: string;
+  cart: any[];
+  shipping: {
+    name: string;
+    email: string;
+    phone: string;
+    country: string;
+    address1: string;
+    address2: string;
+    city: string;
+    zipcode: string;
+    saveDetails: boolean;
+  };
+  checkType?: string;
+  checkQuantity?: number;
+  stripeAccountId: string;
+}): Promise<{ orderId: string }> {
+  const response = await fetch(
+    `${backendApiUrl}/product/createFreeProductOrder`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        lineItems: [],
+        agentId: payload.agentId,
+        clientId: payload.clientId,
+        userId: payload.userId,
+        userEmail: payload.userEmail,
+        amount: 0,
+        currency: "USD",
+        cart: payload.cart,
+        shipping: payload.shipping,
+        checkType: payload.checkType,
+        checkQuantity: payload.checkQuantity,
+        stripeAccountId: payload.stripeAccountId,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to create free order");
+  }
+
+  const data = await response.json();
+  return { orderId: data.orderId || data._id };
+}

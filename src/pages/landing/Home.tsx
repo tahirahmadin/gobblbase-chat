@@ -232,7 +232,6 @@ const HeroSection = styled.section`
   }
 `;
 
-
 const Subheadline = styled.div`
   display: flex;
   flex-direction: column;
@@ -246,7 +245,7 @@ const Subheadline = styled.div`
   }
 `;
 const buttonData = [
-   {
+  {
     id: 0,
     label: "Answer Queries",
     defaultBubbleImg: "/assets/landing-asset/assemble/btn-bg-bubble.svg",
@@ -1442,16 +1441,17 @@ const Home = () => {
                 />
               </div>
               <article className="left-side w-[100%] lg:w-[fit-content] z-10">
-                
-
                 <Subheadline>
                   <div className="headline-para mt-4 mb-10 lg:mt-0 lg:mb-8 w-[100%] text-center lg:text-start">
-                      <span className="flex flex-col space-y-2 ">
-                      <h1 className="para-font text-[1.5rem] font-[700] text-[#aeb8ff]">Sayy AI to your new Employee!</h1>
-                      <p className="para-font text-[1rem]">
-                        Handle sales, support, and scheduling—all <br className="hidden md:block"/> in one place.
+                    <span className="flex flex-col space-y-2 ">
+                      <h1 className="para-font text-[2.7rem] font-[700] text-[#aeb8ff]">
+                        Sayy AI to your new Employee!
+                      </h1>
+                      <p className="para-font text-[1.4rem]">
+                        Handle sales, support, and scheduling—all{" "}
+                        <br className="hidden md:block" /> in one place.
                       </p>
-                      </span>
+                    </span>
                   </div>
                   <div className="w-fit flex flex-col">
                     <span className="heading flex items-center">

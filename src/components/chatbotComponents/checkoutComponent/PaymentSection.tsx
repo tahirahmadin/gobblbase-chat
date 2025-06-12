@@ -13,7 +13,10 @@ import { CreditCard, Wallet } from "lucide-react";
 import { backendApiUrl } from "../../../utils/constants";
 import { useCryptoPayment } from "../../../hooks/useCryptoHook";
 import { useAdminStore } from "../../../store/useAdminStore";
-import { createPaymentIntent } from "../../../lib/serverActions";
+import {
+  createPaymentIntent,
+  createFreeProductOrder,
+} from "../../../lib/serverActions";
 
 interface PaymentSectionProps {
   theme: {
@@ -494,43 +497,30 @@ export function PaymentSection({
     setFreeOrderLoading(true);
     setFreeOrderError(null);
     try {
-      const response = await fetch(
-        `${backendApiUrl}/product/createFreeProductOrder`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            lineItems: [],
-            agentId: activeBotId,
-            clientId: activeBotData?.clientId,
-            userId: userId,
-            userEmail: userEmail,
-            amount: 0,
-            currency: activeBotData?.currency || "USD",
-            cart: [product],
-            shipping: shipping,
-            checkType: product.checkType,
-            checkQuantity: product.quantity,
-            stripeAccountId:
-              activeBotData?.paymentMethods?.stripe?.accountId || "",
-          }),
-        }
-      );
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "Failed to create free order");
+      if (!activeBotId || !activeBotData?.clientId || !userId || !userEmail) {
+        throw new Error("Missing required fields for order creation");
       }
+
+      const { orderId } = await createFreeProductOrder({
+        agentId: activeBotId,
+        clientId: activeBotData.clientId,
+        userId: userId,
+        userEmail: userEmail,
+        cart: [product],
+        shipping: shipping,
+        checkType: product.checkType,
+        checkQuantity: product.quantity,
+        stripeAccountId: activeBotData?.paymentMethods?.stripe?.accountId || "",
+      });
+
       if (userId) {
         fetchUserDetails(userId);
       }
-      const data = await response.json();
-      // Callbacks as with paid orders
+
       onOrderDetails({
         product: product,
         total: 0,
-        orderId: data.orderId || data._id || undefined,
+        orderId: orderId,
         paymentMethod: "Free",
         paymentDate: new Date().toLocaleDateString(),
       });
