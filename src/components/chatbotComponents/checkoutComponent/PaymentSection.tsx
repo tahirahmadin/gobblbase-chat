@@ -10,7 +10,7 @@ import { useBotConfig } from "../../../store/useBotConfig";
 import { useUserStore } from "../../../store/useUserStore";
 import toast from "react-hot-toast";
 import { CreditCard, Wallet } from "lucide-react";
-import { backendApiUrl } from "../../../utils/constants";
+import { backendApiUrl, USDT_CONVERSION_RATES } from "../../../utils/constants";
 import { useCryptoPayment } from "../../../hooks/useCryptoHook";
 import { useAdminStore } from "../../../store/useAdminStore";
 import {
@@ -209,6 +209,17 @@ function CryptoPaymentForm({
 
   const walletAddress = activeBotData?.paymentMethods.crypto.walletAddress;
   const supportedChains = activeBotData?.paymentMethods.crypto.chains;
+  const storeCurrency = activeBotData?.currency || "USD";
+
+  // Calculate USDT amount based on store currency
+  const usdtAmount = useMemo(() => {
+    const baseAmount = product.price * product.quantity;
+    const conversionRate =
+      USDT_CONVERSION_RATES[
+        storeCurrency as keyof typeof USDT_CONVERSION_RATES
+      ] || 1;
+    return (baseAmount / conversionRate).toFixed(2);
+  }, [product.price, product.quantity, storeCurrency]);
 
   // Chain ID to display name mapping
   const chainIdToName: Record<string, string> = {
@@ -242,6 +253,7 @@ function CryptoPaymentForm({
     userEmail: userEmail,
     shipping,
     clientId: adminId,
+    currency: storeCurrency,
   });
 
   // Loader and status UI for polling
@@ -395,6 +407,41 @@ function CryptoPaymentForm({
 
               {selectedChain && (
                 <div>
+                  <div className="mb-4">
+                    <p
+                      className="mb-2"
+                      style={{
+                        color: activeBotData?.themeColors.isDark
+                          ? "#fff"
+                          : "#000",
+                      }}
+                    >
+                      Amount to Pay:
+                    </p>
+                    <div className="bg-gray-100 p-3 rounded">
+                      <p
+                        className="text-lg font-semibold"
+                        style={{
+                          color: activeBotData?.themeColors.isDark
+                            ? "#fff"
+                            : "#000",
+                        }}
+                      >
+                        {usdtAmount} USDT
+                      </p>
+                      <p
+                        className="text-sm"
+                        style={{
+                          color: activeBotData?.themeColors.isDark
+                            ? "#ccc"
+                            : "#666",
+                        }}
+                      >
+                        ≈ {product.price * product.quantity} {storeCurrency}
+                      </p>
+                    </div>
+                  </div>
+
                   <p
                     className="mb-2"
                     style={{
@@ -403,7 +450,7 @@ function CryptoPaymentForm({
                         : "#000",
                     }}
                   >
-                    Send {product.price * product.quantity} USDT to:
+                    Send USDT to:
                   </p>
                   <p
                     className="font-mono text-sm break-all p-2 bg-gray-100 rounded"
@@ -590,8 +637,8 @@ export function PaymentSection({
         setClientSecret(data.clientSecret);
       } catch (error: any) {
         console.error("Payment intent creation error:", error);
-        setError(error.message || "Failed to initialize payment");
-        toast.error(error.message || "Failed to initialize payment");
+        setError("Failed to initialize payment");
+        toast.error("Failed to initialize payment");
       } finally {
         setIsLoading(false);
       }

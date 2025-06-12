@@ -35,6 +35,8 @@ import { useAdminStore } from "./store/useAdminStore";
 import CreateNewBot from "./pages/admin/CreateNewBot";
 import Plans from "./pages/admin/TabsComponent/Account/Plans";
 import Usage from "./pages/admin/TabsComponent/Account/Usage";
+import { IS_MAINTENANCE_MODE } from "./utils/constants";
+import Maintenance from "./pages/Maintenance";
 
 import Commerce from "./pages/admin/TabsComponent/Commerce/Commerce";
 import Operations from "./pages/admin/TabsComponent/Settings/Operations";
@@ -191,41 +193,47 @@ function App() {
             <Router>
               <Toaster position="top-right" />
               <Routes>
-                <Route path="/admin/signup" element={<Login />} />
-                <Route
-                  path="/admin/dashboard/create-bot"
-                  element={<CreateNewBot />}
-                />
-                <Route
-                  path="/book/:agentId"
-                  element={<CustomerBookingPage />}
-                />
-                <Route
-                  path="/reschedule/:bookingId"
-                  element={<RescheduleBookingWrapper />}
-                />
-                <Route
-                  path=":botUsername"
-                  element={
-                    <PublicChat
-                      chatHeight={null}
-                      previewConfig={null}
-                      isPreview={false}
-                      screenName=""
+                {IS_MAINTENANCE_MODE ? (
+                  <Route path="*" element={<Maintenance />} />
+                ) : (
+                  <>
+                    <Route path="/admin/signup" element={<Login />} />
+                    <Route
+                      path="/admin/dashboard/create-bot"
+                      element={<CreateNewBot />}
                     />
-                  }
-                />
-                <Route
-                  path="/admin/payment-success"
-                  element={<PaymentSuccessPage />}
-                />
-                <Route
-                  path="/admin/payment-cancel"
-                  element={<PaymentCancelPage />}
-                />
-                <Route path="/admin/*" element={<Dashboard />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/" element={<Home />} />
+                    <Route
+                      path="/book/:agentId"
+                      element={<CustomerBookingPage />}
+                    />
+                    <Route
+                      path="/reschedule/:bookingId"
+                      element={<RescheduleBookingWrapper />}
+                    />
+                    <Route
+                      path=":botUsername"
+                      element={
+                        <PublicChat
+                          chatHeight={null}
+                          previewConfig={null}
+                          isPreview={false}
+                          screenName=""
+                        />
+                      }
+                    />
+                    <Route
+                      path="/admin/payment-success"
+                      element={<PaymentSuccessPage />}
+                    />
+                    <Route
+                      path="/admin/payment-cancel"
+                      element={<PaymentCancelPage />}
+                    />
+                    <Route path="/admin/*" element={<Dashboard />} />
+                    <Route path="/pricing" element={<Pricing />} />
+                    <Route path="/" element={<Home />} />
+                  </>
+                )}
               </Routes>
             </Router>
           </TimezoneProvider>
