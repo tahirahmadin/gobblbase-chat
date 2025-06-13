@@ -8,114 +8,76 @@ import { useAdminStore } from "../../../../store/useAdminStore";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown, Copy, Plus, X } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { useUserStore } from "../../../../store/useUserStore";
 
-const membersRole = [
-  {
-    _id: "1",
-    title: "John Doe",
-    email: "john.doe@example.com",
-    role: [
-      {
-        label: "Admin",
-        value: "Everything Except Team Management",
-      },
-      {
-        label: "Member",
-        value: "Everything Except Team Management & Billing",
-      },
-    ],
-    images: ["https://randomuser.me/api/portraits/men/1.jpg"],
-  },
-  {
-    _id: "2",
-    title: "Jane Smith",
-    email: "jane.smith@example.com",
-    role: [
-      {
-        label: "Admin",
-        value: "Everything Except Team Management",
-      },
-      {
-        label: "Member",
-        value: "Everything Except Team Management & Billing",
-      },
-    ],
-    images: ["https://randomuser.me/api/portraits/women/2.jpg"],
-  },
-  {
-    _id: "3",
-    title: "Alex Johnson",
-    email: "alex.johnson@example.com",
-    role: [
-      {
-        label: "Admin",
-        value: "Everything Except Team Management",
-      },
-      {
-        label: "Member",
-        value: "Everything Except Team Management & Billing",
-      },
-    ],
-    images: ["https://randomuser.me/api/portraits/women/2.jpg"],
-  },
-  {
-    _id: "4",
-    title: "Emily Davis",
-    email: "emily.davis@example.com",
-    role: [
-      {
-        label: "Admin",
-        value: "Everything Except Team Management",
-      },
-      {
-        label: "Member",
-        value: "Everything Except Team Management & Billing",
-      },
-    ],
-    images: ["https://randomuser.me/api/portraits/women/3.jpg"],
-  },
-  {
-    _id: "5",
-    title: "Michael Brown",
-    email: "michael.brown@example.com",
-    role: [
-      {
-        label: "Admin",
-        value: "Everything Except Team Management",
-      },
-      {
-        label: "Member",
-        value: "Everything Except Team Management & Billing",
-      },
-    ],
-    images: ["https://randomuser.me/api/portraits/men/4.jpg"],
-  },
-];
 // Available roles (you can extract this from your membersRole data)
 const availableRoles = [
   {
+    label: "Super Admin",
+    tag: "owner",
+    value: "Everything",
+  },
+  {
     label: "Admin",
-    value: "Everything Except Team Management",
+    tag: "admin",
+    value: "Everything Except Billing",
   },
   {
     label: "Member",
-    value: "Everything Except Team Management & Billing",
+    tag: "member",
+    value: "Everything Except Billing & Team Management",
   },
 ];
+
+// Function to get available roles based on current user's role
+const getAvailableRolesForUser = (userRole: string) => {
+  if (userRole === "Super Admin") {
+    return availableRoles; // Super Admin can assign all roles
+  } else if (userRole === "Admin") {
+    return availableRoles.filter((role) => role.label !== "Super Admin"); // Admin can assign Admin and Member roles
+  } else {
+    return availableRoles.filter((role) => role.label === "Member"); // Regular members can only assign Member role
+  }
+};
+
 const Team = () => {
   // IMPORTS & HOOKS
-  const { adminId } = useAdminStore();
+  const { activeTeamId, adminId } = useAdminStore();
+  const { userEmail } = useUserStore();
   const { clientData, clientUsage } = useAdminStore();
   const navigate = useNavigate();
 
-  // NAVIGATION FUNCTIONS
-  const navigateToPlans = () => {
-    navigate("/admin/account/plans");
+  // Function to check if remove button should be disabled
+  const isRemoveButtonDisabled = (memberRole: string, memberEmail: string) => {
+    const currentUserRole = clientData?.role || "Member";
+    const currentUserEmail = userEmail;
+
+    // User can't remove themselves
+    if (memberEmail === currentUserEmail) {
+      return true;
+    }
+
+    // Super Admin can remove anyone except themselves
+    if (currentUserRole === "Super Admin") {
+      return false;
+    }
+
+    // Admin can't remove Super Admin
+    if (currentUserRole === "Admin" && memberRole === "Super Admin") {
+      return true;
+    }
+
+    // Member can't remove Admin or Super Admin
+    if (
+      currentUserRole === "Member" &&
+      (memberRole === "Admin" || memberRole === "Super Admin")
+    ) {
+      return true;
+    }
+
+    return false;
   };
-  // PLAN & USAGE DATA STATE MANAGEMENT
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  // State for managing multiple new member additions
+
   const [newMembers, setNewMembers] = useState<
     Array<{
       id: string;
@@ -125,26 +87,36 @@ const Team = () => {
       loading?: boolean;
     }>
   >([]);
+  const [invites, setInvites] = useState<any[]>([]);
+  const [showAddMemberPanel, setShowAddMemberPanel] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // Store role labels for existing members (initialized from membersRole data)
-  const [selectedRoles, setSelectedRoles] = useState<Record<string, string>>(
-    {}
-  );
+  // Get filtered roles based on current user's role
+  const filteredRoles = getAvailableRolesForUser(clientData?.role || "Member");
 
-  // Handle role change for existing members
-  const handleRoleChange = (memberEmail: string, newRoleLabel: string) => {
-    setSelectedRoles((prev) => ({
-      ...prev,
-      [memberEmail]: newRoleLabel,
-    }));
-    setOpenDropdown(null);
+  // NAVIGATION FUNCTIONS
+  const navigateToPlans = () => {
+    navigate("/admin/account/plans");
   };
+
+  useEffect(() => {
+    const fetchInvites = async () => {
+      if (!activeTeamId) return;
+      try {
+        const res = await getTeamInvites(activeTeamId || "");
+        setInvites(res || []);
+      } catch (e) {
+        setInvites([]);
+      }
+    };
+    fetchInvites();
+  }, [activeTeamId]);
 
   // Add a new member input section
   const handleAddNewMember = () => {
     const newMember = {
       id: `new-member-${Date.now()}`,
-      role: "Admin", // Default role is now Admin
+      role: "Member", // Default role is now Member
       dropdownOpen: false,
       email: "",
       loading: false,
@@ -157,6 +129,19 @@ const Team = () => {
     memberId: string,
     newRoleLabel: string
   ) => {
+    // Validate if the user has permission to assign this role
+    const userRole = clientData?.role || "Member";
+    if (userRole === "Admin" && newRoleLabel === "Super Admin") {
+      toast.error("You do not have permission to assign Super Admin role");
+      return;
+    }
+    if (userRole === "Member" && newRoleLabel !== "Member") {
+      toast.error(
+        "You do not have permission to assign Admin or Super Admin roles"
+      );
+      return;
+    }
+
     setNewMembers((prev) =>
       prev.map((member) =>
         member.id === memberId
@@ -178,40 +163,15 @@ const Team = () => {
     );
   };
 
-  // Remove a new member input section
-  const handleRemoveNewMember = (memberId: string) => {
-    setNewMembers((prev) => prev.filter((member) => member.id !== memberId));
-  };
-  // Handle delete modal opening (placeholder for delete logic)
-  const openDeleteModal = (memberEmail: string) => {
-    // TODO: Implement delete logic here
-  };
-
-  const [invites, setInvites] = useState<any[]>([]);
-  useEffect(() => {
-    const fetchInvites = async () => {
-      if (!adminId) return;
-      try {
-        const res = await getTeamInvites(adminId || "");
-        setInvites(res || []);
-      } catch (e) {
-        setInvites([]);
-      }
-    };
-    fetchInvites();
-  }, [adminId]);
-
-  const [showAddMemberPanel, setShowAddMemberPanel] = useState(false);
-
   // Accept invite handler (mock)
   const handleInviteAction = async (
     invite: any,
     status: "accepted" | "rejected"
   ) => {
     try {
-      if (!adminId) return;
+      if (!activeTeamId || !adminId) return;
       const res = await acceptOrRejectInvite({
-        teamId: adminId,
+        teamId: activeTeamId,
         adminId: adminId,
         email: invite.email,
         inviteStatus: status,
@@ -224,7 +184,7 @@ const Team = () => {
           }`
         );
         // Optionally refresh invites
-        const updated = await getTeamInvites(adminId || "");
+        const updated = await getTeamInvites(activeTeamId || "");
         setInvites(updated || []);
       } else {
         toast.error(res.result || `Failed to ${status} invite`);
@@ -236,6 +196,8 @@ const Team = () => {
 
   return (
     <section className="h-full overflow-x-hidden">
+      {console.log(clientData)}
+      {console.log(isRemoveButtonDisabled)}
       {/* upper side title and toggle btn  */}
       <div className="upper px-12 pt-12">
         <h2 className="text-2xl font-semibold text-gray-900">Team</h2>
@@ -361,8 +323,28 @@ const Team = () => {
                         <td className="py-1.5 px-2 rounded-r-[12px] ">
                           <div className="flex gap-1.5 items-center justify-center">
                             <button
-                              className="bg-[#FF9797] text-[#000] w-24 py-2 rounded-full border border-[#000] text-sm"
-                              onClick={() => openDeleteModal(member.email)}
+                              className={`bg-[#FF9797] text-[#000] w-24 py-2 rounded-full border border-[#000] text-sm ${
+                                isRemoveButtonDisabled(
+                                  member.role,
+                                  member.email
+                                )
+                                  ? "opacity-50 cursor-not-allowed"
+                                  : ""
+                              }`}
+                              disabled={isRemoveButtonDisabled(
+                                member.role,
+                                member.email
+                              )}
+                              onClick={() => {
+                                if (
+                                  !isRemoveButtonDisabled(
+                                    member.role,
+                                    member.email
+                                  )
+                                ) {
+                                  // Add your remove member logic here
+                                }
+                              }}
                             >
                               Remove
                             </button>
@@ -460,9 +442,16 @@ const Team = () => {
               <div className="relative w-64 flex items-center">
                 <div
                   className="relative w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white cursor-pointer"
-                  onClick={() => toggleNewMemberDropdown("panel-member")}
+                  onClick={() => {
+                    if (!newMembers.length) {
+                      handleAddNewMember();
+                    }
+                    toggleNewMemberDropdown(
+                      newMembers[0]?.id || "panel-member"
+                    );
+                  }}
                 >
-                  {newMembers[0]?.role || "Admin"}
+                  {newMembers[0]?.role || "Member"}
                 </div>
                 <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0 rounded-r-sm">
                   <ChevronDown
@@ -475,12 +464,12 @@ const Team = () => {
 
                 {newMembers[0]?.dropdownOpen && (
                   <div className="absolute z-10 mt-1 top-12 w-full bg-white border border-[#7D7D7D] shadow-lg rounded-sm">
-                    {availableRoles.map((roleOption) => (
+                    {filteredRoles.map((roleOption) => (
                       <div
                         key={roleOption.value}
                         onClick={() =>
                           handleNewMemberRoleChange(
-                            newMembers[0]?.id,
+                            newMembers[0]?.id || "panel-member",
                             roleOption.label
                           )
                         }
@@ -538,7 +527,7 @@ const Team = () => {
                       );
                       try {
                         const res = await inviteTeamMember({
-                          teamId: adminId,
+                          teamId: activeTeamId,
                           adminId: adminId,
                           email: newMembers[0].email,
                           role: newMembers[0].role,

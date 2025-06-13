@@ -5,7 +5,15 @@ import { useAdminStore } from "../store/useAdminStore";
 export const useServerHook = ({ initHook = false }: { initHook: boolean }) => {
   const { activeBotId, refetchBotData, fetchBotData, setActiveBotId } =
     useBotConfig();
-  const { agents, adminId, fetchAllAgents, isAgentsLoaded } = useAdminStore();
+  const {
+    agents,
+    adminId,
+    fetchAllAgents,
+    isAgentsLoaded,
+    setActiveTeamId,
+    activeTeamId,
+    refetchClientData,
+  } = useAdminStore();
 
   //Fetch all agents when adminId is available
   useEffect(() => {
@@ -25,17 +33,28 @@ export const useServerHook = ({ initHook = false }: { initHook: boolean }) => {
       const found =
         storedAgentId && agents.find((a) => a.agentId === storedAgentId);
       if (found) {
+        console.log("found", found);
         setActiveBotId(found.agentId);
+        if (activeTeamId !== found.teamId) {
+          setActiveTeamId(found.teamId);
+        }
       } else if (activeBotId === null) {
         setActiveBotId(agents[0].agentId);
+        if (activeTeamId !== agents[0].teamId) {
+          setActiveTeamId(agents[0].teamId);
+        }
       }
     }
-  }, [agents, setActiveBotId, initHook]);
+  }, [agents, setActiveBotId, initHook, activeTeamId]);
 
   useEffect(() => {
     if (activeBotId && initHook) {
-      console.log("3. Refetch bot data");
       fetchBotData(activeBotId, false);
     }
   }, [refetchBotData, activeBotId, initHook]);
+  useEffect(() => {
+    if (activeTeamId && initHook) {
+      refetchClientData();
+    }
+  }, [activeTeamId]);
 };

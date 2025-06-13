@@ -59,6 +59,7 @@ export interface Agent {
 
 export interface AdminAgent {
   agentId: string;
+  teamId: string;
   username: string;
   logo: string;
   name: string;

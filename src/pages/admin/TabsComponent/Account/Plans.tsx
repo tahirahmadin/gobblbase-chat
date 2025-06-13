@@ -254,7 +254,7 @@ interface PlanData {
 }
 
 const Plans = () => {
-  const { adminId } = useAdminStore();
+  const { activeTeamId } = useAdminStore();
   const [billing, setBilling] = useState("monthly");
   const [plans, setPlans] = useState<PlanData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -263,10 +263,10 @@ const Plans = () => {
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchPlans = async () => {
-    if (!adminId) return;
+    if (!activeTeamId) return;
 
     try {
-      const response = await getPlans(adminId);
+      const response = await getPlans(activeTeamId);
 
       const currentPlanId = response.find((plan) => plan.isCurrentPlan)?.id;
       const upgradedPlanId = plans.find((plan) => plan.isCurrentPlan)?.id;
@@ -292,7 +292,7 @@ const Plans = () => {
   };
 
   useEffect(() => {
-    if (!adminId) return;
+    if (!activeTeamId) return;
 
     const initialFetch = async () => {
       try {
@@ -306,7 +306,7 @@ const Plans = () => {
     };
 
     initialFetch();
-  }, [adminId]);
+  }, [activeTeamId]);
 
   // Cleanup polling on component unmount
   useEffect(() => {
@@ -342,13 +342,13 @@ const Plans = () => {
   const selectedPlan = plans.find((p) => p.id === selectedPlanId);
 
   const handleUpgrade = async (planId: string) => {
-    if (!adminId) return;
+    if (!activeTeamId) return;
 
     try {
       setUpgradingPlanId(planId);
 
       // Get Stripe session URL
-      const response = await subscribeToPlan(adminId, planId);
+      const response = await subscribeToPlan(activeTeamId, planId);
 
       const isBillingUrl = response.isUrl;
       const billingMessage = response.message;
@@ -441,10 +441,10 @@ const Plans = () => {
           <button
             className="px-4 py-1 rounded-2xl border border-purple-600 font-semibold whitespace-nowrap bg-black text-white hover:bg-purple-700 transition-colors duration-200 focus:outline-none"
             onClick={async () => {
-              if (!adminId) return;
+              if (!activeTeamId) return;
               try {
                 setBillingLoading(true);
-                const url = await getStripeBillingSession(adminId);
+                const url = await getStripeBillingSession(activeTeamId);
                 window.open(url, "_blank", "noopener,noreferrer");
               } catch (error) {
                 toast.error("Failed to open Stripe Billing");
@@ -631,13 +631,13 @@ const Plans = () => {
                           running smoothly.
                         </p>
                         <div className="right-content 1/2 block md:hidden">
-                        <img
-                          src="/assets/popup-mascot.png"
-                          width={1000}
-                          height={1000}
-                          alt="plain-popup mascot"
-                        />
-                      </div>
+                          <img
+                            src="/assets/popup-mascot.png"
+                            width={1000}
+                            height={1000}
+                            alt="plain-popup mascot"
+                          />
+                        </div>
                         {selectedPlan && (
                           <div className="relative z-10 flex gap-4 justify-center md:items-end md:mt-12 w-fit">
                             <div className="absolute top-[4px] left-[4px] w-full h-full bg-[#6AFF97] border border-black -z-10"></div>

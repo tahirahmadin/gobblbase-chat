@@ -5,7 +5,7 @@ import {
   signUpClient,
   getEmailTemplates,
   updateEmailTemplates,
-  getClient,
+  getTeamDetails,
   getTeamUsage,
 } from "../lib/serverActions";
 import { toast } from "react-hot-toast";
@@ -50,7 +50,9 @@ interface ClientData {
     teamId: string;
     role: string;
     email: string;
+    agents: AdminAgent[];
   }[];
+  role: string;
 }
 
 interface ClientUsageData {
@@ -83,6 +85,7 @@ interface AdminState {
   adminId: string | null;
   adminEmail: string | null;
   isAdminLoggedIn: boolean;
+  activeTeamId: string | null;
   isLoading: boolean;
   error: string | null;
   clientData: ClientData | null;
@@ -91,6 +94,7 @@ interface AdminState {
   emailTemplates: EmailTemplatesResponse | null;
   clientUsage: ClientUsageData | null;
   setError: (error: string | null) => void;
+  setActiveTeamId: (teamId: string | null) => void;
   // Admin operations
   fetchAllAgents: () => Promise<void>;
   deleteAgent: (agentId: string) => Promise<void>;
@@ -194,12 +198,13 @@ export const useAdminStore = create<AdminState>()((set, get) => {
 
       // Fetch client information
       console.log("Fetching client information for adminId:", adminId);
-      const clientResponse = await getClient(adminId);
+      const clientResponse = await getTeamDetails(adminId, adminId);
       console.log("Client response:", clientResponse);
 
       // Set all state updates in one go to avoid multiple re-renders
       set({
         adminId,
+        activeTeamId: adminId,
         adminEmail: result.signUpVia.handle,
         agents: tempAgents,
         totalAgents: tempAgents.length,
@@ -223,6 +228,7 @@ export const useAdminStore = create<AdminState>()((set, get) => {
     // Initial state
     adminId: null,
     adminEmail: null,
+    activeTeamId: null,
     isAdminLoggedIn: false,
     isAgentsLoaded: false,
     agents: [],
@@ -236,6 +242,7 @@ export const useAdminStore = create<AdminState>()((set, get) => {
 
     // Basic setters
     setError: (error) => set({ error }),
+    setActiveTeamId: (teamId) => set({ activeTeamId: teamId }),
 
     // Session management
     initializeSession: async () => {
@@ -310,10 +317,12 @@ export const useAdminStore = create<AdminState>()((set, get) => {
 
     refetchClientData: async () => {
       const adminId = get().adminId;
-      if (!adminId) {
+      const activeTeamId = get().activeTeamId;
+
+      if (!activeTeamId || !adminId) {
         throw new Error("Admin ID is not set");
       }
-      const clientData = await getClient(adminId);
+      const clientData = await getTeamDetails(adminId, activeTeamId);
       set({ clientData });
     },
     // Admin operations

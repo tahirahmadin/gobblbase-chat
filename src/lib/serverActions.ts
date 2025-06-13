@@ -220,10 +220,10 @@ export async function fetchClientAgents(
   }
 }
 
-export async function getClient(clientId: string) {
+export async function getTeamDetails(adminId: string, clientId: string) {
   try {
-    let requestParams = `teamId=${clientId}`;
-    let url = `${apiUrl}/client/getTeam?${requestParams}`;
+    let requestParams = `adminId=${adminId}&teamId=${clientId}`;
+    let url = `${apiUrl}/client/getTeamDetails?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
@@ -2382,9 +2382,9 @@ export async function updateClientPaymentSettings(
   }
 }
 
-export async function getPlans(clientId: string): Promise<PlanData[]> {
+export async function getPlans(teamId: string): Promise<PlanData[]> {
   try {
-    let requestParams = `teamId=${clientId}`;
+    let requestParams = `teamId=${teamId}`;
     let url = `${apiUrl}/client/getPlans?${requestParams}`;
 
     // HMAC Response

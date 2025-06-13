@@ -49,15 +49,12 @@ interface Transaction {
 }
 
 const Payments = () => {
-  const { activeBotData, setRefetchBotData } = useBotConfig();
   const { adminId, clientData, refetchClientData } = useAdminStore();
   const [currency, setCurrency] = useState("USD");
   const [preferredMethod, setPreferredMethod] = useState("stripe");
   const [currentPage, setCurrentPage] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
-  const [hasNextPage, setHasNextPage] = useState(false);
+
   const [hasCryptoChanges, setHasCryptoChanges] = useState(false);
 
   // Payment method states
@@ -79,12 +76,6 @@ const Payments = () => {
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const currencies = ["USD", "AED", "EUR", "GBP", "INR"];
   const [isMethodOpen, setIsMethodOpen] = useState(false);
-  // Calculate pagination
-  const itemsPerPage = 5;
-  const totalPages = Math.ceil(transactions.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentTransactions = transactions.slice(startIndex, endIndex);
 
   useEffect(() => {
     if (clientData) {
@@ -117,29 +108,6 @@ const Payments = () => {
       setHasCryptoChanges(hasChanges);
     }
   }, [cryptoEnabled, cryptoAddress, selectedCryptoChains, clientData]);
-
-  useEffect(() => {
-    if (activeBotData) {
-      // Fetch transactions
-      fetchTransactions(currentPage);
-    }
-  }, [activeBotData, currentPage]);
-
-  const fetchTransactions = async (page: number) => {
-    if (!activeBotData) return;
-
-    try {
-      setIsLoadingTransactions(true);
-      const response = await getTransactions(activeBotData.agentId, page);
-      setTransactions(response.orders);
-      setHasNextPage(response.hasNext);
-    } catch (error: any) {
-      console.error("Error fetching transactions:", error);
-      toast.error(error.message || "Failed to fetch transactions");
-    } finally {
-      setIsLoadingTransactions(false);
-    }
-  };
 
   const handleSave = async () => {
     if (!adminId) {

@@ -59,18 +59,18 @@ const Overview = () => {
 
   const navigate = useNavigate();
   const { activeBotId, activeBotData } = useBotConfig();
-  const { adminId, clientData } = useAdminStore();
+  const { adminId, clientData, activeTeamId } = useAdminStore();
   const [agentPicture, setAgentPicture] = useState<string | null>(null);
   const [smartnessLevel, setSmartnessLevel] = useState(0);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
-      if (!adminId) return;
+      if (!activeTeamId) return;
 
       try {
         setIsLoading(true);
         setError(null);
-        const data = await getTeamAnalytics(adminId);
+        const data = await getTeamAnalytics(activeTeamId);
         setAnalyticsData(data);
       } catch (err) {
         setError(
@@ -142,6 +142,10 @@ const Overview = () => {
   return (
     <div className="overflow-scroll h-[100%]">
       {/* Top Section: Agent Info and Plan */}
+
+      {console.log("adminId", adminId)}
+      {console.log("activeTeamId", activeTeamId)}
+
       <div className="p-6 flex flex-col sm:flex-row sm:items-end lg:items-start xl:items-end gap-6 sm:gap-2 md:gap-6 mb-6 items-start justify-between">
         <div>
           {/* Profile Image Upload */}

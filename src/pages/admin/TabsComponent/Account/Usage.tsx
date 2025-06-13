@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { getClient } from "../../../../lib/serverActions";
 import { useAdminStore } from "../../../../store/useAdminStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -52,7 +51,8 @@ interface DailyUsage {
 }
 
 const Usage = () => {
-  const { adminId, fetchClientUsage, clientUsage } = useAdminStore();
+  const { adminId, fetchClientUsage, clientUsage, clientData } =
+    useAdminStore();
 
   const [selectedAgent, setSelectedAgent] = useState("All Agents");
   const [timeFrame, setTimeFrame] = useState("All Time");
@@ -62,7 +62,7 @@ const Usage = () => {
   const [agentsUsed, setAgentsUsed] = useState(0);
   const [totalAgents, setTotalAgents] = useState(0);
   const [usageData, setUsageData] = useState<ClientUsageData | null>(null);
-  const [clientData, setClientData] = useState<ClientData | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [agentLimit, setAgentLimit] = useState(0);
   const [agentsList, setAgentsList] = useState<{ id: string; name: string }[]>(
@@ -136,9 +136,7 @@ const Usage = () => {
 
         setAllDailyUsage(dailyUsageCollection);
 
-        const [clientData] = await Promise.all([getClient(adminId)]);
         if (clientData) {
-          setClientData(clientData);
           setCurrentPlan(clientData.planId);
           setTotalCredits(clientData.creditsPerMonth);
 

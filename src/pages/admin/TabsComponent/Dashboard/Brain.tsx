@@ -27,7 +27,7 @@ import { updateAgentBrain } from "../../../../lib/serverActions";
 import { calculateSmartnessLevel } from "../../../../utils/helperFn";
 import styled from "styled-components";
 import { backendApiUrl } from "../../../../utils/constants";
-import SocialVideos from './SocialVideos';
+import SocialVideos from "./SocialVideos";
 
 const Icon = styled.button`
   position: relative;
@@ -73,7 +73,7 @@ const Button = styled.button`
   font-size: clamp(10px, 3vw, 16px);
   color: white;
   min-width: 80px;
-  
+
   @media (max-width: 600px) {
     min-width: 100px;
     padding: 8px 12px;
@@ -173,10 +173,10 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   const [directText, setDirectText] = useState("");
 
   const tabs = [
-    { id: "File Uploads", label: "File Uploads", icon: "upload" },    
-    { id: "Social Videos", label: "Social Videos", icon: "play" },    
-    { id: "Direct Text", label: "Direct Text", icon: "text" },        
-    { id: "Q&A", label: "Q&A", icon: "question" },                    
+    { id: "File Uploads", label: "File Uploads", icon: "upload" },
+    { id: "Social Videos", label: "Social Videos", icon: "play" },
+    { id: "Direct Text", label: "Direct Text", icon: "text" },
+    { id: "Q&A", label: "Q&A", icon: "question" },
   ];
 
   useEffect(() => {
@@ -248,30 +248,37 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
   const fetchAgentDocuments = async () => {
     if (!activeBotId) return;
-  
+
     try {
       const response = await listAgentDocuments(activeBotId);
-  
+
       if (!response.error && typeof response.result !== "string") {
         const allDocs = response.result.documents as Document[];
-  
+
         const totalSize = allDocs.reduce((total, doc) => total + doc.size, 0);
         setTotalDocumentsSize(totalSize);
-  
+
         // Filter out Brand Insights, Direct Text, and Social Media content from File Uploads display
         const filteredDocs = allDocs.filter((doc) => {
           const title = doc.title;
-          
+
           // Filter out Brand Insights
           if (title === "Brand Insights") return false;
-          
+
           // Filter out Direct Text documents
           if (title.startsWith("Direct Text:")) return false;
-          
+
           // Filter out Social Media content (from Social Videos tab)
-          const socialPlatforms = ["Youtube", "Instagram", "Tiktok", "Twitter", "Linkedin", "Reddit"];
+          const socialPlatforms = [
+            "Youtube",
+            "Instagram",
+            "Tiktok",
+            "Twitter",
+            "Linkedin",
+            "Reddit",
+          ];
           const contentTypes = ["Transcript", "Summary"];
-          
+
           for (const platform of socialPlatforms) {
             for (const contentType of contentTypes) {
               if (title.startsWith(`Social: ${platform} ${contentType}:`)) {
@@ -279,17 +286,17 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
               }
             }
           }
-          
+
           return true;
         });
-  
+
         const docs = filteredDocs.map((doc) => ({
           name: truncateFileName(doc.title, 30),
           size: formatFileSize(doc.size),
           sizeInBytes: doc.size,
           documentId: doc.documentId,
         }));
-  
+
         setUploadedFiles(docs);
       }
     } catch (error) {
@@ -561,39 +568,41 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   };
 
   // Handle file upload - Enhanced with automatic processing
-  const handleUpload = async (filesToUpload: File[] = selectedFiles): Promise<void> => {
+  const handleUpload = async (
+    filesToUpload: File[] = selectedFiles
+  ): Promise<void> => {
     if (!adminId) {
       toast.error("Admin ID is required");
       return;
     }
-  
+
     if (filesToUpload.length === 0) {
       toast.error("Please select files to upload");
       return;
     }
-  
+
     // Check if adding these files would exceed the plan's document size limit
     if (!checkSizeLimits(filesToUpload)) {
       return;
     }
-  
+
     // For new agent, validate name
     if (!activeBotId && !agentName.trim()) {
       toast.error("Agent name is required");
       return;
     }
-  
+
     setIsUploading(true);
-  
+
     try {
       // If we don't have an agent yet, create one with the first file
       if (!activeBotId) {
         try {
           setProcessingFile(filesToUpload[0].name);
-  
+
           // Extract text from the first file
           const firstFileContent = await extractTextFromFile(filesToUpload[0]);
-  
+
           if (!firstFileContent) {
             toast.error(
               `Could not extract text from ${truncateFileName(
@@ -609,7 +618,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           } else {
             // Prepare combined content with insights if available
             let combinedContent = firstFileContent;
-  
+
             // Add insights data if available
             const insights = [];
             if (insightsData.usp)
@@ -624,7 +633,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
               insights.push(
                 `Frequent Questions: ${insightsData.frequentQuestions}`
               );
-  
+
             // First, create a new agent (without document)
             const response = await createNewAgentWithDocumentId(
               adminId,
@@ -640,7 +649,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                 isDark: false,
               }
             );
-  
+
             if (response.error) {
               throw new Error(
                 typeof response.result === "string"
@@ -648,16 +657,16 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                   : "Failed to create agent"
               );
             }
-  
+
             const newAgentId =
               typeof response.result !== "string"
                 ? response.result.agentId
                 : "";
-  
+
             if (!newAgentId) {
               throw new Error("Invalid response from server");
             }
-  
+
             // Add first file to the list
             setUploadedFiles([
               {
@@ -667,14 +676,14 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                 documentId: newAgentId, // Use agentId as documentId for now
               },
             ]);
-  
+
             // Update total documents size
             setTotalDocumentsSize(filesToUpload[0].size);
-  
+
             // Upload remaining files
             let successCount = 1; // First file already processed
             let failCount = 0;
-  
+
             if (filesToUpload.length > 1) {
               for (let i = 1; i < filesToUpload.length; i++) {
                 try {
@@ -696,7 +705,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                 }
               }
             }
-  
+
             // Upload links as separate documents if available
             if (links.length > 0) {
               for (const link of links) {
@@ -709,7 +718,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                 }
               }
             }
-  
+
             // Show success message with counts
             if (failCount > 0) {
               toast.success(
@@ -741,7 +750,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         // Process all selected files
         let successCount = 0;
         let failCount = 0;
-  
+
         // Process files one by one to handle errors individually
         for (const file of filesToUpload) {
           try {
@@ -756,7 +765,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             console.error(`Error uploading ${file.name}:`, error);
           }
         }
-  
+
         // Upload links as separate documents if available
         if (links.length > 0) {
           for (const link of links) {
@@ -769,7 +778,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             }
           }
         }
-  
+
         // Show success message with counts
         if (successCount > 0) {
           if (failCount > 0) {
@@ -783,7 +792,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           toast.error(`Failed to upload ${failCount} document(s).`);
         }
       }
-  
+
       // Reset file input and selected files
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -1152,35 +1161,35 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
   const validateDirectText = (): { isValid: boolean; message: string } => {
     const content = directText.trim();
-    
+
     if (!content) {
-      return { isValid: true, message: "" }; 
+      return { isValid: true, message: "" };
     }
-  
+
     const wordCount = countWords(content);
-    
+
     if (wordCount < 50) {
-      return { 
-        isValid: false, 
-        message: `Minimum 50 words required. You have ${wordCount} words.` 
+      return {
+        isValid: false,
+        message: `Minimum 50 words required. You have ${wordCount} words.`,
       };
     }
-  
+
     const size = new TextEncoder().encode(content).length;
-    
+
     if (currentPlan) {
       const availableSpace = currentPlan.totalDocSize - totalDocumentsSize;
-      
+
       if (size > availableSpace) {
         const sizeInKB = Math.round(size / 1024);
         const availableInKB = Math.round(availableSpace / 1024);
-        return { 
-          isValid: false, 
-          message: `Text too large (${sizeInKB}KB). Available space: ${availableInKB}KB` 
+        return {
+          isValid: false,
+          message: `Text too large (${sizeInKB}KB). Available space: ${availableInKB}KB`,
         };
       }
     }
-  
+
     return { isValid: true, message: "" };
   };
 
@@ -1190,24 +1199,32 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       toast.error("No active agent selected");
       return;
     }
-  
+
     const content = directText.trim();
-  
+
     if (!content) {
       try {
         setIsDirectTextSaving(true);
-        
+
         const existingDocuments = await listAgentDocuments(activeBotId);
-        if (!existingDocuments.error && typeof existingDocuments.result !== "string") {
+        if (
+          !existingDocuments.error &&
+          typeof existingDocuments.result !== "string"
+        ) {
           const docs = existingDocuments.result.documents;
-          const directTextDoc = docs.find(doc => doc.title.startsWith("Direct Text:"));
-          
+          const directTextDoc = docs.find((doc) =>
+            doc.title.startsWith("Direct Text:")
+          );
+
           if (directTextDoc) {
-            await removeDocumentFromAgent(activeBotId, directTextDoc.documentId);
+            await removeDocumentFromAgent(
+              activeBotId,
+              directTextDoc.documentId
+            );
             setTotalDocumentsSize((prev) => prev - (directTextDoc.size || 0));
           }
         }
-        
+
         toast.success("Direct text removed");
         setRefetchBotData();
         await fetchAgentDocuments();
@@ -1219,7 +1236,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       }
       return;
     }
-  
+
     // Validate content
     const validation = validateDirectText();
     if (!validation.isValid) {
@@ -1227,41 +1244,57 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       toast.error(validation.message);
       return;
     }
-  
+
     try {
       setIsDirectTextSaving(true);
       setShowDirectTextError(false);
-  
-      const timestamp = new Date().toISOString().split('T')[0];
+
+      const timestamp = new Date().toISOString().split("T")[0];
       const title = `Direct Text: ${timestamp}`;
       const size = new TextEncoder().encode(content).length;
-  
+
       // Remove existing if exists
       const existingDocuments = await listAgentDocuments(activeBotId);
-      if (!existingDocuments.error && typeof existingDocuments.result !== "string") {
+      if (
+        !existingDocuments.error &&
+        typeof existingDocuments.result !== "string"
+      ) {
         const docs = existingDocuments.result.documents;
-        const existingDirectTextDoc = docs.find(doc => doc.title.startsWith("Direct Text:"));
-        
+        const existingDirectTextDoc = docs.find((doc) =>
+          doc.title.startsWith("Direct Text:")
+        );
+
         if (existingDirectTextDoc) {
-          await removeDocumentFromAgent(activeBotId, existingDirectTextDoc.documentId);
-          setTotalDocumentsSize((prev) => prev - (existingDirectTextDoc.size || 0));
+          await removeDocumentFromAgent(
+            activeBotId,
+            existingDirectTextDoc.documentId
+          );
+          setTotalDocumentsSize(
+            (prev) => prev - (existingDirectTextDoc.size || 0)
+          );
         }
       }
-  
+
       // Add new document - notice no videoMetadata parameter for direct text
-      const response = await addDocumentToAgent(activeBotId, content, title, size);
-  
+      const response = await addDocumentToAgent(
+        activeBotId,
+        content,
+        title,
+        size
+      );
+
       if (response.error) {
         throw new Error(
-          typeof response.result === "string" ? response.result : "Failed to save direct text"
+          typeof response.result === "string"
+            ? response.result
+            : "Failed to save direct text"
         );
       }
-  
+
       setTotalDocumentsSize((prev) => prev + size);
       toast.success("Direct text saved successfully");
       setShowDirectTextError(false);
       setRefetchBotData();
-      
     } catch (error) {
       console.error("Error saving direct text:", error);
       toast.error("Failed to save direct text");
@@ -1275,26 +1308,34 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       setDirectText("");
       return;
     }
-  
+
     try {
       setIsDirectTextSaving(true);
-      
+
       // Find and remove the direct text document
       const existingDocuments = await listAgentDocuments(activeBotId);
-      if (!existingDocuments.error && typeof existingDocuments.result !== "string") {
+      if (
+        !existingDocuments.error &&
+        typeof existingDocuments.result !== "string"
+      ) {
         const docs = existingDocuments.result.documents;
-        const directTextDoc = docs.find(doc => doc.title.startsWith("Direct Text:"));
-        
+        const directTextDoc = docs.find((doc) =>
+          doc.title.startsWith("Direct Text:")
+        );
+
         if (directTextDoc) {
-          const response = await removeDocumentFromAgent(activeBotId, directTextDoc.documentId);
-          
+          const response = await removeDocumentFromAgent(
+            activeBotId,
+            directTextDoc.documentId
+          );
+
           if (!response.error) {
             setDirectText("");
             toast.success("Direct text removed successfully");
-            
+
             // Trigger refetch to update the UI
             setRefetchBotData();
-            
+
             // Refresh documents to update total size
             await fetchAgentDocuments();
           } else {
@@ -1316,435 +1357,467 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
   const renderTabContent = () => {
     switch (activeTab) {
-        case "File Uploads":
-          return (
-            <div className="bg-white rounded-lg px-6 py-6">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 pr-6 mb-4">
-                <div className="flex-1">
-                  <h3 className="main-font block text-base font-bold text-[#000000]">
-                    Upload Files
-                  </h3>
-                  <p className="text-sm text-gray-500 mb-2">
-                    Upload PDF, DOCX and TXT files
-                  </p>
-                </div>
-                <div className="para-font border border-[#7D7D7D] text-[#7D7D7D] px-4 py-0.5 rounded-xl text-sm self-end sm:self-auto">
-                  Remove
-                </div>
+      case "File Uploads":
+        return (
+          <div className="bg-white rounded-lg px-6 py-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 pr-6 mb-4">
+              <div className="flex-1">
+                <h3 className="main-font block text-base font-bold text-[#000000]">
+                  Upload Files
+                </h3>
+                <p className="text-sm text-gray-500 mb-2">
+                  Upload PDF, DOCX and TXT files
+                </p>
               </div>
-              
-              <div className="space-y-2 mb-4 max-h-60 overflow-y-auto">
-                {uploadedFiles.map((file) => (
-                  <div
-                    key={file.name + (file.documentId || "")}
-                    className="flex flex-row items-center justify-between space-x-2"
-                  >
-                    <div className="flex justify-between items-center px-2 py-1 border w-[75%] sm:w-[80%] bg-[#CEFFDC] border-2 border-[#6AFF97]">
-                      <span className="text-sm truncate">{file.name}</span>
-                      <span className="text-sm text-gray-500 whitespace-nowrap ml-2">
-                        {file.size}
-                      </span>
-                    </div>
-  
-                    <div style={{ zIndex: "4" }} className="icon relative pr-4 sm:pr-8">
-                      {processingFile === file.name ? (
-                        <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                      ) : (
-                        <Icon
-                          onClick={() =>
-                            handleRemoveFile(file.name, file.documentId)
-                          }
-                          className="hover:text-red-600"
-                          disabled={isUploading || processingFile !== null}
-                          aria-label="Remove file"
-                        >
-                          <X className="w-4 h-4" />
-                        </Icon>
-                      )}
-                    </div>
-                  </div>
-                ))}
-  
-                {/* Show selected files that haven't been uploaded yet */}
-                {selectedFiles.map((file) => (
-                  <div
-                    key={file.name}
-                    className="flex items-center justify-between bg-blue-50 border border-blue-100 rounded-md px-3 py-2"
-                  >
-                    <div className="flex items-center space-x-2 flex-1 min-w-0">
-                      <FileText className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                      <span className="text-sm truncate">
-                        {truncateFileName(file.name, 25)}
-                      </span>
-                      <span className="text-sm text-gray-500 flex-shrink-0">
-                        {formatFileSize(file.size)}
-                      </span>
-                      <span className="text-sm text-blue-500 flex-shrink-0">(Selected)</span>
-                    </div>
-                    <div className="flex items-center space-x-2 flex-shrink-0">
-                      {isUploading ? (
-                        <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setSelectedFiles(
-                              selectedFiles.filter((f) => f.name !== file.name)
-                            );
-                          }}
-                          className="hover:text-red-600"
-                          disabled={isUploading}
-                          aria-label="Remove selected file"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-  
-              <div
-                className="border-2 border-dashed border-gray-300 rounded-lg p-6 mb-4 cursor-pointer"
-                onClick={() => fileInputRef.current?.click()}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-              >
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  multiple
-                  accept=".pdf,.docx,.txt"
-                  className="hidden"
-                />
-                <div className="flex flex-col items-center">
-                  <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-600 mb-1 text-center">
-                    Click to select files or drag and drop
-                  </p>
-                  <p className="text-sm text-gray-500 text-center">
-                    Supported formats: PDF, DOCX, TXT
-                  </p>
-                  <p className="text-sm text-blue-500 mt-1 text-center">
-                    You can select multiple files at once
-                  </p>
-                </div>
-              </div>
-  
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                <span className="text-sm text-gray-500">
-                  {!isFetchingPlan && currentPlan ? (
-                    <>
-                      Max total size: {formatFileSize(currentPlan.totalDocSize)} |{' '}
-                      Available: {getRemainingStorage()} | At least one document
-                      is required
-                    </>
-                  ) : (
-                    <>Loading storage information...</>
-                  )}
-                </span>
-  
-                {/* Only show upload button for new agents since existing ones auto-upload */}
-                {!activeBotId && (
-                  <Button
-                    onClick={() => handleUpload()}
-                    disabled={
-                      isUploading ||
-                      processingFile !== null ||
-                      selectedFiles.length === 0
-                    }
-                    className={`${
-                      isUploading ||
-                      processingFile !== null ||
-                      selectedFiles.length === 0
-                        ? "cursor-not-allowed"
-                        : ""
-                    } whitespace-nowrap`}
-                  >
-                    {isUploading ? (
-                      <div className="flex items-center space-x-2">
-                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                        <span className="hidden sm:inline">
-                          {processingFile
-                            ? `UPLOADING ${truncateFileName(processingFile, 15)}...`
-                            : "UPLOADING..."}
-                        </span>
-                        <span className="sm:hidden">UPLOADING...</span>
-                      </div>
-                    ) : (
-                      <span className="text-sm">
-                        CREATE AGENT{
-                          selectedFiles.length > 0
-                            ? ` (${selectedFiles.length})`
-                            : ""
-                        }
-                      </span>
-                    )}
-                  </Button>
-                )}
+              <div className="para-font border border-[#7D7D7D] text-[#7D7D7D] px-4 py-0.5 rounded-xl text-sm self-end sm:self-auto">
+                Remove
               </div>
             </div>
-          );
 
-          case "Social Videos":
-            return (
-              <div className="bg-white rounded-lg">
-                <div className="p-2">
-                  <SocialVideos 
-                    activeBotData={activeBotData}
-                    activeBotId={activeBotId}
-                    onRefreshData={() => setRefetchBotData()}
-                    onAddToAgent={async (title: string, content: string, size: number, videoMetadata?: any) => {
-                      if (!activeBotId) {
-                        toast.error("No active agent selected");
-                        return false;
-                      }
+            <div className="space-y-2 mb-4 max-h-60 overflow-y-auto">
+              {uploadedFiles.map((file) => (
+                <div
+                  key={file.name + (file.documentId || "")}
+                  className="flex flex-row items-center justify-between space-x-2"
+                >
+                  <div className="flex justify-between items-center px-2 py-1 border w-[75%] sm:w-[80%] bg-[#CEFFDC] border-2 border-[#6AFF97]">
+                    <span className="text-sm truncate">{file.name}</span>
+                    <span className="text-sm text-gray-500 whitespace-nowrap ml-2">
+                      {file.size}
+                    </span>
+                  </div>
 
-                      try {
-                        const response = await addDocumentToAgent(
-                          activeBotId,
-                          content,
-                          title,
-                          size,
-                          videoMetadata 
-                        );
-
-                        if (response.error) {
-                          throw new Error(
-                            typeof response.result === "string"
-                              ? response.result
-                              : "Failed to add video content to agent"
-                          );
+                  <div
+                    style={{ zIndex: "4" }}
+                    className="icon relative pr-4 sm:pr-8"
+                  >
+                    {processingFile === file.name ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                    ) : (
+                      <Icon
+                        onClick={() =>
+                          handleRemoveFile(file.name, file.documentId)
                         }
-                        setTotalDocumentsSize((prev) => prev + size);
-
-                        await fetchAgentDocuments();
-                        setRefetchBotData(); 
-
-                        return true;
-                      } catch (error) {
-                        console.error("Error adding video content to agent:", error);
-                        toast.error("Failed to add video content to agent");
-                        return false;
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-            );
-
-            case "Direct Text":
-              return (
-                <div className="bg-white rounded-lg px-6 py-6">
-                  <div className="bg-[#E7EAFF] p-6 rounded-lg">
-                    <p className="text-sm text-black mb-4">
-                      Type or Paste any direct text to feed into your AI-employee's Brain
-                    </p>
-                    
-                    <div className="space-y-4">
-                      <div className="relative">
-                        <textarea
-                          value={directText}
-                          onChange={(e) => {
-                            setDirectText(e.target.value);
-                            if (showDirectTextError) {
-                              setShowDirectTextError(false);
-                            }
-                          }}
-                          disabled={isDirectTextSaving}
-                          rows={8}
-                          className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
-                          placeholder={isDirectTextSaving ? "Processing..." : "Type here... (Minimum 50 words required)"}
-                          style={{
-                            maxHeight: '250px',
-                            overflowY: 'auto'
-                          }}
-                        />
-                        
-                        {/* Trash icon for quick clear - only show when there's text */}
-                        {directText.trim() && !isDirectTextSaving && (
-                          <button
-                            onClick={() => setDirectText("")}
-                            className="absolute top-3 right-3 p-1 text-gray-400 hover:text-red-500 transition-colors rounded"
-                            title="Clear text"
-                            type="button"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        )}
-                        
-                        {/* Word/char counter */}
-                        {directText && (
-                          <div className="absolute bottom-2 right-2 text-sm text-gray-500 bg-white px-2 py-1 rounded shadow">
-                            <span className="hidden sm:inline">{directText.length} chars | </span>
-                            {countWords(directText)} words
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Word count and limits info */}
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                          <span className={`${
-                            directText.trim() && countWords(directText) >= 50 
-                              ? "text-green-600" 
-                              : "text-gray-500"
-                          }`}>
-                            Words: {countWords(directText)}/50 minimum
-                          </span>
-                          
-                          {currentPlan && (
-                            <span className="text-gray-500">
-                              Available space: {getRemainingStorage()}
-                            </span>
-                          )}
-                        </div>
-
-                        {directText && (
-                          <div className="text-gray-500">
-                            Size: {Math.round(new TextEncoder().encode(directText).length / 1024)}KB
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Validation message */}
-                      {showDirectTextError && (() => {
-                        const validation = validateDirectText();
-                        if (!validation.isValid) {
-                          return (
-                            <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-md">
-                              <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-                              <div className="text-sm text-red-700">
-                                {validation.message}
-                              </div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      })()}
-                      
-                      {/* Simple Save button only */}
-                      <div className="flex justify-end">
-                        <Button
-                          onClick={handleSaveDirectText}
-                          disabled={isDirectTextSaving}
-                          className={`${
-                            isDirectTextSaving ? "cursor-not-allowed" : ""
-                          }`}
-                        >
-                          {isDirectTextSaving ? (
-                            <div className="flex items-center space-x-2">
-                              <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                              <span>Saving...</span>
-                            </div>
-                          ) : (
-                            "SAVE"
-                          )}
-                        </Button>
-                      </div>
-                    </div>
+                        className="hover:text-red-600"
+                        disabled={isUploading || processingFile !== null}
+                        aria-label="Remove file"
+                      >
+                        <X className="w-4 h-4" />
+                      </Icon>
+                    )}
                   </div>
                 </div>
-              );
+              ))}
+
+              {/* Show selected files that haven't been uploaded yet */}
+              {selectedFiles.map((file) => (
+                <div
+                  key={file.name}
+                  className="flex items-center justify-between bg-blue-50 border border-blue-100 rounded-md px-3 py-2"
+                >
+                  <div className="flex items-center space-x-2 flex-1 min-w-0">
+                    <FileText className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                    <span className="text-sm truncate">
+                      {truncateFileName(file.name, 25)}
+                    </span>
+                    <span className="text-sm text-gray-500 flex-shrink-0">
+                      {formatFileSize(file.size)}
+                    </span>
+                    <span className="text-sm text-blue-500 flex-shrink-0">
+                      (Selected)
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2 flex-shrink-0">
+                    {isUploading ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setSelectedFiles(
+                            selectedFiles.filter((f) => f.name !== file.name)
+                          );
+                        }}
+                        className="hover:text-red-600"
+                        disabled={isUploading}
+                        aria-label="Remove selected file"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div
+              className="border-2 border-dashed border-gray-300 rounded-lg p-6 mb-4 cursor-pointer"
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                multiple
+                accept=".pdf,.docx,.txt"
+                className="hidden"
+              />
+              <div className="flex flex-col items-center">
+                <Upload className="h-8 w-8 text-gray-400 mb-2" />
+                <p className="text-sm text-gray-600 mb-1 text-center">
+                  Click to select files or drag and drop
+                </p>
+                <p className="text-sm text-gray-500 text-center">
+                  Supported formats: PDF, DOCX, TXT
+                </p>
+                <p className="text-sm text-blue-500 mt-1 text-center">
+                  You can select multiple files at once
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+              <span className="text-sm text-gray-500">
+                {!isFetchingPlan && currentPlan ? (
+                  <>
+                    Max total size: {formatFileSize(currentPlan.totalDocSize)} |{" "}
+                    Available: {getRemainingStorage()} | At least one document
+                    is required
+                  </>
+                ) : (
+                  <>Loading storage information...</>
+                )}
+              </span>
+
+              {/* Only show upload button for new agents since existing ones auto-upload */}
+              {!activeBotId && (
+                <Button
+                  onClick={() => handleUpload()}
+                  disabled={
+                    isUploading ||
+                    processingFile !== null ||
+                    selectedFiles.length === 0
+                  }
+                  className={`${
+                    isUploading ||
+                    processingFile !== null ||
+                    selectedFiles.length === 0
+                      ? "cursor-not-allowed"
+                      : ""
+                  } whitespace-nowrap`}
+                >
+                  {isUploading ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      <span className="hidden sm:inline">
+                        {processingFile
+                          ? `UPLOADING ${truncateFileName(
+                              processingFile,
+                              15
+                            )}...`
+                          : "UPLOADING..."}
+                      </span>
+                      <span className="sm:hidden">UPLOADING...</span>
+                    </div>
+                  ) : (
+                    <span className="text-sm">
+                      CREATE AGENT
+                      {selectedFiles.length > 0
+                        ? ` (${selectedFiles.length})`
+                        : ""}
+                    </span>
+                  )}
+                </Button>
+              )}
+            </div>
+          </div>
+        );
+
+      case "Social Videos":
+        return (
+          <div className="bg-white rounded-lg">
+            <div className="p-2">
+              <SocialVideos
+                activeBotData={activeBotData}
+                activeBotId={activeBotId}
+                onRefreshData={() => setRefetchBotData()}
+                onAddToAgent={async (
+                  title: string,
+                  content: string,
+                  size: number,
+                  videoMetadata?: any
+                ) => {
+                  if (!activeBotId) {
+                    toast.error("No active agent selected");
+                    return false;
+                  }
+
+                  try {
+                    const response = await addDocumentToAgent(
+                      activeBotId,
+                      content,
+                      title,
+                      size,
+                      videoMetadata
+                    );
+
+                    if (response.error) {
+                      throw new Error(
+                        typeof response.result === "string"
+                          ? response.result
+                          : "Failed to add video content to agent"
+                      );
+                    }
+                    setTotalDocumentsSize((prev) => prev + size);
+
+                    await fetchAgentDocuments();
+                    setRefetchBotData();
+
+                    return true;
+                  } catch (error) {
+                    console.error(
+                      "Error adding video content to agent:",
+                      error
+                    );
+                    toast.error("Failed to add video content to agent");
+                    return false;
+                  }
+                }}
+              />
+            </div>
+          </div>
+        );
+
+      case "Direct Text":
+        return (
+          <div className="bg-white rounded-lg px-6 py-6">
+            <div className="bg-[#E7EAFF] p-6 rounded-lg">
+              <p className="text-sm text-black mb-4">
+                Type or Paste any direct text to feed into your AI-employee's
+                Brain
+              </p>
+
+              <div className="space-y-4">
+                <div className="relative">
+                  <textarea
+                    value={directText}
+                    onChange={(e) => {
+                      setDirectText(e.target.value);
+                      if (showDirectTextError) {
+                        setShowDirectTextError(false);
+                      }
+                    }}
+                    disabled={isDirectTextSaving}
+                    rows={8}
+                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                    placeholder={
+                      isDirectTextSaving
+                        ? "Processing..."
+                        : "Type here... (Minimum 50 words required)"
+                    }
+                    style={{
+                      maxHeight: "250px",
+                      overflowY: "auto",
+                    }}
+                  />
+
+                  {/* Trash icon for quick clear - only show when there's text */}
+                  {directText.trim() && !isDirectTextSaving && (
+                    <button
+                      onClick={() => setDirectText("")}
+                      className="absolute top-3 right-3 p-1 text-gray-400 hover:text-red-500 transition-colors rounded"
+                      title="Clear text"
+                      type="button"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+
+                  {/* Word/char counter */}
+                  {directText && (
+                    <div className="absolute bottom-2 right-2 text-sm text-gray-500 bg-white px-2 py-1 rounded shadow">
+                      <span className="hidden sm:inline">
+                        {directText.length} chars |{" "}
+                      </span>
+                      {countWords(directText)} words
+                    </div>
+                  )}
+                </div>
+
+                {/* Word count and limits info */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                    <span
+                      className={`${
+                        directText.trim() && countWords(directText) >= 50
+                          ? "text-green-600"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      Words: {countWords(directText)}/50 minimum
+                    </span>
+
+                    {currentPlan && (
+                      <span className="text-gray-500">
+                        Available space: {getRemainingStorage()}
+                      </span>
+                    )}
+                  </div>
+
+                  {directText && (
+                    <div className="text-gray-500">
+                      Size:{" "}
+                      {Math.round(
+                        new TextEncoder().encode(directText).length / 1024
+                      )}
+                      KB
+                    </div>
+                  )}
+                </div>
+
+                {/* Validation message */}
+                {showDirectTextError &&
+                  (() => {
+                    const validation = validateDirectText();
+                    if (!validation.isValid) {
+                      return (
+                        <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                          <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                          <div className="text-sm text-red-700">
+                            {validation.message}
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+
+                {/* Simple Save button only */}
+                <div className="flex justify-end">
+                  <Button
+                    onClick={handleSaveDirectText}
+                    disabled={isDirectTextSaving}
+                    className={`${
+                      isDirectTextSaving ? "cursor-not-allowed" : ""
+                    }`}
+                  >
+                    {isDirectTextSaving ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                        <span>Saving...</span>
+                      </div>
+                    ) : (
+                      "SAVE"
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
 
       case "Q&A":
         return (
           <div className="bg-white rounded-lg px-6 py-6">
             <div className="bg-[#E7EAFF] p-6 rounded-lg">
               <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  1. What makes you/your brand unique? The main USP:
-                </label>
-                <textarea
-                  value={insightsData.usp}
-                  onChange={(e) => handleInsightsChange("usp", e.target.value)}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="Type here..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  2. How would your most loyal follower/customer describe you or
-                  your brand's personality?
-                </label>
-                <textarea
-                  value={insightsData.brandPersonality}
-                  onChange={(e) =>
-                    handleInsightsChange("brandPersonality", e.target.value)
-                  }
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="Type here..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  3. What specific language, terms, or phrases should your AI agent
-                  use (or avoid) to authentically represent your brand voice?
-                </label>
-                <textarea
-                  value={insightsData.languageTerms}
-                  onChange={(e) =>
-                    handleInsightsChange("languageTerms", e.target.value)
-                  }
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="Type here..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  4. What questions do your customers most frequently ask?
-                </label>
-                <textarea
-                  value={insightsData.frequentQuestions}
-                  onChange={(e) =>
-                    handleInsightsChange("frequentQuestions", e.target.value)
-                  }
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="Type here..."
-                />
-              </div>
-
-              {/* Info Message */}
-              <div className="flex items-start space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-blue-700">
-                  <p className="font-medium mb-1">
-                    Fill any insights you'd like to save
-                  </p>
-                  <p>
-                    You can fill out whichever insights you want and save them. Each
-                    field requires at least 5 words to be saved. Empty fields will
-                    be skipped.
-                  </p>
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    1. What makes you/your brand unique? The main USP:
+                  </label>
+                  <textarea
+                    value={insightsData.usp}
+                    onChange={(e) =>
+                      handleInsightsChange("usp", e.target.value)
+                    }
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Type here..."
+                  />
                 </div>
-              </div>
 
-              <div className="flex justify-end relative z-10 mt-4">
-                <Button
-                  onClick={handleSave}
-                  disabled={isSaving || !hasAnyContent()}
-                  className={`${
-                    isSaving || !hasAnyContent() ? "cursor-not-allowed" : ""
-                  }`}
-                >
-                  {isSaving ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                      <span>Saving...</span>
-                    </div>
-                  ) : (
-                    "SAVE"
-                  )}
-                </Button>
-              </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    2. How would your most loyal follower/customer describe you
+                    or your brand's personality?
+                  </label>
+                  <textarea
+                    value={insightsData.brandPersonality}
+                    onChange={(e) =>
+                      handleInsightsChange("brandPersonality", e.target.value)
+                    }
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Type here..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    3. What specific language, terms, or phrases should your AI
+                    agent use (or avoid) to authentically represent your brand
+                    voice?
+                  </label>
+                  <textarea
+                    value={insightsData.languageTerms}
+                    onChange={(e) =>
+                      handleInsightsChange("languageTerms", e.target.value)
+                    }
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Type here..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    4. What questions do your customers most frequently ask?
+                  </label>
+                  <textarea
+                    value={insightsData.frequentQuestions}
+                    onChange={(e) =>
+                      handleInsightsChange("frequentQuestions", e.target.value)
+                    }
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Type here..."
+                  />
+                </div>
+
+                {/* Info Message */}
+                <div className="flex items-start space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-blue-700">
+                    <p className="font-medium mb-1">
+                      Fill any insights you'd like to save
+                    </p>
+                    <p>
+                      You can fill out whichever insights you want and save
+                      them. Each field requires at least 5 words to be saved.
+                      Empty fields will be skipped.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex justify-end relative z-10 mt-4">
+                  <Button
+                    onClick={handleSave}
+                    disabled={isSaving || !hasAnyContent()}
+                    className={`${
+                      isSaving || !hasAnyContent() ? "cursor-not-allowed" : ""
+                    }`}
+                  >
+                    {isSaving ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                        <span>Saving...</span>
+                      </div>
+                    ) : (
+                      "SAVE"
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -1758,7 +1831,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   const renderTabIcon = (iconType: string, isActive: boolean) => {
     const iconProps = {
       size: 12,
-      className: "text-current"
+      className: "text-current",
     };
 
     switch (iconType) {
@@ -1791,8 +1864,8 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           </p>
         </div>
 
-         {/* Agent Smartness and Brain Capacity Circles */}
-         <div className="flex flex-row gap-4 lg:flex-col xl:flex-row w-full sm:w-fit">
+        {/* Agent Smartness and Brain Capacity Circles */}
+        <div className="flex flex-row gap-4 lg:flex-col xl:flex-row w-full sm:w-fit">
           <div className="flex flex-col items-center bg-[#EAEFFF] rounded-lg px-4 py-8 lg:py-4 min-w-36 w-full sm:w-fit">
             <div className="relative w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center">
               <svg
@@ -1803,8 +1876,8 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
                 style={{
-                  width: 'clamp(48px, 10vw, 58px)',
-                  height: 'clamp(48px, 10vw, 58px)'
+                  width: "clamp(48px, 10vw, 58px)",
+                  height: "clamp(48px, 10vw, 58px)",
                 }}
               >
                 <g filter="url(#filter0_d_5068_3436)">
@@ -1860,8 +1933,8 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
                 style={{
-                  width: 'clamp(48px, 10vw, 58px)',
-                  height: 'clamp(48px, 10vw, 58px)'
+                  width: "clamp(48px, 10vw, 58px)",
+                  height: "clamp(48px, 10vw, 58px)",
                 }}
               >
                 <g filter="url(#filter0_d_5068_3436)">
@@ -1960,27 +2033,27 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-2 rounded-full border-2 border-black text-sm font-medium transition-colors ${
               activeTab === tab.id
-                ? "bg-black text-[#6aff97]"             
-                : "bg-white text-black"          
+                ? "bg-black text-[#6aff97]"
+                : "bg-white text-black"
             }`}
           >
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs transition-colors ${
-              activeTab === tab.id
-                ? "bg-[#6aff97] text-black"             
-                : "bg-black text-white"            
-            }`}>
-              {renderTabIcon(tab.icon, activeTab === tab.id)}  
+            <span
+              className={`w-5 h-5 rounded-full flex items-center justify-center text-xs transition-colors ${
+                activeTab === tab.id
+                  ? "bg-[#6aff97] text-black"
+                  : "bg-black text-white"
+              }`}
+            >
+              {renderTabIcon(tab.icon, activeTab === tab.id)}
             </span>
             <span className="hidden sm:inline">{tab.label}</span>
-            <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+            <span className="sm:hidden">{tab.label.split(" ")[0]}</span>
           </button>
         ))}
       </div>
 
       {/* Tab Content */}
-      <div className="mb-6">
-        {renderTabContent()}
-      </div>
+      <div className="mb-6">{renderTabContent()}</div>
 
       {/* Agent Name (if creating new agent) */}
       {!activeBotId && (
@@ -1995,7 +2068,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder="Enter agent name"
           />
-          
+
           {/* Create Agent Button */}
           {(selectedFiles.length > 0 || links.length > 0) && (
             <div className="mt-4 flex justify-end">
@@ -2026,11 +2099,10 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                   </div>
                 ) : (
                   <span className="text-sm">
-                    CREATE AGENT{
-                      selectedFiles.length > 0 || links.length > 0
-                        ? ` (${selectedFiles.length + links.length})`
-                        : ""
-                    }
+                    CREATE AGENT
+                    {selectedFiles.length > 0 || links.length > 0
+                      ? ` (${selectedFiles.length + links.length})`
+                      : ""}
                   </span>
                 )}
               </Button>
