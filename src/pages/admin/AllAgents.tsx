@@ -3,7 +3,7 @@ import { useAdminStore } from "../../store/useAdminStore";
 import { AdminAgent } from "../../types";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useBotConfig } from "../../store/useBotConfig";
-import { PERSONALITY_OPTIONS } from "../../utils/constants";
+import { mainDomainUrl, PERSONALITY_OPTIONS } from "../../utils/constants";
 import { Trash2, X } from "lucide-react";
 
 const placeholderAvatar = "/assets/voice/expert.png";
@@ -210,7 +210,7 @@ const AllAgents: React.FC = () => {
             <div className="font-semibold text-lg text-center">
               {agent.name || "Agent Name"}
             </div>
-            <a href={`https://Sayy.ai/${agent.username}`} target="_blank">
+            <a href={`${mainDomainUrl}/${agent.username}`} target="_blank">
               <div className="text-sm text-blue-500 mb-2">Visit agent</div>
             </a>
             <div className="flex gap-2 mt-2">

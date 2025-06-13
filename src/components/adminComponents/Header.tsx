@@ -6,6 +6,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useServerHook } from "../../hooks/useServerHook";
 import styled from "styled-components";
 import { AdminAgent } from "../../types";
+import { mainDomainUrl } from "../../utils/constants";
 
 const Button = styled.button`
   position: relative;
@@ -309,7 +310,7 @@ const Header = () => {
               ) : (
                 <div className="relative">
                   <a
-                    href={`https://Sayy.ai/${activeBotData?.username}`}
+                    href={`${mainDomainUrl}/${activeBotData?.username}`}
                     target="_blank"
                   >
                     <div className="relative inline-block">

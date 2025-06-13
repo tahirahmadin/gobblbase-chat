@@ -11,6 +11,8 @@ export const backendApiUrl = "https://kifortestapi.gobbl.ai";
 export const backendSocketUrl = "wss://kifortestapi.gobbl.ai";
 // export const backendSocketUrl = "wss://kiforapi.gobbl.ai";
 
+export const mainDomainUrl = "https://test.sayy.ai";
+// export const backendSocketUrl = "wss://kiforapi.gobbl.ai";
 export const IS_MAINTENANCE_MODE = false;
 
 // USDT conversion rates (as of March 2024)
