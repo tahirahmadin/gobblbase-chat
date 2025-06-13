@@ -1849,7 +1849,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   };
 
   return (
-    <div className="h-full overflow-y-auto p-6">
+    <div className="h-full flex flex-col p-6 overflow-y-auto">
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
         <div className="flex-1 text-center lg:text-left">
@@ -1901,8 +1901,8 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                 <path
                   d="M34.8312 6.60821C53.8154 8.29096 61.9708 22.7212 62.4349 36.7213"
                   stroke="#4D65FF"
-                  strokeWidth="5"
-                  strokeLinecap="round"
+                  stroke-width="5"
+                  stroke-linecap="round"
                 />
                 <g filter="url(#filter1_d_5068_3436)">
                   <rect
@@ -1958,8 +1958,8 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                 <path
                   d="M34.8312 6.60821C53.8154 8.29096 61.9708 22.7212 62.4349 36.7213"
                   stroke="#4D65FF"
-                  strokeWidth="5"
-                  strokeLinecap="round"
+                  stroke-width="5"
+                  stroke-linecap="round"
                 />
                 <g filter="url(#filter1_d_5068_3436)">
                   <rect
@@ -1983,8 +1983,8 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         </div>
       </div>
 
-      {/* Agent Language */}
-      {/* <div className="mb-8 flex flex-row items-center gap-5">
+      {/* Agent Language
+      <div className="mb-8 flex flex-row items-center gap-5">
         <h1 className="para-font text-[#000000] block text-sm font-medium whitespace-nowrap">
           Agent Language
         </h1>
