@@ -240,7 +240,9 @@ const Header = () => {
                   style={{ background: "black" }}
                 >
                   <div className="px-4 pb-2 font-semibold text-base text-white">
-                    {hoveredTeam === "my"
+                    {hoveredTeam === null
+                      ? "Agents"
+                      : hoveredTeam === "my"
                       ? "All Agents"
                       : clientData?.otherTeams?.find(
                           (t) => t.teamId === hoveredTeam

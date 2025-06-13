@@ -6,15 +6,14 @@ import {
   removeTeamMember,
 } from "../../../../lib/serverActions";
 import { useAdminStore } from "../../../../store/useAdminStore";
-import { useNavigate } from "react-router-dom";
-import { ChevronDown, Copy, Plus, X } from "lucide-react";
+
+import { Plus, X } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useUserStore } from "../../../../store/useUserStore";
 
 const Team = () => {
   // IMPORTS & HOOKS
   const { activeTeamId, adminId, refetchClientData } = useAdminStore();
-  const { userEmail } = useUserStore();
   const { clientData, clientUsage } = useAdminStore();
 
   // Function to check if remove button should be disabled
@@ -120,7 +119,7 @@ const Team = () => {
         );
         // Optionally refresh invites
         const updated = await getTeamInvites(activeTeamId || "");
-        refetchClientData;
+        refetchClientData();
         setInvites(updated || []);
       } else {
         toast.error(res.result || `Failed to ${status} invite`);

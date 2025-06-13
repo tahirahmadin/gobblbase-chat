@@ -8,6 +8,12 @@ import { useAdminStore } from "../../../../store/useAdminStore";
 import { toast } from "react-hot-toast";
 import { Check, ChevronRight, Loader2, X } from "lucide-react";
 import styled from "styled-components";
+
+interface SubscribeToPlanResponse {
+  isUrl: boolean;
+  message: string;
+}
+
 const WhiteBackground = styled.span`
   display: flex;
   flex-direction: column;
@@ -348,7 +354,11 @@ const Plans = () => {
       setUpgradingPlanId(planId);
 
       // Get Stripe session URL
-      const response = await subscribeToPlan(adminId, planId, activeTeamId);
+      const response = (await subscribeToPlan(
+        adminId,
+        planId,
+        activeTeamId
+      )) as SubscribeToPlanResponse;
 
       const isBillingUrl = response.isUrl;
       const billingMessage = response.message;
@@ -579,7 +589,7 @@ const Plans = () => {
                     disabled={
                       isCurrentPlanAnyRecurrence(plan) || isUpgrading(plan.id)
                     }
-                    onClick={() => setSelectedPlanId(plan.id)}
+                    onClick={() => handleUpgrade(plan.id)}
                     className={`w-full font-bold uppercase w-[180px]`}
                   >
                     {isCurrentPlanAnyRecurrence(plan) ? (
@@ -604,87 +614,6 @@ const Plans = () => {
                   <div className="w-full bg-[#000000] my-2 h-[3px] my-8"></div>
                 ) : (
                   <div className="w-full bg-[#AEB8FF] my-2 h-[3px] my-8"></div>
-                )}
-
-                {selectedPlanId && !isCurrentPlanAnyRecurrence(plan) && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-                    <div className="bg-white w-full relative border-[10px] border-[#6AFF97] h-[90vh] w-[90vw] lg:w-[70vw] p-2 md:p-6 flex items-center gap-4">
-                      {/* cancel button  */}
-                      <div className="absolute right-4 top-4 ">
-                        <div className="relative z-10">
-                          <div className="absolute top-[3px] left-[3px] w-full h-full bg-white border border-black -z-10"></div>
-                          <button
-                            onClick={() => setSelectedPlanId(null)}
-                            className="px-2 py-2 bg-white border border-black z-10"
-                          >
-                            <X
-                              className="h-5 w-5 text-black"
-                              style={{ strokeWidth: "4px" }}
-                            />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="left-content md:pl-8 flex flex-col gap-4 w-1/1 md:w-1/2 items-center px-4">
-                        <h2 className="main-font text-[1.5rem] md:text-[2rem] para-font font-bold text-center md:text-left">
-                          Your AI-mployee needs a Promotion!
-                        </h2>
-                        <p className="text-black para-font text-center md:text-left text-[0.9rem] md:text-[1.1rem] font-[500]">
-                          You've reached the limit of your current plan. Upgrade
-                          now to unlock more features and keep your AI agent
-                          running smoothly.
-                        </p>
-                        <div className="right-content 1/2 block md:hidden">
-                          <img
-                            src="/assets/popup-mascot.png"
-                            width={1000}
-                            height={1000}
-                            alt="plain-popup mascot"
-                          />
-                        </div>
-                        {selectedPlan && (
-                          <div className="relative z-10 flex gap-4 justify-center md:items-end md:mt-12 w-fit">
-                            <div className="absolute top-[4px] left-[4px] w-full h-full bg-[#6AFF97] border border-black -z-10"></div>
-                            <button
-                              onClick={async () => {
-                                await handleUpgrade(selectedPlan.id);
-                                setSelectedPlanId(null);
-                              }}
-                              className="px-4 py-2 bg-[#6AFF97] border border-black md:w-[280px] flex justify-center md:justify-between"
-                            >
-                              {isCurrentPlanAnyRecurrence(selectedPlan) ? (
-                                "CURRENT PLAN"
-                              ) : isUpgrading(selectedPlan.id) ? (
-                                <span className="flex items-center justify-center gap-2">
-                                  <Loader2 className="h-5 w-5 animate-spin" />
-                                  {isLowerTierPlan(selectedPlan)
-                                    ? "Downgrading..."
-                                    : "Upgrading..."}
-                                </span>
-                              ) : isLowerTierPlan(selectedPlan) ? (
-                                "DOWNGRADE"
-                              ) : (
-                                "UPGRADE MY PLAN"
-                              )}
-                              <span className="hidden md:inline-block">
-                                <ChevronRight
-                                  style={{ strokeWidth: "3px" }}
-                                  className="h-5 w-5 text-black inline-block ml-2"
-                                />
-                              </span>
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                      <div className="right-content 1/2 hidden md:block">
-                        <img
-                          src="/assets/popup-mascot.png"
-                          width={1000}
-                          height={1000}
-                          alt="plain-popup mascot"
-                        />
-                      </div>
-                    </div>
-                  </div>
                 )}
 
                 {/* Pill - separated and with extra margin */}

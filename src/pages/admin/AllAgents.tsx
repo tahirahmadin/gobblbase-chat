@@ -4,14 +4,7 @@ import { AdminAgent } from "../../types";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useBotConfig } from "../../store/useBotConfig";
 import { PERSONALITY_OPTIONS } from "../../utils/constants";
-import {
-  Delete,
-  DeleteIcon,
-  LucideDelete,
-  Trash,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Trash2, X } from "lucide-react";
 
 const placeholderAvatar = "/assets/voice/expert.png";
 
