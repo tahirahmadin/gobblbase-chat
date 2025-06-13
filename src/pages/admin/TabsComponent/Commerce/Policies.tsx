@@ -205,12 +205,7 @@ const Policies = () => {
                       : "bg-[transparent] border-[#000000] w-[80%] md:w-[30%] text-white rounded-[12px]"
                     }`}
                 >
-                  <div className={`flex justify-between items-center px-4 border h-12 z-30 mx-6 md:mx-2 ${isActive && policy.enabled
-                    ? "bg-[#CEFFDC] border-[#000000] w-[80%] md:w-[30%] text-white rounded-[12px]"
-                    : isActive
-                      ? "bg-[#EAEFFF] border-[#000000] w-[80%] md:w-[30%] text-white rounded-[12px]"
-                      : "bg-[transparent] border-[#000000] w-[80%] md:w-[30%] text-white rounded-[12px]"
-                    }`}>
+           
 
                     <div>
                       <span className="para-font text-[1rem] text-black font-[500]">{policy.name}</span>
@@ -233,7 +228,6 @@ const Policies = () => {
                         ></div>
                       </div>
                     </label>
-                  </div>
                 </div>
                 {
                   isActive && (
