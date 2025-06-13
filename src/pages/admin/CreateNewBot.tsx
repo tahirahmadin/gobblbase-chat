@@ -90,7 +90,7 @@ const personalityOptions: PersonalityOption[] = PERSONALITY_OPTIONS;
 
 const CreateNewBot: React.FC = () => {
   const navigate = useNavigate();
-  const { adminId } = useAdminStore();
+  const { adminId, activeTeamId } = useAdminStore();
   const { clearBotConfig, setActiveBotId } = useBotConfig();
 
   const [step, setStep] = useState(1);

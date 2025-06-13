@@ -254,7 +254,7 @@ interface PlanData {
 }
 
 const Plans = () => {
-  const { activeTeamId } = useAdminStore();
+  const { activeTeamId, adminId } = useAdminStore();
   const [billing, setBilling] = useState("monthly");
   const [plans, setPlans] = useState<PlanData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -342,13 +342,13 @@ const Plans = () => {
   const selectedPlan = plans.find((p) => p.id === selectedPlanId);
 
   const handleUpgrade = async (planId: string) => {
-    if (!activeTeamId) return;
+    if (!activeTeamId || !adminId) return;
 
     try {
       setUpgradingPlanId(planId);
 
       // Get Stripe session URL
-      const response = await subscribeToPlan(activeTeamId, planId);
+      const response = await subscribeToPlan(adminId, planId, activeTeamId);
 
       const isBillingUrl = response.isUrl;
       const billingMessage = response.message;
@@ -441,10 +441,13 @@ const Plans = () => {
           <button
             className="px-4 py-1 rounded-2xl border border-purple-600 font-semibold whitespace-nowrap bg-black text-white hover:bg-purple-700 transition-colors duration-200 focus:outline-none"
             onClick={async () => {
-              if (!activeTeamId) return;
+              if (!activeTeamId || !adminId) return;
               try {
                 setBillingLoading(true);
-                const url = await getStripeBillingSession(activeTeamId);
+                const url = await getStripeBillingSession(
+                  adminId,
+                  activeTeamId
+                );
                 window.open(url, "_blank", "noopener,noreferrer");
               } catch (error) {
                 toast.error("Failed to open Stripe Billing");

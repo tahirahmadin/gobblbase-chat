@@ -2176,10 +2176,11 @@ export async function payOutStripe(clientId: string) {
 }
 
 export async function getStripeBillingSession(
-  clientId: string
+  clientId: string,
+  teamId: string
 ): Promise<string> {
   try {
-    let requestParams = `clientId=${clientId}`;
+    let requestParams = `clientId=${clientId}&teamId=${teamId}`;
     let url = `${apiUrl}/product/createBillingSession?${requestParams}`;
 
     // HMAC Response
@@ -2409,11 +2410,12 @@ export async function getPlans(teamId: string): Promise<PlanData[]> {
 
 export async function subscribeToPlan(
   clientId: string,
-  planId: string
+  planId: string,
+  teamId: string
 ): Promise<any> {
   try {
     let url = `${apiUrl}/product/subscribeOrChangePlan`;
-    let dataObj = { clientId, planId };
+    let dataObj = { clientId, planId, adminId: teamId };
     let encryptedData = getCipherText(dataObj);
 
     // HMAC Response

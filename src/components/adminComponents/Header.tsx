@@ -195,7 +195,10 @@ const Header = () => {
                       }
                     `}
                     onMouseEnter={() => setHoveredTeam("my")}
-                    onClick={() => setHoveredTeam("my")}
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      navigate("/admin/all-agents?team=my-team");
+                    }}
                   >
                     <img
                       src="/assets/voice/coach.png"
@@ -215,7 +218,10 @@ const Header = () => {
                         }
                       `}
                       onMouseEnter={() => setHoveredTeam(team.teamId)}
-                      onClick={() => setHoveredTeam(team.teamId)}
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        navigate(`/admin/all-agents?team=${team.teamId}`);
+                      }}
                     >
                       <img
                         src={"/assets/voice/coach.png"}
@@ -268,7 +274,7 @@ const Header = () => {
                     </button>
                   ))}
                   <div className="border-t border-gray-700 my-2"></div>
-                  <button
+                  {/* <button
                     className="px-4 py-2 text-left text-sm text-white hover:bg-[#222] w-full"
                     onClick={() => {
                       setIsDropdownOpen(false);
@@ -276,7 +282,7 @@ const Header = () => {
                     }}
                   >
                     + NEW AGENT
-                  </button>
+                  </button> */}
                 </div>
               </div>
             )}

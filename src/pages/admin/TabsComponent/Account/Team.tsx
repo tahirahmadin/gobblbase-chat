@@ -11,94 +11,33 @@ import { ChevronDown, Copy, Plus, X } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useUserStore } from "../../../../store/useUserStore";
 
-// Available roles (you can extract this from your membersRole data)
-const availableRoles = [
-  {
-    label: "Super Admin",
-    tag: "owner",
-    value: "Everything",
-  },
-  {
-    label: "Admin",
-    tag: "admin",
-    value: "Everything Except Billing",
-  },
-  {
-    label: "Member",
-    tag: "member",
-    value: "Everything Except Billing & Team Management",
-  },
-];
-
-// Function to get available roles based on current user's role
-const getAvailableRolesForUser = (userRole: string) => {
-  if (userRole === "Super Admin") {
-    return availableRoles; // Super Admin can assign all roles
-  } else if (userRole === "admin") {
-    return availableRoles.filter((role) => role.label !== "Super Admin"); // Admin can assign Admin and Member roles
-  } else {
-    return availableRoles.filter((role) => role.label === "member"); // Regular members can only assign Member role
-  }
-};
-
 const Team = () => {
   // IMPORTS & HOOKS
-  const { activeTeamId, adminId } = useAdminStore();
+  const { activeTeamId, adminId, refetchClientData } = useAdminStore();
   const { userEmail } = useUserStore();
   const { clientData, clientUsage } = useAdminStore();
-  const navigate = useNavigate();
 
   // Function to check if remove button should be disabled
-  const isRemoveButtonDisabled = (memberRole: string, memberEmail: string) => {
-    const currentUserRole = clientData?.role || "Member";
-    const currentUserEmail = userEmail;
-
-    // User can't remove themselves
-    if (memberEmail === currentUserEmail) {
-      return true;
-    }
-
-    // Super Admin can remove anyone except themselves
-    if (currentUserRole === "Super Admin") {
-      return false;
-    }
-
-    // Admin can't remove Super Admin
-    if (currentUserRole === "Admin" && memberRole === "Super Admin") {
-      return true;
-    }
-
-    // Member can't remove Admin or Super Admin
-    if (
-      currentUserRole === "Member" &&
-      (memberRole === "Admin" || memberRole === "Super Admin")
-    ) {
-      return true;
-    }
-
-    return false;
+  const isRemoveButtonDisabled = () => {
+    return adminId !== activeTeamId;
   };
 
   const [newMembers, setNewMembers] = useState<
     Array<{
       id: string;
-      role: string;
-      dropdownOpen: boolean;
-      email?: string;
-      loading?: boolean;
+      email: string;
+      loading: boolean;
     }>
-  >([]);
+  >([
+    {
+      id: `new-member-${Date.now()}`,
+      email: "",
+      loading: false,
+    },
+  ]);
   const [invites, setInvites] = useState<any[]>([]);
   const [showAddMemberPanel, setShowAddMemberPanel] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  // Get filtered roles based on current user's role
-  const filteredRoles = getAvailableRolesForUser(clientData?.role || "member");
-
-  // NAVIGATION FUNCTIONS
-  const navigateToPlans = () => {
-    navigate("/admin/account/plans");
-  };
 
   useEffect(() => {
     const fetchInvites = async () => {
@@ -113,55 +52,50 @@ const Team = () => {
     fetchInvites();
   }, [activeTeamId]);
 
-  // Add a new member input section
-  const handleAddNewMember = () => {
-    const newMember = {
-      id: `new-member-${Date.now()}`,
-      role: "Member", // Default role is now Member
-      dropdownOpen: false,
-      email: "",
-      loading: false,
-    };
-    setNewMembers((prev) => [...prev, newMember]);
-  };
-
-  // Handle role change for a specific new member
-  const handleNewMemberRoleChange = (
-    memberId: string,
-    newRoleLabel: string
-  ) => {
-    // Validate if the user has permission to assign this role
-    const userRole = clientData?.role || "Member";
-    if (userRole === "Admin" && newRoleLabel === "Super Admin") {
-      toast.error("You do not have permission to assign Super Admin role");
+  // Handle invite submission
+  const handleInviteSubmit = async () => {
+    if (!newMembers[0]?.email) {
+      toast.error("Please enter an email address.");
       return;
     }
-    if (userRole === "Member" && newRoleLabel !== "Member") {
-      toast.error(
-        "You do not have permission to assign Admin or Super Admin roles"
+
+    setNewMembers((prev) =>
+      prev.map((member, index) =>
+        index === 0 ? { ...member, loading: true } : member
+      )
+    );
+
+    try {
+      const res = await inviteTeamMember({
+        teamId: activeTeamId,
+        adminId: adminId,
+        email: newMembers[0].email,
+        role: "Member",
+      });
+
+      if (!res.error) {
+        toast.success("Invite email sent!");
+        refetchClientData();
+        setShowAddMemberPanel(false);
+        setNewMembers([
+          {
+            id: `new-member-${Date.now()}`,
+            email: "",
+            loading: false,
+          },
+        ]);
+      } else {
+        toast.error(res.result || "Failed to invite member");
+      }
+    } catch (err) {
+      toast.error("Failed to invite member");
+    } finally {
+      setNewMembers((prev) =>
+        prev.map((member, index) =>
+          index === 0 ? { ...member, loading: false } : member
+        )
       );
-      return;
     }
-
-    setNewMembers((prev) =>
-      prev.map((member) =>
-        member.id === memberId
-          ? { ...member, role: newRoleLabel, dropdownOpen: false }
-          : member
-      )
-    );
-  };
-
-  // Toggle dropdown for a specific new member (closes others)
-  const toggleNewMemberDropdown = (memberId: string) => {
-    setNewMembers((prev) =>
-      prev.map(
-        (member) =>
-          member.id === memberId
-            ? { ...member, dropdownOpen: !member.dropdownOpen }
-            : { ...member, dropdownOpen: false } // Close other dropdowns
-      )
-    );
   };
 
   // Accept invite handler (mock)
@@ -186,6 +120,7 @@ const Team = () => {
         );
         // Optionally refresh invites
         const updated = await getTeamInvites(activeTeamId || "");
+        refetchClientData;
         setInvites(updated || []);
       } else {
         toast.error(res.result || `Failed to ${status} invite`);
@@ -197,7 +132,7 @@ const Team = () => {
 
   // Remove team member handler
   const handleRemoveTeamMember = async (member: any) => {
-    if (isRemoveButtonDisabled(member.role, member.email)) return;
+    if (isRemoveButtonDisabled()) return;
     setLoading(true);
     try {
       const res = await removeTeamMember({
@@ -207,7 +142,7 @@ const Team = () => {
       });
       if (!res.error) {
         toast.success("Team member removed!");
-        window.location.reload(); // Or trigger a state update if you have a fetch function
+        refetchClientData();
       } else {
         toast.error(res.result || "Failed to remove member");
       }
@@ -226,6 +161,7 @@ const Team = () => {
         <p className="text-gray-600">
           Manage your team members, assign roles and invite new collaborators
         </p>
+
         <div className="flex flex-wrap gap-4 mb-6 w-full mt-8">
           {/* Current Plan */}
           {/* <div className="bg-[#CEFFDC] rounded-lg p-4 justify-between w-[380px]">
@@ -254,14 +190,19 @@ const Team = () => {
                   {clientData?.teamMembers?.length}
                 </span>
                 <span className="text-gray-700">
-                  <span>Team Members</span>
+                  /25 <span>Team Members</span>
                 </span>
               </div>
               <div className="w-full h-3 bg-white rounded-full shadow-[inset_0_3px_3px_0_rgba(0,0,0,0.25)]">
                 <div
-                  className="h-3   bg-[#4D65FF] border border-black rounded-full"
+                  className="h-3  bg-[#4D65FF] border border-black rounded-full"
                   style={{
-                    width: `${10 > 0 ? 20 : 0}%`,
+                    width: `${
+                      clientData?.teamMembers?.length &&
+                      clientData?.teamMembers?.length > 0
+                        ? (clientData?.teamMembers?.length / 25) * 100
+                        : 0
+                    }%`,
                   }}
                 ></div>
               </div>
@@ -270,7 +211,12 @@ const Team = () => {
               <div className="absolute top-[4px] left-[4px] -z-10 bg-[#6AFF97] border border-black w-full h-full"></div>
               <button
                 onClick={() => setShowAddMemberPanel(!showAddMemberPanel)}
-                className="whitespace-nowrap flex items-center gap-2 bg-[#6AFF97] border border-black text-black font-semibold px-4 py-1"
+                disabled={adminId !== activeTeamId}
+                className={`whitespace-nowrap flex items-center gap-2 bg-[#6AFF97] border border-black text-black font-semibold px-4 py-1 ${
+                  adminId !== activeTeamId
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
               >
                 <span className="icon">
                   <Plus className="h-4 w-4 text-black" />
@@ -284,9 +230,8 @@ const Team = () => {
       <div className="below px-12 pt-6">
         {showAddMemberPanel && (
           <div className="new-member-section w-full">
-            {/* New Member Role Selection */}
-            <div className="new-member-role z-20 mt-4 mb-6 flex items-center gap-4 w-1/2 border border-[#000] p-4 rounded-lg relative">
-              {/* Close button */}
+            {/* New Member Invite */}
+            <div className="relative new-member-invite mt-4 mb-6 flex items-center gap-4 w-1/2 border border-[#000] py-10 px-6 rounded-lg">
               <button
                 onClick={() => setShowAddMemberPanel(false)}
                 className="absolute top-2 right-2 text-red-500 hover:text-red-700 transition-colors"
@@ -294,73 +239,6 @@ const Team = () => {
               >
                 <X className="h-5 w-5" />
               </button>
-
-              <h3 className="text-[1.2rem] font-semibold text-gray-800">
-                Assign Role
-              </h3>
-              <div className="relative w-64 flex items-center">
-                <div
-                  className="relative w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white cursor-pointer"
-                  onClick={() => {
-                    if (!newMembers.length) {
-                      handleAddNewMember();
-                    }
-                    toggleNewMemberDropdown(
-                      newMembers[0]?.id || "panel-member"
-                    );
-                  }}
-                >
-                  {newMembers[0]?.role || "Member"}
-                </div>
-                <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0 rounded-r-sm">
-                  <ChevronDown
-                    onClick={() => {
-                      if (!newMembers.length) {
-                        handleAddNewMember();
-                      }
-                      toggleNewMemberDropdown(
-                        newMembers[0]?.id || "panel-member"
-                      );
-                    }}
-                    size={20}
-                    className={`text-[#000000] stroke-[3px] transition-transform cursor-pointer ${
-                      newMembers[0]?.dropdownOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </div>
-
-                {newMembers[0]?.dropdownOpen && (
-                  <div className="absolute z-10 mt-1 top-12 w-full bg-white border border-[#7D7D7D] shadow-lg rounded-sm">
-                    {filteredRoles.map((roleOption) => (
-                      <div
-                        key={roleOption.value}
-                        onClick={() =>
-                          handleNewMemberRoleChange(
-                            newMembers[0]?.id || "panel-member",
-                            roleOption.label
-                          )
-                        }
-                        className={`w-full text-left px-3 py-2 text-sm hover:bg-blue-100 transition-colors flex flex-col cursor-pointer ${
-                          newMembers[0]?.role === roleOption.label
-                            ? "bg-[#AEB8FF]"
-                            : ""
-                        }`}
-                      >
-                        <span className="text-gray-800 font-medium">
-                          {roleOption.label}
-                        </span>
-                        <span className="text-gray-500 text-xs">
-                          {roleOption.value}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* New Member Invite */}
-            <div className="new-member-invite mt-4 mb-6 flex items-center gap-4 w-1/2 border border-[#000] py-10 px-6 rounded-lg">
               <div className="view-email flex flex-col gap-2 w-full">
                 <h3 className="text-[1.2rem] font-semibold text-gray-800">
                   Invite people via email
@@ -371,9 +249,12 @@ const Team = () => {
                   placeholder="Enter email address"
                   value={newMembers[0]?.email || ""}
                   onChange={(e) => {
-                    const email = e.target.value;
                     setNewMembers((prev) =>
-                      prev.map((m, i) => (i === 0 ? { ...m, email } : m))
+                      prev.map((member, index) =>
+                        index === 0
+                          ? { ...member, email: e.target.value }
+                          : member
+                      )
                     );
                   }}
                 />
@@ -382,39 +263,7 @@ const Team = () => {
                   <button
                     className="bg-[#6AFF97] min-w-[100px] relative z-10 text-black px-4 py-2 border border-black"
                     disabled={newMembers[0]?.loading}
-                    onClick={async () => {
-                      if (!newMembers[0]?.email) {
-                        alert("Please enter an email address.");
-                        return;
-                      }
-                      setNewMembers((prev) =>
-                        prev.map((m, i) =>
-                          i === 0 ? { ...m, loading: true } : m
-                        )
-                      );
-                      try {
-                        const res = await inviteTeamMember({
-                          teamId: activeTeamId,
-                          adminId: adminId,
-                          email: newMembers[0].email,
-                          role: newMembers[0].role,
-                        });
-                        if (!res.error) {
-                          toast.success("Invite email sent!");
-                          setShowAddMemberPanel(false);
-                        } else {
-                          toast.error(res.result || "Failed to invite member");
-                        }
-                      } catch (err) {
-                        toast.error("Failed to invite member");
-                      } finally {
-                        setNewMembers((prev) =>
-                          prev.map((m, i) =>
-                            i === 0 ? { ...m, loading: false } : m
-                          )
-                        );
-                      }
-                    }}
+                    onClick={handleInviteSubmit}
                   >
                     {newMembers[0]?.loading ? "Inviting..." : "Invite"}
                   </button>
@@ -497,17 +346,11 @@ const Team = () => {
                             <div className="flex gap-1.5 items-center justify-center">
                               <button
                                 className={`bg-[#FF9797] text-[#000] w-24 py-2 rounded-full border border-[#000] text-sm ${
-                                  isRemoveButtonDisabled(
-                                    member.role,
-                                    member.email
-                                  )
+                                  isRemoveButtonDisabled()
                                     ? "opacity-50 cursor-not-allowed"
                                     : ""
                                 }`}
-                                disabled={isRemoveButtonDisabled(
-                                  member.role,
-                                  member.email
-                                )}
+                                disabled={isRemoveButtonDisabled()}
                                 onClick={() => handleRemoveTeamMember(member)}
                               >
                                 Remove
