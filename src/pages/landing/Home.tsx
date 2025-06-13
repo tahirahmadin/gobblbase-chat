@@ -342,7 +342,217 @@ const CTAButton = styled.button`
     background: #d6ffe0;
   }
 `;
+const FeaturesSection = styled.article`Add commentMore actions
+  text-align: left;
+  padding: 6vh 2vw 5vh 2vw;
+  height: 100%;
+  background: #ffd2ba;
+  border: 1px solid #000000;
+  @media (max-width: 900px) {
+    padding: 2vh 3vw 2vh 3vw;
+    flex-direction: column;
+  }
+`;
 
+const FeaturesRow = styled.div`
+  margin-top: 6vh;
+  display: flex;
+  gap: 4vw;
+  width: 100%;
+  min-height: 380px;
+  background: #ffd2ba;
+  @media (max-width: 900px) {
+    flex-direction: column;
+    min-height: 500px;
+    margin-top: 0vh;
+  }
+  @media (max-width: 600px) {
+    min-height: 400px;
+  }
+`;
+
+const FeaturesLeft = styled.div`
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+  @media (max-width: 900px) {
+    width: 100%;
+    height: 50%;
+  }
+`;
+
+const FeaturesList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  position: relative;
+  @media (max-width: 900px) {
+    width: 100%;
+    gap: 24px;
+  }
+  @media (max-width: 600px) {
+    width: 100%;
+  }
+`;
+
+const FeatureListLabelBox = styled.div`
+  display: flex;
+  align-items: center;
+  z-index: 2;
+  position: relative;
+`;
+const FeatureListItem = styled.button<{ selected: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  // background: ${({ selected }) => (selected ? "#6AFF97" : "#fff")};
+  background: #ffd2ba;
+  cursor: pointer;
+  width: 100%;
+  position: relative;
+  z-index: 20;
+  @media (max-width: 900px) {
+    min-height: 44px;
+    flex-direction: row-reverse
+    align-items: start;
+  }
+`;
+
+const FeatureListLabel = styled.div`
+  color: #444;
+  font-size: clamp(0.8rem, 4vw, 1rem);
+  font-weight: 800;
+  text-align: left;
+  border-radius: 900px;
+  width: calc(100%);
+  height: 100%;
+  padding: 2vh 2vw;
+  position: relative;
+  border: 1px solid black;
+  @media (max-width: 768px) {
+    width: 90%;
+    margin: 0 auto;
+    border: 1px solid #000000;
+    padding: 2vh 5vw 2vh 2vw;
+  }
+`;
+
+const FeatureListH1 = styled.h2`
+  font-family: "DM Sans", sans-serif;
+  font-size: clamp(15px, 4vw, 16px);
+  font-weight: 600;
+  color: #000000;
+  text-align: right;
+  white-space: nowrap;
+`;
+const FeatureIcon = styled.div`
+  width: 44px;
+  height: 44px;
+  border: 1px solid #000000;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  z-index: 1;
+  @media (max-width: 900px) {
+    width: 48px;
+    height: 48px;
+  }
+  @media (max-width: 400px) {
+    width: 38px;
+    height: 38px;
+  }
+`;
+
+const FeatureListDesc = styled.div`
+  font-family: "DM Sans", sans-serif;
+  font-size: 1rem;
+  color: #222;
+  font-weight: 400;
+  text-align: right;
+  white-space: nowrap;
+  @media (max-width: 900px) {
+    white-space: wrap;
+  }
+`;
+
+const FeaturesRight = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50%;
+  height: 100%;
+  @media (max-width: 900px) {
+    width: 100%;
+    height: 50%;
+  }
+  @media (max-width: 600px) {
+    width: 100%;
+  }
+`;
+const FeatureImageBoxContainer = styled.div`
+  border-radius: 18px;
+  align-items: center;
+  justify-content: center;
+  display: none;
+  width: 100%;
+  height: 100%;
+  @media (max-width: 900px) {
+    width: 100%;
+    display: flex
+  }
+
+    img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+  }
+ `;
+const FeatureImageBox = styled.div`
+  border-radius: 18px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  @media (max-width: 900px) {
+    width: 100%;
+    display: none;
+  }
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+`;
+
+// Add icons for each feature (use emoji or SVG placeholder for now)
+const FeatureIcons = [
+  "/assets/icons/black-message-icon.svg",
+  "/assets/icons/black-buy-icon.svg", // Sell Products
+  "/assets/icons/black-calendar-icon.svg", // Book Appointments
+  "/assets/icons/black-profile-icon.svg", // Capture Leads
+  "/assets/icons/black-creditcard-icon.svg", // Accept Payments
+  "/assets/icons/black-popup-icon.svg", // Send Confirmations
+  "/assets/icons/black-link-icon.svg", // Integrates MCP Servers
+];
+
+const selectedFeatureIcons = [
+  "/assets/icons/message-icon.svg",
+  "/assets/icons/buy-icon.svg", // Sell Products
+  "/assets/icons/calendar-icon.svg", // Book Appointments
+  "/assets/icons/profile-icon.svg", // Capture Leads
+  "/assets/icons/creditcard-icon.svg", // Accept Payments
+  "/assets/icons/popup-icon.svg", // Send Confirmations
+  "/assets/icons/link-icon.svg", // Integrates MCP Servers
+];
 const PracticalSection = styled.section`
   background: #aeb8ff;
   text-align: left;
@@ -1575,7 +1785,7 @@ const Home = () => {
                 </span>
               </BlackBackground>
               <WhiteBackground
-                style={{ width: "80%", marginLeft: "auto", marginRight: "0" }}
+                style={{ width: "80%", marginLeft: "auto", marginRight: "2vw" }}
               >
                 <span className="para-font mt-4 font-[400] text-[1rem]">
                   Imagine an AI that does the work of an entire team: selling
@@ -1596,7 +1806,7 @@ const Home = () => {
                 {/* for mobile */}
                 <div className="hidden w-full max-[800px]:flex w-full justify-center mb-6">
                   <WhiteBackground
-                    style={{ margin: "0 2vw", width: "100%" }}
+                    style={{ margin: "0 2vw", width: "90%" }}
                     className=""
                   >
                     <span style={{ padding: "2vh 2vw", width: "100%" }}>
@@ -1799,6 +2009,170 @@ const Home = () => {
               </PracticalCard>
             </CardsRow>
           </section>
+
+         {/* What can Sayy do? */}
+        {/* <section className="practial-section flex flex-col gap-4 relative w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw]">
+          <FeaturesSection className="hidden [@media(max-width:900px)]:block">
+            <BlackBackground>
+              <span className="card-1 relative z-10 w-full h-fit">
+                <h1 className="px-3">What can Sayy Do?</h1>
+              </span>
+            </BlackBackground>
+            <div className="icon-container flex gap-1 sm:gap-2 justify-between sm:justify-center items-center mt-2 sm:mt-12">
+              {features.map((feature, idx) => (
+                <button
+                  key={feature.key}
+                  onClick={() => {
+                    const el = document.getElementById(
+                      `feature-${feature.key}`
+                    );
+                    if (el)
+                      el.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                      });
+                    setSelectedFeature(feature.key);
+                    setUserSelected(true); // <-- add this
+                  }}
+                >
+                  <FeatureIcon
+                    className={`flex
+                        ${
+                          feature.key === selectedFeature
+                            ? "bg-[#000] text-[#64FFB7] "
+                            : "bg-white text-[#000]"
+                        }
+                        `}
+                  >
+                    <img
+                      src={
+                        feature.key === selectedFeature
+                          ? selectedFeatureIcons[idx]
+                          : FeatureIcons[idx]
+                      }
+                      alt=""
+                    />
+                  </FeatureIcon>
+                </button>
+              ))}
+            </div>
+          </FeaturesSection>
+          <FeaturesSection>
+            <div className="hidden [@media(min-width:900px)]:block">
+              <BlackBackground className="">
+                <span className="card-1 relative z-10 w-full h-fit">
+                  <h1 className="para-font px-3">What can Sayy Do?</h1>
+                </span>
+              </BlackBackground>
+            </div>
+            <FeaturesRow>
+              <FeaturesRight>
+                <FeatureImageBox className="">
+                  <img src={selected?.image} alt={selected?.label} />
+                </FeatureImageBox>
+              </FeaturesRight>
+              <FeaturesLeft>
+                <FeaturesList>
+                  {features.map((feature, idx) => (
+                    <FeatureListLabelBox
+                      id={`feature-${feature.key}`}
+                      key={feature.key}
+                      className={`relative z-[1] flex flex-col ${
+                        feature.key === selectedFeature
+                          ? "mb-[0] sm:mb-[0]"
+                          : "mb-0"
+                      } `}
+                    >
+                      <FeatureListItem
+                        selected={selectedFeature === feature.key}
+                        onClick={() => {
+                          setSelectedFeature(feature.key);
+                          setUserSelected(true);
+                        }}
+                      >
+                        <FeatureListLabel
+                          className={`w-full pl-4 pr-3 py-4
+                               ${
+                                 feature.key === selectedFeature
+                                   ? "bg-[#64FFB7]"
+                                   : "bg-white"
+                               } 
+                                before:content-[''] before:absolute before:w-0 before:h-0
+                                before:border-l-[20px] before:border-r-[20px] before:border-b-[20px]
+                                before:border-l-transparent before:border-r-transparent before:z-[0]
+                                ${
+                                  feature.key === selectedFeature
+                                    ? "before:border-b-[#64FFB7] before:bottom-[0px] before:right-[0px] before:translate-y-[-0.01rem] xs:before:translate-y-[-0.01rem] before:translate-x-[-0.1rem] xs:before:translate-x-[0.25rem] after:bottom-[0px] after:right-[0] after:translate-x-[0.08rem] xs:after:translate-x-[0.4rem] after:translate-y-[0.05rem]"
+                                    : "before:border-b-white before:bottom-[0px] before:right-[0] before:translate-y-[-0.01rem] xs:before:translate-y-[-0.01rem] before:translate-x-[-0.1rem] xs:before:translate-x-[0.25rem] after:bottom-[0px] after:right-[0px] after:translate-x-[0.08rem] xs:after:translate-x-[0.4rem] after:translate-y-[0.05rem]"
+                                } 
+
+                                after:content-[''] after:absolute after:w-0 after:h-0
+                                after:border-l-[22px] after:border-r-[22px] after:border-b-[22px]
+                                after:border-l-transparent after:border-r-transparent after:border-b-black after:z-[-1]
+                          `}
+                        >
+                          <FeatureListH1>{feature.label}</FeatureListH1>
+
+                          <div className="block max-[900px]:block min-[901px]:hidden pl-5">
+                            <FeatureListDesc>{feature?.desc}</FeatureListDesc>
+                          </div>
+
+                          {feature.key === selectedFeature && (
+                            <div className="hidden max-[900px]:hidden min-[901px]:block">
+                              <FeatureListDesc>
+                                {selected?.desc}
+                              </FeatureListDesc>
+                            </div>
+                          )}
+                          <FeatureIcon
+                            className={`hidden [@media(max-width:900px)]:flex absolute -left-4 top-1/2 -translate-y-1/2
+                            ${
+                              feature.key === selectedFeature
+                                ? "bg-[#000] text-[#64FFB7]"
+                                : "bg-white text-[#000]"
+                            }
+                          `}
+                          >
+                            <img
+                              src={
+                                feature.key === selectedFeature
+                                  ? selectedFeatureIcons[idx]
+                                  : FeatureIcons[idx]
+                              }
+                              alt=""
+                            />
+                          </FeatureIcon>
+                        </FeatureListLabel>
+                        <FeatureIcon
+                          className={`flex [@media(max-width:900px)]:hidden
+                           ${
+                             feature.key === selectedFeature
+                               ? "bg-[#000] text-[#64FFB7] "
+                               : "bg-white text-[#000]"
+                           }
+                          `}
+                        >
+                          <img
+                            src={
+                              feature.key === selectedFeature
+                                ? selectedFeatureIcons[idx]
+                                : FeatureIcons[idx]
+                            }
+                            alt=""
+                          />
+                        </FeatureIcon>
+                      </FeatureListItem>
+
+                      <FeatureImageBoxContainer className="below-img mt-2">
+                        <img src={feature?.image} alt={feature?.label} />
+                      </FeatureImageBoxContainer>
+                    </FeatureListLabelBox>
+                  ))}
+                </FeaturesList>
+              </FeaturesLeft>
+            </FeaturesRow>
+          </FeaturesSection>
+        </section> */}
 
           <section
             className="practial-section relative w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw] py-[6vh] max-[900px]:pb-0"

@@ -366,9 +366,9 @@ export default function AboutSection({
       <div className="flex-grow overflow-y-auto pb-16">
         <div className="flex flex-col items-center w-full">
           {/* Profile Section */}
-          <div className="flex flex-col items-center mt-3 space-y-2">
+          <div className="flex flex-col items-center mt-8 space-y-2">
             {/* Profile Image */}
-            <div className="w-20 h-20 rounded-full overflow-hidden">
+            <div className="w-24 h-24 rounded-full overflow-hidden">
               <img
                 src={agentPicture || ""}
                 alt="Agent"

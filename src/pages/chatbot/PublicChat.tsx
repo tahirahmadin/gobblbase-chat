@@ -524,9 +524,10 @@ export default function PublicChat({
             />
             <meta name="twitter:image" content={currentConfig.logo} />
           </Helmet>
+          {/* for big screen about section in left */}
           {
             !isPreview ? (
-              <div className="w-1/3  hidden md:block overflow-y-auto h-screen border-r-2 border-black">
+              <div className={`w-1/3 hidden md:block overflow-y-auto h-screen border-r ${theme.isDark ? "border-white" : "border-black"}`}>
                   <AboutSection
                     theme={currentConfig.themeColors}
                     currentConfig={currentConfig}
@@ -576,7 +577,7 @@ export default function PublicChat({
                     currentConfig={currentConfig}
                     socials={currentConfig?.socials}
                     customHandles={currentConfig?.customHandles}
-                    
+
                   />
                 </div>
               )
@@ -624,19 +625,19 @@ export default function PublicChat({
 
                   {showCues && currentConfig?.prompts && (
                     <div
-                      className="p-2 grid grid-cols-1 gap-1"
+                      className="p-2 grid grid-cols-1 gap-1 "
                       style={{
                         backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
                       }}
                     >
                       {[currentConfig.prompts].map((row, i) => (
-                        <div key={i} className="grid grid-cols-2 gap-2">
+                        <div key={i} className={`grid gap-2 ${isPreview ? "grid-cols-2" : "grid-cols-2 md:grid-cols-1"}`}>
                           {row.map((cue) => (
                             <button
                               key={cue}
                               onClick={() => handleCueClick(cue)}
                               disabled={isLoading}
-                              className="px-2 py-1 rounded-xl text-xs font-medium"
+                              className={`px-2 py-2 rounded-xl text-xs font-medium ${isPreview ? "w-full" : "w-full md:w-fit md:min-w-[120px] md:ml-auto md:pr-12 md:pl-4"} `}
                               style={{
                                 backgroundColor: theme.isDark
                                   ? "#1c1c1c"
