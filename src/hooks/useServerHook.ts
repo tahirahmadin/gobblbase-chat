@@ -30,13 +30,15 @@ export const useServerHook = ({ initHook = false }: { initHook: boolean }) => {
       if (typeof window !== "undefined") {
         storedAgentId = localStorage.getItem("activeBotId");
       }
-      const found =
+      const inTeamAgentFound =
         storedAgentId && agents.find((a) => a.agentId === storedAgentId);
-      if (found) {
-        console.log("found", found);
-        setActiveBotId(found.agentId);
-        if (activeTeamId !== found.teamId) {
-          setActiveTeamId(found.teamId);
+      console.log("agents", agents);
+      console.log("inTeamAgentFound", inTeamAgentFound);
+
+      if (inTeamAgentFound) {
+        setActiveBotId(inTeamAgentFound.agentId);
+        if (activeTeamId !== inTeamAgentFound.teamId) {
+          setActiveTeamId(inTeamAgentFound.teamId);
         }
       } else if (activeBotId === null) {
         setActiveBotId(agents[0].agentId);

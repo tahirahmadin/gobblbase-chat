@@ -33,10 +33,10 @@ const availableRoles = [
 const getAvailableRolesForUser = (userRole: string) => {
   if (userRole === "Super Admin") {
     return availableRoles; // Super Admin can assign all roles
-  } else if (userRole === "Admin") {
+  } else if (userRole === "admin") {
     return availableRoles.filter((role) => role.label !== "Super Admin"); // Admin can assign Admin and Member roles
   } else {
-    return availableRoles.filter((role) => role.label === "Member"); // Regular members can only assign Member role
+    return availableRoles.filter((role) => role.label === "member"); // Regular members can only assign Member role
   }
 };
 
@@ -92,7 +92,7 @@ const Team = () => {
   const [loading, setLoading] = useState(false);
 
   // Get filtered roles based on current user's role
-  const filteredRoles = getAvailableRolesForUser(clientData?.role || "Member");
+  const filteredRoles = getAvailableRolesForUser(clientData?.role || "member");
 
   // NAVIGATION FUNCTIONS
   const navigateToPlans = () => {
@@ -197,7 +197,7 @@ const Team = () => {
   return (
     <section className="h-full overflow-x-hidden">
       {console.log(clientData)}
-      {console.log(isRemoveButtonDisabled)}
+
       {/* upper side title and toggle btn  */}
       <div className="upper px-12 pt-12">
         <h2 className="text-2xl font-semibold text-gray-900">Team</h2>
@@ -206,7 +206,7 @@ const Team = () => {
         </p>
         <div className="flex flex-wrap gap-4 mb-6 w-full mt-8">
           {/* Current Plan */}
-          <div className="bg-[#CEFFDC] rounded-lg p-4 justify-between w-[380px]">
+          {/* <div className="bg-[#CEFFDC] rounded-lg p-4 justify-between w-[380px]">
             <span className="text-[0.9rem] text-gray-600">Current Plan</span>
             <div className="flex items-center justify-between">
               <span className="font-semibold text-[1.2rem]">
@@ -222,7 +222,7 @@ const Team = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Team members */}
           <div className="bg-[#D4DEFF] rounded-lg p-4 flex items-end gap-4 flex justify-between w-[500px]">
@@ -232,7 +232,7 @@ const Team = () => {
                   {clientData?.teamMembers?.length}
                 </span>
                 <span className="text-gray-700">
-                  /10 <span>Team Members</span>
+                  <span>Team Members</span>
                 </span>
               </div>
               <div className="w-full h-3 bg-white rounded-full shadow-[inset_0_3px_3px_0_rgba(0,0,0,0.25)]">
@@ -247,7 +247,7 @@ const Team = () => {
             <div className="relative z-10">
               <div className="absolute top-[4px] left-[4px] -z-10 bg-[#6AFF97] border border-black w-full h-full"></div>
               <button
-                onClick={() => setShowAddMemberPanel(true)}
+                onClick={() => setShowAddMemberPanel(!showAddMemberPanel)}
                 className="whitespace-nowrap flex items-center gap-2 bg-[#6AFF97] border border-black text-black font-semibold px-4 py-1"
               >
                 <span className="icon">
@@ -259,172 +259,9 @@ const Team = () => {
           </div>
         </div>
       </div>
-
-      {/* Team manage table  */}
-      <div className="middle px-12 pt-6">
-        <div className="bg-[#EEEEEE] border border-gray-200 p-6 rounded-lg">
-          <div className=" h-[100%] overflow-y-auto">
-            {/* products manage in mob  table for large file  */}
-            <div className="hidden md:block">
-              <table className="w-full min-w-[500px] border-separate border-spacing-y-2">
-                <thead className="sticky top-0  rounded-t-lg bg-[#CEFFDC] z-5 ">
-                  <tr className="">
-                    <th className="py-1.5 px-2 text-left text-sm rounded-l-[12px] text-center">
-                      TEAM MEMBER
-                    </th>
-                    <th className="py-1.5 px-2 text-left text-sm text-center">
-                      EMAIL
-                    </th>
-                    <th className="py-1.5 px-2 text-left text-sm text-center">
-                      ASSIGNED ROLE
-                    </th>
-
-                    <th className=" py-1.5 px-2 text-left text-sm rounded-r-[12px] text-center">
-                      ACTIONS
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white">
-                  {loading ? (
-                    <tr>
-                      <td colSpan={5} className="text-center py-4 text-sm">
-                        Loading...
-                      </td>
-                    </tr>
-                  ) : !clientData?.teamMembers ||
-                    clientData.teamMembers.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="text-center py-4 text-sm">
-                        No team members found.
-                      </td>
-                    </tr>
-                  ) : (
-                    clientData.teamMembers.map((member) => (
-                      <tr key={member.email} className="border-t text-center">
-                        <td className="py-1.5 px-12 text-sm text-left rounded-l-[12px]">
-                          <div className="flex items-center gap-1.5 justify-start ">
-                            {/* No avatar/name in API, just show email prefix as name */}
-                            <div className="uppercase text-[0.9rem]">
-                              {member.email.split("@")[0]}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-1.5 px-2 text-sm text-center">
-                          {member.email}
-                        </td>
-                        <td className="py-1.5 px-12 text-sm text-left rounded-l-[12px]">
-                          <div className="flex items-center gap-1.5 justify-start ">
-                            {/* No avatar/name in API, just show email prefix as name */}
-                            <div className="uppercase text-[0.9rem]">
-                              {member.role}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-1.5 px-2 rounded-r-[12px] ">
-                          <div className="flex gap-1.5 items-center justify-center">
-                            <button
-                              className={`bg-[#FF9797] text-[#000] w-24 py-2 rounded-full border border-[#000] text-sm ${
-                                isRemoveButtonDisabled(
-                                  member.role,
-                                  member.email
-                                )
-                                  ? "opacity-50 cursor-not-allowed"
-                                  : ""
-                              }`}
-                              disabled={isRemoveButtonDisabled(
-                                member.role,
-                                member.email
-                              )}
-                              onClick={() => {
-                                if (
-                                  !isRemoveButtonDisabled(
-                                    member.role,
-                                    member.email
-                                  )
-                                ) {
-                                  // Add your remove member logic here
-                                }
-                              }}
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        {/* Invites Table */}
-        <div className="bg-[#FFFBEA] border border-yellow-300 p-6 rounded-lg mt-8">
-          <h3 className="text-lg font-bold mb-4">Pending Invites</h3>
-          <table className="w-full min-w-[400px] border-separate border-spacing-y-4">
-            <thead>
-              <tr>
-                <th className="py-1.5 px-2 text-left text-sm">Team Name</th>
-                <th className="py-1.5 px-2 text-left text-sm">Email</th>
-                <th className="py-1.5 px-2 text-left text-sm">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invites.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="text-center py-4 text-sm">
-                    No invites found.
-                  </td>
-                </tr>
-              ) : (
-                invites.map((invite, idx) => (
-                  <tr
-                    key={invite.email || idx}
-                    className="bg-white border border-gray-300 rounded-lg shadow-md"
-                    style={{
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
-                      borderRadius: 12,
-                    }}
-                  >
-                    <td className="py-3 px-4 font-semibold text-base text-gray-800 rounded-l-lg">
-                      {invite.teamName || "Unknown Team"}
-                    </td>
-                    <td className="py-3 px-4 text-sm text-gray-600">
-                      {invite.email}
-                    </td>
-                    <td className="py-3 px-4 rounded-r-lg flex gap-2 items-center justify-center">
-                      <button
-                        className="bg-[#6AFF97] border border-black px-4 py-2 rounded text-black font-semibold hover:bg-[#4D65FF] hover:text-white transition-colors shadow"
-                        onClick={() => handleInviteAction(invite, "accepted")}
-                      >
-                        Accept
-                      </button>
-                      <button
-                        className="bg-[#FF9797] border border-black px-4 py-2 rounded text-black font-semibold hover:bg-[#FF4D4D] hover:text-white transition-colors shadow"
-                        onClick={() => handleInviteAction(invite, "rejected")}
-                      >
-                        Reject
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
       <div className="below px-12 pt-6">
-        <button
-          className="new-member flex items-center gap-2"
-          onClick={() => setShowAddMemberPanel(true)}
-        >
-          <Plus className="h-4 w-4" />
-          <span className="main-font text-[1.2rem]">New Member</span>
-        </button>
-
         {showAddMemberPanel && (
-          <div className="new-member-section">
+          <div className="new-member-section w-full">
             {/* New Member Role Selection */}
             <div className="new-member-role z-20 mt-4 mb-6 flex items-center gap-4 w-1/2 border border-[#000] p-4 rounded-lg relative">
               {/* Close button */}
@@ -455,8 +292,16 @@ const Team = () => {
                 </div>
                 <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0 rounded-r-sm">
                   <ChevronDown
+                    onClick={() => {
+                      if (!newMembers.length) {
+                        handleAddNewMember();
+                      }
+                      toggleNewMemberDropdown(
+                        newMembers[0]?.id || "panel-member"
+                      );
+                    }}
                     size={20}
-                    className={`text-[#000000] stroke-[3px] transition-transform ${
+                    className={`text-[#000000] stroke-[3px] transition-transform cursor-pointer ${
                       newMembers[0]?.dropdownOpen ? "rotate-180" : ""
                     }`}
                   />
@@ -556,6 +401,168 @@ const Team = () => {
             </div>
           </div>
         )}
+      </div>
+      {/* Team manage table  */}
+      <div className="middle px-12 pt-6">
+        <div className="bg-[#EEEEEE] border border-gray-200 p-6 rounded-lg">
+          <div className=" h-[100%] overflow-y-auto">
+            {/* products manage in mob  table for large file  */}
+            <div className="hidden md:block">
+              <table className="w-full min-w-[500px] border-separate border-spacing-y-2">
+                <thead className="sticky top-0  rounded-t-lg bg-[#CEFFDC] z-5 ">
+                  <tr className="">
+                    <th className="py-1.5 px-6 text-left text-sm rounded-l-[12px] ">
+                      TEAM MEMBER
+                    </th>
+                    <th className="py-1.5 px-2 text-left text-sm ">EMAIL</th>
+                    <th className="py-1.5 px-2 text-left text-sm ">
+                      ASSIGNED ROLE
+                    </th>
+                    <th className="py-1.5 px-2 text-left text-sm ">STATUS</th>
+
+                    <th className=" py-1.5 px-2 text-left text-sm rounded-r-[12px] text-center">
+                      ACTIONS
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={5} className="text-center py-4 text-sm">
+                        Loading...
+                      </td>
+                    </tr>
+                  ) : !clientData?.teamMembers ||
+                    clientData.teamMembers.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="text-center py-4 text-sm">
+                        No team members found.
+                      </td>
+                    </tr>
+                  ) : (
+                    clientData.teamMembers
+                      .sort((a, b) => a.status.localeCompare(b.status))
+                      .map((member) => (
+                        <tr key={member.email} className="border-t text-center">
+                          <td className="py-1.5 px-6 text-sm text-left rounded-l-[12px]">
+                            <div className="flex items-center gap-1.5 justify-start ">
+                              {/* No avatar/name in API, just show email prefix as name */}
+                              <div className="uppercase text-[0.9rem]">
+                                {member.email.split("@")[0]}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-1.5 px-2 text-sm text-left">
+                            {member.email}
+                          </td>
+                          <td className="py-1.5 px-2 text-sm text-left ">
+                            <div className="flex items-center gap-1.5 justify-start ">
+                              {/* No avatar/name in API, just show email prefix as name */}
+                              <div className="uppercase text-[0.9rem]">
+                                {member.role}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-1.5 px-2 text-sm text-left ">
+                            <div className="flex items-center gap-1.5 justify-start ">
+                              {/* No avatar/name in API, just show email prefix as name */}
+                              <div className="uppercase text-[0.9rem]">
+                                {member.status}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-1.5 px-2 ">
+                            <div className="flex gap-1.5 items-center justify-center">
+                              <button
+                                className={`bg-[#FF9797] text-[#000] w-24 py-2 rounded-full border border-[#000] text-sm ${
+                                  isRemoveButtonDisabled(
+                                    member.role,
+                                    member.email
+                                  )
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
+                                }`}
+                                disabled={isRemoveButtonDisabled(
+                                  member.role,
+                                  member.email
+                                )}
+                                onClick={() => {
+                                  if (
+                                    !isRemoveButtonDisabled(
+                                      member.role,
+                                      member.email
+                                    )
+                                  ) {
+                                    // Add your remove member logic here
+                                  }
+                                }}
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        {/* Invites Table */}
+        <div className="bg-[#FFFBEA] border border-yellow-300 p-6 rounded-lg mt-8">
+          <h3 className="text-lg font-bold mb-4">Pending Invites</h3>
+          <table className="w-full min-w-[400px] border-separate border-spacing-y-4">
+            <thead>
+              <tr>
+                <th className="py-1.5 px-2 text-left text-sm">Team Name</th>
+                <th className="py-1.5 px-2 text-left text-sm">Email</th>
+                <th className="py-1.5 px-2 text-left text-sm">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {invites.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="text-center py-4 text-sm">
+                    No invites found.
+                  </td>
+                </tr>
+              ) : (
+                invites.map((invite, idx) => (
+                  <tr
+                    key={invite.email || idx}
+                    className="bg-white border border-gray-300 rounded-lg shadow-md"
+                    style={{
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+                      borderRadius: 12,
+                    }}
+                  >
+                    <td className="py-3 px-4 font-semibold text-base text-gray-800 rounded-l-lg">
+                      {invite.teamName || "Unknown Team"}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-600">
+                      {invite.email}
+                    </td>
+                    <td className="py-3 px-4 rounded-r-lg flex gap-2 items-center justify-center">
+                      <button
+                        className="bg-[#6AFF97] border border-black px-4 py-2 rounded text-black font-semibold hover:bg-[#4D65FF] hover:text-white transition-colors shadow"
+                        onClick={() => handleInviteAction(invite, "accepted")}
+                      >
+                        Accept
+                      </button>
+                      <button
+                        className="bg-[#FF9797] border border-black px-4 py-2 rounded text-black font-semibold hover:bg-[#FF4D4D] hover:text-white transition-colors shadow"
+                        onClick={() => handleInviteAction(invite, "rejected")}
+                      >
+                        Reject
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );

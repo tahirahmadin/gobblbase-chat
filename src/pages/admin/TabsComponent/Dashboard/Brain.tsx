@@ -1901,8 +1901,8 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                 <path
                   d="M34.8312 6.60821C53.8154 8.29096 61.9708 22.7212 62.4349 36.7213"
                   stroke="#4D65FF"
-                  stroke-width="5"
-                  stroke-linecap="round"
+                  strokeWidth="5"
+                  strokeLinecap="round"
                 />
                 <g filter="url(#filter1_d_5068_3436)">
                   <rect
@@ -1958,8 +1958,8 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                 <path
                   d="M34.8312 6.60821C53.8154 8.29096 61.9708 22.7212 62.4349 36.7213"
                   stroke="#4D65FF"
-                  stroke-width="5"
-                  stroke-linecap="round"
+                  strokeWidth="5"
+                  strokeLinecap="round"
                 />
                 <g filter="url(#filter1_d_5068_3436)">
                   <rect
@@ -1984,7 +1984,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       </div>
 
       {/* Agent Language */}
-      <div className="mb-8 flex flex-row items-center gap-5">
+      {/* <div className="mb-8 flex flex-row items-center gap-5">
         <h1 className="para-font text-[#000000] block text-sm font-medium whitespace-nowrap">
           Agent Language
         </h1>
@@ -2023,7 +2023,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             </div>
           )}
         </div>
-      </div>
+      </div> */}
 
       {/* Tab Navigation */}
       <div className="flex flex-wrap gap-2 mb-8">

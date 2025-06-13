@@ -82,7 +82,7 @@ const Overview = () => {
     };
 
     fetchAnalytics();
-  }, [adminId]);
+  }, [activeTeamId]);
 
   useEffect(() => {
     if (activeBotData?.logo) {
@@ -138,13 +138,15 @@ const Overview = () => {
       value: analyticsData?.bookingsReceived,
     },
   ];
-
+  {
+    console.log("adminId", adminId);
+  }
+  {
+    console.log("activeTeamId", activeTeamId);
+  }
   return (
     <div className="overflow-scroll h-[100%]">
       {/* Top Section: Agent Info and Plan */}
-
-      {console.log("adminId", adminId)}
-      {console.log("activeTeamId", activeTeamId)}
 
       <div className="p-6 flex flex-col sm:flex-row sm:items-end lg:items-start xl:items-end gap-6 sm:gap-2 md:gap-6 mb-6 items-start justify-between">
         <div>
@@ -261,8 +263,8 @@ const Overview = () => {
                 <path
                   d="M34.8312 6.60821C53.8154 8.29096 61.9708 22.7212 62.4349 36.7213"
                   stroke="#4D65FF"
-                  stroke-width="5"
-                  stroke-linecap="round"
+                  strokeWidth="5"
+                  strokeLinecap="round"
                 />
                 <g filter="url(#filter1_d_5068_3436)">
                   <rect
@@ -327,8 +329,8 @@ const Overview = () => {
                 <path
                   d="M34.8312 6.60821C53.8154 8.29096 61.9708 22.7212 62.4349 36.7213"
                   stroke="#4D65FF"
-                  stroke-width="5"
-                  stroke-linecap="round"
+                  strokeWidth="5"
+                  strokeLinecap="round"
                 />
                 <g filter="url(#filter1_d_5068_3436)">
                   <rect

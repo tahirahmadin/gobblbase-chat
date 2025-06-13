@@ -28,86 +28,9 @@ interface NavItem {
   subItems?: SubNavItem[];
 }
 
-const navItems: NavItem[] = [
-  {
-    name: "Dashboard",
-    icon: <LayoutDashboard className="w-5 h-5" />,
-    path: "/admin/dashboard",
-    expandable: true,
-    subItems: [{ name: "All Agents", path: "/admin/all-agents" }],
-  },
-  {
-    name: "Agent Setup",
-    icon: <Bot className="w-5 h-5" />,
-    path: "/admin/dashboard",
-    expandable: true,
-    subItems: [
-      { name: "Overview", path: "/admin/dashboard/overview" },
-      { name: "Profile", path: "/admin/dashboard/profile" },
-      { name: "Brain/PDF", path: "/admin/dashboard/brain" },
-      { name: "AI Model", path: "/admin/dashboard/ai-model" },
-      { name: "Voice", path: "/admin/dashboard/voice" },
-      { name: "Theme", path: "/admin/dashboard/theme" },
-      { name: "Welcome Text", path: "/admin/dashboard/welcome" },
-      { name: "Prompts", path: "/admin/dashboard/prompts" },
-    ],
-  },
-
-  {
-    name: "Products",
-    icon: <Package className="w-5 h-5" />,
-    path: "/admin/products",
-    expandable: true,
-    subItems: [
-      { name: "Add Product", path: "/admin/commerce/add" },
-      { name: "Manage", path: "/admin/commerce/manage" },
-      { name: "Orders", path: "/admin/operations/orders" },
-      { name: "Bookings", path: "/admin/commerce/calendar" },
-      { name: "Policies", path: "/admin/commerce/policies" },
-    ],
-  },
-
-  {
-    name: "CRM",
-    icon: <Users className="w-5 h-5" />,
-    path: "/admin/crm",
-    expandable: true,
-    subItems: [
-      { name: "Customer Leads", path: "/admin/crm/leads" },
-      { name: "Chat Logs", path: "/admin/crm/chat-logs" },
-    ],
-  },
-  {
-    name: "Settings",
-    icon: <Briefcase className="w-5 h-5" />,
-    path: "/admin/operations",
-    expandable: true,
-    subItems: [
-      { name: "Email", path: "/admin/operations/email" },
-      { name: "Integrations", path: "/admin/operations/integrations" },
-      { name: "Embed", path: "/admin/operations/embed" },
-    ],
-  },
-  {
-    name: "Account",
-    icon: <Users className="w-5 h-5" />,
-    path: "/admin/account",
-    expandable: true,
-    subItems: [
-      // { name: "Billing", path: "/admin/account/billing" },
-      { name: "Income", path: "/admin/account/income" },
-      { name: "Payments", path: "/admin/account/payments" },
-      { name: "Plans", path: "/admin/account/plans" },
-      { name: "Usage", path: "/admin/account/usage" },
-      {name: "Team", path: "/admin/account/team" },
-    ],
-  },
-  {
-    name: "Support",
-    icon: <Headphones className="w-5 h-5" />,
-    path: "/admin/support",
-  },
-];
+interface SidebarProps {
+  onClose?: () => void;
+}
 
 // LogoutModal component (popup style above button)
 const LogoutModal = ({
@@ -175,21 +98,98 @@ const LogoutModal = ({
   );
 };
 
-interface SidebarProps {
-  onClose?: () => void;
-}
-
 const Sidebar = ({ onClose }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [expandedTabs, setExpandedTabs] = useState<string[]>([]);
-  const { adminLogout } = useAdminStore();
+  const { adminLogout, clientData } = useAdminStore();
   const { logout: userLogout } = useUserStore();
   const { clearBotConfig } = useBotConfig();
   const { activeBotId } = useBotConfig();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { adminEmail } = useAdminStore();
   const { activeBotData } = useBotConfig();
+
+  const navItems: NavItem[] = [
+    {
+      name: "Dashboard",
+      icon: <LayoutDashboard className="w-5 h-5" />,
+      path: "/admin/dashboard",
+      expandable: true,
+      subItems: [{ name: "All Agents", path: "/admin/all-agents" }],
+    },
+    {
+      name: "Agent Setup",
+      icon: <Bot className="w-5 h-5" />,
+      path: "/admin/dashboard",
+      expandable: true,
+      subItems: [
+        { name: "Overview", path: "/admin/dashboard/overview" },
+        { name: "Profile", path: "/admin/dashboard/profile" },
+        { name: "Brain/PDF", path: "/admin/dashboard/brain" },
+        { name: "AI Model", path: "/admin/dashboard/ai-model" },
+        { name: "Voice", path: "/admin/dashboard/voice" },
+        { name: "Theme", path: "/admin/dashboard/theme" },
+        { name: "Welcome Text", path: "/admin/dashboard/welcome" },
+        { name: "Prompts", path: "/admin/dashboard/prompts" },
+      ],
+    },
+    {
+      name: "Products",
+      icon: <Package className="w-5 h-5" />,
+      path: "/admin/products",
+      expandable: true,
+      subItems: [
+        { name: "Add Product", path: "/admin/commerce/add" },
+        { name: "Manage", path: "/admin/commerce/manage" },
+        { name: "Orders", path: "/admin/operations/orders" },
+        { name: "Bookings", path: "/admin/commerce/calendar" },
+        { name: "Policies", path: "/admin/commerce/policies" },
+      ],
+    },
+    {
+      name: "CRM",
+      icon: <Users className="w-5 h-5" />,
+      path: "/admin/crm",
+      expandable: true,
+      subItems: [
+        { name: "Customer Leads", path: "/admin/crm/leads" },
+        { name: "Chat Logs", path: "/admin/crm/chat-logs" },
+      ],
+    },
+    {
+      name: "Settings",
+      icon: <Briefcase className="w-5 h-5" />,
+      path: "/admin/operations",
+      expandable: true,
+      subItems: [
+        { name: "Email", path: "/admin/operations/email" },
+        { name: "Integrations", path: "/admin/operations/integrations" },
+        { name: "Embed", path: "/admin/operations/embed" },
+      ],
+    },
+    {
+      name: "Account",
+      icon: <Users className="w-5 h-5" />,
+      path: "/admin/account",
+      expandable: true,
+      subItems: [
+        // { name: "Billing", path: "/admin/account/billing" },
+        { name: "Income", path: "/admin/account/income" },
+        { name: "Payments", path: "/admin/account/payments" },
+        { name: "Plans", path: "/admin/account/plans" },
+        { name: "Usage", path: "/admin/account/usage" },
+        ...(clientData?.role !== "member"
+          ? [{ name: "Team", path: "/admin/account/team" }]
+          : []),
+      ],
+    },
+    {
+      name: "Support",
+      icon: <Headphones className="w-5 h-5" />,
+      path: "/admin/support",
+    },
+  ];
 
   // If we're on the All Agents page, don't render the sidebar
   if (location.pathname === "/admin/all-agents") {

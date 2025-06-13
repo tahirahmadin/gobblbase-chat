@@ -153,7 +153,10 @@ export const useAdminStore = create<AdminState>()((set, get) => {
   };
 
   // Helper function to handle signup response
-  const handleSignupResponse = async (email: string) => {
+  const handleSignupResponse = async (
+    email: string,
+    storedTeamId: string | null
+  ) => {
     console.log("Starting handleSignupResponse with email:", email);
     const signupRes = await signUpClient("google", email);
     console.log("signupRes", signupRes);
@@ -172,6 +175,7 @@ export const useAdminStore = create<AdminState>()((set, get) => {
         console.log("Unauthorized or invalid error detected");
         if (typeof window !== "undefined") {
           localStorage.removeItem("adminEmail");
+          localStorage.removeItem("teamId");
         }
         set({ isAdminLoggedIn: false, isLoading: false });
         return false;
@@ -188,23 +192,30 @@ export const useAdminStore = create<AdminState>()((set, get) => {
       "teamId" in signupRes.result
     ) {
       console.log("Valid signup result object found");
+
       const result = signupRes.result as SignUpResult;
-      const adminId = result.teamId;
+      if (storedTeamId) {
+        localStorage.setItem("teamId", storedTeamId);
+      } else {
+        localStorage.setItem("teamId", result.teamId);
+      }
+      const clientId = result.teamId;
+      const currentTeamId = storedTeamId ? storedTeamId : result.teamId;
       const tempAgents = result.agents;
 
       console.log("result", result);
-      console.log("adminId", adminId);
-      console.log("tempAgents", tempAgents);
+      console.log("clientId", clientId);
+      console.log("ownerAgents", tempAgents);
 
       // Fetch client information
-      console.log("Fetching client information for adminId:", adminId);
-      const clientResponse = await getTeamDetails(adminId, adminId);
+      console.log("Fetching client information for adminId:", clientId);
+      const clientResponse = await getTeamDetails(clientId, currentTeamId);
       console.log("Client response:", clientResponse);
 
       // Set all state updates in one go to avoid multiple re-renders
       set({
-        adminId,
-        activeTeamId: adminId,
+        adminId: clientId,
+        activeTeamId: currentTeamId,
         adminEmail: result.signUpVia.handle,
         agents: tempAgents,
         totalAgents: tempAgents.length,
@@ -256,9 +267,14 @@ export const useAdminStore = create<AdminState>()((set, get) => {
           set({ isAdminLoggedIn: false });
           return false;
         }
+        const storedTeamId =
+          typeof window !== "undefined" ? localStorage.getItem("teamId") : null;
 
         set({ isLoading: true });
-        const isSignupSuccess = await handleSignupResponse(storedEmail);
+        const isSignupSuccess = await handleSignupResponse(
+          storedEmail,
+          storedTeamId
+        );
 
         if (isSignupSuccess) {
           // Fetch usage data after adminId is set
@@ -274,6 +290,7 @@ export const useAdminStore = create<AdminState>()((set, get) => {
             error.message.includes("invalid"))
         ) {
           localStorage.removeItem("adminEmail");
+          localStorage.removeItem("teamId");
           set({ isAdminLoggedIn: false, isLoading: false });
         } else {
           set({ error: (error as Error).message, isLoading: false });
@@ -291,7 +308,11 @@ export const useAdminStore = create<AdminState>()((set, get) => {
         }
 
         localStorage.setItem("adminEmail", userInfo.email);
-        const isSignupSuccess = await handleSignupResponse(userInfo.email);
+
+        const isSignupSuccess = await handleSignupResponse(
+          userInfo.email,
+          null
+        );
 
         if (isSignupSuccess) {
           toast.success(`Successfully signed in!`);
@@ -324,6 +345,7 @@ export const useAdminStore = create<AdminState>()((set, get) => {
       }
       const clientData = await getTeamDetails(adminId, activeTeamId);
       set({ clientData });
+      localStorage.setItem("teamId", activeTeamId);
     },
     // Admin operations
     fetchAllAgents: async () => {
@@ -374,6 +396,7 @@ export const useAdminStore = create<AdminState>()((set, get) => {
 
       // Clear the stored email
       localStorage.removeItem("adminEmail");
+      localStorage.removeItem("teamId");
     },
 
     // Email template actions
