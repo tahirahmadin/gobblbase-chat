@@ -118,8 +118,27 @@ const Card = styled.div`
       margin: 4vh 0
     }
 `;
+
+
 const GENERIC_LLM_SYSTEM_PROMPT = (context: string) =>
-  `You are an AI assistant helping to engage users for a business or service. Based on the following context, generate 8 engaging, concise, and friendly opening prompts (cues) that encourage users to interact, ask questions, or explore the agent's capabilities. Make sure to never use Sayy related text while genrating prompts. Return only array of strings of max 3-4 words each.\n Context:\n${context}. Output format should be a JSON array of strings as example: ["Return policy?","Best Products?","Summarise the business!","Need support?","Consltation fees?","Book live call","Explore our features!"]`;
+  `You are an AI assistant that creates specific, actionable prompts based on document content. 
+
+Analyze the following document content and generate 8 short, specific prompts that users would naturally want to ask about this content. Focus on:
+- Key topics, concepts, or subjects mentioned in the document
+- Important details users might want to know more about
+- Specific processes, procedures, or steps described
+- Main sections or points that warrant further exploration
+- Data, facts, or findings that users might want clarified
+
+Make each prompt 2-4 words max, specific to the actual content, and naturally conversational. Avoid generic business terms and focus on what's actually in the document.
+
+Never use Sayy related text while generating prompts. Return only array of strings of max 3-4 words each.
+
+Document Content:
+${context}
+
+Output format should be a JSON array of strings as example: ["Key findings?", "Implementation steps?", "Main topics?", "Cost details?", "Timeline info?", "Next actions?", "Risk factors?", "Contact info?"]`;
+
 
 // Utility to extract JSON array from markdown code block
 function extractJsonArray(str: string): string {
@@ -276,7 +295,7 @@ const Prompts = () => {
       // Fetch context from backend
       const contextResult = await queryDocument(
         activeBotData.agentId,
-        "Give me a summary of this agent's business, offerings, and user goals so that I can generate cues/prompts for the agent."
+        "Provide a comprehensive overview of all the main topics, key information, important details, processes, and actionable items covered in the uploaded documents. Include any specific data, timelines, procedures, or important points mentioned."
       );
       const context = contextResult.toString() || "";
       // Compose LLM system prompt
@@ -285,7 +304,7 @@ const Prompts = () => {
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [{ role: "system", content: systemPrompt }],
-        temperature: 0.6,
+        temperature: 0.4,
       });
 
       let output = completion.choices[0].message.content;

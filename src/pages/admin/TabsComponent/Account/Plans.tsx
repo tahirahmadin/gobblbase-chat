@@ -8,6 +8,12 @@ import { useAdminStore } from "../../../../store/useAdminStore";
 import { toast } from "react-hot-toast";
 import { Check, ChevronRight, Loader2, X } from "lucide-react";
 import styled from "styled-components";
+
+interface SubscribeToPlanResponse {
+  isUrl: boolean;
+  message: string;
+}
+
 const WhiteBackground = styled.span`
   display: flex;
   flex-direction: column;
@@ -256,7 +262,7 @@ interface PlanData {
 }
 
 const Plans = () => {
-  const { adminId } = useAdminStore();
+  const { activeTeamId, adminId } = useAdminStore();
   const [billing, setBilling] = useState("monthly");
   const [plans, setPlans] = useState<PlanData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -265,10 +271,10 @@ const Plans = () => {
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchPlans = async () => {
-    if (!adminId) return;
+    if (!activeTeamId) return;
 
     try {
-      const response = await getPlans(adminId);
+      const response = await getPlans(activeTeamId);
 
       const currentPlanId = response.find((plan) => plan.isCurrentPlan)?.id;
       const upgradedPlanId = plans.find((plan) => plan.isCurrentPlan)?.id;
@@ -294,7 +300,7 @@ const Plans = () => {
   };
 
   useEffect(() => {
-    if (!adminId) return;
+    if (!activeTeamId) return;
 
     const initialFetch = async () => {
       try {
@@ -308,7 +314,7 @@ const Plans = () => {
     };
 
     initialFetch();
-  }, [adminId]);
+  }, [activeTeamId]);
 
   // Cleanup polling on component unmount
   useEffect(() => {
@@ -344,13 +350,17 @@ const Plans = () => {
   const selectedPlan = plans.find((p) => p.id === selectedPlanId);
 
   const handleUpgrade = async (planId: string) => {
-    if (!adminId) return;
+    if (!activeTeamId || !adminId) return;
 
     try {
       setUpgradingPlanId(planId);
 
       // Get Stripe session URL
-      const response = await subscribeToPlan(adminId, planId);
+      const response = (await subscribeToPlan(
+        adminId,
+        planId,
+        activeTeamId
+      )) as SubscribeToPlanResponse;
 
       const isBillingUrl = response.isUrl;
       const billingMessage = response.message;
@@ -443,10 +453,13 @@ const Plans = () => {
           <button
             className="px-4 py-1 rounded-2xl border border-purple-600 font-semibold whitespace-nowrap bg-black text-white hover:bg-purple-700 transition-colors duration-200 focus:outline-none"
             onClick={async () => {
-              if (!adminId) return;
+              if (!activeTeamId || !adminId) return;
               try {
                 setBillingLoading(true);
-                const url = await getStripeBillingSession(adminId);
+                const url = await getStripeBillingSession(
+                  adminId,
+                  activeTeamId
+                );
                 window.open(url, "_blank", "noopener,noreferrer");
               } catch (error) {
                 toast.error("Failed to open Stripe Billing");

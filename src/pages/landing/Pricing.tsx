@@ -463,7 +463,7 @@ interface PlanData {
 const Pricing = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { adminId } = useAdminStore();
+  const { activeTeamId } = useAdminStore();
   const [plans, setPlans] = useState<PlanData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPlain, setSelectedPlain] = useState<string>("");
@@ -471,7 +471,7 @@ const Pricing = () => {
 
   const fetchPlans = async () => {
     try {
-      const response = await getPlans(adminId || "null");
+      const response = await getPlans(activeTeamId || "null");
 
       setPlans(response as PlanData[]);
       setLoading(false);
@@ -486,7 +486,7 @@ const Pricing = () => {
 
   useEffect(() => {
     fetchPlans();
-  }, [adminId]);
+  }, [activeTeamId]);
 
   useEffect(() => {
     if (menuOpen) {
@@ -705,7 +705,7 @@ const Pricing = () => {
 
                       {/* Price */}
                       <div className="para-font text-[1rem] font-bold text-black">
-                        {plan.price}
+                        ${plan.price}
                       </div>
                       <div className="text-gray-600 mb-4 text-base">
                         per month

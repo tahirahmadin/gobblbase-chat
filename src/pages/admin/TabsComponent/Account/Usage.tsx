@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { getClientUsage, getClient } from "../../../../lib/serverActions";
 import { useAdminStore } from "../../../../store/useAdminStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -52,7 +51,8 @@ interface DailyUsage {
 }
 
 const Usage = () => {
-  const { adminId } = useAdminStore();
+  const { adminId, fetchClientUsage, clientUsage, clientData } =
+    useAdminStore();
 
   const [selectedAgent, setSelectedAgent] = useState("All Agents");
   const [timeFrame, setTimeFrame] = useState("All Time");
@@ -62,7 +62,7 @@ const Usage = () => {
   const [agentsUsed, setAgentsUsed] = useState(0);
   const [totalAgents, setTotalAgents] = useState(0);
   const [usageData, setUsageData] = useState<ClientUsageData | null>(null);
-  const [clientData, setClientData] = useState<ClientData | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [agentLimit, setAgentLimit] = useState(0);
   const [agentsList, setAgentsList] = useState<{ id: string; name: string }[]>(
@@ -98,52 +98,45 @@ const Usage = () => {
       try {
         setLoading(true);
 
-        const [usageData, clientData] = await Promise.all([
-          getClientUsage(adminId),
-          getClient(adminId),
-        ]);
+        if (!clientUsage) return;
+        setUsageData(clientUsage);
+        setAgentLimit(clientUsage.usage.agentLimit);
+        setTotalAgents(clientUsage.totalAgentCount);
 
-        if (usageData) {
-          setUsageData(usageData);
-          setAgentLimit(usageData.usage.agentLimit);
-          setTotalAgents(usageData.totalAgentCount);
+        const agents = clientUsage.usage.agentUsage.map((agent) => ({
+          id: agent.agentId,
+          name: agent.agentName,
+        }));
+        setAgentsList(agents);
+        setAgentsUsed(clientUsage.totalAgentCount);
 
-          const agents = usageData.usage.agentUsage.map((agent) => ({
-            id: agent.agentId,
-            name: agent.agentName,
-          }));
-          setAgentsList(agents);
-          setAgentsUsed(usageData.totalAgentCount);
+        const dailyUsageCollection: DailyUsage[] = [];
 
-          const dailyUsageCollection: DailyUsage[] = [];
+        clientUsage.usage.agentUsage.forEach((agent) => {
+          agent.usageData.forEach((dayData) => {
+            const dateStr = dayData.date;
+            const dateParts = /(\d{2})([A-Z]{3})(\d{4})/.exec(dateStr);
 
-          usageData.usage.agentUsage.forEach((agent) => {
-            agent.usageData.forEach((dayData) => {
-              const dateStr = dayData.date;
-              const dateParts = /(\d{2})([A-Z]{3})(\d{4})/.exec(dateStr);
+            if (dateParts) {
+              const [_, dayStr, monthStr, yearStr] = dateParts;
+              const day = parseInt(dayStr);
+              const year = parseInt(yearStr);
 
-              if (dateParts) {
-                const [_, dayStr, monthStr, yearStr] = dateParts;
-                const day = parseInt(dayStr);
-                const year = parseInt(yearStr);
-
-                dailyUsageCollection.push({
-                  day,
-                  month: monthStr,
-                  year,
-                  date: dateStr,
-                  usage: dayData.totalTokensUsed,
-                  agentId: agent.agentId,
-                });
-              }
-            });
+              dailyUsageCollection.push({
+                day,
+                month: monthStr,
+                year,
+                date: dateStr,
+                usage: dayData.totalTokensUsed,
+                agentId: agent.agentId,
+              });
+            }
           });
+        });
 
-          setAllDailyUsage(dailyUsageCollection);
-        }
+        setAllDailyUsage(dailyUsageCollection);
 
         if (clientData) {
-          setClientData(clientData);
           setCurrentPlan(clientData.planId);
           setTotalCredits(clientData.creditsPerMonth);
 
@@ -152,10 +145,8 @@ const Usage = () => {
           setCreditsUsed(calculatedCreditsUsed);
         }
 
-        if (usageData) {
-          generateUsageHistory(usageData, "All Agents", timeFrame);
-          setDataInitialized(true);
-        }
+        generateUsageHistory(clientUsage, "All Agents", timeFrame);
+        setDataInitialized(true);
       } catch (err) {
         console.error("Error fetching usage data:", err);
         toast.error("Failed to load usage data");
@@ -172,6 +163,10 @@ const Usage = () => {
       generateUsageHistory(usageData, selectedAgent, timeFrame);
     }
   }, [dataInitialized]);
+
+  useEffect(() => {
+    if (clientUsage) setUsageData(clientUsage);
+  }, [clientUsage]);
 
   const getMonthName = (monthAbbr: string) => {
     const monthMap: { [key: string]: string } = {
@@ -610,7 +605,9 @@ const Usage = () => {
             <div className="w-full h-3 bg-white rounded-full shadow-[inset_0_3px_3px_0_rgba(0,0,0,0.25)]">
               <div
                 className={`h-3 rounded-full ${
-                  agentLimit === 9999 ? "bg-green-500" : "bg-[#4D65FF] border border-black"
+                  agentLimit === 9999
+                    ? "bg-green-500"
+                    : "bg-[#4D65FF] border border-black"
                 }`}
                 style={{
                   width:

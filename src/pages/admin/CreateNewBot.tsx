@@ -4,7 +4,14 @@ import { useAdminStore } from "../../store/useAdminStore";
 import { useBotConfig } from "../../store/useBotConfig";
 import { createNewAgent } from "../../lib/serverActions";
 import toast from "react-hot-toast";
-import { Check, MessageSquare, Mic } from "lucide-react";
+import {
+  Check,
+  MessageSquare,
+  Mic,
+  X,
+  ChevronRight,
+  Loader2,
+} from "lucide-react";
 import { AVAILABLE_THEMES, PERSONALITY_OPTIONS } from "../../utils/constants";
 import { PersonalityOption } from "../../types";
 import PublicChat from "../chatbot/PublicChat";
@@ -90,11 +97,12 @@ const personalityOptions: PersonalityOption[] = PERSONALITY_OPTIONS;
 
 const CreateNewBot: React.FC = () => {
   const navigate = useNavigate();
-  const { adminId } = useAdminStore();
+  const { adminId, activeTeamId } = useAdminStore();
   const { clearBotConfig, setActiveBotId } = useBotConfig();
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [showUpgradePopup, setShowUpgradePopup] = useState(false);
 
   // Form state
   const [agentName, setAgentName] = useState("");
@@ -631,12 +639,12 @@ const CreateNewBot: React.FC = () => {
 
   // Handle agent creation
   async function handleFinish() {
-    if (!adminId) return;
+    if (!activeTeamId) return;
     setLoading(true);
 
     try {
       const response = await createNewAgent(
-        adminId,
+        activeTeamId,
         agentName,
         { name: selectedVoice.title, value: selectedVoice.traits },
         selectedTheme
@@ -653,7 +661,7 @@ const CreateNewBot: React.FC = () => {
         toast.error("Failed to create agent");
       }
     } catch (e) {
-      toast.error("Bot limit reached, Upgrade your plan");
+      setShowUpgradePopup(true);
     } finally {
       setLoading(false);
     }
@@ -662,11 +670,81 @@ const CreateNewBot: React.FC = () => {
   return (
     <div className="min-h-screen h-[100%] w-full bg-[#b6baf8] flex flex-col pb-6 pt-2">
       {/* Centered content */}
+      {console.log(adminId)}
+      {console.log(activeTeamId)}
       <div className="flex-1 flex items-center justify-center z-10 relative">
         <Card className="w-[80%] h-[650px] max-w-6xl  border-2 border-[#222b5f] bg-[#eaefff] rounded-none flex flex-col justify-center items-center p-0">
           <div className="w-full h-full flex flex-col">{renderStepper()}</div>
         </Card>
       </div>
+
+      {/* Upgrade Popup */}
+      {showUpgradePopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div
+            className="bg-white w-full relative border-[10px] border-[#6AFF97]  w-[90vw] lg:w-[70vw] p-2 md:p-6 flex items-center gap-4"
+            style={{ height: "fit-content", minHeight: 600 }}
+          >
+            {/* cancel button */}
+            <div className="absolute right-4 top-4">
+              <div className="relative z-10">
+                <div className="absolute top-[3px] left-[3px] w-full h-full bg-white border border-black -z-10"></div>
+                <button
+                  onClick={() => setShowUpgradePopup(false)}
+                  className="px-2 py-2 bg-white border border-black z-10"
+                >
+                  <X
+                    className="h-5 w-5 text-black"
+                    style={{ strokeWidth: "4px" }}
+                  />
+                </button>
+              </div>
+            </div>
+            <div className="left-content md:pl-8 flex flex-col gap-4 w-1/1 md:w-1/2 items-center px-4">
+              <h2 className="main-font text-[1.5rem] md:text-[2rem] para-font font-bold text-center md:text-left">
+                Your AI-mployee needs a Promotion!
+              </h2>
+              <p className="text-black para-font text-center md:text-left text-[0.9rem] md:text-[1.1rem] font-[500]">
+                You've reached the limit of your current plan. Upgrade now to
+                unlock more features and keep your AI agent running smoothly.
+              </p>
+              <div className="right-content 1/2 block md:hidden">
+                <img
+                  src="/assets/popup-mascot.png"
+                  width={1000}
+                  height={1000}
+                  alt="plain-popup mascot"
+                />
+              </div>
+              <div className="relative z-10 flex gap-4 justify-center md:items-end md:mt-12 w-fit">
+                <div className="absolute top-[4px] left-[4px] w-full h-full bg-[#6AFF97] border border-black -z-10"></div>
+                <button
+                  onClick={() => {
+                    navigate("/admin/account/plans");
+                  }}
+                  className="px-4 py-2 bg-[#6AFF97] border border-black md:w-[280px] flex justify-center md:justify-between"
+                >
+                  UPGRADE MY PLAN
+                  <span className="hidden md:inline-block">
+                    <ChevronRight
+                      style={{ strokeWidth: "3px" }}
+                      className="h-5 w-5 text-black inline-block ml-2"
+                    />
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div className="right-content 1/2 hidden md:block">
+              <img
+                src="/assets/popup-mascot.png"
+                width={1000}
+                height={1000}
+                alt="plain-popup mascot"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

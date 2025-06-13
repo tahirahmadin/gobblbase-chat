@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useBotConfig } from "../../../../store/useBotConfig";
 import { PERSONALITY_OPTIONS } from "../../../../utils/constants";
 import styled from "styled-components";
-import { getClientAnalytics } from "../../../../lib/serverActions";
+import { getTeamAnalytics } from "../../../../lib/serverActions";
 import { useAdminStore } from "../../../../store/useAdminStore";
 import { AnalyticsData } from "../../../../types";
 import { useNavigate } from "react-router-dom";
@@ -61,18 +61,18 @@ const Overview = () => {
 
   const navigate = useNavigate();
   const { activeBotId, activeBotData } = useBotConfig();
-  const { adminId, clientData } = useAdminStore();
+  const { adminId, clientData, activeTeamId } = useAdminStore();
   const [agentPicture, setAgentPicture] = useState<string | null>(null);
   const [smartnessLevel, setSmartnessLevel] = useState(0);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
-      if (!adminId) return;
+      if (!activeTeamId) return;
 
       try {
         setIsLoading(true);
         setError(null);
-        const data = await getClientAnalytics(adminId);
+        const data = await getTeamAnalytics(activeTeamId);
         setAnalyticsData(data);
       } catch (err) {
         setError(
@@ -84,7 +84,7 @@ const Overview = () => {
     };
 
     fetchAnalytics();
-  }, [adminId]);
+  }, [activeTeamId]);
 
   useEffect(() => {
     if (activeBotData?.logo) {
@@ -127,8 +127,9 @@ const Overview = () => {
     {
       label: "Credits Used",
       value: `${
-        (clientData?.creditsPerMonth || 0) - (clientData?.availableCredits || 0)
-      } / ${clientData?.creditsPerMonth || 0}`,
+        (analyticsData?.totalCredits || 0) -
+        (analyticsData?.availableCredits || 0)
+      } / ${analyticsData?.totalCredits || 0}`,
     },
     {
       label: "Leads",
@@ -139,10 +140,16 @@ const Overview = () => {
       value: analyticsData?.bookingsReceived,
     },
   ];
-
+  {
+    console.log("adminId", adminId);
+  }
+  {
+    console.log("activeTeamId", activeTeamId);
+  }
   return (
     <div className="overflow-scroll h-[100%]">
       {/* Top Section: Agent Info and Plan */}
+
       <div className="p-6 flex flex-col sm:flex-row sm:items-end lg:items-start xl:items-end gap-6 sm:gap-2 md:gap-6 mb-6 items-start justify-between">
         <div>
           {/* Profile Image Upload */}
@@ -258,8 +265,8 @@ const Overview = () => {
                 <path
                   d="M34.8312 6.60821C53.8154 8.29096 61.9708 22.7212 62.4349 36.7213"
                   stroke="#4D65FF"
-                  stroke-width="5"
-                  stroke-linecap="round"
+                  strokeWidth="5"
+                  strokeLinecap="round"
                 />
                 <g filter="url(#filter1_d_5068_3436)">
                   <rect
@@ -324,8 +331,8 @@ const Overview = () => {
                 <path
                   d="M34.8312 6.60821C53.8154 8.29096 61.9708 22.7212 62.4349 36.7213"
                   stroke="#4D65FF"
-                  stroke-width="5"
-                  stroke-linecap="round"
+                  strokeWidth="5"
+                  strokeLinecap="round"
                 />
                 <g filter="url(#filter1_d_5068_3436)">
                   <rect
@@ -402,7 +409,10 @@ const Overview = () => {
                         : "bg-[#D4DEFF] border-[#AEB8FF]"
                     }`}
                 >
-                  <div className="text-2xl font-semibold">{item.value}</div>
+                  <div className="text-2xl font-semibold">
+                    {item?.value &&
+                      parseFloat(item.value.toString()).toFixed(2)}
+                  </div>
                   <div className="text-xs text-black mt-1">{item.label}</div>
                 </div>
               ))}

@@ -9,7 +9,7 @@ import {
 import { injected } from "wagmi/connectors";
 import { parseUnits } from "viem";
 import toast from "react-hot-toast";
-import { backendApiUrl } from "../utils/constants";
+import { backendApiUrl, USDT_CONVERSION_RATES } from "../utils/constants";
 
 // USDT token addresses for different chains
 const tokenAddresses: Record<string, string> = {
@@ -148,6 +148,7 @@ interface UseCryptoPaymentProps {
   userId: string | null;
   userEmail: string | null;
   clientId: string | null;
+  currency?: string;
 }
 
 export function useCryptoPayment({
@@ -160,6 +161,7 @@ export function useCryptoPayment({
   userEmail,
   shipping,
   clientId,
+  currency = "USD",
 }: UseCryptoPaymentProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedChain, setSelectedChain] = useState<string | null>(null);
@@ -176,6 +178,14 @@ export function useCryptoPayment({
   const { address, isConnected } = useAccount();
   const { connectAsync } = useConnect();
   const { disconnect } = useDisconnect();
+
+  // Calculate USDT amount based on currency
+  const calculateUsdtAmount = (amount: number) => {
+    const conversionRate =
+      USDT_CONVERSION_RATES[currency as keyof typeof USDT_CONVERSION_RATES] ||
+      1;
+    return amount / conversionRate;
+  };
 
   // Watch for transaction confirmation
   useEffect(() => {
@@ -395,17 +405,20 @@ export function useCryptoPayment({
     try {
       const chainName = chainIdToName[selectedChain];
       const contractAddress = tokenAddresses[chainName] as `0x${string}`;
-      const totalAmount = product.price * (product.quantity || 1);
+      const originalAmount = product.price * (product.quantity || 1);
+      const usdtAmount = calculateUsdtAmount(originalAmount);
       const decimals = tokenDecimals[chainName];
 
       // Log the transaction details for debugging
       console.log("Transaction Details:", {
         chainId: selectedChain,
         contractAddress,
-        amount: totalAmount,
+        originalAmount,
+        usdtAmount,
         decimals,
         recipient: walletAddress,
         chainName,
+        currency,
       });
 
       // Prepare the transaction
@@ -415,7 +428,7 @@ export function useCryptoPayment({
         functionName: "transfer" as const,
         args: [
           walletAddress as `0x${string}`,
-          parseUnits(totalAmount.toString(), decimals),
+          parseUnits(usdtAmount.toString(), decimals),
         ] as const,
         chainId: parseInt(selectedChain, 16),
         gas: 100000n, // Set a reasonable gas limit

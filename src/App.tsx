@@ -35,6 +35,8 @@ import { useAdminStore } from "./store/useAdminStore";
 import CreateNewBot from "./pages/admin/CreateNewBot";
 import Plans from "./pages/admin/TabsComponent/Account/Plans";
 import Usage from "./pages/admin/TabsComponent/Account/Usage";
+import { IS_MAINTENANCE_MODE } from "./utils/constants";
+import Maintenance from "./pages/Maintenance";
 
 import Commerce from "./pages/admin/TabsComponent/Commerce/Commerce";
 import Operations from "./pages/admin/TabsComponent/Settings/Operations";
@@ -49,6 +51,7 @@ import RescheduleBookingWrapper from "./components/chatbotComponents/chatbotBook
 import Payments from "./pages/admin/TabsComponent/Account/Payments";
 import Income from "./pages/admin/TabsComponent/Account/Income";
 import Overview from "./pages/admin/TabsComponent/Dashboard/Overview";
+import Support from "./pages/admin/Support";
 import Team from "./pages/admin/TabsComponent/Account/Team";
 
 // Add type definition for window
@@ -157,6 +160,7 @@ function Dashboard() {
         <Route path="account/usage" element={<Usage />} />
         <Route path="account/team" element={<Team />} />
         <Route path="all-agents" element={<AllAgents />} />
+        <Route path="support" element={<Support />} />
         <Route path="dashboard/overview" element={<Overview />} />
         <Route path="*" element={<Navigate to="dashboard/profile" replace />} />
       </Routes>
@@ -189,38 +193,47 @@ function App() {
             <Router>
               <Toaster position="top-right" />
               <Routes>
-                <Route path="/admin/signup" element={<Login />} />
-                <Route
-                  path="/admin/dashboard/create-bot"
-                  element={<CreateNewBot />}
-                />
-                <Route path="/book/:agentId" element={<CustomerBookingPage />} />
-                <Route
-                  path="/reschedule/:bookingId"
-                  element={<RescheduleBookingWrapper />}
-                />
-                <Route
-                  path=":botUsername"
-                  element={
-                    <PublicChat
-                      chatHeight={null}
-                      previewConfig={null}
-                      isPreview={false}
-                      screenName=""
+                {IS_MAINTENANCE_MODE ? (
+                  <Route path="*" element={<Maintenance />} />
+                ) : (
+                  <>
+                    <Route path="/admin/signup" element={<Login />} />
+                    <Route
+                      path="/admin/dashboard/create-bot"
+                      element={<CreateNewBot />}
                     />
-                  }
-                />
-                <Route
-                  path="/admin/payment-success"
-                  element={<PaymentSuccessPage />}
-                />
-                <Route
-                  path="/admin/payment-cancel"
-                  element={<PaymentCancelPage />}
-                />
-                <Route path="/admin/*" element={<Dashboard />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/" element={<Home />} />
+                    <Route
+                      path="/book/:agentId"
+                      element={<CustomerBookingPage />}
+                    />
+                    <Route
+                      path="/reschedule/:bookingId"
+                      element={<RescheduleBookingWrapper />}
+                    />
+                    <Route
+                      path=":botUsername"
+                      element={
+                        <PublicChat
+                          chatHeight={null}
+                          previewConfig={null}
+                          isPreview={false}
+                          screenName=""
+                        />
+                      }
+                    />
+                    <Route
+                      path="/admin/payment-success"
+                      element={<PaymentSuccessPage />}
+                    />
+                    <Route
+                      path="/admin/payment-cancel"
+                      element={<PaymentCancelPage />}
+                    />
+                    <Route path="/admin/*" element={<Dashboard />} />
+                    <Route path="/pricing" element={<Pricing />} />
+                    <Route path="/" element={<Home />} />
+                  </>
+                )}
               </Routes>
             </Router>
           </TimezoneProvider>

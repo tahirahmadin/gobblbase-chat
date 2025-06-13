@@ -59,6 +59,7 @@ export interface Agent {
 
 export interface AdminAgent {
   agentId: string;
+  teamId: string;
   username: string;
   logo: string;
   name: string;
@@ -269,4 +270,172 @@ export interface AnalyticsData {
   ordersReceived: number;
   totalIncome: number;
   planId: string;
+  totalCredits: number;
+  availableCredits: number;
+}
+
+export interface QueryDocumentResponse {
+  context: any; // You might want to define a more specific type based on the actual response
+  calendlyUrl?: string;
+}
+
+export interface ExtractContentResponse {
+  success: boolean;
+  content?: string;
+  error?: string;
+  platform?: string;
+}
+
+export interface AvailabilityDay {
+  day: string;
+  available: boolean;
+  timeSlots: {
+    startTime: string;
+    endTime: string;
+  }[];
+}
+
+export interface SignUpResult {
+  _id: string;
+  signUpVia: {
+    via: string;
+    handle: string;
+  };
+  agents: any[];
+}
+
+export interface SignUpClientResponse {
+  error: boolean;
+  result: string | SignUpResult;
+}
+
+export interface UserLog {
+  role: string;
+  content: string;
+  timestamp?: string;
+}
+
+export interface UpdateUserLogsParams {
+  userId: string;
+  sessionId: string;
+  agentId: string;
+  newUserLogs: UserLog[];
+}
+
+export interface AddProductData {
+  file: File;
+  title: string;
+  description: string;
+  image: string;
+  price: string;
+  about: string;
+  agentId: string;
+}
+
+export interface Document {
+  documentId: string;
+  title: string;
+  addedAt: string;
+  updatedAt: string;
+}
+
+export interface DocumentListResponse {
+  error: boolean;
+  result:
+    | {
+        agentId: string;
+        agentName: string;
+        documentCount: number;
+        documents: Document[];
+      }
+    | string;
+}
+
+export interface DocumentResponse {
+  error: boolean;
+  result:
+    | {
+        message: string;
+        agentId: string;
+        documentId: string;
+        title: string;
+        size?: number;
+      }
+    | string;
+}
+
+export interface RemoveDocumentResponse {
+  error: boolean;
+  result:
+    | {
+        message: string;
+        agentId: string;
+        documentId: string;
+        remainingDocumentCount: number;
+      }
+    | string;
+}
+
+export interface PlanData {
+  id: string;
+  name: string;
+  price: number;
+  currency: string;
+  credits: number;
+  recurrence: string;
+  description: string;
+  isCurrentPlan: boolean;
+  features: string[];
+}
+
+export interface TimeSlot {
+  startTime: string;
+  endTime: string;
+}
+
+export interface BookingPayload {
+  agentId: string;
+  userId: string;
+  email?: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  userTimezone?: string;
+  name?: string;
+  phone?: string;
+  notes?: string;
+}
+
+export interface PolicyContent {
+  enabled: boolean;
+  content: string;
+}
+
+export interface AgentPoliciesResponse {
+  error: boolean;
+  result: {
+    shipping: PolicyContent;
+    returns: PolicyContent;
+    privacy: PolicyContent;
+    terms: PolicyContent;
+    [key: string]: PolicyContent;
+  };
+}
+
+export interface CustomerLead {
+  name: string;
+  email: string;
+  phone: string;
+  queryMessage: string;
+  createdAt: string;
+}
+
+export interface AdminUser {
+  _id: string;
+  email: string;
+  name?: string;
+  role: "user" | "admin";
+  createdAt: string;
+  lastLogin: string;
 }

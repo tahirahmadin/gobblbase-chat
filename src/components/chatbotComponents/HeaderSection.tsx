@@ -785,6 +785,7 @@ function HeaderSection({
   );
 
   const getWhatsAppNumber = () => {
+    if (!currentConfig.whatsappNumber?.number) return null;
     let countryCodeWithoutPlus =
       currentConfig.whatsappNumber.countryCode.replace("+", "");
     return `${countryCodeWithoutPlus}${currentConfig.whatsappNumber.number}`;
@@ -838,21 +839,23 @@ function HeaderSection({
                 >
                   <History className="h-5 w-5" />
                 </button> */}
-                <a
-                  target="_blank"
-                  href={`https://api.whatsapp.com/send?phone=${getWhatsAppNumber()}`}
-                >
-                  <button
-                    className="p-2 rounded-full hover:bg-opacity-10 hover:bg-white"
-                    style={{
-                      backgroundColor: !theme.isDark ? "white" : "black",
-                      color: theme.highlightColor,
-                      border: `2px solid ${theme.isDark ? "white" : "black"}`,
-                    }}
+                {currentConfig.whatsappNumber?.number && (
+                  <a
+                    target="_blank"
+                    href={`https://api.whatsapp.com/send?phone=${getWhatsAppNumber()}`}
                   >
-                    <FaWhatsapp className="h-5 w-5" />
-                  </button>
-                </a>
+                    <button
+                      className="p-2 rounded-full hover:bg-opacity-10 hover:bg-white"
+                      style={{
+                        backgroundColor: !theme.isDark ? "white" : "black",
+                        color: theme.highlightColor,
+                        border: `2px solid ${theme.isDark ? "white" : "black"}`,
+                      }}
+                    >
+                      <FaWhatsapp className="h-5 w-5" />
+                    </button>
+                  </a>
+                )}
                 <button
                   className="p-2 rounded-full hover:bg-opacity-10 hover:bg-white"
                   style={{
@@ -997,7 +1000,7 @@ function HeaderSection({
                 activeScreen === "browse" ? theme.highlightColor : "#bfbfbf",
             }}
           />{" "}
-          PRODUCTS
+          BROWSE
         </button>
       </div>
 
