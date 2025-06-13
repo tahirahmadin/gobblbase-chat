@@ -64,6 +64,8 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
   const [activeTab, setActiveTab] = useState('transcript');
   const [removingVideo, setRemovingVideo] = useState(null);
   const [savingToAgent, setSavingToAgent] = useState(null);
+  const [expandedVideoMobile, setExpandedVideoMobile] = useState(null);
+  const [activeTabMobile, setActiveTabMobile] = useState('transcript');
 
   // Load videos from agent data when component mounts or activeBotData changes
   useEffect(() => {
@@ -85,6 +87,18 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
     }
   }, [activeBotData?.socialVideos]);
 
+  // Handle resize to reset mobile expanded state when switching to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setExpandedVideoMobile(null);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const detectPlatform = (url) => {
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
       return 'youtube';
@@ -96,8 +110,6 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
       return 'twitter';
     } else if (url.includes('linkedin.com')) {
       return 'linkedin';
-    } else if (url.includes('reddit.com')) {
-      return 'reddit';
     }
     return 'unknown';
   };
@@ -137,6 +149,7 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
         }
         
       } else if (platform === 'instagram') {
+        // 1. Get Instagram post details
         const detailsResponse = await fetch(
           `https://api.scrapecreators.com/v1/instagram/post?url=${encodeURIComponent(url)}`,
           {
@@ -150,7 +163,7 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
           videoDetails = await detailsResponse.json();
         }
         
-        // Fetch transcript
+        // 2. Get Instagram transcript
         const transcriptResponse = await fetch(
           `https://api.scrapecreators.com/v2/instagram/media/transcript?url=${encodeURIComponent(url)}`,
           {
@@ -164,6 +177,42 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
           transcriptData = await transcriptResponse.json();
         }
         
+        const igData = videoDetails?.data?.xdt_shortcode_media || videoDetails;
+        
+        const captionEdges = igData?.edge_media_to_caption?.edges;
+        const caption = captionEdges?.[0]?.node?.text || '';
+        const ownerUsername = igData?.owner?.username || 'Unknown User';
+        const isVideo = igData?.__typename === 'XDTGraphVideo';
+        
+        let thumbnail = null;
+        
+        if (igData?.display_url) {
+          thumbnail = igData.display_url;
+        }
+        else if (igData?.thumbnail_src) {
+          thumbnail = igData.thumbnail_src;
+        }
+        else if (igData?.display_resources?.length > 0) {
+          const resourceIndex = igData.display_resources.length > 1 ? 1 : 0;
+          thumbnail = igData.display_resources[resourceIndex]?.src;
+        }
+        let viewCount = null;
+        if (isVideo && igData?.video_play_count) {
+          viewCount = `${igData.video_play_count.toLocaleString()} plays`;
+        } else if (igData?.edge_media_preview_like?.count) {
+          viewCount = `${igData.edge_media_preview_like.count.toLocaleString()} likes`;
+        }
+        
+        return {
+          title: `Instagram ${isVideo ? 'Reel' : 'Post'} by @${ownerUsername}`,
+          thumbnail: thumbnail,
+          transcript: transcriptData?.transcripts?.[0]?.text || caption || '',
+          platform,
+          url,
+          author: ownerUsername,
+          description: caption,
+          viewCount: viewCount
+        };
       } else if (platform === 'tiktok') {
         const detailsResponse = await fetch(
           `https://api.scrapecreators.com/v2/tiktok/video?url=${encodeURIComponent(url)}`,
@@ -193,27 +242,71 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
         }
         
       } else if (platform === 'twitter') {
-        const response = await fetch(
-          `https://api.scrapecreators.com/v1/twitter/tweet?url=${encodeURIComponent(url)}`,
-          {
-            headers: {
-              'x-api-key': SCRAPE_CREATORS_API_KEY,
-            },
-          }
-        );
+        const tweetIdMatch = url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/);
         
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        if (!tweetIdMatch) {
+          throw new Error('Invalid Twitter/X URL format');
         }
         
-        const data = await response.json();
+        const tweetId = tweetIdMatch[1];
+        
+        let response;
+        let data;
+        
+        try {
+          response = await fetch(
+            `https://api.scrapecreators.com/v1/twitter/tweet?url=${tweetId}`,
+            {
+              headers: {
+                'x-api-key': SCRAPE_CREATORS_API_KEY,
+              },
+            }
+          );
+          
+          if (response.ok) {
+            data = await response.json();
+          }
+        } catch (error) {
+          console.log('Tweet ID approach failed, trying full URL');
+        }
+        
+        if (!data || !response.ok) {
+          const cleanUrl = url.split('?')[0]; 
+          
+          response = await fetch(
+            `https://api.scrapecreators.com/v1/twitter/tweet?url=${encodeURIComponent(cleanUrl)}`,
+            {
+              headers: {
+                'x-api-key': SCRAPE_CREATORS_API_KEY,
+              },
+            }
+          );
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}, message: ${await response.text()}`);
+          }
+          
+          data = await response.json();
+        }
+        
         const tweet = data;
-        const authorName = tweet.core?.user_results?.result?.legacy?.name || 'Unknown User';
-        const tweetText = tweet.legacy?.full_text || '';
-        const profileImage = tweet.core?.user_results?.result?.legacy?.profile_image_url_https;
+        const authorName = tweet.core?.user_results?.result?.core?.name || 
+                          tweet.core?.user_results?.result?.legacy?.name || 
+                          tweet.user?.name || 
+                          tweet.author?.name || 
+                          'Unknown User';
+        const tweetText = tweet.legacy?.full_text || 
+                          tweet.full_text || 
+                          tweet.text || 
+                          '';
+        const profileImage = tweet.core?.user_results?.result?.avatar?.image_url ||
+                             tweet.core?.user_results?.result?.legacy?.profile_image_url_https || 
+                             tweet.user?.profile_image_url_https || 
+                             tweet.author?.profile_image_url ||
+                             null;
         
         return {
-          title: `${authorName}: ${tweetText.substring(0, 50)}...`,
+          title: `${authorName}: ${tweetText.substring(0, 50)}${tweetText.length > 50 ? '...' : ''}`,
           thumbnail: profileImage,
           transcript: tweetText,
           platform,
@@ -221,7 +314,6 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
           author: authorName,
           description: tweetText
         };
-        
       } else if (platform === 'linkedin') {
         const response = await fetch(
           `https://api.scrapecreators.com/v1/linkedin/post?url=${encodeURIComponent(url)}`,
@@ -239,52 +331,13 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
         const data = await response.json();
         return {
           title: data.name || data.headline || 'LinkedIn Post',
-          thumbnail: data.author?.profileImage || null,
+          thumbnail: data.media || data.author?.image || null,
           transcript: data.description || '',
           platform,
           url,
           author: data.author?.name || 'Unknown Author',
           description: data.description || ''
         };
-        
-      } else if (platform === 'reddit') {
-        // For Reddit, we need to extract post ID from URL and use subreddit API
-        const postMatch = url.match(/reddit\.com\/r\/(\w+)\/comments\/(\w+)/);
-        if (!postMatch) {
-          throw new Error('Invalid Reddit URL format');
-        }
-        const [, subreddit, postId] = postMatch;
-        
-        const response = await fetch(
-          `https://api.scrapecreators.com/v1/reddit/subreddit?subreddit=${subreddit}`,
-          {
-            headers: {
-              'x-api-key': SCRAPE_CREATORS_API_KEY,
-            },
-          }
-        );
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        const post = data.children?.find(child => child.data.id === postId)?.data;
-        
-        if (!post) {
-          throw new Error('Post not found in subreddit');
-        }
-        
-        return {
-          title: post.title || 'Reddit Post',
-          thumbnail: post.thumbnail !== 'self' ? post.thumbnail : null,
-          transcript: post.selftext || post.title,
-          platform,
-          url,
-          author: post.author || 'Unknown Author',
-          description: post.selftext || post.title
-        };
-        
       } else {
         throw new Error(`Unsupported platform: ${platform}`);
       }
@@ -356,6 +409,26 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
     }
 
     try {
+      const wordCount = transcript.split(/\s+/).filter(word => word.length > 0).length;
+      
+      // Use more tokens for longer content to ensure detailed summaries
+      const maxTokens = wordCount > 3500 ? 2000 : wordCount > 2000 ? 1500 : wordCount > 1000 ? 1000 : 500;
+      
+      const systemPrompt = wordCount > 3500 
+        ? `You are an expert content analyst that creates extremely detailed and comprehensive summaries. Your task is to preserve ALL important information, key points, examples, data, quotes, and insights from the content. Create a thorough summary that captures:
+
+1. Main themes and key messages
+2. All important details, facts, and data points
+3. Specific examples, case studies, or stories mentioned
+4. Key quotes or statements
+5. Step-by-step processes or methodologies described
+6. Any actionable insights or recommendations
+7. Supporting evidence and reasoning
+8. Context and background information
+
+The summary should be detailed enough that someone reading only the summary would understand virtually everything important from the original content. Do not skip minor but relevant details. Organize the information logically with clear sections and bullet points where appropriate.`
+        : `You are a helpful assistant that creates detailed summaries of social media content. Summarize all key points, main messages, important details, examples, and actionable insights. Preserve the essential information while organizing it clearly.`;
+
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -363,19 +436,21 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
+          model: 'gpt-4o-mini',
           messages: [
             {
               role: 'system',
-              content: 'You are a helpful assistant that creates concise summaries of social media content. Summarize the key points, main message, and important details.'
+              content: systemPrompt
             },
             {
               role: 'user',
-              content: `Please provide a comprehensive summary of this content:\n\n${transcript}`
+              content: wordCount > 3500 
+                ? `Please provide an extremely detailed and comprehensive summary of this content, preserving ALL important information, key points, examples, data, and insights. The summary should be thorough enough that no critical information is lost:\n\n${transcript}`
+                : `Please provide a comprehensive summary of this content, including all key points, main messages, and important details:\n\n${transcript}`
             }
           ],
-          max_tokens: 500,
-          temperature: 0.7,
+          max_tokens: maxTokens,
+          temperature: 0.3,
         }),
       });
 
@@ -500,7 +575,7 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
 
     const platform = detectPlatform(newVideoUrl);
     if (platform === 'unknown') {
-      toast.error('Unsupported platform. Please enter a YouTube, Instagram, TikTok, Twitter, LinkedIn, or Reddit URL.');
+      toast.error('Unsupported platform. Please enter a YouTube, Instagram, TikTok, Twitter, or LinkedIn URL.');
       return;
     }
 
@@ -600,7 +675,7 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
       {/* Header */}
       <div className="bg-green-100 px-4 sm:px-6 py-3 border-b border-green-200">
         <p className="text-xs sm:text-sm text-gray-700">
-          Paste Video links from social media for converting into brain knowledge | Platforms: YouTube, Instagram, TikTok, Twitter, LinkedIn, and Reddit
+          Paste Video links from social media for converting into brain knowledge | Platforms: YouTube, Instagram, TikTok, Twitter, and LinkedIn
         </p>
       </div>
 
@@ -632,23 +707,36 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
 
       {/* Main Content Area */}
       {videos.length > 0 && (
-        <div className="flex flex-col lg:flex-row min-h-96">
+        <div className="flex flex-col lg:flex-row lg:h-[36rem]">
           {/* Left Sidebar - Videos List */}
-          <div className="w-full lg:w-80 bg-blue-50 border-b lg:border-b-0 lg:border-r border-gray-200">
-            <div className="p-4 border-b border-gray-200 bg-blue-100">
+          <div className="w-full lg:w-80 bg-blue-50 border-b lg:border-b-0 lg:border-r border-gray-200 flex flex-col">
+            <div className="p-4 border-b border-gray-200 bg-blue-100 flex-shrink-0">
               <h3 className="text-sm font-medium text-gray-700">
                 {videos.length} Video{videos.length > 1 ? 's' : ''}
               </h3>
             </div>
             
-            <div className="p-4">
-              <div className="space-y-4 max-h-72 lg:max-h-80 overflow-y-auto">
+            <div className="p-4 flex-1 overflow-hidden">
+              <div className="space-y-4 h-full overflow-y-auto">
                 {videos.map((video) => (
                   <div
                     key={video.id}
-                    onClick={() => setSelectedVideo(video.id)}
+                    onClick={() => {
+                      // Desktop behavior
+                      if (window.innerWidth >= 1024) {
+                        setSelectedVideo(video.id);
+                      } else {
+                        // Mobile behavior - toggle expand/collapse
+                        if (expandedVideoMobile === video.id) {
+                          setExpandedVideoMobile(null);
+                        } else {
+                          setExpandedVideoMobile(video.id);
+                          setActiveTabMobile('transcript');
+                        }
+                      }
+                    }}
                     className={`relative bg-white rounded-lg border-2 transition-all cursor-pointer hover:shadow-md ${
-                      selectedVideo === video.id 
+                      selectedVideo === video.id || expandedVideoMobile === video.id
                         ? 'border-blue-500 shadow-lg' 
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
@@ -709,7 +797,7 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
                           video.platform === 'tiktok' ? 'bg-gray-100 text-gray-800' :
                           video.platform === 'twitter' ? 'bg-blue-100 text-blue-800' :
                           video.platform === 'linkedin' ? 'bg-blue-100 text-blue-800' :
-                          'bg-orange-100 text-orange-800'
+                          'bg-gray-100 text-gray-800'
                         }`}>
                           {video.platform}
                         </span>
@@ -735,6 +823,123 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
                       )}
                     </div>
                     
+                    {/* Mobile expanded content */}
+                    <div className={`lg:hidden ${expandedVideoMobile === video.id ? 'block' : 'hidden'}`}>
+                      {video.error ? (
+                        <div className="p-4 border-t border-gray-200">
+                          <div className="flex items-center space-x-2 text-red-600 bg-red-50 rounded-lg p-4">
+                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                            <span className="text-xs">{video.error}</span>
+                          </div>
+                        </div>
+                      ) : video.loading ? (
+                        <div className="p-4 border-t border-gray-200">
+                          <div className="flex items-center justify-center py-4">
+                            <div className="flex items-center space-x-2 text-gray-500">
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <span className="text-sm">Loading content...</span>
+                            </div>
+                          </div>
+                        </div>
+                      ) : video.transcript ? (
+                        <div className="border-t border-gray-200">
+                          {/* Mobile Tab Controls */}
+                          <div className="p-4 border-b border-gray-100">
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center space-x-4">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveTabMobile('transcript');
+                                  }}
+                                  className={`text-xs font-medium pb-1 border-b-2 transition-colors ${
+                                    activeTabMobile === 'transcript'
+                                      ? 'text-blue-600 border-blue-600'
+                                      : 'text-gray-500 border-transparent'
+                                  }`}
+                                >
+                                  Transcript
+                                </button>
+                                {video.summary && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveTabMobile('summary');
+                                    }}
+                                    className={`text-xs font-medium pb-1 border-b-2 transition-colors ${
+                                      activeTabMobile === 'summary'
+                                        ? 'text-blue-600 border-blue-600'
+                                        : 'text-gray-500 border-transparent'
+                                    }`}
+                                  >
+                                    Summary
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Mobile Action Buttons */}
+                            <div className="flex flex-col gap-2">
+                              {!video.summary && video.transcript && (
+                                <Button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleGenerateSummary(video.id);
+                                  }}
+                                  disabled={generatingSummary === video.id}
+                                  className="text-xs px-3 py-2 h-8"
+                                >
+                                  {generatingSummary === video.id ? (
+                                    <div className="flex items-center space-x-1">
+                                      <div className="animate-spin h-3 w-3 border border-white border-t-transparent rounded-full"></div>
+                                      <span>Generating...</span>
+                                    </div>
+                                  ) : (
+                                    'Generate Summary'
+                                  )}
+                                </Button>
+                              )}
+                              
+                              {!video.savedToAgent && (
+                                <Button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSaveToAgent(video);
+                                  }}
+                                  disabled={!onAddToAgent || savingToAgent === video.id}
+                                  className="text-xs px-3 py-2 h-8"
+                                >
+                                  {savingToAgent === video.id ? (
+                                    <div className="flex items-center space-x-1">
+                                      <div className="animate-spin h-3 w-3 border border-white border-t-transparent rounded-full"></div>
+                                      <span>Saving...</span>
+                                    </div>
+                                  ) : (
+                                    'Save to Agent'
+                                  )}
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Mobile Content Display */}
+                          <div className="p-4 bg-gray-50 max-h-64 overflow-y-auto">
+                            <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">
+                              {activeTabMobile === 'transcript' 
+                                ? video.transcript 
+                                : video.summary}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-4 border-t border-gray-200">
+                          <div className="flex items-center justify-center py-4 text-gray-500">
+                            <span className="text-sm">No content available</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
                     {video.loading && (
                       <div className="absolute inset-0 bg-blue-50 bg-opacity-75 flex items-center justify-center rounded-lg">
                         <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
@@ -746,12 +951,12 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
             </div>
           </div>
 
-          {/* Right Content Area */}
-          <div className="flex-1 p-4 sm:p-6">
+          {/* Right Content Area - Hidden on mobile */}
+          <div className="hidden lg:flex flex-1 p-4 sm:p-6 flex-col overflow-hidden">
             {selectedVideoData ? (
               <div className="h-full flex flex-col">
                 {/* Header */}
-                <div className="border-b pb-4 mb-6">
+                <div className="border-b pb-4 mb-6 flex-shrink-0">
                   <h3 className="font-semibold text-gray-900 text-sm sm:text-base mb-2">
                     {selectedVideoData.title}
                   </h3>
@@ -794,7 +999,7 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
                 ) : selectedVideoData.transcript ? (
                   <>
                     {/* Tab Controls */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 flex-shrink-0">
                       <div className="flex items-center space-x-4 border-b border-gray-200 pb-2 overflow-x-auto">
                         <button
                           onClick={() => setActiveTab('transcript')}
@@ -866,13 +1071,15 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
                       </div>
                     </div>
 
-                    {/* Content Display */}
-                    <div className="flex-1 bg-gray-50 rounded-lg p-4 sm:p-6 overflow-y-auto min-h-32 lg:min-h-0">
-                      <p className="text-xs sm:text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                        {activeTab === 'transcript' 
-                          ? selectedVideoData.transcript 
-                          : selectedVideoData.summary}
-                      </p>
+                    {/* Content Display - Fixed height with scroll */}
+                    <div className="flex-1 bg-gray-50 rounded-lg p-4 sm:p-6 overflow-hidden flex flex-col">
+                      <div className="h-full overflow-y-auto">
+                        <p className="text-xs sm:text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                          {activeTab === 'transcript' 
+                            ? selectedVideoData.transcript 
+                            : selectedVideoData.summary}
+                        </p>
+                      </div>
                     </div>
                   </>
                 ) : (
@@ -882,10 +1089,10 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
                 )}
               </div>
             ) : (
-              <div className="flex items-center justify-center h-full min-h-32 text-gray-500">
+              <div className="flex items-center justify-center h-full text-gray-500">
                 <div className="text-center">
                   <Video className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-2 text-gray-300" />
-                  <p className="text-xs sm:text-sm">Select a video to view content</p>
+                  <p className="text-xs sm:text-sm">Select to view content</p>
                 </div>
               </div>
             )}
