@@ -195,6 +195,29 @@ const Team = () => {
     }
   };
 
+  // Remove team member handler
+  const handleRemoveTeamMember = async (member: any) => {
+    if (isRemoveButtonDisabled(member.role, member.email)) return;
+    setLoading(true);
+    try {
+      const res = await removeTeamMember({
+        teamId: activeTeamId || "",
+        email: member.email,
+        adminId: adminId || "",
+      });
+      if (!res.error) {
+        toast.success("Team member removed!");
+        window.location.reload(); // Or trigger a state update if you have a fetch function
+      } else {
+        toast.error(res.result || "Failed to remove member");
+      }
+    } catch (err) {
+      toast.error("Failed to remove member");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <section className="h-full overflow-x-hidden">
       {/* upper side title and toggle btn  */}
@@ -485,37 +508,7 @@ const Team = () => {
                                   member.role,
                                   member.email
                                 )}
-                                onClick={async () => {
-                                  if (
-                                    !isRemoveButtonDisabled(
-                                      member.role,
-                                      member.email
-                                    )
-                                  ) {
-                                    setLoading(true);
-                                    try {
-                                      const res = await removeTeamMember({
-                                        teamId: adminId || "",
-                                        email: member.email,
-                                        adminId: activeTeamId || "",
-                                      });
-                                      if (!res.error) {
-                                        toast.success("Team member removed!");
-                                        // Optionally refresh the team member list here
-                                        window.location.reload(); // Or trigger a state update if you have a fetch function
-                                      } else {
-                                        toast.error(
-                                          res.result ||
-                                            "Failed to remove member"
-                                        );
-                                      }
-                                    } catch (err) {
-                                      toast.error("Failed to remove member");
-                                    } finally {
-                                      setLoading(false);
-                                    }
-                                  }
-                                }}
+                                onClick={() => handleRemoveTeamMember(member)}
                               >
                                 Remove
                               </button>
