@@ -2876,3 +2876,39 @@ export async function createFreeProductOrder(payload: {
     throw error;
   }
 }
+
+export async function removeTeamMember(dataObj: {
+  teamId: string;
+  email: string;
+  adminId: string;
+}): Promise<{ error: boolean; result: string }> {
+  try {
+    let url = `${apiUrl}/client/removeTeamMember`;
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
+
+    if (!response.data) {
+      throw new Error("No data received from server");
+    }
+    return response.data;
+  } catch (error) {
+    console.error("Error removing team member:", error);
+    return {
+      error: true,
+      result: "Failed to remove team member",
+    };
+  }
+}

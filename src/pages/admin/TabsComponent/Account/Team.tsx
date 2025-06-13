@@ -3,6 +3,7 @@ import {
   inviteTeamMember,
   getTeamInvites,
   acceptOrRejectInvite,
+  removeTeamMember,
 } from "../../../../lib/serverActions";
 import { useAdminStore } from "../../../../store/useAdminStore";
 import { useNavigate } from "react-router-dom";
@@ -196,8 +197,6 @@ const Team = () => {
 
   return (
     <section className="h-full overflow-x-hidden">
-      {console.log(clientData)}
-
       {/* upper side title and toggle btn  */}
       <div className="upper px-12 pt-12">
         <h2 className="text-2xl font-semibold text-gray-900">Team</h2>
@@ -486,14 +485,35 @@ const Team = () => {
                                   member.role,
                                   member.email
                                 )}
-                                onClick={() => {
+                                onClick={async () => {
                                   if (
                                     !isRemoveButtonDisabled(
                                       member.role,
                                       member.email
                                     )
                                   ) {
-                                    // Add your remove member logic here
+                                    setLoading(true);
+                                    try {
+                                      const res = await removeTeamMember({
+                                        teamId: adminId || "",
+                                        email: member.email,
+                                        adminId: activeTeamId || "",
+                                      });
+                                      if (!res.error) {
+                                        toast.success("Team member removed!");
+                                        // Optionally refresh the team member list here
+                                        window.location.reload(); // Or trigger a state update if you have a fetch function
+                                      } else {
+                                        toast.error(
+                                          res.result ||
+                                            "Failed to remove member"
+                                        );
+                                      }
+                                    } catch (err) {
+                                      toast.error("Failed to remove member");
+                                    } finally {
+                                      setLoading(false);
+                                    }
                                   }
                                 }}
                               >
