@@ -105,8 +105,8 @@ const Team = () => {
     try {
       if (!activeTeamId || !adminId) return;
       const res = await acceptOrRejectInvite({
-        teamId: activeTeamId,
         adminId: adminId,
+        teamId: activeTeamId,
         email: invite.email,
         inviteStatus: status,
         teamName: invite.teamName,
@@ -370,8 +370,9 @@ const Team = () => {
           <table className="w-full min-w-[400px] border-separate border-spacing-y-4">
             <thead>
               <tr>
+                <th className="py-1.5 px-2 text-left text-sm">Invited By</th>
                 <th className="py-1.5 px-2 text-left text-sm">Team Name</th>
-                <th className="py-1.5 px-2 text-left text-sm">Email</th>
+
                 <th className="py-1.5 px-2 text-left text-sm">Action</th>
               </tr>
             </thead>
@@ -392,13 +393,14 @@ const Team = () => {
                       borderRadius: 12,
                     }}
                   >
-                    <td className="py-3 px-4 font-semibold text-base text-gray-800 rounded-l-lg">
-                      {invite.teamName || "Unknown Team"}
-                    </td>
                     <td className="py-3 px-4 text-sm text-gray-600">
                       {invite.email}
                     </td>
-                    <td className="py-3 px-4 rounded-r-lg flex gap-2 items-center justify-center">
+                    <td className="py-3 px-4 font-semibold text-base text-gray-800 rounded-l-lg">
+                      {invite.teamName || "Unknown Team"}
+                    </td>
+
+                    <td className="py-3 px-4 rounded-r-lg flex gap-2 items-center justify-start">
                       <button
                         className="bg-[#6AFF97] border border-black px-4 py-2 rounded text-black font-semibold hover:bg-[#4D65FF] hover:text-white transition-colors shadow"
                         onClick={() => handleInviteAction(invite, "accepted")}

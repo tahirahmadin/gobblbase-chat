@@ -2736,15 +2736,15 @@ export async function acceptOrRejectInvite({
   inviteStatus,
   teamName,
 }: {
-  teamId: string;
   adminId: string;
+  teamId: string;
   email: string;
   inviteStatus: string;
   teamName: string;
 }) {
   try {
     let url = `${apiUrl}/client/acceptOrRejectInvite`;
-    let dataObj = { teamId, adminId, email, inviteStatus, teamName };
+    let dataObj = { adminId, teamId, email, inviteStatus, teamName };
     console.log("dataObj", dataObj);
     let encryptedData = getCipherText(dataObj);
 
