@@ -66,6 +66,7 @@ const AllAgents: React.FC = () => {
     clientData,
     // activeTeamId, // not needed for dropdown logic now
     // setActiveTeamId,
+    setActiveTeamId,
     refetchClientData,
   } = useAdminStore();
   const { setActiveBotId, activeBotId } = useBotConfig();
@@ -106,8 +107,9 @@ const AllAgents: React.FC = () => {
     return team?.agents || [];
   }, [selectedTeam, agents, clientData]);
 
-  const handleEdit = async (agentId: string) => {
+  const handleEdit = async (agentId: string, teamId: string) => {
     await setActiveBotId(agentId);
+    setActiveTeamId(teamId);
     navigate("/admin/dashboard/overview");
   };
 
@@ -150,27 +152,46 @@ const AllAgents: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         {/* Team filter dropdown */}
         <div className="flex items-center gap-2">
-          <label htmlFor="team-select" className="font-medium mr-2">
+          <label htmlFor="team-select" className="font-medium text-lg mr-2">
             Team
           </label>
-          <select
-            id="team-select"
-            value={selectedTeam}
-            onChange={(e) => setSelectedTeam(e.target.value)}
-            className="border rounded px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
-            style={{ minWidth: 120 }}
-          >
-            {teamOptions.map((team) => (
-              <option key={team.value} value={team.value}>
-                {team.label}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <div className="absolute top-1 left-1 w-full h-full bg-[#6AFF97] rounded-md"></div>
+            <select
+              id="team-select"
+              value={selectedTeam}
+              onChange={(e) => setSelectedTeam(e.target.value)}
+              className="relative px-4 py-2 bg-white border-2 border-black rounded-md focus:outline-none focus:ring-2 focus:ring-[#6AFF97] appearance-none cursor-pointer min-w-[180px]"
+            >
+              {teamOptions.map((team) => (
+                <option key={team.value} value={team.value}>
+                  {team.label}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+              <svg
+                className="w-4 h-4 text-gray-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </div>
+          </div>
         </div>
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-bold">
             Total Agents: {displayedAgents.length}
           </h2>
+
           <div className="relative inline-block">
             <div className="absolute top-1 left-1 w-full h-full bg-[#6aff97] rounded"></div>
             <div className="relative inline-block">
@@ -188,51 +209,95 @@ const AllAgents: React.FC = () => {
           </div>
         </div>
       </div>
+      {displayedAgents.length === 0 && (
+        <div className="flex flex-col items-center justify-center w-full">
+          <div className="flex flex-col items-center justify-center py-12 max-w-[400px]">
+            <div className="w-24 h-24 mb-6 relative">
+              <div className="absolute inset-0 bg-[#D4DEFF] rounded-full border-2 border-black"></div>
+              <div className="absolute inset-2 bg-white rounded-full border-2 border-black flex items-center justify-center">
+                <svg
+                  className="w-12 h-12 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              No Agents Found
+            </h3>
+            <p className="text-gray-600 text-center  mb-6">
+              Get started by creating your first AI agent. They'll help automate
+              your tasks and boost your productivity.
+            </p>
+            <button
+              onClick={() => navigate("/admin/dashboard/create-bot")}
+              disabled={isLoading}
+              className="px-6 py-3 bg-[#6AFF97] text-black font-semibold rounded-full border-2 border-black hover:bg-[#5AEF87] transition-colors duration-200 relative"
+            >
+              <div className="absolute top-1 left-1 w-full h-full bg-black rounded-full -z-10"></div>
+              Create Your First Agent
+            </button>
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-        {displayedAgents.map((agent: AdminAgent) => (
-          <div
-            key={agent.agentId}
-            className="relative bg-[#eaefff] rounded-lg flex flex-col items-center px-8 py-6"
-          >
-            <div className="absolute top-2 right-2">
-              <Trash2
-                className="w-6 h-6 text-red-500 cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteClick(agent.agentId, agent.name || "Agent Name");
-                }}
+        {displayedAgents.length > 0 &&
+          displayedAgents.map((agent: AdminAgent) => (
+            <div
+              key={agent.agentId}
+              className="relative bg-[#eaefff] rounded-lg flex flex-col items-center px-8 py-6"
+            >
+              <div className="absolute top-2 right-2">
+                <Trash2
+                  className="w-6 h-6 text-red-500 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteClick(
+                      agent.agentId,
+                      agent.name || "Agent Name"
+                    );
+                  }}
+                />
+              </div>
+              <img
+                src={getPersonalityImage(agent)}
+                alt="Agent Avatar"
+                className="w-24 h-24 rounded-full mb-4 border-4 border-white shadow"
               />
-            </div>
-            <img
-              src={getPersonalityImage(agent)}
-              alt="Agent Avatar"
-              className="w-24 h-24 rounded-full mb-4 border-4 border-white shadow"
-            />
-            <div className="font-semibold text-lg text-center">
-              {agent.name || "Agent Name"}
-            </div>
-            <a href={`${mainDomainUrl}/${agent.username}`} target="_blank">
-              <div className="text-sm text-blue-500 mb-2">Visit agent</div>
-            </a>
-            <div className="flex gap-2 mt-2">
-              <div className="relative inline-block">
-                <div className="absolute top-1 left-1 w-full h-full bg-[#AEB8FF] rounded"></div>
+              <div className="font-semibold text-lg text-center">
+                {agent.name || "Agent Name"}
+              </div>
+              <a href={`${mainDomainUrl}/${agent.username}`} target="_blank">
+                <div className="text-sm text-blue-500 mb-2">Visit agent</div>
+              </a>
+              <div className="flex gap-2 mt-2">
                 <div className="relative inline-block">
-                  {/* Bottom layer for shadow effect */}
-                  <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
-                  {/* Main button */}
-                  <button
-                    onClick={() => handleEdit(agent.agentId)}
-                    disabled={isLoading || deletingId === agent.agentId}
-                    className="relative bg-[#AEB8FF] text-black font-regular px-4 py-2 border border-black text-sm"
-                  >
-                    SELECT AGENT
-                  </button>
+                  <div className="absolute top-1 left-1 w-full h-full bg-[#AEB8FF] rounded"></div>
+                  <div className="relative inline-block">
+                    {/* Bottom layer for shadow effect */}
+                    <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
+                    {/* Main button */}
+                    <button
+                      onClick={() => handleEdit(agent.agentId, agent.teamId)}
+                      disabled={isLoading || deletingId === agent.agentId}
+                      className="relative bg-[#AEB8FF] text-black font-regular px-4 py-2 border border-black text-sm"
+                    >
+                      SELECT AGENT
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
       </div>
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}

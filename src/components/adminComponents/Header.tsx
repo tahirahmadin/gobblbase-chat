@@ -50,7 +50,14 @@ interface Team {
 
 const Header = () => {
   const { activeBotData, activeBotId, setActiveBotId } = useBotConfig();
-  const { agents, adminEmail, clientData, setActiveTeamId } = useAdminStore();
+  const {
+    agents,
+    adminEmail,
+    clientData,
+    setActiveTeamId,
+    isAdminLoggedIn,
+    activeTeamId,
+  } = useAdminStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -74,6 +81,12 @@ const Header = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isDropdownOpen]);
+
+  useEffect(() => {
+    if (!activeBotId && isAdminLoggedIn && activeTeamId) {
+      navigate("/admin/all-agents");
+    }
+  }, [activeBotId, isAdminLoggedIn, activeTeamId]);
 
   const handleAgentSelect = (agentId: string, teamId: string) => {
     console.log("agentId", agentId);
