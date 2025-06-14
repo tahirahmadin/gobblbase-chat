@@ -243,6 +243,13 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const [loadingAvailability, setLoadingAvailability] = useState(false);
   const [availabilityDebug, setAvailabilityDebug] = useState<string>("");
 
+  const [dynamicPrice, setDynamicPrice] = useState({
+    isFree: servicePrice === "Free", 
+    amount: servicePrice !== "Free" ? parseFloat(servicePrice.replace(/[^0-9.]/g, "")) || 0 : 0,
+    currency: globalCurrency, 
+    displayPrice: servicePrice
+  });
+
   const availablePaymentMethods = useMemo(() => {
     if (!activeBotData?.paymentMethods) return [];
     
@@ -256,6 +263,14 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   }, [activeBotData?.paymentMethods]);
 
   const hasEnabledPaymentMethods = availablePaymentMethods.length > 0;
+
+  const isBookingFree = useMemo(() => {
+    return settings?.price?.isFree || dynamicPrice.isFree;
+  }, [settings?.price?.isFree, dynamicPrice.isFree]);
+
+  const isLoginRequired = useMemo(() => {
+    return !isBookingFree; 
+  }, [isBookingFree]);
 
   const validateForm = () => {
     const isNameValid = name.trim().length >= 2;
@@ -288,13 +303,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       setIsFormValid(validateForm());
     }, 0);
   };
-  
-  const [dynamicPrice, setDynamicPrice] = useState({
-    isFree: servicePrice === "Free", 
-    amount: servicePrice !== "Free" ? parseFloat(servicePrice.replace(/[^0-9.]/g, "")) || 0 : 0,
-    currency: globalCurrency, 
-    displayPrice: servicePrice
-  });
   
   useEffect(() => {
     if (isLoggedIn && userEmail) {
@@ -643,7 +651,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     };
 
   const selectSlot = (slot: Slot) => {
-    if (!isLoggedIn) {
+    if (isLoginRequired && !isLoggedIn) {
       setSelectedSlot(null);
       return;
     }
@@ -854,7 +862,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           return aHour * 60 + aMin - (bHour * 60 + bMin);
         });
       
-        if (!isLoggedIn) {
+        if (isLoginRequired && !isLoggedIn) {
           return (
             <div>
               <div className="flex justify-between items-center mb-4">
@@ -877,8 +885,8 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                 <div>{fmtDateFull(selectedDate)}</div>
               </div>
               
-              <LoginCard theme={theme} />
-            </div>
+                <LoginCard theme={theme} />
+              </div>
           );
         }
         
