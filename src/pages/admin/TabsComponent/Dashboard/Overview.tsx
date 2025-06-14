@@ -140,12 +140,7 @@ const Overview = () => {
       value: analyticsData?.bookingsReceived,
     },
   ];
-  {
-    console.log("adminId", adminId);
-  }
-  {
-    console.log("activeTeamId", activeTeamId);
-  }
+
   return (
     <div className="overflow-scroll h-[100%]">
       {/* Top Section: Agent Info and Plan */}

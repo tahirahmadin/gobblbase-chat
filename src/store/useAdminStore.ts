@@ -395,6 +395,7 @@ export const useAdminStore = create<AdminState>()((set, get) => {
       });
 
       // Clear the stored email
+      localStorage.removeItem("activeBotId");
       localStorage.removeItem("adminEmail");
       localStorage.removeItem("teamId");
     },

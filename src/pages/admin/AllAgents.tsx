@@ -66,12 +66,12 @@ const AllAgents: React.FC = () => {
     clientData,
     // activeTeamId, // not needed for dropdown logic now
     // setActiveTeamId,
+    refetchClientData,
   } = useAdminStore();
   const { setActiveBotId, activeBotId } = useBotConfig();
   const navigate = useNavigate();
   const location = useLocation();
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [agentToDelete, setAgentToDelete] = useState<{
     id: string;
@@ -122,6 +122,7 @@ const AllAgents: React.FC = () => {
     try {
       await deleteAgent(agentToDelete.id);
       await fetchAllAgents();
+      refetchClientData();
       if (activeBotId === agentToDelete.id) {
         setActiveBotId(null);
       }
