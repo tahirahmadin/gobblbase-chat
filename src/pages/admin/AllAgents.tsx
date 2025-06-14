@@ -4,7 +4,7 @@ import { AdminAgent } from "../../types";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useBotConfig } from "../../store/useBotConfig";
 import { mainDomainUrl, PERSONALITY_OPTIONS } from "../../utils/constants";
-import { Trash2, X } from "lucide-react";
+import { ChevronDown, Trash2, X } from "lucide-react";
 
 const placeholderAvatar = "/assets/voice/expert.png";
 
@@ -147,66 +147,80 @@ const AllAgents: React.FC = () => {
     return placeholderAvatar;
   };
 
+const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false);
+useEffect(() => {
+  const handleClickOutside = (e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (!target.closest(".team-dropdown")) {
+      setIsTeamDropdownOpen(false);
+    }
+  };
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => document.removeEventListener("mousedown", handleClickOutside);
+}, []);
   return (
     <div className="p-8 h-full overflow-y-auto">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col items-start gap-4 mb-6">
         {/* Team filter dropdown */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 team-dropdown">
           <label htmlFor="team-select" className="font-medium text-lg mr-2">
             Team
           </label>
-          <div className="relative">
-            <div className="absolute top-1 left-1 w-full h-full bg-[#6AFF97] rounded-md"></div>
-            <select
-              id="team-select"
-              value={selectedTeam}
-              onChange={(e) => setSelectedTeam(e.target.value)}
-              className="relative px-4 py-2 bg-white border-2 border-black rounded-md focus:outline-none focus:ring-2 focus:ring-[#6AFF97] appearance-none cursor-pointer min-w-[180px]"
-            >
-              {teamOptions.map((team) => (
-                <option key={team.value} value={team.value}>
-                  {team.label}
-                </option>
-              ))}
-            </select>
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-              <svg
-                className="w-4 h-4 text-gray-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
+          {/* team dropdown */}
+            <div className="relative w-40 lg:w-48 flex items-center">
+              <button
+                onClick={() => setIsTeamDropdownOpen(!isTeamDropdownOpen)}
+                className="truncate whitespace-nowrap w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
+                {teamOptions.find((t) => t.value === selectedTeam)?.label ||
+                  "Select Team"}
+              </button>
+              <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
+                <ChevronDown
+                  size={20}
+                  className={`text-[#000000] stroke-[3px] transition-transform ${
+                    isTeamDropdownOpen ? "rotate-180" : ""
+                  }`}
                 />
-              </svg>
+              </div>
+
+              {isTeamDropdownOpen && (
+                <div className="absolute z-10 mt-1 top-8 w-full bg-white border border-[#7D7D7D] shadow-sm rounded-sm">
+                  {teamOptions.map((team) => (
+                    <button
+                      key={team.value}
+                      onClick={() => {
+                        setSelectedTeam(team.value);
+                        setIsTeamDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                        selectedTeam === team.value ? "bg-[#AEB8FF]" : ""
+                      }`}
+                    >
+                      {team.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
         </div>
-        <div className="flex items-center gap-4">
-          <h2 className="text-xl font-bold">
+        <div className="whitespace-nowrap flex items-center gap-4">
+          <h2 className="text-xl font-semifold">
             Total Agents: {displayedAgents.length}
           </h2>
 
-          <div className="relative inline-block">
-            <div className="absolute top-1 left-1 w-full h-full bg-[#6aff97] rounded"></div>
-            <div className="relative inline-block">
+            <div className="relative">
               {/* Bottom layer for shadow effect */}
-              <div className="absolute top-1 left-1 w-full h-full border border-black "></div>
+              <div className="absolute  bg-[#6aff97]  top-[3px] left-[3px] w-full h-full border border-black "></div>
               {/* Main button */}
               <button
                 onClick={() => navigate("/admin/dashboard/create-bot")}
                 disabled={isLoading}
-                className="relative bg-[#6aff97] text-black font-semibold px-4 py-2 border border-black"
+                className="relative bg-[#6aff97] text-black font-semibold px-4 py-1 border border-black"
               >
                 + NEW AGENT
               </button>
             </div>
-          </div>
         </div>
       </div>
       {displayedAgents.length === 0 && (
@@ -254,7 +268,7 @@ const AllAgents: React.FC = () => {
           displayedAgents.map((agent: AdminAgent) => (
             <div
               key={agent.agentId}
-              className="relative bg-[#eaefff] rounded-lg flex flex-col items-center px-8 py-6"
+              className="relative bg-[#eaefff] max-w-[300px] rounded-lg flex flex-col items-center px-4 py-6"
             >
               <div className="absolute top-2 right-2">
                 <Trash2

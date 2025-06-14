@@ -556,7 +556,6 @@ export default function PublicChat({
                 currentConfig={currentConfig}
                 activeScreen={activeScreen}
                 setActiveScreen={setActiveScreen}
-                
                 isPreview={true}
               /> ) : (
               <HeaderSection
