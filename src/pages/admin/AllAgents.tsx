@@ -160,7 +160,7 @@ useEffect(() => {
 }, []);
   return (
     <div className="p-8 h-full overflow-y-auto">
-      <div className="flex flex-col items-start gap-4 mb-6">
+      <div className="flex flex-col items-start sm:flex-row sm:justify-between gap-4 mb-6">
         {/* Team filter dropdown */}
         <div className="flex items-center gap-2 team-dropdown">
           <label htmlFor="team-select" className="font-medium text-lg mr-2">
@@ -216,9 +216,11 @@ useEffect(() => {
               <button
                 onClick={() => navigate("/admin/dashboard/create-bot")}
                 disabled={isLoading}
-                className="relative bg-[#6aff97] text-black font-semibold px-4 py-1 border border-black"
+                className="relative bg-[#6aff97] text-black font-normal px-4 py-1 border border-black flex items-center gap-1"
               >
-                + NEW AGENT
+                <span>+ NEW </span>
+                
+                <span className="hidden sm:block"> AGENT </span>
               </button>
             </div>
         </div>

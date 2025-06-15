@@ -155,7 +155,7 @@ const Team = () => {
   return (
     <section className="h-full overflow-x-hidden">
       {/* upper side title and toggle btn  */}
-      <div className="upper px-12 pt-12">
+      <div className="upper px-4 md:px-12 pt-12">
         <h2 className="text-2xl font-semibold text-gray-900">Team</h2>
         <p className="text-gray-600">
           Manage your team members, assign roles and invite new collaborators
@@ -182,7 +182,7 @@ const Team = () => {
           </div> */}
 
           {/* Team members */}
-          <div className="bg-[#D4DEFF] rounded-lg p-4 flex items-end gap-4 flex justify-between w-[500px]">
+          <div className="bg-[#D4DEFF] rounded-lg p-4 flex flex-col xs:flex-row items-end gap-4 flex justify-between min-w-[120px] w-full max-w-[450px]">
             <div className="team-member-bar w-full">
               <div className="flex items-center mb-2 whitespace-nowrap">
                 <span className="text-2xl font-bold mr-2">
@@ -220,17 +220,18 @@ const Team = () => {
                 <span className="icon">
                   <Plus className="h-4 w-4 text-black" />
                 </span>
-                <span className="text">NEW MEMBER</span>
+                <span className="text">NEW </span>
+                <span className="hidden md:flex">MEMBER</span>
               </button>
             </div>
           </div>
         </div>
       </div>
-      <div className="below px-12 pt-6">
+      <div className="below px-4 md:px-12 pt-6 pb-12">
         {showAddMemberPanel && (
           <div className="new-member-section w-full">
             {/* New Member Invite */}
-            <div className="relative new-member-invite mt-4 mb-6 flex items-center gap-4 w-1/2 border border-[#000] py-10 px-6 rounded-lg">
+            <div className="relative new-member-invite w-full md:w-1/2 mt-4 mb-6 flex items-center gap-4 w-1/2 border border-[#000] py-10 px-6 rounded-lg">
               <button
                 onClick={() => setShowAddMemberPanel(false)}
                 className="absolute top-2 right-2 text-red-500 hover:text-red-700 transition-colors"
@@ -273,12 +274,11 @@ const Team = () => {
         )}
       </div>
       {/* Team manage table  */}
-      <div className="middle px-12 pt-6">
-        <div className="bg-[#EEEEEE] border border-gray-200 p-6 rounded-lg">
+      <div className="middle px-4 md:px-12 pt-6 pb-12">
+        <div className="bg-[#EEEEEE] w-full border border-gray-200 p-6 rounded-lg">
           <div className=" h-[100%] overflow-y-auto">
-            {/* products manage in mob  table for large file  */}
-            <div className="hidden md:block">
-              <table className="w-full min-w-[500px] border-separate border-spacing-y-2">
+            <div className="block w-[200px] min-w-[100%]">
+              <table className="border-separate  w-full min-w-[200px] border-spacing-y-2">
                 <thead className="sticky top-0  rounded-t-lg bg-[#CEFFDC] z-5 ">
                   <tr className="">
                     <th className="py-1.5 px-6 text-left text-sm rounded-l-[12px] ">
@@ -341,7 +341,7 @@ const Team = () => {
                               </div>
                             </div>
                           </td>
-                          <td className="py-1.5 px-2 ">
+                          <td className="py-1.5 px-2 rounded-r-[12px]">
                             <div className="flex gap-1.5 items-center justify-center">
                               <button
                                 className={`bg-[#FF9797] text-[#000] w-24 py-2 rounded-full border border-[#000] text-sm ${
@@ -367,7 +367,7 @@ const Team = () => {
         {/* Invites Table */}
         <div className="bg-[#FFFBEA] border border-yellow-300 p-6 rounded-lg mt-8">
           <h3 className="text-lg font-bold mb-4">Pending Invites</h3>
-          <table className="w-full min-w-[400px] border-separate border-spacing-y-4">
+          <table className="w-full min-w-[200px] border-separate border-spacing-y-4">
             <thead>
               <tr>
                 <th className="py-1.5 px-2 text-left text-sm">Invited By</th>
