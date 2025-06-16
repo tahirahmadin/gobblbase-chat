@@ -75,19 +75,20 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
   };
 
   return (
-    <div className="flex flex-row w-full gap-8 mt-8 items-stretch">
+    <div className="flex flex-col md:flex-row w-full gap-4 xl:gap-8 mt-8 items-stretch">
       {/* Left column */}
-      <div className="flex flex-col gap-6 w-full max-w-[400px]">
+      <div className="flex flex-col gap-6 w-full md:w-1/2">
         {/* Team Name */}
         <div>
-          <label className="font-semibold text-gray-700 mb-1 block">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 bg-[#E9EDFF] rounded-lg px-6 py-6">
+          <label className="whitespace-nowrap font-semibold text-gray-700 block mr-6">
             Team Name
           </label>
-          <div className="flex items-center gap-2 bg-[#E9EDFF] border border-[#B6C2FF] rounded px-3 py-2">
+          <div className="flex items-center gap-2 w-full">
             {isEditing ? (
               <>
                 <input
-                  className="bg-transparent outline-none flex-1 text-sm"
+                  className="bg-white py-2 px-2 outline-none flex-1 text-sm border border-[#7d7d7d]"
                   value={tempTeamName}
                   onChange={(e) => setTempTeamName(e.target.value)}
                   placeholder="Team name..."
@@ -110,7 +111,7 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
               </>
             ) : (
               <>
-                <span className="flex-1 text-sm">{teamName}</span>
+                <span className="flex-1 text-sm bg-white py-2 px-2 border border-[#7d7d7d]">{teamName}</span>
                 <button
                   onClick={startEditing}
                   className="p-1 hover:bg-[#D4DDFF] rounded transition-colors"
@@ -119,64 +120,75 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
                 </button>
               </>
             )}
+            </div>
           </div>
         </div>
         {/* Current Plan */}
         <div>
-          <label className="font-semibold text-gray-700 mb-1 block">
-            Current Plan
-          </label>
           <div
-            className="flex items-center gap-2 bg-[#E9EDFF] border border-[#B6C2FF] rounded px-3 py-2"
+            className="flex flex-col sm:flex-row sm:items-center gap-2 bg-[#E9EDFF] rounded-lg px-6 py-6"
             onClick={() => {
-              navigate("/admin/account/plans");
+              navigate("/admin/account/plan");
             }}
           >
-            <span className="flex-1 font-semibold text-sm">{currentPlan}</span>
-            <button className="bg-[#6AFF97] border border-black px-4 py-1 rounded font-semibold text-sm shadow">
-              VIEW
-            </button>
+          <label className="whitespace-nowrap font-semibold text-gray-700  block mr-4 ">
+            Current Plan
+          </label>
+          <div className="flex items-center gap-2 w-full">
+            <span className="flex-1 font-normal text-lg md:text-2xl">{currentPlan}</span>
+            <div className="relative z-10 w-fit">
+              <div className="absolute left-[3px] top-[3.5px] h-full w-full -z-10 bg-[#6AFF97] border border-black"></div>
+                <button className="min-w-[100px] bg-[#6AFF97] border border-black px-4 py-2 font-semibold text-sm">
+                  VIEW
+                </button>
+              </div>  
+            </div>
           </div>
         </div>
         {/* Members */}
         <div>
-          <label className="font-semibold text-gray-700 mb-1 block">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 bg-[#E9EDFF] rounded-lg px-6 py-6">
+          <label className="whitespace-nowrap font-semibold text-gray-700 block mr-6">
             Members
           </label>
-          <div className="flex items-center gap-2 bg-[#E9EDFF] border border-[#B6C2FF] rounded px-3 py-2">
-            <span className="font-semibold text-sm">
+          <div className="flex items-center gap-2 w-full">
+            <span className="font-normal text-lg md:text-2xl">
               {membersCount ?? 0}/{membersLimit}
             </span>
-            <div className="flex-1 h-2 bg-white rounded-full border mx-2">
+            <div className="flex-1 h-3 bg-white rounded-full border mx-2 shadow-[inset_0_3px_3px_0_rgba(0,0,0,0.25)]">
               <div
-                className="h-2 bg-[#4D65FF] rounded-full"
+                className="h-3 bg-[#4D65FF] rounded-full border-[2px] border-black"
                 style={{
                   width: `${((membersCount ?? 0) / membersLimit) * 100}%`,
                 }}
               />
             </div>
+            </div>
           </div>
         </div>
       </div>
       {/* Right card */}
-      <div className="flex flex-col justify-center bg-white border border-[#B6C2FF] rounded-lg px-8 py-8 min-w-[340px] max-w-[400px] shadow-md ml-auto">
-        <label className="font-semibold text-gray-700 mb-3 text-lg">
+      <div className="flex flex-col justify-center items-center gap-4 bg-white border border-[#000] rounded-xl px-8 py-8 w-full md:w-1/2">
+        <label className="font-normal text-black mb-3 text-2xl text-center">
           Add new member via Email
         </label>
         <input
           type="email"
-          className="border border-gray-300 rounded px-3 py-2 mb-4 text-sm"
+          className="border border-[#7d7d7d] px-3 py-2 mb-4 text-sm w-[100%] lg:w-[70%]"
           placeholder="Enter email address..."
           value={inviteEmail}
           onChange={(e) => setInviteEmail(e.target.value)}
         />
-        <button
-          className="bg-[#6AFF97] border border-black px-4 py-2 rounded font-semibold text-black text-sm shadow"
-          onClick={onInvite}
-          disabled={inviteLoading}
-        >
-          {inviteLoading ? "Inviting..." : "INVITE"}
-        </button>
+        <div className="relative z-10 w-fit">
+          <div className="absolute left-[3px] top-[3.5px] h-full w-full -z-10 bg-[#6AFF97] border border-black"></div>
+          <button
+            className="min-w-[100px] bg-[#6AFF97] border border-black px-4 py-2 font-semibold text-sm"
+            onClick={onInvite}
+            disabled={inviteLoading}
+          >
+            {inviteLoading ? "Inviting..." : "INVITE"}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -322,28 +334,28 @@ const Team = () => {
 
   return (
     <section className="h-full overflow-x-hidden">
-      <div className="upper px-4 md:px-12 pt-12">
+      <div className="upper px-4 md:px-6 xl:px-12 pt-12">
         <h2 className="text-2xl font-semibold text-gray-900">Team</h2>
         <p className="text-gray-600">
           Manage your team members, assign roles and invite new collaborators
         </p>
         {/* Invites Table */}
         {invites.length > 0 && (
-          <div className="bg-[#D4FFD9] p-4 rounded-xl mt-8">
-            <h3 className="text-base font-bold mb-2">PENDING INVITES</h3>
+          <div className="bg-[#CEFFDC] p-4 rounded-xl mt-8 ">
+            <h3 className="text-base font-semibold my-2">PENDING INVITES</h3>
             {invites.map((invite, idx) => (
               <div
                 key={invite.email || idx}
-                className="flex flex-row items-center justify-between bg-white rounded-lg px-6 py-3 mb-2"
+                className="scrollbar-custom w-[200px] overflow-x-scroll md:overflow-x-hidden min-w-full flex flex-row items-center justify-between bg-white rounded-lg px-6 py-3 mb-2"
               >
-                <div className="text-sm text-gray-800">
+                <div className="text-lg text-gray-800 whitespace-nowrap">
                   Invited by{" "}
                   <span className="font-semibold">
                     {invite.email || "<PERSON NAME>"}
                   </span>{" "}
                   to{" "}
                   <span className="font-semibold">
-                    {invite.teamName || "<TEAM NAME>"}
+                    {invite.teamName || "<TEAM NAME >"}
                   </span>
                 </div>
                 <div className="flex gap-3 ml-4">
@@ -354,7 +366,7 @@ const Team = () => {
                     Approve
                   </button>
                   <button
-                    className="bg-[#FFBDBD] border border-black rounded-full px-5 py-1 text-sm font-medium text-black hover:bg-[#FF9797] focus:outline-none"
+                    className="bg-[#FF9797] border border-black rounded-full px-5 py-1 text-sm font-medium text-black hover:bg-[#FF9797] focus:outline-none"
                     onClick={() => handleInviteAction(invite, "rejected")}
                   >
                     Reject
@@ -366,7 +378,7 @@ const Team = () => {
         )}
       </div>
 
-      <div className="upper px-4 md:px-12 pt-12">
+      <div className="upper px-4 md:px-6 xl:px-12 pt-12">
         <TeamHeader
           teamName={teamName}
           setTeamName={setTeamName}
