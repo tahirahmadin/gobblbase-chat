@@ -323,12 +323,19 @@ const Header = () => {
 
             <div className="max:w-[100%]">
               {isAllAgentsPage ? (
-                <div className="relative z-10">
-                  <Button className="text-black font-semibold flex items-center gap-2">
-                    <Eye className="w-5 h-5" />
-                    <span className="hidden xs:flex">View Agent</span>
-                  </Button>
-                </div>
+               <div className="relative">
+              {/* Bottom layer for shadow effect */}
+              <div className="absolute  bg-[#6aff97]  top-[3px] left-[3px] w-full h-full border border-black "></div>
+              {/* Main button */}
+              <button
+                onClick={() => navigate("/admin/dashboard/create-bot")}
+                className="relative bg-[#6aff97] text-black font-normal px-4 py-1 border border-black flex items-center gap-1"
+              >
+                <span>+ NEW </span>
+                
+                <span className="hidden sm:block"> AGENT </span>
+              </button>
+            </div>
               ) : (
                 <div className="relative">
                   <a
