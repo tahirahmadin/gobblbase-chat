@@ -129,7 +129,7 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
           <div
             className="flex items-center gap-2 bg-[#E9EDFF] border border-[#B6C2FF] rounded px-3 py-2"
             onClick={() => {
-              navigate("/admin/account/plan");
+              navigate("/admin/account/plans");
             }}
           >
             <span className="flex-1 font-semibold text-sm">{currentPlan}</span>

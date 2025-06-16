@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Video, Plus, X, FileText, Loader2, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Video, Plus, X, FileText, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { removeDocumentFromAgent } from '../../../../lib/serverActions';
+import { removeDocumentFromAgent } from "../../../../lib/serverActions";
 import styled from "styled-components";
 
 const Button = styled.button`
@@ -76,29 +76,36 @@ const Icon = styled.button`
   }
 `;
 
-const SCRAPE_CREATORS_API_KEY = import.meta.env.VITE_PUBLIC_SCRAPE_CREATORS_API_KEY || "4VR7li6w0hUnpeg6ZfiYbrnBr5q1";
+const SCRAPE_CREATORS_API_KEY =
+  import.meta.env.VITE_PUBLIC_SCRAPE_CREATORS_API_KEY ||
+  "4VR7li6w0hUnpeg6ZfiYbrnBr5q1";
 const OPENAI_API_KEY = import.meta.env.VITE_PUBLIC_OPENAI_API_KEY;
 
-export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId, onRefreshData }) {
+export default function SocialVideos({
+  onAddToAgent,
+  activeBotData,
+  activeBotId,
+  onRefreshData,
+}) {
   const [videos, setVideos] = useState([]);
-  const [newVideoUrl, setNewVideoUrl] = useState('');
+  const [newVideoUrl, setNewVideoUrl] = useState("");
   const [selectedVideo, setSelectedVideo] = useState(null);
-  const [activeTab, setActiveTab] = useState('transcript');
+  const [activeTab, setActiveTab] = useState("transcript");
   const [removingVideo, setRemovingVideo] = useState(null);
   const [expandedVideoMobile, setExpandedVideoMobile] = useState(null);
-  const [activeTabMobile, setActiveTabMobile] = useState('transcript');
+  const [activeTabMobile, setActiveTabMobile] = useState("transcript");
   const [processingVideo, setProcessingVideo] = useState(null); // Track which video is being processed
 
   // Load videos from agent data when component mounts or activeBotData changes
   useEffect(() => {
     if (activeBotData?.socialVideos) {
-      const loadedVideos = activeBotData.socialVideos.map(video => ({
+      const loadedVideos = activeBotData.socialVideos.map((video) => ({
         ...video,
         loading: false,
-        error: null
+        error: null,
       }));
       setVideos(loadedVideos);
-      
+
       // Set first video as selected if none selected
       if (loadedVideos.length > 0 && !selectedVideo) {
         setSelectedVideo(loadedVideos[0].id);
@@ -117,23 +124,23 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
       }
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const detectPlatform = (url) => {
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      return 'youtube';
-    } else if (url.includes('instagram.com')) {
-      return 'instagram';
-    } else if (url.includes('tiktok.com')) {
-      return 'tiktok';
-    } else if (url.includes('twitter.com') || url.includes('x.com')) {
-      return 'twitter';
-    } else if (url.includes('linkedin.com')) {
-      return 'linkedin';
+    if (url.includes("youtube.com") || url.includes("youtu.be")) {
+      return "youtube";
+    } else if (url.includes("instagram.com")) {
+      return "instagram";
+    } else if (url.includes("tiktok.com")) {
+      return "tiktok";
+    } else if (url.includes("twitter.com") || url.includes("x.com")) {
+      return "twitter";
+    } else if (url.includes("linkedin.com")) {
+      return "linkedin";
     }
-    return 'unknown';
+    return "unknown";
   };
 
   const fetchVideoData = async (url, platform) => {
@@ -141,288 +148,311 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
       let videoDetails = null;
       let transcriptData = null;
       let hasContent = false;
-      
+
       // First, try to get transcript/content to check if there's any useful content
-      if (platform === 'youtube') {
+      if (platform === "youtube") {
         // Fetch transcript first
         const transcriptResponse = await fetch(
-          `https://api.scrapecreators.com/v1/youtube/video/transcript?url=${encodeURIComponent(url)}`,
+          `https://api.scrapecreators.com/v1/youtube/video/transcript?url=${encodeURIComponent(
+            url
+          )}`,
           {
             headers: {
-              'x-api-key': SCRAPE_CREATORS_API_KEY,
+              "x-api-key": SCRAPE_CREATORS_API_KEY,
             },
           }
         );
-        
+
         if (transcriptResponse.ok) {
           transcriptData = await transcriptResponse.json();
-          const transcriptText = transcriptData?.transcript_only_text || '';
+          const transcriptText = transcriptData?.transcript_only_text || "";
           if (transcriptText.trim().length > 0) {
             hasContent = true;
           }
         }
-        
+
         // If no transcript found, don't proceed
         if (!hasContent) {
-          throw new Error('No transcript available for this video');
+          throw new Error("No transcript available for this video");
         }
-        
+
         // Only fetch video details if we have content
         const detailsResponse = await fetch(
-          `https://api.scrapecreators.com/v1/youtube/video?url=${encodeURIComponent(url)}`,
+          `https://api.scrapecreators.com/v1/youtube/video?url=${encodeURIComponent(
+            url
+          )}`,
           {
             headers: {
-              'x-api-key': SCRAPE_CREATORS_API_KEY,
+              "x-api-key": SCRAPE_CREATORS_API_KEY,
             },
           }
         );
-        
+
         if (detailsResponse.ok) {
           videoDetails = await detailsResponse.json();
         }
-        
-      } else if (platform === 'instagram') {
+      } else if (platform === "instagram") {
         // First, try to get transcript
         const transcriptResponse = await fetch(
-          `https://api.scrapecreators.com/v2/instagram/media/transcript?url=${encodeURIComponent(url)}`,
+          `https://api.scrapecreators.com/v2/instagram/media/transcript?url=${encodeURIComponent(
+            url
+          )}`,
           {
             headers: {
-              'x-api-key': SCRAPE_CREATORS_API_KEY,
+              "x-api-key": SCRAPE_CREATORS_API_KEY,
             },
           }
         );
-        
+
         if (transcriptResponse.ok) {
           transcriptData = await transcriptResponse.json();
-          const transcriptText = transcriptData?.transcripts?.[0]?.text || '';
+          const transcriptText = transcriptData?.transcripts?.[0]?.text || "";
           if (transcriptText.trim().length > 0) {
             hasContent = true;
           }
         }
-        
+
         // If no transcript, try to get post details to check for caption
         if (!hasContent) {
           const detailsResponse = await fetch(
-            `https://api.scrapecreators.com/v1/instagram/post?url=${encodeURIComponent(url)}`,
+            `https://api.scrapecreators.com/v1/instagram/post?url=${encodeURIComponent(
+              url
+            )}`,
             {
               headers: {
-                'x-api-key': SCRAPE_CREATORS_API_KEY,
+                "x-api-key": SCRAPE_CREATORS_API_KEY,
               },
             }
           );
-          
+
           if (detailsResponse.ok) {
             const tempDetails = await detailsResponse.json();
-            const igData = tempDetails?.data?.xdt_shortcode_media || tempDetails;
+            const igData =
+              tempDetails?.data?.xdt_shortcode_media || tempDetails;
             const captionEdges = igData?.edge_media_to_caption?.edges;
-            const caption = captionEdges?.[0]?.node?.text || '';
-            
+            const caption = captionEdges?.[0]?.node?.text || "";
+
             if (caption.trim().length > 0) {
               hasContent = true;
               videoDetails = tempDetails; // Store the details since we already fetched them
             }
           }
         }
-        
+
         // If still no content found, don't proceed
         if (!hasContent) {
-          throw new Error('No transcript or caption available for this content');
+          throw new Error(
+            "No transcript or caption available for this content"
+          );
         }
-        
+
         // Get post details if we haven't already fetched them
         if (!videoDetails) {
           const detailsResponse = await fetch(
-            `https://api.scrapecreators.com/v1/instagram/post?url=${encodeURIComponent(url)}`,
+            `https://api.scrapecreators.com/v1/instagram/post?url=${encodeURIComponent(
+              url
+            )}`,
             {
               headers: {
-                'x-api-key': SCRAPE_CREATORS_API_KEY,
+                "x-api-key": SCRAPE_CREATORS_API_KEY,
               },
             }
           );
-          
+
           if (detailsResponse.ok) {
             videoDetails = await detailsResponse.json();
           }
         }
-        
-      } else if (platform === 'tiktok') {
+      } else if (platform === "tiktok") {
         // First, try to get transcript
         const transcriptResponse = await fetch(
-          `https://api.scrapecreators.com/v1/tiktok/video/transcript?url=${encodeURIComponent(url)}`,
+          `https://api.scrapecreators.com/v1/tiktok/video/transcript?url=${encodeURIComponent(
+            url
+          )}`,
           {
             headers: {
-              'x-api-key': SCRAPE_CREATORS_API_KEY,
+              "x-api-key": SCRAPE_CREATORS_API_KEY,
             },
           }
         );
-        
+
         if (transcriptResponse.ok) {
           transcriptData = await transcriptResponse.json();
-          const transcriptText = transcriptData?.transcript || '';
+          const transcriptText = transcriptData?.transcript || "";
           if (transcriptText.trim().length > 0) {
             hasContent = true;
           }
         }
-        
+
         // If no transcript, try to get video details to check for description
         if (!hasContent) {
           const detailsResponse = await fetch(
-            `https://api.scrapecreators.com/v2/tiktok/video?url=${encodeURIComponent(url)}`,
+            `https://api.scrapecreators.com/v2/tiktok/video?url=${encodeURIComponent(
+              url
+            )}`,
             {
               headers: {
-                'x-api-key': SCRAPE_CREATORS_API_KEY,
+                "x-api-key": SCRAPE_CREATORS_API_KEY,
               },
             }
           );
-          
+
           if (detailsResponse.ok) {
             const tempDetails = await detailsResponse.json();
             const tikTokData = tempDetails?.aweme_detail;
-            const desc = tikTokData?.desc || '';
-            
+            const desc = tikTokData?.desc || "";
+
             if (desc.trim().length > 0) {
               hasContent = true;
               videoDetails = tempDetails; // Store the details since we already fetched them
             }
           }
         }
-        
+
         // If still no content found, don't proceed
         if (!hasContent) {
-          throw new Error('No transcript or description available for this video');
+          throw new Error(
+            "No transcript or description available for this video"
+          );
         }
-        
+
         // Get video details if we haven't already fetched them
         if (!videoDetails) {
           const detailsResponse = await fetch(
-            `https://api.scrapecreators.com/v2/tiktok/video?url=${encodeURIComponent(url)}`,
+            `https://api.scrapecreators.com/v2/tiktok/video?url=${encodeURIComponent(
+              url
+            )}`,
             {
               headers: {
-                'x-api-key': SCRAPE_CREATORS_API_KEY,
+                "x-api-key": SCRAPE_CREATORS_API_KEY,
               },
             }
           );
-          
+
           if (detailsResponse.ok) {
             videoDetails = await detailsResponse.json();
           }
         }
-        
-      } else if (platform === 'twitter') {
-        const tweetIdMatch = url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/);
-        
+      } else if (platform === "twitter") {
+        const tweetIdMatch = url.match(
+          /(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/
+        );
+
         if (!tweetIdMatch) {
-          throw new Error('Invalid Twitter/X URL format');
+          throw new Error("Invalid Twitter/X URL format");
         }
-        
+
         const tweetId = tweetIdMatch[1];
-        
+
         let response;
         let data;
-        
+
         // Try to get tweet data first to check for content
         try {
           response = await fetch(
             `https://api.scrapecreators.com/v1/twitter/tweet?url=${tweetId}`,
             {
               headers: {
-                'x-api-key': SCRAPE_CREATORS_API_KEY,
+                "x-api-key": SCRAPE_CREATORS_API_KEY,
               },
             }
           );
-          
+
           if (response.ok) {
             data = await response.json();
           }
         } catch (error) {
-          console.log('Tweet ID approach failed, trying full URL');
+          console.log("Tweet ID approach failed, trying full URL");
         }
-        
+
         if (!data || !response.ok) {
-          const cleanUrl = url.split('?')[0]; 
-          
+          const cleanUrl = url.split("?")[0];
+
           response = await fetch(
-            `https://api.scrapecreators.com/v1/twitter/tweet?url=${encodeURIComponent(cleanUrl)}`,
+            `https://api.scrapecreators.com/v1/twitter/tweet?url=${encodeURIComponent(
+              cleanUrl
+            )}`,
             {
               headers: {
-                'x-api-key': SCRAPE_CREATORS_API_KEY,
+                "x-api-key": SCRAPE_CREATORS_API_KEY,
               },
             }
           );
-          
+
           if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}, message: ${await response.text()}`);
+            throw new Error(
+              `HTTP error! status: ${
+                response.status
+              }, message: ${await response.text()}`
+            );
           }
-          
+
           data = await response.json();
         }
-        
+
         // Check if tweet has any text content
-        const tweetText = data.legacy?.full_text || 
-                          data.full_text || 
-                          data.text || 
-                          '';
-        
+        const tweetText =
+          data.legacy?.full_text || data.full_text || data.text || "";
+
         if (!tweetText.trim() || tweetText.trim().length === 0) {
-          throw new Error('No text content available in this tweet');
+          throw new Error("No text content available in this tweet");
         }
-        
+
         hasContent = true;
         videoDetails = data; // Use the tweet data as video details
-        
-      } else if (platform === 'linkedin') {
+      } else if (platform === "linkedin") {
         const response = await fetch(
-          `https://api.scrapecreators.com/v1/linkedin/post?url=${encodeURIComponent(url)}`,
+          `https://api.scrapecreators.com/v1/linkedin/post?url=${encodeURIComponent(
+            url
+          )}`,
           {
             headers: {
-              'x-api-key': SCRAPE_CREATORS_API_KEY,
+              "x-api-key": SCRAPE_CREATORS_API_KEY,
             },
           }
         );
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         // Check if LinkedIn post has any description/content
-        const description = data.description || '';
+        const description = data.description || "";
         if (!description.trim() || description.trim().length === 0) {
-          throw new Error('No content available in this LinkedIn post');
+          throw new Error("No content available in this LinkedIn post");
         }
-        
+
         hasContent = true;
         videoDetails = data; // Use the post data as video details
-        
       } else {
         throw new Error(`Unsupported platform: ${platform}`);
       }
 
       // If we reach here, we have content, so process the data based on platform
       let processedData = {};
-      
-      if (platform === 'youtube') {
+
+      if (platform === "youtube") {
         processedData = {
-          title: videoDetails?.title || 'YouTube Video',
+          title: videoDetails?.title || "YouTube Video",
           thumbnail: videoDetails?.thumbnail || null,
-          transcript: transcriptData?.transcript_only_text || '',
+          transcript: transcriptData?.transcript_only_text || "",
           platform,
           url,
-          author: videoDetails?.channel?.title || 'Unknown Channel',
-          description: videoDetails?.description || '',
+          author: videoDetails?.channel?.title || "Unknown Channel",
+          description: videoDetails?.description || "",
           viewCount: videoDetails?.viewCountText || null,
-          publishDate: videoDetails?.publishDateText || null
+          publishDate: videoDetails?.publishDateText || null,
         };
-        
-      } else if (platform === 'instagram') {
+      } else if (platform === "instagram") {
         // Extract data from Instagram's complex structure
         const igData = videoDetails?.data?.xdt_shortcode_media || videoDetails;
         const captionEdges = igData?.edge_media_to_caption?.edges;
-        const caption = captionEdges?.[0]?.node?.text || '';
-        const ownerUsername = igData?.owner?.username || 'Unknown User';
-        const isVideo = igData?.__typename === 'XDTGraphVideo';
-        
+        const caption = captionEdges?.[0]?.node?.text || "";
+        const ownerUsername = igData?.owner?.username || "Unknown User";
+        const isVideo = igData?.__typename === "XDTGraphVideo";
+
         let thumbnail = null;
         if (igData?.display_url) {
           thumbnail = igData.display_url;
@@ -432,107 +462,124 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
           const resourceIndex = igData.display_resources.length > 1 ? 1 : 0;
           thumbnail = igData.display_resources[resourceIndex]?.src;
         }
-        
+
         let viewCount = null;
         if (isVideo && igData?.video_play_count) {
           viewCount = `${igData.video_play_count.toLocaleString()} plays`;
         } else if (igData?.edge_media_preview_like?.count) {
           viewCount = `${igData.edge_media_preview_like.count.toLocaleString()} likes`;
         }
-        
+
         processedData = {
-          title: `Instagram ${isVideo ? 'Reel' : 'Post'} by @${ownerUsername}`,
+          title: `Instagram ${isVideo ? "Reel" : "Post"} by @${ownerUsername}`,
           thumbnail: thumbnail,
-          transcript: transcriptData?.transcripts?.[0]?.text || caption || '',
+          transcript: transcriptData?.transcripts?.[0]?.text || caption || "",
           platform,
           url,
           author: ownerUsername,
           description: caption,
-          viewCount: viewCount
+          viewCount: viewCount,
         };
-        
-      } else if (platform === 'tiktok') {
+      } else if (platform === "tiktok") {
         // Extract data from TikTok's structure
         const tikTokData = videoDetails?.aweme_detail;
-        const authorNickname = tikTokData?.author?.nickname || 'Unknown User';
-        const authorUsername = tikTokData?.author?.unique_id || '';
-        const desc = tikTokData?.desc || '';
-        
+        const authorNickname = tikTokData?.author?.nickname || "Unknown User";
+        const authorUsername = tikTokData?.author?.unique_id || "";
+        const desc = tikTokData?.desc || "";
+
         processedData = {
           title: `TikTok by @${authorUsername || authorNickname}`,
-          thumbnail: tikTokData?.video?.cover?.url_list?.[0] || tikTokData?.video?.dynamic_cover?.url_list?.[0] || null,
-          transcript: transcriptData?.transcript || desc || '',
+          thumbnail:
+            tikTokData?.video?.cover?.url_list?.[0] ||
+            tikTokData?.video?.dynamic_cover?.url_list?.[0] ||
+            null,
+          transcript: transcriptData?.transcript || desc || "",
           platform,
           url,
           author: authorNickname,
           description: desc,
-          viewCount: tikTokData?.statistics?.play_count ? `${tikTokData.statistics.play_count.toLocaleString()} views` : null
+          viewCount: tikTokData?.statistics?.play_count
+            ? `${tikTokData.statistics.play_count.toLocaleString()} views`
+            : null,
         };
-        
-      } else if (platform === 'twitter') {
+      } else if (platform === "twitter") {
         // Extract data from Twitter's structure
         const tweetData = videoDetails;
-        const authorName = tweetData.core?.user_results?.result?.core?.name || 
-                          tweetData.core?.user_results?.result?.legacy?.name || 
-                          tweetData.user?.name || 
-                          tweetData.author?.name || 
-                          'Unknown User';
-        const textContent = tweetData.legacy?.full_text || 
-                          tweetData.full_text || 
-                          tweetData.text || 
-                          '';
-        const profileImage = tweetData.core?.user_results?.result?.avatar?.image_url ||
-                             tweetData.core?.user_results?.result?.legacy?.profile_image_url_https || 
-                             tweetData.user?.profile_image_url_https || 
-                             tweetData.author?.profile_image_url ||
-                             null;
-        
+        const authorName =
+          tweetData.core?.user_results?.result?.core?.name ||
+          tweetData.core?.user_results?.result?.legacy?.name ||
+          tweetData.user?.name ||
+          tweetData.author?.name ||
+          "Unknown User";
+        const textContent =
+          tweetData.legacy?.full_text ||
+          tweetData.full_text ||
+          tweetData.text ||
+          "";
+        const profileImage =
+          tweetData.core?.user_results?.result?.avatar?.image_url ||
+          tweetData.core?.user_results?.result?.legacy
+            ?.profile_image_url_https ||
+          tweetData.user?.profile_image_url_https ||
+          tweetData.author?.profile_image_url ||
+          null;
+
         processedData = {
-          title: `${authorName}: ${textContent.substring(0, 50)}${textContent.length > 50 ? '...' : ''}`,
+          title: `${authorName}: ${textContent.substring(0, 50)}${
+            textContent.length > 50 ? "..." : ""
+          }`,
           thumbnail: profileImage,
           transcript: textContent,
           platform,
           url,
           author: authorName,
-          description: textContent
+          description: textContent,
         };
-        
-      } else if (platform === 'linkedin') {
+      } else if (platform === "linkedin") {
         // Extract data from LinkedIn's structure
         const linkedinData = videoDetails;
-        
+
         processedData = {
-          title: linkedinData.name || linkedinData.headline || 'LinkedIn Post',
+          title: linkedinData.name || linkedinData.headline || "LinkedIn Post",
           thumbnail: linkedinData.media || linkedinData.author?.image || null,
-          transcript: linkedinData.description || '',
+          transcript: linkedinData.description || "",
           platform,
           url,
-          author: linkedinData.author?.name || 'Unknown Author',
-          description: linkedinData.description || ''
+          author: linkedinData.author?.name || "Unknown Author",
+          description: linkedinData.description || "",
         };
       }
 
       return processedData;
-      
     } catch (error) {
-      console.error('Error fetching video data:', error);
+      console.error("Error fetching video data:", error);
       throw error;
     }
   };
 
   const generateSummary = async (transcript) => {
     if (!transcript || !OPENAI_API_KEY) {
-      throw new Error('Transcript or OpenAI API key is missing');
+      throw new Error("Transcript or OpenAI API key is missing");
     }
 
     try {
-      const wordCount = transcript.split(/\s+/).filter(word => word.length > 0).length;
-      
+      const wordCount = transcript
+        .split(/\s+/)
+        .filter((word) => word.length > 0).length;
+
       // Use more tokens for longer content to ensure detailed summaries
-      const maxTokens = wordCount > 10000 ? 2000 : wordCount > 5000 ? 1500 : wordCount > 2000 ? 1000 : 500;
-      
-      const systemPrompt = wordCount > 10000 
-        ? `You are an expert content analyst that creates extremely detailed and comprehensive summaries. Your task is to preserve ALL important information, key points, examples, data, quotes, and insights from the content. Create a thorough summary that captures:
+      const maxTokens =
+        wordCount > 10000
+          ? 2000
+          : wordCount > 5000
+          ? 1500
+          : wordCount > 2000
+          ? 1000
+          : 500;
+
+      const systemPrompt =
+        wordCount > 10000
+          ? `You are an expert content analyst that creates extremely detailed and comprehensive summaries. Your task is to preserve ALL important information, key points, examples, data, quotes, and insights from the content. Create a thorough summary that captures:
 
 1. Main themes and key messages
 2. All important details, facts, and data points
@@ -544,57 +591,65 @@ export default function SocialVideos({ onAddToAgent, activeBotData, activeBotId,
 8. Context and background information
 
 The summary should be detailed enough that someone reading only the summary would understand virtually everything important from the original content. Do not skip minor but relevant details. Organize the information logically with clear sections and bullet points where appropriate.`
-        : `You are a helpful assistant that creates detailed summaries of social media content. Summarize all key points, main messages, important details, examples, and actionable insights. Preserve the essential information while organizing it clearly.`;
+          : `You are a helpful assistant that creates detailed summaries of social media content. Summarize all key points, main messages, important details, examples, and actionable insights. Preserve the essential information while organizing it clearly.`;
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: systemPrompt
-            },
-            {
-              role: 'user',
-              content: wordCount > 10000 
-                ? `Please provide an extremely detailed and comprehensive summary of this content, preserving ALL important information, key points, examples, data, and insights. The summary should be thorough enough that no critical information is lost:\n\n${transcript}`
-                : `Please provide a comprehensive summary of this content, including all key points, main messages, and important details:\n\n${transcript}`
-            }
-          ],
-          max_tokens: maxTokens,
-          temperature: 0.3,
-        }),
-      });
+      const response = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${OPENAI_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "system",
+                content: systemPrompt,
+              },
+              {
+                role: "user",
+                content:
+                  wordCount > 10000
+                    ? `Please provide an extremely detailed and comprehensive summary of this content, preserving ALL important information, key points, examples, data, and insights. The summary should be thorough enough that no critical information is lost:\n\n${transcript}`
+                    : `Please provide a comprehensive summary of this content, including all key points, main messages, and important details:\n\n${transcript}`,
+              },
+            ],
+            max_tokens: maxTokens,
+            temperature: 0.3,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`OpenAI API error: ${response.status}`);
       }
 
       const data = await response.json();
-      return data.choices[0]?.message?.content || 'Summary could not be generated';
+      return (
+        data.choices[0]?.message?.content || "Summary could not be generated"
+      );
     } catch (error) {
-      console.error('Error generating summary:', error);
+      console.error("Error generating summary:", error);
       throw error;
     }
   };
 
   const saveToAgent = async (video) => {
     if (!video.transcript && !video.summary) return false;
-    
-    const wordCount = video.transcript.split(/\s+/).filter(word => word.length > 0).length;
-    
+
+    const wordCount = video.transcript
+      .split(/\s+/)
+      .filter((word) => word.length > 0).length;
+
     const shouldSaveSummary = wordCount > 15000 && video.summary;
     const contentToSave = shouldSaveSummary ? video.summary : video.transcript;
-    const contentType = 'Transcript';
-    
+    const contentType = "Transcript";
+
     const fullContent = `${contentToSave}`;
     const contentSize = new TextEncoder().encode(fullContent).length;
-    
+
     const videoMetadata = {
       id: video.id,
       url: video.url,
@@ -602,30 +657,32 @@ The summary should be detailed enough that someone reading only the summary woul
       title: video.title,
       thumbnail: video.thumbnail,
       transcript: video.transcript,
-      summary: video.summary || '',
+      summary: video.summary || "",
       author: video.author,
       description: video.description,
       viewCount: video.viewCount,
-      publishDate: video.publishDate
+      publishDate: video.publishDate,
     };
-    
+
     if (onAddToAgent) {
       try {
         const success = await onAddToAgent(
-          `Social: ${video.platform.charAt(0).toUpperCase() + video.platform.slice(1)} ${contentType}: ${video.title}`,
+          `Social: ${
+            video.platform.charAt(0).toUpperCase() + video.platform.slice(1)
+          } ${contentType}: ${video.title}`,
           fullContent,
           contentSize,
-          videoMetadata 
+          videoMetadata
         );
-        
+
         if (success) {
-          setVideos(prev => prev.map(v => 
-            v.id === video.id 
-              ? { ...v, savedToAgent: true }
-              : v
-          ));
+          setVideos((prev) =>
+            prev.map((v) =>
+              v.id === video.id ? { ...v, savedToAgent: true } : v
+            )
+          );
           toast.success(`${contentType} saved to agent knowledge`);
-          
+
           if (onRefreshData) {
             onRefreshData();
           }
@@ -643,23 +700,23 @@ The summary should be detailed enough that someone reading only the summary woul
 
   const processAndSaveVideo = async (video) => {
     if (!video.transcript) return;
-    
-    const wordCount = video.transcript.split(/\s+/).filter(word => word.length > 0).length;
-    
+
+    const wordCount = video.transcript
+      .split(/\s+/)
+      .filter((word) => word.length > 0).length;
+
     setProcessingVideo(video.id);
-    
+
     try {
       // If >15000 words, generate summary first
       if (wordCount > 15000) {
         const summary = await generateSummary(video.transcript);
-        
+
         // Update video with summary
-        setVideos(prev => prev.map(v => 
-          v.id === video.id 
-            ? { ...v, summary }
-            : v
-        ));
-        
+        setVideos((prev) =>
+          prev.map((v) => (v.id === video.id ? { ...v, summary } : v))
+        );
+
         // Save summary to agent
         const updatedVideo = { ...video, summary };
         await saveToAgent(updatedVideo);
@@ -676,37 +733,44 @@ The summary should be detailed enough that someone reading only the summary woul
 
   const handleRemoveFromAgent = async (video) => {
     if (!video.documentId || !activeBotId) {
-      toast.error('Cannot remove: content not properly saved or no active agent');
+      toast.error(
+        "Cannot remove: content not properly saved or no active agent"
+      );
       return;
     }
 
     try {
       setRemovingVideo(video.id);
-      
-      const response = await removeDocumentFromAgent(activeBotId, video.documentId);
-      
+
+      const response = await removeDocumentFromAgent(
+        activeBotId,
+        video.documentId
+      );
+
       if (!response.error) {
         // Remove video from local state
-        setVideos(prev => prev.filter(v => v.id !== video.id));
-        
+        setVideos((prev) => prev.filter((v) => v.id !== video.id));
+
         // If this was the selected video, clear selection or select another
         if (selectedVideo === video.id) {
-          const remainingVideos = videos.filter(v => v.id !== video.id);
-          setSelectedVideo(remainingVideos.length > 0 ? remainingVideos[0].id : null);
+          const remainingVideos = videos.filter((v) => v.id !== video.id);
+          setSelectedVideo(
+            remainingVideos.length > 0 ? remainingVideos[0].id : null
+          );
         }
-        
-        toast.success('Content removed from agent knowledge');
-        
+
+        toast.success("Content removed from agent knowledge");
+
         // Trigger refresh of agent data
         if (onRefreshData) {
           onRefreshData();
         }
       } else {
-        toast.error('Failed to remove content from agent');
+        toast.error("Failed to remove content from agent");
       }
     } catch (error) {
-      console.error('Error removing content:', error);
-      toast.error('Failed to remove content from agent');
+      console.error("Error removing content:", error);
+      toast.error("Failed to remove content from agent");
     } finally {
       setRemovingVideo(null);
     }
@@ -714,19 +778,21 @@ The summary should be detailed enough that someone reading only the summary woul
 
   const handleAddVideo = async () => {
     if (!newVideoUrl.trim()) {
-      toast.error('Please enter a valid URL');
+      toast.error("Please enter a valid URL");
       return;
     }
 
     const platform = detectPlatform(newVideoUrl);
-    if (platform === 'unknown') {
-      toast.error('Unsupported platform. Please enter a YouTube, Instagram, TikTok, Twitter, or LinkedIn URL.');
+    if (platform === "unknown") {
+      toast.error(
+        "Unsupported platform. Please enter a YouTube, Instagram, TikTok, Twitter, or LinkedIn URL."
+      );
       return;
     }
 
     // Check if URL already exists
-    if (videos.some(video => video.url === newVideoUrl)) {
-      toast.error('This content has already been added');
+    if (videos.some((video) => video.url === newVideoUrl)) {
+      toast.error("This content has already been added");
       return;
     }
 
@@ -734,46 +800,55 @@ The summary should be detailed enough that someone reading only the summary woul
       id: Date.now().toString(),
       url: newVideoUrl,
       platform,
-      title: 'Loading...',
-      thumbnail: '',
-      transcript: '',
-      summary: '',
+      title: "Loading...",
+      thumbnail: "",
+      transcript: "",
+      summary: "",
       loading: true,
       error: null,
-      author: '',
-      description: '',
+      author: "",
+      description: "",
       viewCount: null,
       publishDate: null,
-      savedToAgent: false
+      savedToAgent: false,
     };
 
-    setVideos(prev => [...prev, newVideo]);
-    setNewVideoUrl('');
+    setVideos((prev) => [...prev, newVideo]);
+    setNewVideoUrl("");
     setSelectedVideo(newVideo.id);
 
     try {
       const videoData = await fetchVideoData(newVideoUrl, platform);
-      
-      setVideos(prev => prev.map(video => 
-        video.id === newVideo.id 
-          ? { ...video, ...videoData, loading: false }
-          : video
-      ));
 
-      toast.success(`${platform.charAt(0).toUpperCase() + platform.slice(1)} content added successfully!`);
-      
+      setVideos((prev) =>
+        prev.map((video) =>
+          video.id === newVideo.id
+            ? { ...video, ...videoData, loading: false }
+            : video
+        )
+      );
+
+      toast.success(
+        `${
+          platform.charAt(0).toUpperCase() + platform.slice(1)
+        } content added successfully!`
+      );
+
       // Auto-process and save the video
       const updatedVideo = { ...newVideo, ...videoData };
       await processAndSaveVideo(updatedVideo);
-      
     } catch (error) {
-      setVideos(prev => prev.filter(video => video.id !== newVideo.id));
-      
+      setVideos((prev) => prev.filter((video) => video.id !== newVideo.id));
+
       // Show specific error message for no content
-      if (error.message.includes('No transcript') || 
-          error.message.includes('No text content') || 
-          error.message.includes('No content available')) {
-        toast.error(`No transcript/content available for this ${platform} link`);
+      if (
+        error.message.includes("No transcript") ||
+        error.message.includes("No text content") ||
+        error.message.includes("No content available")
+      ) {
+        toast.error(
+          `No transcript/content available for this ${platform} link`
+        );
       } else {
         toast.error(`Failed to load ${platform} content: ${error.message}`);
       }
@@ -781,27 +856,32 @@ The summary should be detailed enough that someone reading only the summary woul
   };
 
   const removeVideo = (videoId) => {
-    setVideos(prev => prev.filter(video => video.id !== videoId));
+    setVideos((prev) => prev.filter((video) => video.id !== videoId));
     if (selectedVideo === videoId) {
-      const remainingVideos = videos.filter(v => v.id !== videoId);
-      setSelectedVideo(remainingVideos.length > 0 ? remainingVideos[0].id : null);
+      const remainingVideos = videos.filter((v) => v.id !== videoId);
+      setSelectedVideo(
+        remainingVideos.length > 0 ? remainingVideos[0].id : null
+      );
     }
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleAddVideo();
     }
   };
 
-  const selectedVideoData = selectedVideo ? videos.find(v => v.id === selectedVideo) : null;
+  const selectedVideoData = selectedVideo
+    ? videos.find((v) => v.id === selectedVideo)
+    : null;
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       {/* Header */}
       <div className="bg-green-100 px-4 sm:px-6 py-3 border-b border-green-200">
         <p className="text-xs sm:text-sm text-gray-700">
-          Paste links from social media to convert content into brain knowledge | Platforms: YouTube, Instagram, TikTok, Twitter, and LinkedIn 
+          Paste links from social media to convert content into brain knowledge
+          | Platforms: YouTube, Instagram, TikTok, Twitter, and LinkedIn
         </p>
       </div>
 
@@ -809,8 +889,9 @@ The summary should be detailed enough that someone reading only the summary woul
       <div className="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-200">
         <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
           <div className="flex items-center space-x-2 flex-shrink-0">
-            <Plus className="w-4 h-4 text-green-600" />
-            <span className="text-xs sm:text-sm font-medium text-gray-700">New Link</span>
+            <span className="text-xs sm:text-sm font-medium text-gray-700">
+              New Link
+            </span>
           </div>
           <div className="flex flex-col sm:flex-row flex-1  relative z-10 mt-4 space-y-3 sm:space-y-0 sm:space-x-3">
             <input
@@ -821,10 +902,7 @@ The summary should be detailed enough that someone reading only the summary woul
               placeholder="Paste your link..."
               className="flex-1 px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
             />
-            <Button 
-              onClick={handleAddVideo}
-              className="w-full sm:w-auto"
-            >
+            <Button onClick={handleAddVideo} className="w-full sm:w-auto">
               ADD LINK
             </Button>
           </div>
@@ -838,10 +916,10 @@ The summary should be detailed enough that someone reading only the summary woul
           <div className="w-full lg:w-80 bg-blue-50 border-b lg:border-b-0 lg:border-r border-gray-200 flex flex-col">
             <div className="p-4 border-b border-gray-200 bg-blue-100 flex-shrink-0">
               <h3 className="text-sm font-medium text-gray-700">
-                {videos.length} Content{videos.length > 1 ? ' Items' : ' Item'}
+                {videos.length} Content{videos.length > 1 ? " Items" : " Item"}
               </h3>
             </div>
-            
+
             <div className="p-4 flex-1 overflow-hidden">
               <div className="space-y-4 h-full overflow-y-auto">
                 {videos.map((video) => (
@@ -857,20 +935,22 @@ The summary should be detailed enough that someone reading only the summary woul
                           setExpandedVideoMobile(null);
                         } else {
                           setExpandedVideoMobile(video.id);
-                          setActiveTabMobile('transcript');
+                          setActiveTabMobile("transcript");
                         }
                       }
                     }}
                     className={`relative bg-white rounded-lg border-2 transition-all cursor-pointer hover:shadow-md ${
-                      selectedVideo === video.id || expandedVideoMobile === video.id
-                        ? 'border-blue-500 shadow-lg' 
-                        : 'border-gray-200 hover:border-gray-300'
+                      selectedVideo === video.id ||
+                      expandedVideoMobile === video.id
+                        ? "border-blue-500 shadow-lg"
+                        : "border-gray-200 hover:border-gray-300"
                     }`}
                   >
                     {/* Remove button */}
                     <div className="absolute top-2 right-2 z-10">
-                      {video.savedToAgent && video.documentId && (
-                        removingVideo === video.id ? (
+                      {video.savedToAgent &&
+                        video.documentId &&
+                        (removingVideo === video.id ? (
                           <div className="w-7 h-7 flex items-center justify-center">
                             <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
                           </div>
@@ -886,26 +966,25 @@ The summary should be detailed enough that someone reading only the summary woul
                           >
                             <X className="w-4 h-4" />
                           </Icon>
-                        )
-                      )}
+                        ))}
                     </div>
-                    
+
                     <div className="p-4">
                       {/* Thumbnail and Title Section */}
                       <div className="flex space-x-3 mb-3">
                         {video.thumbnail && (
                           <div className="flex-shrink-0">
-                            <img 
+                            <img
                               src={video.thumbnail}
                               alt="Content thumbnail"
                               className="w-16 h-12 rounded object-cover border border-gray-200"
-                              onError={(e) => e.target.style.display = 'none'}
+                              onError={(e) => (e.target.style.display = "none")}
                             />
                           </div>
                         )}
                         <div className="flex-1 min-w-0 pr-8">
                           <h4 className="text-sm font-medium text-gray-900 line-clamp-2 mb-2">
-                            {video.loading ? 'Loading...' : video.title}
+                            {video.loading ? "Loading..." : video.title}
                           </h4>
                           {video.author && !video.loading && (
                             <p className="text-xs text-gray-600 truncate">
@@ -917,23 +996,30 @@ The summary should be detailed enough that someone reading only the summary woul
 
                       {/* Platform and Status Tags */}
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
-                          video.platform === 'youtube' ? 'bg-red-100 text-red-800' :
-                          video.platform === 'instagram' ? 'bg-pink-100 text-pink-800' :
-                          video.platform === 'tiktok' ? 'bg-gray-100 text-gray-800' :
-                          video.platform === 'twitter' ? 'bg-blue-100 text-blue-800' :
-                          video.platform === 'linkedin' ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
+                        <span
+                          className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
+                            video.platform === "youtube"
+                              ? "bg-red-100 text-red-800"
+                              : video.platform === "instagram"
+                              ? "bg-pink-100 text-pink-800"
+                              : video.platform === "tiktok"
+                              ? "bg-gray-100 text-gray-800"
+                              : video.platform === "twitter"
+                              ? "bg-blue-100 text-blue-800"
+                              : video.platform === "linkedin"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
                           {video.platform}
                         </span>
-                        
+
                         {video.savedToAgent && (
                           <span className="inline-block px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
                             ✓ Saved
                           </span>
                         )}
-                        
+
                         {processingVideo === video.id && (
                           <span className="inline-block px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
                             Processing...
@@ -948,9 +1034,13 @@ The summary should be detailed enough that someone reading only the summary woul
                         </div>
                       )}
                     </div>
-                    
+
                     {/* Mobile expanded content */}
-                    <div className={`lg:hidden ${expandedVideoMobile === video.id ? 'block' : 'hidden'}`}>
+                    <div
+                      className={`lg:hidden ${
+                        expandedVideoMobile === video.id ? "block" : "hidden"
+                      }`}
+                    >
                       {video.error ? (
                         <div className="p-4 border-t border-gray-200">
                           <div className="flex items-center space-x-2 text-red-600 bg-red-50 rounded-lg p-4">
@@ -964,7 +1054,9 @@ The summary should be detailed enough that someone reading only the summary woul
                             <div className="flex items-center space-x-2 text-gray-500">
                               <Loader2 className="w-4 h-4 animate-spin" />
                               <span className="text-sm">
-                                {video.loading ? 'Loading content...' : 'Processing content...'}
+                                {video.loading
+                                  ? "Loading content..."
+                                  : "Processing content..."}
                               </span>
                             </div>
                           </div>
@@ -977,41 +1069,43 @@ The summary should be detailed enough that someone reading only the summary woul
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setActiveTabMobile('transcript');
+                                  setActiveTabMobile("transcript");
                                 }}
                                 className={`text-xs font-medium pb-1 border-b-2 transition-colors ${
-                                  activeTabMobile === 'transcript'
-                                    ? 'text-blue-600 border-blue-600'
-                                    : 'text-gray-500 border-transparent'
+                                  activeTabMobile === "transcript"
+                                    ? "text-blue-600 border-blue-600"
+                                    : "text-gray-500 border-transparent"
                                 }`}
                               >
                                 Transcript
                               </button>
                             </div>
                           </div>
-                          
+
                           {/* Mobile Content Display */}
                           <div className="p-4 bg-gray-50 max-h-64 overflow-y-auto">
                             <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">
-                            {video.transcript}
+                              {video.transcript}
                             </p>
                           </div>
                         </div>
                       ) : (
                         <div className="p-4 border-t border-gray-200">
                           <div className="flex items-center justify-center py-4 text-gray-500">
-                            <span className="text-sm">No content available</span>
+                            <span className="text-sm">
+                              No content available
+                            </span>
                           </div>
                         </div>
                       )}
                     </div>
-                    
+
                     {(video.loading || processingVideo === video.id) && (
                       <div className="absolute inset-0 bg-blue-50 bg-opacity-75 flex items-center justify-center rounded-lg">
                         <div className="flex flex-col items-center space-y-2">
                           <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
                           <span className="text-xs text-blue-600">
-                            {video.loading ? 'Loading...' : 'Processing...'}
+                            {video.loading ? "Loading..." : "Processing..."}
                           </span>
                         </div>
                       </div>
@@ -1041,16 +1135,24 @@ The summary should be detailed enough that someone reading only the summary woul
                       <span>{selectedVideoData.viewCount}</span>
                     )}
                     {selectedVideoData.publishDate && (
-                      <span className="hidden sm:inline">{selectedVideoData.publishDate}</span>
+                      <span className="hidden sm:inline">
+                        {selectedVideoData.publishDate}
+                      </span>
                     )}
                     {selectedVideoData.transcript && (
-                      <span>{selectedVideoData.transcript.split(/\s+/).length} words</span>
+                      <span>
+                        {selectedVideoData.transcript.split(/\s+/).length} words
+                      </span>
                     )}
                     {selectedVideoData.savedToAgent && (
-                      <span className="text-green-600 font-medium">✓ Auto-saved</span>
+                      <span className="text-green-600 font-medium">
+                        ✓ Auto-saved
+                      </span>
                     )}
                     {processingVideo === selectedVideoData.id && (
-                      <span className="text-blue-600 font-medium">Processing...</span>
+                      <span className="text-blue-600 font-medium">
+                        Processing...
+                      </span>
                     )}
                   </div>
                 </div>
@@ -1058,14 +1160,19 @@ The summary should be detailed enough that someone reading only the summary woul
                 {selectedVideoData.error ? (
                   <div className="flex items-center space-x-2 text-red-600 bg-red-50 rounded-lg p-4">
                     <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                    <span className="text-xs sm:text-sm">{selectedVideoData.error}</span>
+                    <span className="text-xs sm:text-sm">
+                      {selectedVideoData.error}
+                    </span>
                   </div>
-                ) : selectedVideoData.loading || processingVideo === selectedVideoData.id ? (
+                ) : selectedVideoData.loading ||
+                  processingVideo === selectedVideoData.id ? (
                   <div className="flex items-center justify-center py-8">
                     <div className="flex items-center space-x-2 text-gray-500">
                       <Loader2 className="w-5 h-5 animate-spin" />
                       <span className="text-sm sm:text-base">
-                        {selectedVideoData.loading ? 'Loading content...' : 'Processing content...'}
+                        {selectedVideoData.loading
+                          ? "Loading content..."
+                          : "Processing content..."}
                       </span>
                     </div>
                   </div>
@@ -1074,11 +1181,11 @@ The summary should be detailed enough that someone reading only the summary woul
                     {/* Tab Controls */}
                     <div className="flex items-center space-x-4 border-b border-gray-200 pb-2 mb-6 flex-shrink-0">
                       <button
-                        onClick={() => setActiveTab('transcript')}
+                        onClick={() => setActiveTab("transcript")}
                         className={`text-xs sm:text-sm font-medium pb-2 border-b-2 transition-colors whitespace-nowrap ${
-                          activeTab === 'transcript'
-                            ? 'text-blue-600 border-blue-600'
-                            : 'text-gray-500 border-transparent hover:text-gray-700'
+                          activeTab === "transcript"
+                            ? "text-blue-600 border-blue-600"
+                            : "text-gray-500 border-transparent hover:text-gray-700"
                         }`}
                       >
                         Transcript
@@ -1089,7 +1196,7 @@ The summary should be detailed enough that someone reading only the summary woul
                     <div className="flex-1 bg-gray-50 rounded-lg p-4 sm:p-6 overflow-hidden flex flex-col">
                       <div className="h-full overflow-y-auto">
                         <p className="text-xs sm:text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                        {selectedVideoData.transcript}
+                          {selectedVideoData.transcript}
                         </p>
                       </div>
                     </div>

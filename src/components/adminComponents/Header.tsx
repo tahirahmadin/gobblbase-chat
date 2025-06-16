@@ -72,8 +72,6 @@ const Header = () => {
   //Handeling agentDetails refresh when change trigger
   const hook1 = useServerHook({ initHook: true });
 
- 
-
   // useEffect(() => {
   //   if (!activeBotId && isAdminLoggedIn && activeTeamId) {
   //     navigate("/admin/all-agents");
@@ -117,7 +115,7 @@ const Header = () => {
   const handleTeamSelect = (teamId: string) => {
     setSelectedTeamId(teamId);
     setActiveTeamId(teamId === "my-team" ? adminId : teamId);
-    setActiveBotId(""); // Reset agent selection
+    setActiveBotId(null); // Reset agent selection
     setIsDropdownOpen(false);
     navigate(`/admin/all-agents?team=${teamId}`);
   };
@@ -160,21 +158,24 @@ const Header = () => {
                   <span>
                     {selectedTeam ? selectedTeam.teamName : "Select Team"}
                   </span>
-                  {
-                    isDropdownOpen ? (
-                      <ChevronUp style={{strokeWidth: "3px"}} className="w-4 h-4 text-black" />
-                    ) : (
-                      <ChevronDown style={{strokeWidth: "3px"}} className="w-4 h-4 text-black" />
-                    )
-                  }                 
+                  {isDropdownOpen ? (
+                    <ChevronUp
+                      style={{ strokeWidth: "3px" }}
+                      className="w-4 h-4 text-black"
+                    />
+                  ) : (
+                    <ChevronDown
+                      style={{ strokeWidth: "3px" }}
+                      className="w-4 h-4 text-black"
+                    />
+                  )}
                 </button>
                 {isDropdownOpen === "team" && (
                   <div className="w-44 truncate whitespace-nowrap absolute z-[10]  top-[46px] pb-4 shadow-lg bg-[#000]">
-                      <h1 className="team-heading px-3  py-2 text-[12px] text-white">
-                        Teams
-                      </h1>
+                    <h1 className="team-heading px-3  py-2 text-[12px] text-white">
+                      Teams
+                    </h1>
                     {allTeams.map((team) => (
-                     
                       <div
                         key={team.teamId}
                         className={`px-2 mx-3 py-2 text-[12px] text-white cursor-pointer hover:bg-[#4D65FF] ${
@@ -184,7 +185,6 @@ const Header = () => {
                       >
                         {team.teamName}
                       </div>
-                     
                     ))}
                   </div>
                 )}
@@ -202,7 +202,6 @@ const Header = () => {
                     `}
                   disabled={!selectedTeam}
                 >
-                  
                   {/* {selectedAgent?.logo ? (
                     <img
                       key={`${selectedAgent.logo}?t=${Date.now()}`}
@@ -220,18 +219,22 @@ const Header = () => {
                   <span>
                     {selectedAgent ? selectedAgent.name : "Select Agent"}
                   </span>
-                   {
-                    isDropdownOpen ? (
-                      <ChevronUp style={{strokeWidth: "3px"}} className="w-4 h-4 text-black" />
-                    ) : (
-                      <ChevronDown style={{strokeWidth: "3px"}} className="w-4 h-4 text-black" />
-                    )
-                  }   
+                  {isDropdownOpen ? (
+                    <ChevronUp
+                      style={{ strokeWidth: "3px" }}
+                      className="w-4 h-4 text-black"
+                    />
+                  ) : (
+                    <ChevronDown
+                      style={{ strokeWidth: "3px" }}
+                      className="w-4 h-4 text-black"
+                    />
+                  )}
                 </button>
                 {isDropdownOpen === "agent" && selectedTeam && (
                   <div className="w-44 truncate whitespace-nowrap absolute z-[10] top-[46px] shadow-lg bg-[#000]">
                     <h1 className="team-heading px-3  py-2 text-[12px] text-white">
-                        Agent
+                      Agent
                     </h1>
                     {selectedTeam.agents.map((agent: AdminAgent) => (
                       <div
@@ -259,7 +262,9 @@ const Header = () => {
                       }}
                     >
                       <Plus className="w-3 h-3 text-white" />
-                      <span className="para-font text-[12px] text-white">NEW AGENT</span>
+                      <span className="para-font text-[12px] text-white">
+                        NEW AGENT
+                      </span>
                     </div>
                   </div>
                 )}
