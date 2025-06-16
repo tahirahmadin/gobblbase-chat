@@ -4,20 +4,43 @@ import { toast } from "react-hot-toast";
 import { removeDocumentFromAgent } from '../../../../lib/serverActions';
 import styled from "styled-components";
 
-const Button = ({ children, onClick, disabled, className, ...props }) => (
-  <button
-    onClick={onClick}
-    disabled={disabled}
-    className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded font-medium transition-colors text-xs sm:text-sm ${
-      disabled 
-        ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-        : 'bg-green-600 text-white hover:bg-green-700'
-    } ${className}`}
-    {...props}
-  >
-    {children}
-  </button>
-);
+const Button = styled.button`
+  position: relative;
+  background: #6aff97;
+  padding: 0.6vh 1vw;
+  border: 1px solid black;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: clamp(8px, 4vw, 15px);
+  font-weight: 400;
+  font-family: "DM Sans", sans-serif;
+  @media (max-width: 600px) {
+    min-width: 100px;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 4px;
+    right: -4px;
+    width: 100%;
+    height: 100%;
+    border: 1px solid #000000;
+    z-index: -1;
+    background: #6aff97;
+  }
+
+  &:disabled {
+    background: #6aff97;
+    cursor: not-allowed;
+    color: black;
+  }
+  &:disabled::before {
+    background: #6aff97;
+  }
+`;
 
 const Icon = styled.button`
   position: relative;
@@ -569,7 +592,7 @@ The summary should be detailed enough that someone reading only the summary woul
     const contentToSave = shouldSaveSummary ? video.summary : video.transcript;
     const contentType = shouldSaveSummary ? 'Summary' : 'Transcript';
     
-    const fullContent = `Platform: ${video.platform.charAt(0).toUpperCase() + video.platform.slice(1)}\nURL: ${video.url}\nAuthor: ${video.author || 'Unknown'}\n\n${contentType}:\n${contentToSave}`;
+    const fullContent = `${contentToSave}`;
     const contentSize = new TextEncoder().encode(fullContent).length;
     
     const videoMetadata = {
@@ -628,7 +651,7 @@ The summary should be detailed enough that someone reading only the summary woul
     try {
       // If >15000 words, generate summary first
       if (wordCount > 15000) {
-        toast.info('Content is large (>15k words). Generating summary...');
+        toast('Content is large (>15k words). Generating summary...');
         const summary = await generateSummary(video.transcript);
         
         // Update video with summary
@@ -790,7 +813,7 @@ The summary should be detailed enough that someone reading only the summary woul
             <Plus className="w-4 h-4 text-green-600" />
             <span className="text-xs sm:text-sm font-medium text-gray-700">New Link</span>
           </div>
-          <div className="flex flex-col sm:flex-row flex-1 space-y-3 sm:space-y-0 sm:space-x-3">
+          <div className="flex flex-col sm:flex-row flex-1  relative z-10 mt-4 space-y-3 sm:space-y-0 sm:space-x-3">
             <input
               type="url"
               value={newVideoUrl}
@@ -799,12 +822,12 @@ The summary should be detailed enough that someone reading only the summary woul
               placeholder="Paste your link..."
               className="flex-1 px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
             />
-            <button 
+            <Button 
               onClick={handleAddVideo}
-              className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white text-xs sm:text-sm font-medium rounded hover:bg-green-700 focus:outline-none focus:ring-1 focus:ring-green-500"
+              className="w-full sm:w-auto"
             >
               ADD LINK
-            </button>
+            </Button>
           </div>
         </div>
       </div>

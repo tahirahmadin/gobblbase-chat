@@ -1082,7 +1082,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         );
 
       if (insights.length > 0) {
-        const formattedInsights = `BRAND INSIGHTS:\n\n${insights.join("\n\n")}`;
+        const formattedInsights = `${insights}`;
 
         const docSize = new TextEncoder().encode(formattedInsights).length;
 
@@ -1693,7 +1693,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                   })()}
 
                 {/* Simple Save button only */}
-                <div className="flex justify-end">
+                <div className="flex justify-end relative z-10 mt-4">
                   <Button
                     onClick={handleSaveDirectText}
                     disabled={isDirectTextSaving}
