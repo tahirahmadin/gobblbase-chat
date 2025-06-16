@@ -57,6 +57,7 @@ const Header = () => {
     setActiveTeamId,
     isAdminLoggedIn,
     activeTeamId,
+    adminId,
   } = useAdminStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState<
     false | "team" | "agent"
@@ -127,7 +128,7 @@ const Header = () => {
 
   const handleTeamSelect = (teamId: string) => {
     setSelectedTeamId(teamId);
-    setActiveTeamId(teamId === "my-team" ? "" : teamId);
+    setActiveTeamId(teamId === "my-team" ? adminId : teamId);
     setActiveBotId(""); // Reset agent selection
     setIsDropdownOpen(false);
     navigate(`/admin/all-agents?team=${teamId}`);
@@ -135,7 +136,7 @@ const Header = () => {
 
   const handleAgentSelect = (agentId: string, teamId: string) => {
     setActiveBotId(agentId);
-    setActiveTeamId(teamId === "my-team" ? "" : teamId);
+    setActiveTeamId(teamId === "my-team" ? adminId : teamId);
     setIsDropdownOpen(false);
     localStorage.removeItem("editingProduct");
     navigate("/admin/dashboard/overview");
