@@ -987,30 +987,13 @@ The summary should be detailed enough that someone reading only the summary woul
                               >
                                 Transcript
                               </button>
-                              {video.summary && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setActiveTabMobile('summary');
-                                  }}
-                                  className={`text-xs font-medium pb-1 border-b-2 transition-colors ${
-                                    activeTabMobile === 'summary'
-                                      ? 'text-blue-600 border-blue-600'
-                                      : 'text-gray-500 border-transparent'
-                                  }`}
-                                >
-                                  Summary
-                                </button>
-                              )}
                             </div>
                           </div>
                           
                           {/* Mobile Content Display */}
                           <div className="p-4 bg-gray-50 max-h-64 overflow-y-auto">
                             <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">
-                              {activeTabMobile === 'transcript' 
-                                ? video.transcript 
-                                : video.summary}
+                            {video.transcript}
                             </p>
                           </div>
                         </div>
@@ -1100,27 +1083,13 @@ The summary should be detailed enough that someone reading only the summary woul
                       >
                         Transcript
                       </button>
-                      {selectedVideoData.summary && (
-                        <button
-                          onClick={() => setActiveTab('summary')}
-                          className={`text-xs sm:text-sm font-medium pb-2 border-b-2 transition-colors whitespace-nowrap ${
-                            activeTab === 'summary'
-                              ? 'text-blue-600 border-blue-600'
-                              : 'text-gray-500 border-transparent hover:text-gray-700'
-                          }`}
-                        >
-                          Summary
-                        </button>
-                      )}
                     </div>
 
                     {/* Content Display - Fixed height with scroll */}
                     <div className="flex-1 bg-gray-50 rounded-lg p-4 sm:p-6 overflow-hidden flex flex-col">
                       <div className="h-full overflow-y-auto">
                         <p className="text-xs sm:text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                          {activeTab === 'transcript' 
-                            ? selectedVideoData.transcript 
-                            : selectedVideoData.summary}
+                        {selectedVideoData.transcript}
                         </p>
                       </div>
                     </div>

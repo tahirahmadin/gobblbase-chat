@@ -1634,16 +1634,6 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                       </span>
                     )}
                   </div>
-
-                  {directText && (
-                    <div className="text-gray-500">
-                      Size:{" "}
-                      {Math.round(
-                        new TextEncoder().encode(directText).length / 1024
-                      )}
-                      KB
-                    </div>
-                  )}
                 </div>
 
                 {/* Validation message */}
