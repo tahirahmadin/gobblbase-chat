@@ -9,6 +9,7 @@ import {
   Save,
   Play,
   HelpCircle,
+  Trash2
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import * as pdfjsLib from "pdfjs-dist";
@@ -1198,44 +1199,15 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       toast.error("No active agent selected");
       return;
     }
-
+  
     const content = directText.trim();
-
+  
+    // Don't allow saving empty content
     if (!content) {
-      try {
-        setIsDirectTextSaving(true);
-
-        const existingDocuments = await listAgentDocuments(activeBotId);
-        if (
-          !existingDocuments.error &&
-          typeof existingDocuments.result !== "string"
-        ) {
-          const docs = existingDocuments.result.documents;
-          const directTextDoc = docs.find((doc) =>
-            doc.title.startsWith("Direct Text:")
-          );
-
-          if (directTextDoc) {
-            await removeDocumentFromAgent(
-              activeBotId,
-              directTextDoc.documentId
-            );
-            setTotalDocumentsSize((prev) => prev - (directTextDoc.size || 0));
-          }
-        }
-
-        toast.success("Direct text removed");
-        setRefetchBotData();
-        await fetchAgentDocuments();
-      } catch (error) {
-        console.error("Error removing direct text:", error);
-        toast.error("Failed to remove direct text");
-      } finally {
-        setIsDirectTextSaving(false);
-      }
+      toast.error("Please enter some text to save");
       return;
     }
-
+  
     // Validate content
     const validation = validateDirectText();
     if (!validation.isValid) {
@@ -1243,16 +1215,16 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       toast.error(validation.message);
       return;
     }
-
+  
     try {
       setIsDirectTextSaving(true);
       setShowDirectTextError(false);
-
+  
       const timestamp = new Date().toISOString().split("T")[0];
       const title = `Direct Text: ${timestamp}`;
       const size = new TextEncoder().encode(content).length;
-
-      // Remove existing if exists
+  
+      // Remove existing document if it exists
       const existingDocuments = await listAgentDocuments(activeBotId);
       if (
         !existingDocuments.error &&
@@ -1262,7 +1234,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         const existingDirectTextDoc = docs.find((doc) =>
           doc.title.startsWith("Direct Text:")
         );
-
+  
         if (existingDirectTextDoc) {
           await removeDocumentFromAgent(
             activeBotId,
@@ -1273,15 +1245,15 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           );
         }
       }
-
-      // Add new document - notice no videoMetadata parameter for direct text
+  
+      // Add new document
       const response = await addDocumentToAgent(
         activeBotId,
         content,
         title,
         size
       );
-
+  
       if (response.error) {
         throw new Error(
           typeof response.result === "string"
@@ -1289,7 +1261,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             : "Failed to save direct text"
         );
       }
-
+  
       setTotalDocumentsSize((prev) => prev + size);
       toast.success("Direct text saved successfully");
       setShowDirectTextError(false);
@@ -1302,15 +1274,15 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     }
   };
 
-  const handleClearDirectText = async () => {
+  const handleRemoveDirectText = async () => {
     if (!activeBotId) {
-      setDirectText("");
+      toast.error("No active agent selected");
       return;
     }
-
+  
     try {
       setIsDirectTextSaving(true);
-
+  
       // Find and remove the direct text document
       const existingDocuments = await listAgentDocuments(activeBotId);
       if (
@@ -1321,29 +1293,29 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         const directTextDoc = docs.find((doc) =>
           doc.title.startsWith("Direct Text:")
         );
-
+  
         if (directTextDoc) {
           const response = await removeDocumentFromAgent(
             activeBotId,
             directTextDoc.documentId
           );
-
+  
           if (!response.error) {
-            setDirectText("");
             toast.success("Direct text removed successfully");
-
+            setDirectText("");
+            
             // Trigger refetch to update the UI
             setRefetchBotData();
-
+            
             // Refresh documents to update total size
             await fetchAgentDocuments();
           } else {
             toast.error("Failed to remove direct text");
           }
         } else {
-          // No document found, just clear the text
+          // No saved document, just clear the input
           setDirectText("");
-          toast.success("Direct text cleared");
+          toast.success("Text cleared");
         }
       }
     } catch (error) {
@@ -1588,13 +1560,12 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           </div>
         );
 
-      case "Direct Text":
+        case "Direct Text":
         return (
           <div className="bg-white rounded-lg px-6 py-6">
             <div className="bg-[#E7EAFF] p-6 rounded-lg">
               <p className="text-sm text-black mb-4">
-                Type or Paste any direct text to feed into your AI-employee's
-                Brain
+                Type or Paste any direct text to feed into your AI-employee's Brain
               </p>
 
               <div className="space-y-4">
@@ -1621,15 +1592,15 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                     }}
                   />
 
-                  {/* Trash icon for quick clear - only show when there's text */}
+                  {/* Trash icon - removes the saved document */}
                   {directText.trim() && !isDirectTextSaving && (
                     <button
-                      onClick={() => setDirectText("")}
+                      onClick={handleRemoveDirectText}
                       className="absolute top-3 right-3 p-1 text-gray-400 hover:text-red-500 transition-colors rounded"
-                      title="Clear text"
+                      title="Remove saved text"
                       type="button"
                     >
-                      <X className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   )}
 
@@ -1663,16 +1634,6 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                       </span>
                     )}
                   </div>
-
-                  {directText && (
-                    <div className="text-gray-500">
-                      Size:{" "}
-                      {Math.round(
-                        new TextEncoder().encode(directText).length / 1024
-                      )}
-                      KB
-                    </div>
-                  )}
                 </div>
 
                 {/* Validation message */}
@@ -1692,13 +1653,15 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                     return null;
                   })()}
 
-                {/* Simple Save button only */}
+                {/* Save button */}
                 <div className="flex justify-end relative z-10 mt-4">
                   <Button
                     onClick={handleSaveDirectText}
-                    disabled={isDirectTextSaving}
+                    disabled={isDirectTextSaving || !directText.trim() || countWords(directText) < 50}
                     className={`${
-                      isDirectTextSaving ? "cursor-not-allowed" : ""
+                      isDirectTextSaving || !directText.trim() || countWords(directText) < 50 
+                        ? "cursor-not-allowed" 
+                        : ""
                     }`}
                   >
                     {isDirectTextSaving ? (

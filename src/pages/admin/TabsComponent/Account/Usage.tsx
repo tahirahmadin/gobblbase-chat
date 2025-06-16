@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useAdminStore } from "../../../../store/useAdminStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
+import { getStripeBillingSession } from "../../../../lib/serverActions";
 const timeFrames = [
   "All Time",
   "This Year",
@@ -77,6 +78,8 @@ const Usage = () => {
 
   const [isOpen, setIsOpen] = useState(false);
   const [isAgentDropdownOpen, setIsAgentDropdownOpen] = useState(false);
+  const [billingLoading, setBillingLoading] = useState(false);
+
   useEffect(() => {
     const currentYear = new Date().getFullYear();
 
@@ -450,6 +453,19 @@ const Usage = () => {
     navigate("/admin/account/plans");
   };
 
+  const handleBillingHistory = async () => {
+    if (!activeTeamId || !adminId) return;
+    try {
+      setBillingLoading(true);
+      const url = await getStripeBillingSession(adminId, activeTeamId);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      toast.error("Failed to open Stripe Billing");
+    } finally {
+      setBillingLoading(false);
+    }
+  };
+
   const maxUsage = Math.max(...usageHistory.map((day) => day.usage), 1);
 
   if (loading && !usageData) {
@@ -568,6 +584,34 @@ const Usage = () => {
                 className="bg-[#6AFF97] para-font border border-black text-black px-4 py-1 min-w-[120px]"
               >
                 VIEW
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Billing History */}
+        <div className="bg-[#CEFFDC] rounded-lg p-4 flex flex-col justify-between flex-1 w-[220px] max-w-[100%] basis-[220px]">
+          <span className="text-xs text-gray-600 mb-1">Billing History</span>
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-lg">Stripe</span>
+            <div className="relative z-10 ">
+              <div className="absolute top-[3.5px] left-[3px] -z-10 bg-[#6AFF97] border border-black w-full h-full"></div>
+              <button
+                style={{
+                  fontSize: "clamp(8px,4vw, 15px)",
+                  fontWeight: "400",
+                }}
+                onClick={handleBillingHistory}
+                disabled={billingLoading}
+                className="bg-[#6AFF97] para-font border border-black text-black px-4 py-1 min-w-[120px]"
+              >
+                {billingLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-3 w-4 animate-spin" /> Loading...
+                  </span>
+                ) : (
+                  "VIEW"
+                )}
               </button>
             </div>
           </div>
