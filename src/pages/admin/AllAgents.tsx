@@ -4,7 +4,7 @@ import { AdminAgent } from "../../types";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useBotConfig } from "../../store/useBotConfig";
 import { mainDomainUrl, PERSONALITY_OPTIONS } from "../../utils/constants";
-import { ChevronDown, Trash2, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Trash2, X } from "lucide-react";
 
 const placeholderAvatar = "/assets/voice/expert.png";
 
@@ -211,42 +211,33 @@ const AllAgents: React.FC = () => {
         </div>
       </div>
       {displayedAgents.length === 0 && (
-        <div className="flex flex-col items-center justify-center w-full">
-          <div className="flex flex-col items-center justify-center py-12 max-w-[400px]">
-            <div className="w-24 h-24 mb-6 relative">
-              <div className="absolute inset-0 bg-[#D4DEFF] rounded-full border-2 border-black"></div>
-              <div className="absolute inset-2 bg-white rounded-full border-2 border-black flex items-center justify-center">
-                <svg
-                  className="w-12 h-12 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-            </div>
+        <div className="mt-24 px-6 py-6 md:px-12 min-h-[35vh] flex flex-col-reverse items-center md:flex-row w-fit md:mx-auto md:w-[80%]lg:w-[60%] rounded-[10px] bg-gradient-to-r from-[#EAEFFF] to-[#AEB8FF] shadow-[0_8px_8px_0_rgba(0,0,0,0.4)]">
+          <div className="left-content w-[100%] flex flex-col justify-center py-12">
             <h3 className="text-xl font-bold text-gray-900 mb-2">
-              No Agents Found
+              No Active AI-mployees
             </h3>
-            <p className="text-gray-600 text-center  mb-6">
-              Get started by creating your first AI agent. They'll help automate
-              your tasks and boost your productivity.
+            <p className="text-black mb-6">
+              Create an AI agent to start automating your customer interactions and growing your business.
             </p>
-            <button
-              onClick={() => navigate("/admin/dashboard/create-bot")}
-              disabled={isLoading}
-              className="px-6 py-3 bg-[#6AFF97] text-black font-semibold rounded-full border-2 border-black hover:bg-[#5AEF87] transition-colors duration-200 relative"
-            >
-              <div className="absolute top-1 left-1 w-full h-full bg-black rounded-full -z-10"></div>
-              Create Your First Agent
-            </button>
+            <div className="relative z-10 w-fit mt-4">
+              <div className="absolute top-1 left-1 w-full h-full bg-[#6AFF97] border border-black -z-10"></div>
+              <button
+                onClick={() => navigate("/admin/dashboard/create-bot")}
+                disabled={isLoading}
+                className="flex items-center justify-between min-w-[200px]  px-2 py-2 bg-[#6AFF97] text-black font-semibold border border-black relative"
+              >
+                <span className="font-[500]">Create New Agent</span>
+                  <span>
+                    <ChevronRight
+                      className="w-4 h-4 text-black"
+                      style={{ strokeWidth: "3px" }}
+                    />
+                  </span>
+              </button>
+            </div>
+          </div>
+          <div className="right-img">
+            <img src="/assets/no-agent-goobl.svg" width={"100%"} height={"100%"} alt="" />
           </div>
         </div>
       )}

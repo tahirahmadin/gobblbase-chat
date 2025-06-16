@@ -128,7 +128,6 @@ const Header = () => {
     navigate("/admin/dashboard/overview");
   };
 
-  const [hoveredTeamOffsetY, setHoveredTeamOffsetY] = useState<number>(0);
 
   return (
     <header
@@ -137,8 +136,8 @@ const Header = () => {
     >
       <div className="flex justify-between items-center px-6 py-2">
         <div
-          className={`flex items-center    gap-4
-          ${isAllAgentsPage ? "" : "ml-12  lg:ml-0"}
+          className={`flex items-center gap-4
+          ${isAllAgentsPage ? "ml-12 lg:ml-0" : "ml-12 lg:ml-0"}
           `}
         >
           <div className="relative" ref={dropdownRef}>
@@ -181,7 +180,7 @@ const Header = () => {
                         className={`px-2 mx-3 py-2 text-[12px] text-white cursor-pointer hover:bg-[#4D65FF] ${
                           selectedTeamId === team.teamId ? "bg-[#4D65FF]" : ""
                         }`}
-                        onClick={() => handleTeamSelect(team.teamId)}
+                          onClick={() => handleTeamSelect(team.teamId)}
                       >
                         {team.teamName}
                       </div>
