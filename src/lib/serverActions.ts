@@ -2176,11 +2176,11 @@ export async function payOutStripe(clientId: string) {
 }
 
 export async function getStripeBillingSession(
-  clientId: string,
+  adminId: string,
   teamId: string
 ): Promise<string> {
   try {
-    let requestParams = `clientId=${clientId}&teamId=${teamId}`;
+    let requestParams = `clientId=${adminId}&adminId=${teamId}`;
     let url = `${apiUrl}/product/createBillingSession?${requestParams}`;
 
     // HMAC Response
@@ -2409,13 +2409,13 @@ export async function getPlans(teamId: string): Promise<PlanData[]> {
 }
 
 export async function subscribeToPlan(
-  clientId: string,
+  adminId: string,
   planId: string,
   teamId: string
 ): Promise<any> {
   try {
     let url = `${apiUrl}/product/subscribeOrChangePlan`;
-    let dataObj = { clientId, planId, adminId: teamId };
+    let dataObj = { adminId: adminId, planId, clientId: teamId };
     let encryptedData = getCipherText(dataObj);
 
     // HMAC Response
@@ -2912,5 +2912,37 @@ export async function removeTeamMember(dataObj: {
       error: true,
       result: "Failed to remove team member",
     };
+  }
+}
+
+export async function updateTeamName(clientId: string, teamName: string) {
+  try {
+    let url = `${apiUrl}/client/updateTeamName`;
+    let dataObj = { teamId: clientId, teamName };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
+
+    if (response.data.error) {
+      throw new Error(response.data.result || "Failed to update team name");
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating team name:", error);
+    throw error;
   }
 }

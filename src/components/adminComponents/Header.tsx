@@ -58,105 +58,78 @@ const Header = () => {
     isAdminLoggedIn,
     activeTeamId,
   } = useAdminStore();
-  const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false);
-  const [isAgentDropdownOpen, setIsAgentDropdownOpen] = useState(false);
-
+  const [isDropdownOpen, setIsDropdownOpen] = useState<
+    false | "team" | "agent"
+  >(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const isAllAgentsPage = location.pathname === "/admin/all-agents";
   const [hoveredTeam, setHoveredTeam] = useState<"my" | string | null>(null);
+  const [selectedTeamId, setSelectedTeamId] = useState<string>("");
 
   //Handeling agentDetails refresh when change trigger
   const hook1 = useServerHook({ initHook: true });
 
-  useEffect(() => {
-    if (!isTeamDropdownOpen) return;
-    if (!isAgentDropdownOpen) return;
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsTeamDropdownOpen(false);
-        setIsAgentDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isTeamDropdownOpen, isAgentDropdownOpen]);
+ 
+
+  // useEffect(() => {
+  //   if (!activeBotId && isAdminLoggedIn && activeTeamId) {
+  //     navigate("/admin/all-agents");
+  //   }
+  // }, [activeBotId, isAdminLoggedIn, activeTeamId]);
 
   useEffect(() => {
-    if (!activeBotId && isAdminLoggedIn && activeTeamId) {
-      navigate("/admin/all-agents");
+    if (activeBotId && activeBotData && isAdminLoggedIn && activeTeamId) {
+      if (activeBotData.isQueryable) {
+        navigate("/admin/dashboard/overview");
+      } else {
+        navigate("/admin/dashboard/profile");
+      }
     }
-  }, [activeBotId, isAdminLoggedIn, activeTeamId]);
+  }, [activeBotId, activeBotData, isAdminLoggedIn, activeTeamId]);
+
+  // Helper to get teams
+  const allTeams: Team[] = useMemo(() => {
+    const myTeam: Team = {
+      teamName: "My Team",
+      teamId: "my",
+      role: "owner",
+      email: adminEmail,
+      agents: agents || [],
+    };
+    return [myTeam, ...(clientData?.otherTeams || [])];
+  }, [agents, clientData, adminEmail]);
+
+  // Set default selected team on mount or when teams change
+  useEffect(() => {
+    if (selectedTeamId === "" && allTeams.length > 0) {
+      let tid = allTeams[0].teamId;
+      setSelectedTeamId(tid ? tid : "");
+    }
+  }, [allTeams, selectedTeamId]);
+
+  const selectedTeam = allTeams.find((t) => t.teamId === selectedTeamId);
+  const selectedAgent =
+    selectedTeam?.agents.find((a) => a.agentId === activeBotId) || null;
+
+  const handleTeamSelect = (teamId: string) => {
+    setSelectedTeamId(teamId);
+    setActiveTeamId(teamId === "my" ? "" : teamId);
+    setActiveBotId(""); // Reset agent selection
+    setIsDropdownOpen(false);
+    navigate(`/admin/all-agents?team=${teamId}`);
+  };
 
   const handleAgentSelect = (agentId: string, teamId: string) => {
-    console.log("agentId", agentId);
-    console.log("teamId", teamId);
     setActiveBotId(agentId);
-    setActiveTeamId(teamId);
-    setIsAgentDropdownOpen(false);
-    setIsTeamDropdownOpen(false);
-    //To remove localStorage data of product in edit mode
+    setActiveTeamId(teamId === "my" ? "" : teamId);
+    setIsDropdownOpen(false);
     localStorage.removeItem("editingProduct");
     navigate("/admin/dashboard/overview");
   };
 
-  // Helper to get selected agent and team
-  const getSelectedAgentAndTeam = () => {
-    // Check My Team
-    const myAgent = agents?.find((a: AdminAgent) => a.agentId === activeBotId);
-    if (myAgent) return { agent: myAgent, teamName: "My Team" };
-
-    // Check Other Teams
-    if (clientData?.otherTeams) {
-      for (const team of clientData.otherTeams) {
-        const agent = team.agents?.find(
-          (a: AdminAgent) => a.agentId === activeBotId
-        );
-        if (agent) return { agent, teamName: team.teamName };
-      }
-    }
-    return { agent: null, teamName: "" };
-  };
-
-  const selected = getSelectedAgentAndTeam();
   const [hoveredTeamOffsetY, setHoveredTeamOffsetY] = useState<number>(0);
-
-  const renderAgentButton = (agent: AdminAgent, isSelected: boolean) => (
-    <button
-      key={agent.agentId}
-      onClick={() => handleAgentSelect(agent.agentId, agent.teamId)}
-      className={`w-full text-left px-4 py-2 text-sm flex items-center space-x-2 rounded-md transition-colors duration-150 ${
-        isSelected
-          ? "bg-white bg-opacity-20 border border-white text-white"
-          : "hover:bg-blue-600 text-white"
-      }`}
-    >
-      {agent.logo ? (
-        <img
-          key={`${agent.logo}?t=${Date.now()}`}
-          src={`${agent.logo}?t=${Date.now()}`}
-          alt={`${agent.name} avatar`}
-          className="w-6 h-6 rounded-full object-cover border border-white"
-        />
-      ) : (
-        <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
-          <span className="text-xs text-gray-500">
-            {agent.name?.charAt(0) || "A"}
-          </span>
-        </div>
-      )}
-      <span className="font-medium">{agent.name}</span>
-      {isSelected && !isAllAgentsPage && (
-        <span className="ml-auto text-xs text-green-200 font-semibold">
-          Selected
-        </span>
-      )}
-    </button>
-  );
 
   return (
     <header
@@ -169,150 +142,108 @@ const Header = () => {
           ${isAllAgentsPage ? "" : "ml-12  lg:ml-0"}
           `}
         >
-          {/* team dropdown  */}
-          <div className={`relative w-full ${isTeamDropdownOpen ? "bg-[#92A3FF]" : "bg-none"}`} ref={dropdownRef}>
-            <button
-              onClick={() => setIsTeamDropdownOpen(!isTeamDropdownOpen)}
-              className={` flex w-44 items-center justify-between gap-4 px-2 py-2 text-sm font-medium text-black
-                    
-                `}
-            >
-              <span className="hidden xs:block">
-                {/* {selected.agent
-                  ? `${selected.teamName} - ${selected.agent.name}`
-                  : isAllAgentsPage
-                  ? "All Agents"
-                  : "Select Agent"} */}
-                Team Name
-              </span>
-              {
-                isTeamDropdownOpen ? (
-                  <ChevronUp style={{strokeWidth: "3px"}} className="w-4 h-4 text-black" />
-                ) : (
-                  <ChevronDown style={{strokeWidth: "3px"}} className="w-4 h-4 text-black" />
-                )
-              }
-              
-            </button>
-            {isTeamDropdownOpen && (
-              <div
-                className=" w-44 absolute min-w-fit z-[10] mt-2 shadow-lg flex flex-col md:flex-row"
-                style={{ background: "#000" }}
-              >
-                {/* Teams column */}
-                <div className="w-full whitespace-nowrap py-3 px-2 max-h-96 overflow-none flex flex-col shadow-[0_8px_8px_0_rgba(0,0,0,0.25)] z-20">
-                  <div
-                    className={`para-font px-2 py-2 font-normal text-[14px] cursor-pointer rounded-none flex items-center
-                      ${
-                        hoveredTeam === "my"
-                          ? "bg-[#4D65FF] text-white"
-                          : "text-white hover:bg-[#222]"
-                      }
-                    `}
-                    onMouseEnter={(e) => {
-                      setHoveredTeam("my");
-                      setHoveredTeamOffsetY(e.currentTarget.offsetTop);
-                    }}
-                    onClick={() => {
-                      setIsTeamDropdownOpen(false);
-                      navigate("/admin/all-agents?team=my-team");
-                    }}
-                  >
-                    My Team
+          <div className="relative" ref={dropdownRef}>
+            <div className="flex items-center">
+              {/* Team Dropdown */}
+              <div className="relative mr-4 ">
+                <button
+                  onClick={() =>
+                    setIsDropdownOpen(
+                      isDropdownOpen === "team" ? false : "team"
+                    )
+                  }
+                  className="w-44 truncate whitespace-nowrap flex items-center justify-between space-x-2 bg-white border border-black px-2 py-2 text-sm font-medium text-black hover:bg-gray-50"
+                >
+                  <span>
+                    {selectedTeam ? selectedTeam.teamName : "Select Team"}
+                  </span>
+                  {
+                    isDropdownOpen ? (
+                      <ChevronUp style={{strokeWidth: "3px"}} className="w-4 h-4 text-black" />
+                    ) : (
+                      <ChevronDown style={{strokeWidth: "3px"}} className="w-4 h-4 text-black" />
+                    )
+                  }                 
+                </button>
+                {isDropdownOpen === "team" && (
+                  <div className="w-44 truncate whitespace-nowrap absolute z-[10] top-12 shadow-lg bg-[#000]">
+                    {allTeams.map((team) => (
+                      <>
+                      <h1 className="team-heading">
+                        Teams
+                      </h1>
+                      <div
+                        key={team.teamId}
+                        className={`px-2 mx-2 py-2 text-[12px] text-white cursor-pointer hover:bg-[#4D65FF] ${
+                          selectedTeamId === team.teamId ? "bg-[#4D65FF]" : ""
+                        }`}
+                        onClick={() => handleTeamSelect(team.teamId)}
+                      >
+                        {team.teamName}
+                      </div>
+                      </>
+                    ))}
                   </div>
-                  {clientData?.otherTeams?.map((team: Team) => (
-                    <div
-                      key={team.teamId}
-                      className={`para-font px-2 py-2 mb-4 font-normal text-[14px] cursor-pointer flex items-center
-                        ${
-                          hoveredTeam === team.teamId
-                            ? "bg-[#4D65FF] text-white"
-                            : "text-white hover:bg-[#4D65FF] rounded-none"
-                        }
-                      `}
-                      onMouseEnter={(e) => {
-                        setHoveredTeam(team.teamId);
-                        setHoveredTeamOffsetY(e.currentTarget.offsetTop);
-                      }}
-                      onClick={() => {
-                        setIsTeamDropdownOpen(false);
-                        navigate(`/admin/all-agents?team=${team.teamId}`);
-                      }}
-                    >
-                      {team.teamName}
+                )}
+              </div>
+              {/* Agent Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() =>
+                    setIsDropdownOpen(
+                      isDropdownOpen === "agent" ? false : "agent"
+                    )
+                  }
+                  className="flex items-center space-x-2 bg-white border border-black px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  disabled={!selectedTeam}
+                >
+                  {selectedAgent?.logo ? (
+                    <img
+                      key={`${selectedAgent.logo}?t=${Date.now()}`}
+                      src={`${selectedAgent.logo}?t=${Date.now()}`}
+                      alt="Agent avatar"
+                      className="w-6 h-6 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
+                      <span className="text-xs text-gray-500">
+                        {selectedAgent?.name?.charAt(0) || "A"}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-          {/* agent dropdown  */}
-          <div  className={`relative w-full ${isAgentDropdownOpen ? "bg-[#92A3FF]" : "bg-none"}`} ref={dropdownRef}>
-            <button
-              onClick={() => setIsAgentDropdownOpen(!isAgentDropdownOpen)}
-              className={` flex w-44 items-center justify-between gap-4 px-2 py-2 text-sm font-medium text-black
-                        `}
-            >
-              <span className="hidden xs:block">Agent Name</span>
-              {
-                isAgentDropdownOpen ? (
-                  <ChevronUp style={{strokeWidth: "3px"}} className="w-4 h-4 text-black" />
-                ) : (
-                  <ChevronDown style={{strokeWidth: "3px"}} className="w-4 h-4 text-black" />
-                )
-              }
-            </button>
-            {isAgentDropdownOpen && (
-              <div
-                className="w-44 absolute z-[10] mt-2 shadow-lg flex flex-col md:flex-row"
-                style={{ background: "#000" }}
-              >
-                <div className="w-full whitespace-nowrap py-3 px-2 max-h-96 overflow-y-auto flex flex-col shadow-[0_8px_8px_0_rgba(0,0,0,0.25)] z-20">
-                  <div className="px-2 pb-2 font-semibold text-base text-white">
-                    {hoveredTeam === null
-                      ? "Agents"
-                      : hoveredTeam === "my"
-                      ? "All Agents"
-                      : clientData?.otherTeams?.find(
-                          (t) => t.teamId === hoveredTeam
-                        )?.teamName + " Agents"}
+                  )}
+                  <span>
+                    {selectedAgent ? selectedAgent.name : "Select Agent"}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                </button>
+                {isDropdownOpen === "agent" && selectedTeam && (
+                  <div className="absolute z-[10] mt-2 w-60 shadow-lg bg-[#EAEFFF]">
+                    {selectedTeam.agents.map((agent: AdminAgent) => (
+                      <div
+                        key={agent.agentId}
+                        className={`px-4 py-2 cursor-pointer flex items-center hover:bg-[#CEFFDC] ${
+                          agent.agentId === activeBotId ? "bg-[#CEFFDC]" : ""
+                        }`}
+                        onClick={() =>
+                          handleAgentSelect(agent.agentId, selectedTeam.teamId)
+                        }
+                      >
+                        <img
+                          src={agent.logo || "/assets/voice/coach.png"}
+                          className="w-6 h-6 rounded-full object-cover border border-white mr-2"
+                          alt={agent.name}
+                        />
+                        <span className="font-medium">{agent.name}</span>
+                      </div>
+                    ))}
+                    <div className="border-t border-gray-700 flex items-center gap-2 pt-2 px-4">
+                      <Plus className="w-4 h-4" />
+                      <span className="para-font">NEW AGENT</span>
+                    </div>
                   </div>
-
-                  {(hoveredTeam === "my"
-                    ? agents
-                    : clientData?.otherTeams?.find(
-                        (t) => t.teamId === hoveredTeam
-                      )?.agents || []
-                  ).map((agent: AdminAgent) => (
-                    <button
-                      key={agent.agentId}
-                      onClick={() =>
-                        handleAgentSelect(agent.agentId, agent.teamId)
-                      }
-                      className={`w-full text-left px-2 py-2 text-sm flex items-center space-x-2 
-                          ${
-                            agent.agentId === activeBotId
-                              ? "bg-[#4D65FF] text-white"
-                              : "text-white hover:bg-[#4D65FF] rounded-none"
-                          }`}
-                    >
-                      <img
-                        src={agent.logo || "/assets/voice/coach.png"}
-                        className="w-6 h-6 rounded-full object-cover border border-white"
-                        alt={agent.name}
-                      />
-                      <span className="font-medium">{agent.name}</span>
-                    </button>
-                  ))}
-                  <div className="border-t mt-4 border-gray-700 flex items-center gap-2 pt-2 ">
-                    <span>
-                      <Plus className="w-4 h-4"></Plus>{" "}
-                    </span>
-                    <span className="para-font">NEW TEAM</span>
-                  </div>
-                </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
         <div className="">

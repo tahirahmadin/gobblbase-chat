@@ -191,11 +191,6 @@ const Sidebar = ({ onClose }: SidebarProps) => {
     },
   ];
 
-  // If we're on the All Agents page, don't render the sidebar
-  if (location.pathname === "/admin/all-agents") {
-    return null;
-  }
-
   const toggleTab = (tabName: string) => {
     localStorage.removeItem("editingProduct");
 
