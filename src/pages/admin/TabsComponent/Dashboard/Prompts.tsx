@@ -433,7 +433,7 @@ const Prompts = () => {
                         </div>
                       </>
                     ) : (
-                      <div className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"></div>
+                      <button onClick={() => handlePromptSelect(prompt)} className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"></button>
                     )}
                     <button
                       onClick={() => handlePromptSelect(prompt)}
@@ -481,7 +481,7 @@ const Prompts = () => {
                         </div>
                       </>
                     ) : (
-                      <div className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"></div>
+                      <button onClick={() => handlePromptSelect(prompt)} className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"></button>
                     )}
                     <button
                       onClick={() => handlePromptSelect(prompt)}

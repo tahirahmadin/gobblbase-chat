@@ -1382,13 +1382,14 @@ const SocialIcon = styled.a`
 `;
 const FooterLogo = styled.div`
   display: flex;
-  align-items: end;
+  flex-direction: column;
   justify-content: center;
+  align-items: center;
   position: relative;
-  gap: 12px;
+  gap: 20px;
   font-size: 1.08rem;
   width: 100%;
-  padding: 2vh 3vw 4vh 3vw;
+  padding: 2vh 3vw 2vh 3vw;
   background: #0a0a0a;
   height: 100%;
   @media (max-width: 800px) {
@@ -2618,14 +2619,21 @@ const Home = () => {
                   </SocialIcon>
                 </FooterSocial>
                 <FooterLogo className="logo">
-                  <img
-                    src="/assets/landing-asset/assemble/footer-logo.svg"
-                    alt="footer logo"
-                    className="[@media(max-width:800px)]:hidden"
-                  />
-                  <p className="hidden [@media(max-width:800px)]:block">
-                    © 2025 Sayy AI
-                  </p>
+                  <div className="">
+                      <img
+                        src="/assets/landing-asset/assemble/footer-logo.svg"
+                        alt="footer logo"
+                        className="[@media(max-width:800px)]:hidden"
+                      />
+                      <p className="hidden [@media(max-width:800px)]:block">
+                        © 2025 Sayy AI
+                      </p>
+                  </div>
+                  
+                  <div className="privacy-links flex gap-12">
+                    <button onClick={() => navigate("/privacy")} className="para-font text-[15px]">Privacy Policy</button>
+                    <button onClick={() => navigate("/terms-condition")} className="para-font text-[15xpx]">Terms of Use</button>
+                  </div>
                 </FooterLogo>
               </FooterRight>
             </FooterUpper>

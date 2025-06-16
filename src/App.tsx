@@ -53,6 +53,7 @@ import Income from "./pages/admin/TabsComponent/Account/Income";
 import Overview from "./pages/admin/TabsComponent/Dashboard/Overview";
 import Support from "./pages/admin/Support";
 import Team from "./pages/admin/TabsComponent/Account/Team";
+import PrivacyPolicy from "./pages/landing/PrivacyPolicy";
 
 // Add type definition for window
 declare global {
@@ -231,6 +232,7 @@ function App() {
                     />
                     <Route path="/admin/*" element={<Dashboard />} />
                     <Route path="/pricing" element={<Pricing />} />
+                    <Route path="/privacy" element={<PrivacyPolicy />} />
                     <Route path="/" element={<Home />} />
                   </>
                 )}

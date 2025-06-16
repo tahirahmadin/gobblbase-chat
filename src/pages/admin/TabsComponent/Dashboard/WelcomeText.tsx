@@ -174,7 +174,7 @@ const WelcomeText = () => {
                     </div>
                   </>
                 ) : (
-                  <div className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"></div>
+                  <button onClick={() => handleTemplateSelect(template)} className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3 curser-pointer"></button>
                 )}
                 <button
                   onClick={() => handleTemplateSelect(template)}
@@ -201,7 +201,7 @@ const WelcomeText = () => {
                 </div>
               </>
             ) : (
-              <div className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"></div>
+              <div  onClick={handleCustomMessageSave} className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"></div>
             )}
 
             <h3 className="para-font text-md md:text-lg text-[#0D0D0D] font-[500]">
