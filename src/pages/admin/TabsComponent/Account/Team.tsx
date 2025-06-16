@@ -7,9 +7,107 @@ import {
 } from "../../../../lib/serverActions";
 import { useAdminStore } from "../../../../store/useAdminStore";
 
-import { Plus, X } from "lucide-react";
+import { Plus, X, Pencil } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useUserStore } from "../../../../store/useUserStore";
+
+type TeamHeaderProps = {
+  teamName: string;
+  setTeamName: (name: string) => void;
+  currentPlan: string;
+  membersCount: number;
+  membersLimit: number;
+  onInvite: () => void;
+  inviteEmail: string;
+  setInviteEmail: (email: string) => void;
+  inviteLoading: boolean;
+};
+
+const TeamHeader: React.FC<TeamHeaderProps> = ({
+  teamName,
+  setTeamName,
+  currentPlan,
+  membersCount,
+  membersLimit,
+  onInvite,
+  inviteEmail,
+  setInviteEmail,
+  inviteLoading,
+}) => {
+  return (
+    <div className="flex flex-row w-full gap-8 mt-8 items-stretch">
+      {/* Left column */}
+      <div className="flex flex-col gap-6 w-full max-w-[400px]">
+        {/* Team Name */}
+        <div>
+          <label className="font-semibold text-gray-700 mb-1 block">
+            Team Name
+          </label>
+          <div className="flex items-center gap-2 bg-[#E9EDFF] border border-[#B6C2FF] rounded px-3 py-2">
+            <input
+              className="bg-transparent outline-none flex-1 text-sm"
+              value={teamName}
+              onChange={(e) => setTeamName(e.target.value)}
+              placeholder="Team name..."
+            />
+            <Pencil className="w-4 h-4 text-gray-500" />
+          </div>
+        </div>
+        {/* Current Plan */}
+        <div>
+          <label className="font-semibold text-gray-700 mb-1 block">
+            Current Plan
+          </label>
+          <div className="flex items-center gap-2 bg-[#E9EDFF] border border-[#B6C2FF] rounded px-3 py-2">
+            <span className="flex-1 font-semibold text-sm">{currentPlan}</span>
+            <button className="bg-[#6AFF97] border border-black px-4 py-1 rounded font-semibold text-sm shadow">
+              VIEW
+            </button>
+          </div>
+        </div>
+        {/* Members */}
+        <div>
+          <label className="font-semibold text-gray-700 mb-1 block">
+            Members
+          </label>
+          <div className="flex items-center gap-2 bg-[#E9EDFF] border border-[#B6C2FF] rounded px-3 py-2">
+            <span className="font-semibold text-sm">
+              {membersCount ?? 0}/{membersLimit}
+            </span>
+            <div className="flex-1 h-2 bg-white rounded-full border mx-2">
+              <div
+                className="h-2 bg-[#4D65FF] rounded-full"
+                style={{
+                  width: `${((membersCount ?? 0) / membersLimit) * 100}%`,
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* Right card */}
+      <div className="flex flex-col justify-center bg-white border border-[#B6C2FF] rounded-lg px-8 py-8 min-w-[340px] max-w-[400px] shadow-md ml-auto">
+        <label className="font-semibold text-gray-700 mb-3 text-lg">
+          Add new member via Email
+        </label>
+        <input
+          type="email"
+          className="border border-gray-300 rounded px-3 py-2 mb-4 text-sm"
+          placeholder="Enter email address..."
+          value={inviteEmail}
+          onChange={(e) => setInviteEmail(e.target.value)}
+        />
+        <button
+          className="bg-[#6AFF97] border border-black px-4 py-2 rounded font-semibold text-black text-sm shadow"
+          onClick={onInvite}
+          disabled={inviteLoading}
+        >
+          {inviteLoading ? "Inviting..." : "INVITE"}
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const Team = () => {
   // IMPORTS & HOOKS
@@ -37,6 +135,9 @@ const Team = () => {
   const [invites, setInvites] = useState<any[]>([]);
   const [showAddMemberPanel, setShowAddMemberPanel] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [teamName, setTeamName] = useState("My Team");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteLoading, setInviteLoading] = useState(false);
 
   useEffect(() => {
     const fetchInvites = async () => {
@@ -53,47 +154,32 @@ const Team = () => {
 
   // Handle invite submission
   const handleInviteSubmit = async () => {
-    if (!newMembers[0]?.email) {
+    if (!inviteEmail) {
       toast.error("Please enter an email address.");
       return;
     }
 
-    setNewMembers((prev) =>
-      prev.map((member, index) =>
-        index === 0 ? { ...member, loading: true } : member
-      )
-    );
+    setInviteLoading(true);
 
     try {
       const res = await inviteTeamMember({
         teamId: activeTeamId,
         adminId: adminId,
-        email: newMembers[0].email,
+        email: inviteEmail,
         role: "Member",
       });
 
       if (!res.error) {
         toast.success("Invite email sent!");
         refetchClientData();
-        setShowAddMemberPanel(false);
-        setNewMembers([
-          {
-            id: `new-member-${Date.now()}`,
-            email: "",
-            loading: false,
-          },
-        ]);
+        setInviteEmail("");
       } else {
         toast.error(res.result || "Failed to invite member");
       }
     } catch (err) {
       toast.error("Failed to invite member");
     } finally {
-      setNewMembers((prev) =>
-        prev.map((member, index) =>
-          index === 0 ? { ...member, loading: false } : member
-        )
-      );
+      setInviteLoading(false);
     }
   };
 
@@ -152,6 +238,15 @@ const Team = () => {
     }
   };
 
+  const handleInvite = () => {
+    setInviteLoading(true);
+    setTimeout(() => {
+      setInviteLoading(false);
+      setInviteEmail("");
+      toast.success("Invite sent!");
+    }, 1000);
+  };
+
   return (
     <section className="h-full overflow-x-hidden">
       {/* upper side title and toggle btn  */}
@@ -161,71 +256,17 @@ const Team = () => {
           Manage your team members, assign roles and invite new collaborators
         </p>
 
-        <div className="flex flex-wrap gap-4 mb-6 w-full mt-8">
-          {/* Current Plan */}
-          {/* <div className="bg-[#CEFFDC] rounded-lg p-4 justify-between w-[380px]">
-            <span className="text-[0.9rem] text-gray-600">Current Plan</span>
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-[1.2rem]">
-                {clientUsage?.usage?.planId || "-"}
-              </span>
-              <div className="relative z-10">
-                <div className="absolute top-[4px] left-[4px] -z-10 bg-[#6AFF97] border border-black w-full h-full"></div>
-                <button
-                  onClick={navigateToPlans}
-                  className="bg-[#6AFF97] border border-black text-black font-semibold px-4 py-1"
-                >
-                  VIEW
-                </button>
-              </div>
-            </div>
-          </div> */}
-
-          {/* Team members */}
-          <div className="bg-[#D4DEFF] rounded-lg p-4 flex flex-col xs:flex-row items-end gap-4 flex justify-between min-w-[120px] w-full max-w-[450px]">
-            <div className="team-member-bar w-full">
-              <div className="flex items-center mb-2 whitespace-nowrap">
-                <span className="text-2xl font-bold mr-2">
-                  {clientData?.teamMembers?.length}
-                </span>
-                <span className="text-gray-700">
-                  /25 <span>Team Members</span>
-                </span>
-              </div>
-              <div className="w-full h-3 bg-white rounded-full shadow-[inset_0_3px_3px_0_rgba(0,0,0,0.25)]">
-                <div
-                  className="h-3  bg-[#4D65FF] border border-black rounded-full"
-                  style={{
-                    width: `${
-                      clientData?.teamMembers?.length &&
-                      clientData?.teamMembers?.length > 0
-                        ? (clientData?.teamMembers?.length / 25) * 100
-                        : 0
-                    }%`,
-                  }}
-                ></div>
-              </div>
-            </div>
-            <div className="relative z-10">
-              <div className="absolute top-[4px] left-[4px] -z-10 bg-[#6AFF97] border border-black w-full h-full"></div>
-              <button
-                onClick={() => setShowAddMemberPanel(!showAddMemberPanel)}
-                disabled={adminId !== activeTeamId}
-                className={`whitespace-nowrap flex items-center gap-2 bg-[#6AFF97] border border-black text-black font-semibold px-4 py-1 ${
-                  adminId !== activeTeamId
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
-                }`}
-              >
-                <span className="icon">
-                  <Plus className="h-4 w-4 text-black" />
-                </span>
-                <span className="text">NEW </span>
-                <span className="hidden md:flex">MEMBER</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        <TeamHeader
+          teamName={teamName}
+          setTeamName={setTeamName}
+          currentPlan={clientUsage?.usage?.planId || "-"}
+          membersCount={clientData?.teamMembers?.length ?? 0}
+          membersLimit={25}
+          onInvite={handleInviteSubmit}
+          inviteEmail={inviteEmail}
+          setInviteEmail={setInviteEmail}
+          inviteLoading={inviteLoading}
+        />
       </div>
       <div className="below px-4 md:px-12 pt-6 pb-12">
         {showAddMemberPanel && (
@@ -365,60 +406,45 @@ const Team = () => {
           </div>
         </div>
         {/* Invites Table */}
-        <div className="bg-[#FFFBEA] border border-yellow-300 p-6 rounded-lg mt-8">
-          <h3 className="text-lg font-bold mb-4">Pending Invites</h3>
-          <table className="w-full min-w-[200px] border-separate border-spacing-y-4">
-            <thead>
-              <tr>
-                <th className="py-1.5 px-2 text-left text-sm">Invited By</th>
-                <th className="py-1.5 px-2 text-left text-sm">Team Name</th>
-
-                <th className="py-1.5 px-2 text-left text-sm">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invites.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="text-center py-4 text-sm">
-                    No invites found.
-                  </td>
-                </tr>
-              ) : (
-                invites.map((invite, idx) => (
-                  <tr
-                    key={invite.email || idx}
-                    className="bg-white border border-gray-300 rounded-lg shadow-md"
-                    style={{
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
-                      borderRadius: 12,
-                    }}
+        <div className="bg-[#D4FFD9] p-4 rounded-xl mt-8">
+          <h3 className="text-base font-bold mb-2">PENDING INVITES</h3>
+          {invites.length === 0 ? (
+            <div className="py-4 text-center text-sm text-gray-600">
+              No invites found.
+            </div>
+          ) : (
+            invites.map((invite, idx) => (
+              <div
+                key={invite.email || idx}
+                className="flex flex-row items-center justify-between bg-white rounded-lg px-6 py-3 mb-2"
+              >
+                <div className="text-sm text-gray-800">
+                  Invited by{" "}
+                  <span className="font-semibold">
+                    {invite.email || "<PERSON NAME>"}
+                  </span>{" "}
+                  to{" "}
+                  <span className="font-semibold">
+                    {invite.teamName || "<TEAM NAME>"}
+                  </span>
+                </div>
+                <div className="flex gap-3 ml-4">
+                  <button
+                    className="bg-[#6AFF97] border border-black rounded-full px-5 py-1 text-sm font-medium text-black hover:bg-[#4DFF88] focus:outline-none"
+                    onClick={() => handleInviteAction(invite, "accepted")}
                   >
-                    <td className="py-3 px-4 text-sm text-gray-600">
-                      {invite.email}
-                    </td>
-                    <td className="py-3 px-4 font-semibold text-base text-gray-800 rounded-l-lg">
-                      {invite.teamName || "Unknown Team"}
-                    </td>
-
-                    <td className="py-3 px-4 rounded-r-lg flex gap-2 items-center justify-start">
-                      <button
-                        className="bg-[#6AFF97] border border-black px-4 py-2 rounded text-black font-semibold hover:bg-[#4D65FF] hover:text-white transition-colors shadow"
-                        onClick={() => handleInviteAction(invite, "accepted")}
-                      >
-                        Accept
-                      </button>
-                      <button
-                        className="bg-[#FF9797] border border-black px-4 py-2 rounded text-black font-semibold hover:bg-[#FF4D4D] hover:text-white transition-colors shadow"
-                        onClick={() => handleInviteAction(invite, "rejected")}
-                      >
-                        Reject
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                    Approve
+                  </button>
+                  <button
+                    className="bg-[#FFBDBD] border border-black rounded-full px-5 py-1 text-sm font-medium text-black hover:bg-[#FF9797] focus:outline-none"
+                    onClick={() => handleInviteAction(invite, "rejected")}
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </section>

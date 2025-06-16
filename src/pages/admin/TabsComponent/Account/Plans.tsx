@@ -588,7 +588,9 @@ const Plans = () => {
                     upgrading={isUpgrading(plan.id)}
                     lowerTier={isLowerTierPlan(plan)}
                     disabled={
-                      isCurrentPlanAnyRecurrence(plan) || isUpgrading(plan.id)
+                      isCurrentPlanAnyRecurrence(plan) ||
+                      isUpgrading(plan.id) ||
+                      activeTeamId !== adminId
                     }
                     onClick={async () => {
                       await handleUpgrade(plan.id);
