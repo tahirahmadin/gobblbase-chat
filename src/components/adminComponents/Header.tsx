@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { ChevronDown, Eye } from "lucide-react";
+import { ChevronDown, Eye, Plus } from "lucide-react";
 import { useBotConfig } from "../../store/useBotConfig";
 import { useAdminStore } from "../../store/useAdminStore";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -118,6 +118,7 @@ const Header = () => {
   };
 
   const selected = getSelectedAgentAndTeam();
+  const [hoveredTeamOffsetY, setHoveredTeamOffsetY] = useState<number>(0);
 
   const renderAgentButton = (agent: AdminAgent, isSelected: boolean) => (
     <button
@@ -194,23 +195,23 @@ const Header = () => {
             </button>
             {isDropdownOpen && (
               <div
-                className="absolute z-100 mt-2 w-[32rem] rounded-lg shadow-lg flex border border-gray-800"
-                style={{ background: "black" }}
+                className="absolute z-[10] mt-2 w-fit shadow-lg flex flex-col md:flex-row"
+                style={{ background: "#EAEFFF" }}
               >
                 {/* Teams column */}
-                <div
-                  className="w-1/2 py-3 max-h-96 overflow-y-auto border-r border-gray-700 flex flex-col"
-                  style={{ background: "black" }}
-                >
+                <div className="w-full whitespace-nowrap py-3 px-2 max-h-96 overflow-y-auto flex flex-col shadow-[0_8px_8px_0_rgba(0,0,0,0.25)] z-20" >
                   <div
                     className={`px-4 py-2 font-semibold text-base cursor-pointer rounded-none flex items-center
                       ${
                         hoveredTeam === "my"
-                          ? "bg-[#4b5cff] text-white"
-                          : "text-white hover:bg-[#222]"
+                          ? "bg-[#CEFFDC] text-black"
+                          : "text-black hover:bg-[#222]"
                       }
                     `}
-                    onMouseEnter={() => setHoveredTeam("my")}
+                    onMouseEnter={(e) => {
+                      setHoveredTeam("my");
+                      setHoveredTeamOffsetY(e.currentTarget.offsetTop);
+                    }}
                     onClick={() => {
                       setIsDropdownOpen(false);
                       navigate("/admin/all-agents?team=my-team");
@@ -226,14 +227,17 @@ const Header = () => {
                   {clientData?.otherTeams?.map((team: Team) => (
                     <div
                       key={team.teamId}
-                      className={`px-4 py-2 font-semibold text-base cursor-pointer rounded-none flex items-center
+                      className={`px-4 py-2 mb-4 font-semibold text-base cursor-pointer  flex items-center
                         ${
                           hoveredTeam === team.teamId
-                            ? "bg-[#4b5cff] text-white"
-                            : "text-white hover:bg-[#222]"
+                            ? "bg-[#CEFFDC] text-black rounded-lg"
+                            : "text-black hover:bg-[#CEFFDC] rounded-none"
                         }
                       `}
-                      onMouseEnter={() => setHoveredTeam(team.teamId)}
+                      onMouseEnter={(e) => {
+                        setHoveredTeam(team.teamId);
+                        setHoveredTeamOffsetY(e.currentTarget.offsetTop);
+                      }}
                       onClick={() => {
                         setIsDropdownOpen(false);
                         navigate(`/admin/all-agents?team=${team.teamId}`);
@@ -247,15 +251,24 @@ const Header = () => {
                       {team.teamName}
                     </div>
                   ))}
-                  <div className="border-t border-gray-700 my-2"></div>
+                  <div className="border-t border-gray-700 flex items-center gap-2 pt-2 ">
+                    <span>
+                      <Plus className="w-4 h-4"></Plus>{" "}
+                    </span>
+                    <span className="para-font">NEW TEAM</span>
+                  </div>
                 </div>
 
                 {/* Agents column */}
                 <div
-                  className="w-1/2 py-3 max-h-96 overflow-y-auto flex flex-col"
-                  style={{ background: "black" }}
+                  className="md:absolute left-full top-0 whitespace-nowrap whitespace-nowrap py-3 px-2 max-h-96 overflow-y-auto flex flex-col shadow-[0_8px_8px_0_rgba(0,0,0,0.25)] z-10"
+                  style={{
+                    top: hoveredTeamOffsetY,
+                    background: "#EAEFFF",
+                    width: "260px", // adjust width as needed
+                  }}
                 >
-                  <div className="px-4 pb-2 font-semibold text-base text-white">
+                  <div className="px-4 pb-2 font-semibold text-base text-black">
                     {hoveredTeam === null
                       ? "Agents"
                       : hoveredTeam === "my"
@@ -264,6 +277,7 @@ const Header = () => {
                           (t) => t.teamId === hoveredTeam
                         )?.teamName + " Agents"}
                   </div>
+
                   {(hoveredTeam === "my"
                     ? agents
                     : clientData?.otherTeams?.find(
@@ -275,13 +289,12 @@ const Header = () => {
                       onClick={() =>
                         handleAgentSelect(agent.agentId, agent.teamId)
                       }
-                      className={`w-full text-left px-4 py-2 text-sm flex items-center space-x-2 rounded-none
-                        ${
-                          agent.agentId === activeBotId
-                            ? "bg-[#4b5cff] text-white"
-                            : "text-white hover:bg-[#222]"
-                        }
-                      `}
+                      className={`w-full text-left px-4 py-2 text-sm flex items-center space-x-2 
+                          ${
+                            agent.agentId === activeBotId
+                              ? "bg-[#CEFFDC] text-black rounded-lg"
+                              : "text-black hover:bg-[#CEFFDC] rounded-none"
+                          }`}
                     >
                       <img
                         src={agent.logo || "/assets/voice/coach.png"}
@@ -291,16 +304,12 @@ const Header = () => {
                       <span className="font-medium">{agent.name}</span>
                     </button>
                   ))}
-                  <div className="border-t border-gray-700 my-2"></div>
-                  {/* <button
-                    className="px-4 py-2 text-left text-sm text-white hover:bg-[#222] w-full"
-                    onClick={() => {
-                      setIsDropdownOpen(false);
-                      navigate("/admin/dashboard/create-bot");
-                    }}
-                  >
-                    + NEW AGENT
-                  </button> */}
+                  <div className="border-t mt-4 border-gray-700 flex items-center gap-2 pt-2 ">
+                    <span>
+                      <Plus className="w-4 h-4"></Plus>{" "}
+                    </span>
+                    <span className="para-font">NEW TEAM</span>
+                  </div>
                 </div>
               </div>
             )}
@@ -314,12 +323,19 @@ const Header = () => {
 
             <div className="max:w-[100%]">
               {isAllAgentsPage ? (
-                <div className="relative z-10">
-                  <Button className="text-black font-semibold flex items-center gap-2">
-                    <Eye className="w-5 h-5" />
-                    <span className="hidden xs:flex">View Agent</span>
-                  </Button>
-                </div>
+               <div className="relative">
+              {/* Bottom layer for shadow effect */}
+              <div className="absolute  bg-[#6aff97]  top-[3px] left-[3px] w-full h-full border border-black "></div>
+              {/* Main button */}
+              <button
+                onClick={() => navigate("/admin/dashboard/create-bot")}
+                className="relative bg-[#6aff97] text-black font-normal px-4 py-1 border border-black flex items-center gap-1"
+              >
+                <span>+ NEW </span>
+                
+                <span className="hidden sm:block"> AGENT </span>
+              </button>
+            </div>
               ) : (
                 <div className="relative">
                   <a

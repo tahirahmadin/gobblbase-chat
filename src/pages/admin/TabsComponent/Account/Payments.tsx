@@ -238,7 +238,7 @@ const Payments = () => {
         <div className="space-y-6 lg:px-12 pb-28">
           {/* Currency and Preferred Method Selection */}
           <div className="flex flex-col flex-wrap lg:flex-row lg:space-x-12 space-y-4 lg:space-y-0">
-            <div className="flex items-center gap-2 px-6 lg:px-0">
+            <div className="flex flex-col items-start sm:flex-row sm:items-center gap-2 px-6 lg:px-0">
               <label className="para-font block text-[1rem] text-black whitespace-nowrap">
                 Currency
               </label>
@@ -277,7 +277,7 @@ const Payments = () => {
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-2 px-6 lg:px-0">
+            <div className="flex flex-col items-start sm:flex-row sm:items-center gap-2 px-6 lg:px-0">
               <label className="para-font block text-[1rem] text-black whitespace-nowrap">
                 Preferred Method
               </label>
@@ -338,7 +338,7 @@ const Payments = () => {
                 )}
               </div>
             </div>
-            <div className="w-fit flex justify-start items-center relative z-10 ml-6 lg:ml-0">
+            <div className="w-fit flex justify-start items-center relative z-10 ml-6 lg:ml-0 lg:mt-4">
               <div className="absolute top-[4px] left-[4px] bg-[#6AFF97] w-full h-full border border-black"></div>
               <button
                 onClick={handleSave}
@@ -703,7 +703,7 @@ const Payments = () => {
                   </div>
                 </>
               ) : (
-                <div className="bg-yellow-50 w-1/3 rounded-lg p-4">
+                <div className="bg-yellow-50  rounded-lg p-4">
                   <div className="flex items-start space-x-3">
                     <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
                     <div>

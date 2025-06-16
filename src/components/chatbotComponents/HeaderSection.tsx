@@ -903,8 +903,8 @@ function HeaderSection({
 
       {/* Navigation Bar */}
       <div
-        className={`flex pt-2 gap-4 ${
-          isPreview ? "justify-around" : "justify-around md:justify-start"}`}
+        className={`flex pt-2  ${
+          isPreview ? "justify-around gap-1" : "justify-around gap-2 md:gap-4 md:justify-start"}`}
         style={{ backgroundColor: theme.isDark ? "black" : "white" ,
         }}
       >
