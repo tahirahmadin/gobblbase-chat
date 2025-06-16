@@ -57,6 +57,7 @@ const Header = () => {
     setActiveTeamId,
     isAdminLoggedIn,
     activeTeamId,
+    adminId,
   } = useAdminStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState<
     false | "team" | "agent"
@@ -93,7 +94,7 @@ const Header = () => {
   const allTeams: Team[] = useMemo(() => {
     const myTeam: Team = {
       teamName: "My Team",
-      teamId: "my",
+      teamId: "my-team",
       role: "owner",
       email: adminEmail,
       agents: agents || [],
@@ -115,7 +116,7 @@ const Header = () => {
 
   const handleTeamSelect = (teamId: string) => {
     setSelectedTeamId(teamId);
-    setActiveTeamId(teamId === "my" ? "" : teamId);
+    setActiveTeamId(teamId === "my-team" ? adminId : teamId);
     setActiveBotId(""); // Reset agent selection
     setIsDropdownOpen(false);
     navigate(`/admin/all-agents?team=${teamId}`);
@@ -123,7 +124,7 @@ const Header = () => {
 
   const handleAgentSelect = (agentId: string, teamId: string) => {
     setActiveBotId(agentId);
-    setActiveTeamId(teamId === "my" ? "" : teamId);
+    setActiveTeamId(teamId === "my-team" ? adminId : teamId);
     setIsDropdownOpen(false);
     localStorage.removeItem("editingProduct");
     navigate("/admin/dashboard/overview");
@@ -236,7 +237,13 @@ const Header = () => {
                         <span className="font-medium">{agent.name}</span>
                       </div>
                     ))}
-                    <div className="border-t border-gray-700 flex items-center gap-2 pt-2 px-4">
+                    <div
+                      className="border-t border-gray-700 flex items-center gap-2 pt-2 px-4 cursor-pointer hover:bg-[#CEFFDC]"
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        navigate("/admin/dashboard/create-bot");
+                      }}
+                    >
                       <Plus className="w-4 h-4" />
                       <span className="para-font">NEW AGENT</span>
                     </div>
