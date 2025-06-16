@@ -1,9 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  getPlans,
-  subscribeToPlan,
-  getStripeBillingSession,
-} from "../../../../lib/serverActions";
+import { getPlans, subscribeToPlan } from "../../../../lib/serverActions";
 import { useAdminStore } from "../../../../store/useAdminStore";
 import { toast } from "react-hot-toast";
 import { Check, Loader2 } from "lucide-react";
@@ -277,7 +273,6 @@ const Plans = () => {
   const [billing, setBilling] = useState("monthly");
   const [plans, setPlans] = useState<PlanData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [billingLoading, setBillingLoading] = useState(false);
   const [upgradingPlanId, setUpgradingPlanId] = useState<string | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -395,7 +390,7 @@ const Plans = () => {
         }, 1000); // Poll every 5 seconds
         toast.success(billingMessage);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error changing plan:", error);
       toast.error(error?.response?.data?.result || "Failed to change plan");
       if (pollingIntervalRef.current) {
@@ -460,33 +455,6 @@ const Plans = () => {
         <div className="line hidden [@media(max-width:600px)]:block h-[2px] bg-black w-full relative"></div>
 
         <div className="flex items-center gap-2 flex-col xs:flex-row">
-          <button
-            className="px-4 py-1 rounded-2xl border border-purple-600 font-semibold whitespace-nowrap bg-black text-white hover:bg-purple-700 transition-colors duration-200 focus:outline-none"
-            onClick={async () => {
-              if (!activeTeamId || !adminId) return;
-              try {
-                setBillingLoading(true);
-                const url = await getStripeBillingSession(
-                  adminId,
-                  activeTeamId
-                );
-                window.open(url, "_blank", "noopener,noreferrer");
-              } catch (error) {
-                toast.error("Failed to open Stripe Billing");
-              } finally {
-                setBillingLoading(false);
-              }
-            }}
-            disabled={billingLoading}
-          >
-            {billingLoading ? (
-              <span className="flex items-center gap-2">
-                <Loader2 className="h-3 w-4 animate-spin" /> Loading Billing...
-              </span>
-            ) : (
-              "Billing History"
-            )}
-          </button>
           <div className="flex items-center rounded-full border shadow-[inset_0_4px_4px_0_rgba(0,0,0,0.4)] [@media(max-width:600px)]:my-6 ">
             <button
               className={`px-4 py-1 rounded-full w-[100px] font-semibold focus:outline-none transition-colors duration-200 ${
