@@ -2914,3 +2914,35 @@ export async function removeTeamMember(dataObj: {
     };
   }
 }
+
+export async function updateTeamName(clientId: string, teamName: string) {
+  try {
+    let url = `${apiUrl}/client/updateTeamName`;
+    let dataObj = { teamId: clientId, teamName };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
+
+    if (response.data.error) {
+      throw new Error(response.data.result || "Failed to update team name");
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error("Error updating team name:", error);
+    throw error;
+  }
+}

@@ -4,12 +4,13 @@ import {
   getTeamInvites,
   acceptOrRejectInvite,
   removeTeamMember,
+  updateTeamName,
 } from "../../../../lib/serverActions";
 import { useAdminStore } from "../../../../store/useAdminStore";
 
 import { Plus, X, Pencil } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { useUserStore } from "../../../../store/useUserStore";
+import { useNavigate } from "react-router-dom";
 
 type TeamHeaderProps = {
   teamName: string;
@@ -34,6 +35,45 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
   setInviteEmail,
   inviteLoading,
 }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempTeamName, setTempTeamName] = useState(teamName);
+  const { activeTeamId, refetchClientData } = useAdminStore();
+
+  const navigate = useNavigate();
+
+  const handleTeamNameUpdate = async () => {
+    if (!activeTeamId || !tempTeamName.trim()) return;
+
+    try {
+      await updateTeamName(activeTeamId, tempTeamName.trim());
+      setTeamName(tempTeamName.trim());
+      refetchClientData();
+      setIsEditing(false);
+      toast.success("Team name updated successfully!");
+    } catch (error) {
+      toast.error("Failed to update team name");
+      setTempTeamName(teamName); // Reset to original name on error
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleTeamNameUpdate();
+    } else if (e.key === "Escape") {
+      setTempTeamName(teamName);
+      setIsEditing(false);
+    }
+  };
+
+  const startEditing = () => {
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setIsEditing(false);
+    setTempTeamName(teamName);
+  };
+
   return (
     <div className="flex flex-row w-full gap-8 mt-8 items-stretch">
       {/* Left column */}
@@ -44,13 +84,41 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
             Team Name
           </label>
           <div className="flex items-center gap-2 bg-[#E9EDFF] border border-[#B6C2FF] rounded px-3 py-2">
-            <input
-              className="bg-transparent outline-none flex-1 text-sm"
-              value={teamName}
-              onChange={(e) => setTeamName(e.target.value)}
-              placeholder="Team name..."
-            />
-            <Pencil className="w-4 h-4 text-gray-500" />
+            {isEditing ? (
+              <>
+                <input
+                  className="bg-transparent outline-none flex-1 text-sm"
+                  value={tempTeamName}
+                  onChange={(e) => setTempTeamName(e.target.value)}
+                  placeholder="Team name..."
+                  autoFocus
+                />
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleTeamNameUpdate}
+                    className="bg-[#6AFF97] border border-black px-3 py-1 rounded text-sm font-medium hover:bg-[#4DFF88] transition-colors"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={cancelEditing}
+                    className="bg-[#FFBDBD] border border-black px-3 py-1 rounded text-sm font-medium hover:bg-[#FF9797] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <span className="flex-1 text-sm">{teamName}</span>
+                <button
+                  onClick={startEditing}
+                  className="p-1 hover:bg-[#D4DDFF] rounded transition-colors"
+                >
+                  <Pencil className="w-4 h-4 text-gray-500" />
+                </button>
+              </>
+            )}
           </div>
         </div>
         {/* Current Plan */}
@@ -58,7 +126,12 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
           <label className="font-semibold text-gray-700 mb-1 block">
             Current Plan
           </label>
-          <div className="flex items-center gap-2 bg-[#E9EDFF] border border-[#B6C2FF] rounded px-3 py-2">
+          <div
+            className="flex items-center gap-2 bg-[#E9EDFF] border border-[#B6C2FF] rounded px-3 py-2"
+            onClick={() => {
+              navigate("/admin/account/plan");
+            }}
+          >
             <span className="flex-1 font-semibold text-sm">{currentPlan}</span>
             <button className="bg-[#6AFF97] border border-black px-4 py-1 rounded font-semibold text-sm shadow">
               VIEW
@@ -249,13 +322,51 @@ const Team = () => {
 
   return (
     <section className="h-full overflow-x-hidden">
-      {/* upper side title and toggle btn  */}
       <div className="upper px-4 md:px-12 pt-12">
         <h2 className="text-2xl font-semibold text-gray-900">Team</h2>
         <p className="text-gray-600">
           Manage your team members, assign roles and invite new collaborators
         </p>
+        {/* Invites Table */}
+        {invites.length > 0 && (
+          <div className="bg-[#D4FFD9] p-4 rounded-xl mt-8">
+            <h3 className="text-base font-bold mb-2">PENDING INVITES</h3>
+            {invites.map((invite, idx) => (
+              <div
+                key={invite.email || idx}
+                className="flex flex-row items-center justify-between bg-white rounded-lg px-6 py-3 mb-2"
+              >
+                <div className="text-sm text-gray-800">
+                  Invited by{" "}
+                  <span className="font-semibold">
+                    {invite.email || "<PERSON NAME>"}
+                  </span>{" "}
+                  to{" "}
+                  <span className="font-semibold">
+                    {invite.teamName || "<TEAM NAME>"}
+                  </span>
+                </div>
+                <div className="flex gap-3 ml-4">
+                  <button
+                    className="bg-[#6AFF97] border border-black rounded-full px-5 py-1 text-sm font-medium text-black hover:bg-[#4DFF88] focus:outline-none"
+                    onClick={() => handleInviteAction(invite, "accepted")}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    className="bg-[#FFBDBD] border border-black rounded-full px-5 py-1 text-sm font-medium text-black hover:bg-[#FF9797] focus:outline-none"
+                    onClick={() => handleInviteAction(invite, "rejected")}
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
+      <div className="upper px-4 md:px-12 pt-12">
         <TeamHeader
           teamName={teamName}
           setTeamName={setTeamName}
@@ -268,6 +379,7 @@ const Team = () => {
           inviteLoading={inviteLoading}
         />
       </div>
+
       <div className="below px-4 md:px-12 pt-6 pb-12">
         {showAddMemberPanel && (
           <div className="new-member-section w-full">
@@ -404,47 +516,6 @@ const Team = () => {
               </table>
             </div>
           </div>
-        </div>
-        {/* Invites Table */}
-        <div className="bg-[#D4FFD9] p-4 rounded-xl mt-8">
-          <h3 className="text-base font-bold mb-2">PENDING INVITES</h3>
-          {invites.length === 0 ? (
-            <div className="py-4 text-center text-sm text-gray-600">
-              No invites found.
-            </div>
-          ) : (
-            invites.map((invite, idx) => (
-              <div
-                key={invite.email || idx}
-                className="flex flex-row items-center justify-between bg-white rounded-lg px-6 py-3 mb-2"
-              >
-                <div className="text-sm text-gray-800">
-                  Invited by{" "}
-                  <span className="font-semibold">
-                    {invite.email || "<PERSON NAME>"}
-                  </span>{" "}
-                  to{" "}
-                  <span className="font-semibold">
-                    {invite.teamName || "<TEAM NAME>"}
-                  </span>
-                </div>
-                <div className="flex gap-3 ml-4">
-                  <button
-                    className="bg-[#6AFF97] border border-black rounded-full px-5 py-1 text-sm font-medium text-black hover:bg-[#4DFF88] focus:outline-none"
-                    onClick={() => handleInviteAction(invite, "accepted")}
-                  >
-                    Approve
-                  </button>
-                  <button
-                    className="bg-[#FFBDBD] border border-black rounded-full px-5 py-1 text-sm font-medium text-black hover:bg-[#FF9797] focus:outline-none"
-                    onClick={() => handleInviteAction(invite, "rejected")}
-                  >
-                    Reject
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
         </div>
       </div>
     </section>

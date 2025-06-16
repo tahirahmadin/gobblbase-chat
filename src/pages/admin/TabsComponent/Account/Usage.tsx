@@ -51,7 +51,7 @@ interface DailyUsage {
 }
 
 const Usage = () => {
-  const { adminId, fetchClientUsage, clientUsage, clientData } =
+  const { adminId, clientUsage, fetchClientUsage, clientData, activeTeamId } =
     useAdminStore();
 
   const [selectedAgent, setSelectedAgent] = useState("All Agents");
@@ -90,6 +90,12 @@ const Usage = () => {
 
     setUsageHistory(initialData);
   }, []);
+
+  useEffect(() => {
+    if (activeTeamId) {
+      fetchClientUsage({ clientId: activeTeamId });
+    }
+  }, [activeTeamId]);
 
   useEffect(() => {
     const fetchUsageData = async () => {
@@ -554,10 +560,10 @@ const Usage = () => {
             <div className="relative z-10 ">
               <div className="absolute top-[3.5px] left-[3px] -z-10 bg-[#6AFF97] border border-black w-full h-full"></div>
               <button
-              style={{
-                    fontSize: "clamp(8px,4vw, 15px)",
-                    fontWeight: "400",
-                  }}
+                style={{
+                  fontSize: "clamp(8px,4vw, 15px)",
+                  fontWeight: "400",
+                }}
                 onClick={navigateToPlans}
                 className="bg-[#6AFF97] para-font border border-black text-black px-4 py-1 min-w-[120px]"
               >

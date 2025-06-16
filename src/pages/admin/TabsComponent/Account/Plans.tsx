@@ -245,6 +245,17 @@ const UpgradeButton = styled.button<{
   }
   &:disabled {
     cursor: not-allowed;
+    opacity: 0.6;
+    background: #e5e5e5;
+    color: #666666;
+    border-color: #cccccc;
+    &::before {
+      border-color: #cccccc;
+      background: #e5e5e5;
+    }
+    &:hover {
+      background: #e5e5e5;
+    }
   }
 `;
 interface PlanData {
