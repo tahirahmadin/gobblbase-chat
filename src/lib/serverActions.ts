@@ -2409,13 +2409,13 @@ export async function getPlans(teamId: string): Promise<PlanData[]> {
 }
 
 export async function subscribeToPlan(
-  clientId: string,
+  adminId: string,
   planId: string,
   teamId: string
 ): Promise<any> {
   try {
     let url = `${apiUrl}/product/subscribeOrChangePlan`;
-    let dataObj = { clientId, planId, adminId: teamId };
+    let dataObj = { adminId: adminId, planId, clientId: teamId };
     let encryptedData = getCipherText(dataObj);
 
     // HMAC Response
