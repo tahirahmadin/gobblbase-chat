@@ -590,7 +590,7 @@ The summary should be detailed enough that someone reading only the summary woul
     
     const shouldSaveSummary = wordCount > 15000 && video.summary;
     const contentToSave = shouldSaveSummary ? video.summary : video.transcript;
-    const contentType = shouldSaveSummary ? 'Summary' : 'Transcript';
+    const contentType = 'Transcript';
     
     const fullContent = `${contentToSave}`;
     const contentSize = new TextEncoder().encode(fullContent).length;
@@ -651,7 +651,6 @@ The summary should be detailed enough that someone reading only the summary woul
     try {
       // If >15000 words, generate summary first
       if (wordCount > 15000) {
-        toast('Content is large (>15k words). Generating summary...');
         const summary = await generateSummary(video.transcript);
         
         // Update video with summary
