@@ -173,7 +173,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
 
   const tabs = [
     { id: "File Uploads", label: "File Uploads", icon: "upload" },
-    { id: "Social Videos", label: "Social Videos", icon: "play" },
+    { id: "Social Links", label: "Social Links", icon: "play" },
     { id: "Direct Text", label: "Direct Text", icon: "text" },
     { id: "Q&A", label: "Q&A", icon: "question" },
   ];
@@ -267,7 +267,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           // Filter out Direct Text documents
           if (title.startsWith("Direct Text:")) return false;
 
-          // Filter out Social Media content (from Social Videos tab)
+          // Filter out Social Media content (from Social Links tab)
           const socialPlatforms = [
             "Youtube",
             "Instagram",
@@ -1533,7 +1533,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           </div>
         );
 
-      case "Social Videos":
+      case "Social Links":
         return (
           <div className="bg-white rounded-lg">
             <div className="p-2">
