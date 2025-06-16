@@ -656,7 +656,7 @@ const CreateNewBot: React.FC = () => {
 
         // Set the new bot as active and navigate
         setActiveBotId(response.result.agentId);
-        navigate("/admin/dashboard/overview");
+        navigate("/admin/dashboard/profile");
       } else {
         toast.error("Failed to create agent");
       }
@@ -670,8 +670,7 @@ const CreateNewBot: React.FC = () => {
   return (
     <div className="min-h-screen h-[100%] w-full bg-[#b6baf8] flex flex-col pb-6 pt-2">
       {/* Centered content */}
-      {console.log(adminId)}
-      {console.log(activeTeamId)}
+
       <div className="flex-1 flex items-center justify-center z-10 relative">
         <Card className="w-[80%] h-[650px] max-w-6xl  border-2 border-[#222b5f] bg-[#eaefff] rounded-none flex flex-col justify-center items-center p-0">
           <div className="w-full h-full flex flex-col">{renderStepper()}</div>

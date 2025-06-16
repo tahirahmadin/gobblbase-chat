@@ -82,15 +82,23 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isDropdownOpen]);
 
+  // useEffect(() => {
+  //   if (!activeBotId && isAdminLoggedIn && activeTeamId) {
+  //     navigate("/admin/all-agents");
+  //   }
+  // }, [activeBotId, isAdminLoggedIn, activeTeamId]);
+
   useEffect(() => {
-    if (!activeBotId && isAdminLoggedIn && activeTeamId) {
-      navigate("/admin/all-agents");
+    if (activeBotId && activeBotData && isAdminLoggedIn && activeTeamId) {
+      if (activeBotData.isQueryable) {
+        navigate("/admin/dashboard/overview");
+      } else {
+        navigate("/admin/dashboard/profile");
+      }
     }
-  }, [activeBotId, isAdminLoggedIn, activeTeamId]);
+  }, [activeBotId, activeBotData, isAdminLoggedIn, activeTeamId]);
 
   const handleAgentSelect = (agentId: string, teamId: string) => {
-    console.log("agentId", agentId);
-    console.log("teamId", teamId);
     setActiveBotId(agentId);
     setActiveTeamId(teamId);
     setIsDropdownOpen(false);
@@ -119,39 +127,6 @@ const Header = () => {
 
   const selected = getSelectedAgentAndTeam();
   const [hoveredTeamOffsetY, setHoveredTeamOffsetY] = useState<number>(0);
-
-  const renderAgentButton = (agent: AdminAgent, isSelected: boolean) => (
-    <button
-      key={agent.agentId}
-      onClick={() => handleAgentSelect(agent.agentId, agent.teamId)}
-      className={`w-full text-left px-4 py-2 text-sm flex items-center space-x-2 rounded-md transition-colors duration-150 ${
-        isSelected
-          ? "bg-white bg-opacity-20 border border-white text-white"
-          : "hover:bg-blue-600 text-white"
-      }`}
-    >
-      {agent.logo ? (
-        <img
-          key={`${agent.logo}?t=${Date.now()}`}
-          src={`${agent.logo}?t=${Date.now()}`}
-          alt={`${agent.name} avatar`}
-          className="w-6 h-6 rounded-full object-cover border border-white"
-        />
-      ) : (
-        <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
-          <span className="text-xs text-gray-500">
-            {agent.name?.charAt(0) || "A"}
-          </span>
-        </div>
-      )}
-      <span className="font-medium">{agent.name}</span>
-      {isSelected && !isAllAgentsPage && (
-        <span className="ml-auto text-xs text-green-200 font-semibold">
-          Selected
-        </span>
-      )}
-    </button>
-  );
 
   return (
     <header
@@ -199,7 +174,7 @@ const Header = () => {
                 style={{ background: "#EAEFFF" }}
               >
                 {/* Teams column */}
-                <div className="w-full whitespace-nowrap py-3 px-2 max-h-96 overflow-y-auto flex flex-col shadow-[0_8px_8px_0_rgba(0,0,0,0.25)] z-20" >
+                <div className="w-full whitespace-nowrap py-3 px-2 max-h-96 overflow-y-auto flex flex-col shadow-[0_8px_8px_0_rgba(0,0,0,0.25)] z-20">
                   <div
                     className={`px-4 py-2 font-semibold text-base cursor-pointer rounded-none flex items-center
                       ${
@@ -323,19 +298,19 @@ const Header = () => {
 
             <div className="max:w-[100%]">
               {isAllAgentsPage ? (
-               <div className="relative">
-              {/* Bottom layer for shadow effect */}
-              <div className="absolute  bg-[#6aff97]  top-[3px] left-[3px] w-full h-full border border-black "></div>
-              {/* Main button */}
-              <button
-                onClick={() => navigate("/admin/dashboard/create-bot")}
-                className="relative bg-[#6aff97] text-black font-normal px-4 py-1 border border-black flex items-center gap-1"
-              >
-                <span>+ NEW </span>
-                
-                <span className="hidden sm:block"> AGENT </span>
-              </button>
-            </div>
+                <div className="relative">
+                  {/* Bottom layer for shadow effect */}
+                  <div className="absolute  bg-[#6aff97]  top-[3px] left-[3px] w-full h-full border border-black "></div>
+                  {/* Main button */}
+                  <button
+                    onClick={() => navigate("/admin/dashboard/create-bot")}
+                    className="relative bg-[#6aff97] text-black font-normal px-4 py-1 border border-black flex items-center gap-1"
+                  >
+                    <span>+ NEW </span>
+
+                    <span className="hidden sm:block"> AGENT </span>
+                  </button>
+                </div>
               ) : (
                 <div className="relative">
                   <a
