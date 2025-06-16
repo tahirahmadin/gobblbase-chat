@@ -153,7 +153,9 @@ const Header = () => {
                       isDropdownOpen === "team" ? false : "team"
                     )
                   }
-                  className="w-44 truncate whitespace-nowrap flex items-center justify-between space-x-2 bg-white border border-black px-2 py-2 text-sm font-medium text-black hover:bg-gray-50"
+                  className={`w-44 truncate whitespace-nowrap flex items-center justify-between space-x-2 px-2 py-2 text-[14px] font-medium text-black hover:bg-[#92A3FF]
+                      ${isDropdownOpen ? "bg-[#92A3FF]" : "bg-none"}
+                    `}
                 >
                   <span>
                     {selectedTeam ? selectedTeam.teamName : "Select Team"}
@@ -167,22 +169,22 @@ const Header = () => {
                   }                 
                 </button>
                 {isDropdownOpen === "team" && (
-                  <div className="w-44 truncate whitespace-nowrap absolute z-[10] top-12 shadow-lg bg-[#000]">
-                    {allTeams.map((team) => (
-                      <>
-                      <h1 className="team-heading">
+                  <div className="w-44 truncate whitespace-nowrap absolute z-[10]  top-[46px] pb-4 shadow-lg bg-[#000]">
+                      <h1 className="team-heading px-3  py-2 text-[12px] text-white">
                         Teams
                       </h1>
+                    {allTeams.map((team) => (
+                     
                       <div
                         key={team.teamId}
-                        className={`px-2 mx-2 py-2 text-[12px] text-white cursor-pointer hover:bg-[#4D65FF] ${
+                        className={`px-2 mx-3 py-2 text-[12px] text-white cursor-pointer hover:bg-[#4D65FF] ${
                           selectedTeamId === team.teamId ? "bg-[#4D65FF]" : ""
                         }`}
                         onClick={() => handleTeamSelect(team.teamId)}
                       >
                         {team.teamName}
                       </div>
-                      </>
+                     
                     ))}
                   </div>
                 )}
@@ -195,10 +197,13 @@ const Header = () => {
                       isDropdownOpen === "agent" ? false : "agent"
                     )
                   }
-                  className="flex items-center space-x-2 bg-white border border-black px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className={`w-44 truncate whitespace-nowrap flex items-center justify-between space-x-2 px-2 py-2 text-[14px] font-medium text-black hover:bg-[#92A3FF]
+                      ${isDropdownOpen ? "bg-[#92A3FF]" : "bg-none"}
+                    `}
                   disabled={!selectedTeam}
                 >
-                  {selectedAgent?.logo ? (
+                  
+                  {/* {selectedAgent?.logo ? (
                     <img
                       key={`${selectedAgent.logo}?t=${Date.now()}`}
                       src={`${selectedAgent.logo}?t=${Date.now()}`}
@@ -211,19 +216,28 @@ const Header = () => {
                         {selectedAgent?.name?.charAt(0) || "A"}
                       </span>
                     </div>
-                  )}
+                  )} */}
                   <span>
                     {selectedAgent ? selectedAgent.name : "Select Agent"}
                   </span>
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                   {
+                    isDropdownOpen ? (
+                      <ChevronUp style={{strokeWidth: "3px"}} className="w-4 h-4 text-black" />
+                    ) : (
+                      <ChevronDown style={{strokeWidth: "3px"}} className="w-4 h-4 text-black" />
+                    )
+                  }   
                 </button>
                 {isDropdownOpen === "agent" && selectedTeam && (
-                  <div className="absolute z-[10] mt-2 w-60 shadow-lg bg-[#EAEFFF]">
+                  <div className="w-44 truncate whitespace-nowrap absolute z-[10] top-[46px] shadow-lg bg-[#000]">
+                    <h1 className="team-heading px-3  py-2 text-[12px] text-white">
+                        Agent
+                    </h1>
                     {selectedTeam.agents.map((agent: AdminAgent) => (
                       <div
                         key={agent.agentId}
-                        className={`px-4 py-2 cursor-pointer flex items-center hover:bg-[#CEFFDC] ${
-                          agent.agentId === activeBotId ? "bg-[#CEFFDC]" : ""
+                        className={`flex items-center px-2 mx-3 py-2 text-[12px] text-white cursor-pointer hover:bg-[#4D65FF] ${
+                          agent.agentId === activeBotId ? "bg-[#4D65FF]" : ""
                         }`}
                         onClick={() =>
                           handleAgentSelect(agent.agentId, selectedTeam.teamId)
@@ -238,14 +252,14 @@ const Header = () => {
                       </div>
                     ))}
                     <div
-                      className="border-t border-gray-700 flex items-center gap-2 pt-2 px-4 cursor-pointer hover:bg-[#CEFFDC]"
+                      className="border-t border-white mt-4 flex items-center gap-2 py-2 px-4 cursor-pointer hover:bg-[#4D65FF]"
                       onClick={() => {
                         setIsDropdownOpen(false);
                         navigate("/admin/dashboard/create-bot");
                       }}
                     >
-                      <Plus className="w-4 h-4" />
-                      <span className="para-font">NEW AGENT</span>
+                      <Plus className="w-3 h-3 text-white" />
+                      <span className="para-font text-[12px] text-white">NEW AGENT</span>
                     </div>
                   </div>
                 )}
