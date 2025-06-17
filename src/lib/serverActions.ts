@@ -60,7 +60,7 @@ export const getCipherText = (inputBodyData: any) => {
  * @param inputBodyData - The data to generate HMAC for
  * @returns Object containing HMAC hash and timestamp
  */
-const getHmacMessageFromBody = (inputBodyData: string) => {
+export const getHmacMessageFromBody = (inputBodyData: string) => {
   try {
     const apiSecret = import.meta.env.VITE_HMAC_KEY;
     if (!apiSecret) {

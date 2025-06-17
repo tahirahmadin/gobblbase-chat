@@ -17,22 +17,25 @@ import { useContactLogic } from "../../hooks/useContactLogic";
 import { useChatMessages } from "../../hooks/useChatMessages";
 import { useFeatureNotifications } from "../../hooks/useFeatureNotifications";
 import { getAgentDetails } from "../../lib/serverActions";
+import ChatInterface from "../../components/chatbotComponents/ChatInterface";
+import { Message } from "../../types/chat";
+import { getBotData, generateMetaTags } from "../../api/bot";
 
 type Screen = "about" | "chat" | "browse";
 
 interface PublicChatProps {
-  chatHeight: string | null;
-  previewConfig: BotConfig | null;
+  chatHeight: number | null;
+  previewConfig: any;
   isPreview: boolean;
   screenName: string;
 }
 
-export default function PublicChat({
+const PublicChat: React.FC<PublicChatProps> = ({
   chatHeight,
   previewConfig,
   isPreview,
-  screenName = "chat",
-}: PublicChatProps) {
+  screenName,
+}) => {
   const { botUsername } = useParams<{ botUsername: string }>();
   const {
     activeBotData,
@@ -56,6 +59,7 @@ export default function PublicChat({
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [botData, setBotData] = useState<any>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isPreview) {
@@ -142,10 +146,34 @@ export default function PublicChat({
   }, []);
 
   useEffect(() => {
-    if (!previewConfig && botUsername) {
-      fetchBotData(botUsername, true);
+    const fetchBotData = async () => {
+      try {
+        setIsLoading(true);
+        console.log("[PublicChat] Fetching bot data for:", botUsername);
+        const data = await getBotData(botUsername as string);
+        console.log("[PublicChat] Bot data received:", data);
+
+        if (data.error) {
+          console.error("[PublicChat] Error in bot data:", data.error);
+          setError(new Error(data.error));
+          return;
+        }
+
+        setBotData(data);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("[PublicChat] Error fetching bot data:", error);
+        setError(
+          error instanceof Error ? error : new Error("Failed to load bot")
+        );
+        setIsLoading(false);
+      }
+    };
+
+    if (botUsername) {
+      fetchBotData();
     }
-  }, [botUsername, previewConfig, fetchBotData]);
+  }, [botUsername]);
 
   useEffect(() => {
     resetFeatures();
@@ -343,10 +371,11 @@ export default function PublicChat({
     }
   };
 
-  const handleCueClick = (cue: string): void => {
-    setMessage(cue);
-    setShowCues(false);
-    handleSendMessage(cue);
+  const handleCueClick = (cue: string) => {
+    if (inputRef.current) {
+      inputRef.current.value = cue;
+      handleSendMessage();
+    }
   };
 
   useEffect(() => {
@@ -632,7 +661,6 @@ export default function PublicChat({
                         }}
                         isBookingConfigured={isBookingConfigured}
                         setActiveScreen={setActiveScreen}
-                        onFeatureClick={handleFeatureClick}
                       />
                     </div>
 
@@ -723,4 +751,6 @@ export default function PublicChat({
       </div>
     </div>
   );
-}
+};
+
+export default PublicChat;

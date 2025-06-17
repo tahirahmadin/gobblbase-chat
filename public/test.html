@@ -19,15 +19,12 @@
       document.getElementById("botUsername").textContent = botUsername;
 
       // Test API call with proper headers
-      fetch(
-        `/api/agent/getAgentDetails?inputParam=${botUsername}&isfetchByUsername=true`,
-        {
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        }
-      )
+      fetch(`/api/bot/${botUsername}`, {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      })
         .then((response) => {
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);

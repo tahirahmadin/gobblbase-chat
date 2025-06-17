@@ -3,6 +3,34 @@ import { getAgentDetails } from "../../../lib/serverActions";
 import fs from "fs";
 import path from "path";
 
+function generateMetaTags(botData: any) {
+  if (!botData) return "";
+
+  const title = botData.name || "AI Chatbot";
+  const description = botData.bio || "Chat with our AI assistant";
+  const imageUrl =
+    botData.profilePicture || "https://seo.sayy.ai/default-og-image.png";
+
+  return `
+    <title>${title}</title>
+    <meta name="description" content="${description}" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://seo.sayy.ai/${botData.username}" />
+    <meta property="og:title" content="${title}" />
+    <meta property="og:description" content="${description}" />
+    <meta property="og:image" content="${imageUrl}" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://seo.sayy.ai/${botData.username}" />
+    <meta property="twitter:title" content="${title}" />
+    <meta property="twitter:description" content="${description}" />
+    <meta property="twitter:image" content="${imageUrl}" />
+  `;
+}
+
 // Add this function to check dist directory
 function checkDistDirectory() {
   const distPath = path.join(process.cwd(), "dist");
@@ -121,9 +149,10 @@ export default async function handler(
       return serveIndexHtml(res);
     }
 
-    // Generate meta tags if we have agent data
-    const metaTags = agentData.metaTags || "";
-    console.log("[Bot Route] Serving HTML with meta tags");
+    // Generate meta tags for the bot
+    const metaTags = generateMetaTags(agentData);
+    console.log("[Bot Route] Generated meta tags for bot:", username);
+
     return serveIndexHtml(res, metaTags);
   } catch (error) {
     console.error("[Bot Route] Error in handler:", error);
