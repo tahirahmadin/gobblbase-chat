@@ -1,8 +1,23 @@
 {
   "rewrites": [
     {
-      "source": "/bitcoin",
-      "destination": "https://kifortestapi.gobbl.ai/meta/bitcoin"
+      "source": "/:username",
+      "has": [{ "type": "header", "key": "user-agent", "value": "facebook" }],
+      "destination": "https://kifortestapi.gobbl.ai/meta/:username"
+    },
+    {
+      "source": "/:username",
+      "has": [{ "type": "header", "key": "user-agent", "value": "twitter" }],
+      "destination": "https://kifortestapi.gobbl.ai/meta/:username"
+    },
+    {
+      "source": "/:username",
+      "has": [{ "type": "header", "key": "user-agent", "value": "linkedin" }],
+      "destination": "https://kifortestapi.gobbl.ai/meta/:username"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/index.html"
     }
   ]
 }
