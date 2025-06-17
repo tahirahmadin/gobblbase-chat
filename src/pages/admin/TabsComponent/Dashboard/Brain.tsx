@@ -90,15 +90,16 @@ const Button = styled.button`
     border: 1px solid #000000;
     z-index: -1;
     background: #6aff97;
+    transition: background 0.3s;
   }
 
   &:disabled {
-    background: #6aff97;
+    background: #d1d5db;
     cursor: not-allowed;
-    color: black;
+    color: #6b7280;
   }
   &:disabled::before {
-    background: #6aff97;
+    background: #d1d5db;
   }
 `;
 
