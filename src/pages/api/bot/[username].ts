@@ -46,9 +46,58 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  console.log("[Bot Route] Request received:", req.url);
+  console.log(
+    "[Bot Route] Request received:",
+    req.url,
+    "Accept:",
+    req.headers.accept
+  );
 
-  // Check dist directory first
+  // Check if this is an API request
+  const isApiRequest = req.headers.accept?.includes("application/json");
+
+  if (isApiRequest) {
+    try {
+      const { username } = req.query;
+      console.log("[Bot Route] API request for bot:", username);
+      const agentData = await getAgentDetails(username as string, true, false);
+
+      res.setHeader("Content-Type", "application/json");
+      return res.status(200).json(agentData);
+    } catch (error) {
+      console.error("[Bot Route] API error:", error);
+      res.setHeader("Content-Type", "application/json");
+      return res.status(500).json({ error: "Failed to fetch bot data" });
+    }
+  }
+
+  // Handle static file requests
+  if (req.url?.includes(".")) {
+    try {
+      const filePath = path.join(process.cwd(), "dist", req.url);
+      if (fs.existsSync(filePath)) {
+        const content = fs.readFileSync(filePath);
+        const ext = path.extname(filePath);
+        const contentType =
+          {
+            ".html": "text/html",
+            ".js": "application/javascript",
+            ".css": "text/css",
+            ".json": "application/json",
+            ".png": "image/png",
+            ".jpg": "image/jpeg",
+            ".gif": "image/gif",
+          }[ext] || "text/plain";
+
+        res.setHeader("Content-Type", contentType);
+        return res.status(200).send(content);
+      }
+    } catch (error) {
+      console.error("[Bot Route] Static file error:", error);
+    }
+  }
+
+  // Check dist directory for HTML serving
   if (!checkDistDirectory()) {
     return res
       .status(500)
@@ -57,22 +106,8 @@ export default async function handler(
 
   const { username } = req.query;
 
-  // Handle manifest.json request
-  if (req.url?.includes("manifest.json")) {
-    try {
-      const manifestPath = path.join(process.cwd(), "dist", "manifest.json");
-      if (fs.existsSync(manifestPath)) {
-        const manifest = fs.readFileSync(manifestPath, "utf8");
-        res.setHeader("Content-Type", "application/json");
-        return res.status(200).send(manifest);
-      }
-    } catch (error) {
-      console.error("[Bot Route] Error serving manifest.json:", error);
-    }
-  }
-
   try {
-    console.log("[Bot Route] Fetching bot data for:", username);
+    console.log("[Bot Route] Fetching bot data for HTML:", username);
     const agentData = await getAgentDetails(username as string, true, true);
     console.log("[Bot Route] Agent data received:", !!agentData);
 

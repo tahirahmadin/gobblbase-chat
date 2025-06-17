@@ -10,33 +10,49 @@
       <h1>Bot Test Page</h1>
       <p>If you can see this page, static file serving is working.</p>
       <p>Bot username from URL: <span id="botUsername"></span></p>
+      <div id="apiResult"></div>
     </div>
     <script>
       // Extract bot username from URL
       const pathParts = window.location.pathname.split("/");
-      const botUsername = pathParts[pathParts.length - 1];
+      const botUsername = pathParts[pathParts.length - 1].replace(".html", "");
       document.getElementById("botUsername").textContent = botUsername;
 
-      // Test API call
+      // Test API call with proper headers
       fetch(
-        `/api/agent/getAgentDetails?inputParam=${botUsername}&isfetchByUsername=true`
+        `/api/agent/getAgentDetails?inputParam=${botUsername}&isfetchByUsername=true`,
+        {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
       )
-        .then((response) => response.json())
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
         .then((data) => {
           console.log("Bot data:", data);
-          const div = document.createElement("div");
-          div.textContent = `Bot data received: ${JSON.stringify(
-            data,
-            null,
-            2
-          )}`;
-          document.getElementById("root").appendChild(div);
+          const resultDiv = document.getElementById("apiResult");
+          resultDiv.innerHTML = `
+            <h2>API Response:</h2>
+            <pre style="background: #f5f5f5; padding: 1em; overflow: auto; max-height: 400px;">
+              ${JSON.stringify(data, null, 2)}
+            </pre>
+          `;
         })
         .catch((error) => {
           console.error("Error:", error);
-          const div = document.createElement("div");
-          div.textContent = `Error: ${error.message}`;
-          document.getElementById("root").appendChild(div);
+          const resultDiv = document.getElementById("apiResult");
+          resultDiv.innerHTML = `
+            <h2>Error:</h2>
+            <pre style="background: #fee; padding: 1em; color: red;">
+              ${error.message}
+            </pre>
+          `;
         });
     </script>
   </body>
