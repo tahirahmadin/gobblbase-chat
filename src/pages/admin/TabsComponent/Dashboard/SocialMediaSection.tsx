@@ -33,13 +33,15 @@ const Button = styled.button`
     background: #6aff97;
   }
 
-  &:disabled {
-    background:rgb(120, 255, 160);
-    color: #000;
+   &:disabled {
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+    color: #7D7D7D;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #6aff97;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
   }
 `;
 const socialMediaIcons = {

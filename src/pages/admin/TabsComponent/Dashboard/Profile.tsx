@@ -106,12 +106,14 @@ const Button = styled.button`
     min-width: 100px;
   }
   &:disabled {
-    background: #6aff97;
-    color: #000;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+    color: #7D7D7D;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #6aff97;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
   }
 `;
 const Profile = () => {

@@ -31,12 +31,14 @@ const Button = styled.button`
   }
 
   &:disabled {
-    background: rgb(113, 240, 151);
-    color: #b0b0b0;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+    color: #7D7D7D;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: rgb(113, 240, 151);
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
   }
 `;
 
@@ -86,6 +88,7 @@ const Header = () => {
   const selectedTeam = allTeams.find((t) => t.teamId === selectedTeamId);
   const selectedAgent =
     selectedTeam?.agents.find((a) => a.agentId === activeBotId) || null;
+    console.log(selectedAgent, "selected log")
   // useEffect(() => {
   //   if (!activeBotId && isAdminLoggedIn && activeTeamId) {
   //     navigate("/admin/all-agents");
@@ -140,7 +143,7 @@ const Header = () => {
           ${isAllAgentsPage ? "ml-12 lg:ml-0" : "ml-12 lg:ml-0"}
           `}
         >
-          <div className="relative" ref={dropdownRef}>
+          <div className="" ref={dropdownRef}>
             <div className="flex items-center">
               {/* Team Dropdown */}
               <div className="relative mr-4 ">
@@ -150,7 +153,7 @@ const Header = () => {
                       isDropdownOpen === "team" ? false : "team"
                     )
                   }
-                  className={`w-44 truncate whitespace-nowrap flex items-center justify-between space-x-2 px-2 py-2 text-[14px] font-medium text-black hover:bg-[#92A3FF]
+                  className={`w-28 md:w-44 truncate whitespace-nowrap flex items-center justify-between space-x-2 px-2 py-2 text-[14px] font-medium text-black hover:bg-[#92A3FF]
                       ${isDropdownOpen ? "bg-[#92A3FF]" : "bg-none"}
                     `}
                 >
@@ -170,7 +173,7 @@ const Header = () => {
                   )}
                 </button>
                 {isDropdownOpen === "team" && (
-                  <div className="w-44 truncate whitespace-nowrap absolute z-[10]  top-[46px] pb-4 shadow-lg bg-[#000]">
+                  <div className="w-28 md:w-44 truncate whitespace-nowrap absolute z-[10]  top-[46px] pb-4 shadow-lg bg-[#000]">
                     <h1 className="team-heading px-3  py-2 text-[12px] text-white">
                       Teams
                     </h1>
@@ -189,19 +192,19 @@ const Header = () => {
                 )}
               </div>
               {/* Agent Dropdown */}
-              <div className="relative">
+              <div className="sm:relative">
                 <button
                   onClick={() =>
                     setIsDropdownOpen(
                       isDropdownOpen === "agent" ? false : "agent"
                     )
                   }
-                  className={`w-44 truncate whitespace-nowrap flex items-center justify-between space-x-2 px-2 py-2 text-[14px] font-medium text-black hover:bg-[#92A3FF]
+                  className={`w-16 md:w-44 truncate whitespace-nowrap flex items-center justify-between space-x-2 px-2 py-2 text-[14px] font-medium text-black hover:bg-[#92A3FF]
                       ${isDropdownOpen ? "bg-[#92A3FF]" : "bg-none"}
                     `}
                   disabled={!selectedTeam}
                 >
-                  {/* {selectedAgent?.logo ? (
+                  {selectedAgent?.logo ? (
                     <img
                       key={`${selectedAgent.logo}?t=${Date.now()}`}
                       src={`${selectedAgent.logo}?t=${Date.now()}`}
@@ -214,8 +217,8 @@ const Header = () => {
                         {selectedAgent?.name?.charAt(0) || "A"}
                       </span>
                     </div>
-                  )} */}
-                  <span>
+                  )}
+                  <span className="hidden md:block">
                     {selectedAgent ? selectedAgent.name : "Select Agent"}
                   </span>
                   {isDropdownOpen ? (
@@ -231,8 +234,8 @@ const Header = () => {
                   )}
                 </button>
                 {isDropdownOpen === "agent" && selectedTeam && (
-                  <div className="w-44 truncate whitespace-nowrap absolute z-[10] top-[46px] shadow-lg bg-[#000]">
-                    <h1 className="team-heading px-3  py-2 text-[12px] text-white">
+                  <div className="min-w-[100%] px-4 sm:px-0 xs:w-44 truncate whitespace-nowrap absolute z-[10] top-[58px] sm:top-[48px] left-0 shadow-lg bg-[#000]">
+                    <h1 className="team-heading px-3 py-2 text-[12px] text-white">
                       Agent
                     </h1>
                     {selectedTeam.agents.map((agent: AdminAgent) => (
@@ -279,7 +282,7 @@ const Header = () => {
 
             <div className="max:w-[100%]">
               {isAllAgentsPage ? (
-                <div className="relative">
+                <div className="relative hiddden xs:block">
                   {/* Bottom layer for shadow effect */}
                   <div className="absolute  bg-[#6aff97]  top-[3px] left-[3px] w-full h-full border border-black "></div>
                   {/* Main button */}
@@ -287,7 +290,7 @@ const Header = () => {
                     onClick={() => navigate("/admin/dashboard/create-bot")}
                     className="relative bg-[#6aff97] text-black font-normal px-4 py-1 border border-black flex items-center gap-1"
                   >
-                    <span>+ NEW </span>
+                    <span className="whitespace-nowrap">+ NEW </span>
 
                     <span className="hidden sm:block"> AGENT </span>
                   </button>

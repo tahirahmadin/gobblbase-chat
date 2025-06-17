@@ -42,13 +42,16 @@ const Button = styled.button`
     background: #6aff97;
   }
 
-  &:disabled {
-    background: #6aff97;
+  
+   &:disabled {
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+    color: #7D7D7D;
     cursor: not-allowed;
-    color: black;
   }
   &:disabled::before {
-    background: #6aff97;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
   }
 `;
 
@@ -782,7 +785,7 @@ The summary should be detailed enough that someone reading only the summary woul
               placeholder="Paste your link..."
               className="flex-1 px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
             />
-            <Button onClick={handleAddVideo} className="w-full sm:w-auto">
+            <Button disabled={!newVideoUrl.trim()} onClick={handleAddVideo} className="w-full sm:w-auto">
               ADD LINK
             </Button>
           </div>

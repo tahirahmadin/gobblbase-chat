@@ -89,11 +89,14 @@ const LoginButton = styled.button`
     min-width: 100px;
   }
   &:disabled {
-    background: #d6ffe0;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+    color: #7D7D7D;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #d6ffe0;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
   }
 `;
 const CTAButton = styled.button`

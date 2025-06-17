@@ -92,13 +92,15 @@ const Button = styled.button`
     background: #6aff97;
   }
 
-  &:disabled {
-    background: #6aff97;
+   &:disabled {
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+    color: #7D7D7D;
     cursor: not-allowed;
-    color: black;
   }
   &:disabled::before {
-    background: #6aff97;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
   }
 `;
 
@@ -1346,7 +1348,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
               </div>
             </div>
 
-            <div className="space-y-2 mb-4 max-h-60 overflow-y-auto">
+            <div className="space-y-2 mb-4 py-4 max-h-100 overflow-y-auto">
               {uploadedFiles.map((file) => (
                 <div
                   key={file.name + (file.documentId || "")}
