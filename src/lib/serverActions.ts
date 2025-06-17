@@ -3227,3 +3227,59 @@ export async function fetchLinkedInPost(url: string): Promise<any> {
     throw error;
   }
 }
+
+
+export async function createBookingPaymentIntent(payload: {
+  cart: any[];
+  clientId: string;
+  agentId: string;
+  userId: string;
+  userEmail: string;
+  stripeAccountId: string;
+  amount: number;
+  currency: string;
+  shipping: {
+    name: string;
+    email: string;
+    phone: string;
+    country: string;
+    address1: string;
+    address2: string;
+    city: string;
+    zipcode: string;
+    saveDetails: boolean;
+  };
+}): Promise<{ clientSecret: string }> {
+  try {
+    let url = `${apiUrl}/product/create-booking-payment-intent`;
+    let encryptedData = getCipherText(payload);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(url, encryptedData, {
+      headers: axiosHeaders,
+    });
+
+    if (!response.data) {
+      throw new Error("No data received from server");
+    }
+
+    if (response.data.error) {
+      throw new Error(response.data.message || "Failed to create booking payment intent");
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Error creating booking payment intent:", error);
+    throw error;
+  }
+}
