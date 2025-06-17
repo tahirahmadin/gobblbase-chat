@@ -3,6 +3,8 @@ import react from "@vitejs/plugin-react";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import path from "path";
 
+const backendApiUrl = "https://kifortestapi.gobbl.ai";
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -23,7 +25,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       "/api": {
-        target: process.env.VITE_API_URL || "http://localhost:8000",
+        target: backendApiUrl || "http://localhost:8000",
         changeOrigin: true,
         secure: false,
       },
