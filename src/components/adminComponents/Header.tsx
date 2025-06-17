@@ -66,27 +66,10 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isAllAgentsPage = location.pathname === "/admin/all-agents";
-  const [hoveredTeam, setHoveredTeam] = useState<"my" | string | null>(null);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
 
   //Handeling agentDetails refresh when change trigger
   const hook1 = useServerHook({ initHook: true });
-
-  // useEffect(() => {
-  //   if (!activeBotId && isAdminLoggedIn && activeTeamId) {
-  //     navigate("/admin/all-agents");
-  //   }
-  // }, [activeBotId, isAdminLoggedIn, activeTeamId]);
-
-  useEffect(() => {
-    if (activeBotId && activeBotData && isAdminLoggedIn && activeTeamId) {
-      if (activeBotData.isQueryable) {
-        navigate("/admin/dashboard/overview");
-      } else {
-        navigate("/admin/dashboard/profile");
-      }
-    }
-  }, [activeBotId, activeBotData, isAdminLoggedIn, activeTeamId]);
 
   // Helper to get teams
   const allTeams: Team[] = useMemo(() => {
@@ -98,7 +81,29 @@ const Header = () => {
       agents: agents || [],
     };
     return [myTeam, ...(clientData?.otherTeams || [])];
-  }, [agents, clientData, adminEmail]);
+  }, [agents, clientData, adminEmail, activeBotId]);
+
+  const selectedTeam = allTeams.find((t) => t.teamId === selectedTeamId);
+  const selectedAgent =
+    selectedTeam?.agents.find((a) => a.agentId === activeBotId) || null;
+  // useEffect(() => {
+  //   if (!activeBotId && isAdminLoggedIn && activeTeamId) {
+  //     navigate("/admin/all-agents");
+  //   }
+  // }, [activeBotId, isAdminLoggedIn, activeTeamId]);
+
+  // useEffect(() => {
+  //   if (activeBotId && activeBotData) {
+  //     console.log("activeBotData");
+  //     console.log(activeBotData);
+  //     console.log(activeBotId);
+  //     if (activeBotData.isQueryable) {
+  //       navigate("/admin/dashboard/overview");
+  //     } else {
+  //       navigate("/admin/dashboard/profile");
+  //     }
+  //   }
+  // }, [activeBotId, activeBotData?.isQueryable]);
 
   // Set default selected team on mount or when teams change
   useEffect(() => {
@@ -107,10 +112,6 @@ const Header = () => {
       setSelectedTeamId(tid ? tid : "");
     }
   }, [allTeams, selectedTeamId]);
-
-  const selectedTeam = allTeams.find((t) => t.teamId === selectedTeamId);
-  const selectedAgent =
-    selectedTeam?.agents.find((a) => a.agentId === activeBotId) || null;
 
   const handleTeamSelect = (teamId: string) => {
     setSelectedTeamId(teamId);
@@ -127,7 +128,6 @@ const Header = () => {
     localStorage.removeItem("editingProduct");
     navigate("/admin/dashboard/overview");
   };
-
 
   return (
     <header
@@ -180,7 +180,7 @@ const Header = () => {
                         className={`px-2 mx-3 py-2 text-[12px] text-white cursor-pointer hover:bg-[#4D65FF] ${
                           selectedTeamId === team.teamId ? "bg-[#4D65FF]" : ""
                         }`}
-                          onClick={() => handleTeamSelect(team.teamId)}
+                        onClick={() => handleTeamSelect(team.teamId)}
                       >
                         {team.teamName}
                       </div>

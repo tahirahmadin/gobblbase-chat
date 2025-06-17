@@ -66,6 +66,7 @@ export interface AdminAgent {
   personalityType?: {
     name: string;
   };
+  isQueryable: boolean;
 }
 
 export type MessageType =
@@ -229,6 +230,7 @@ export interface Product {
     seatType: "unlimited" | "limited";
     seats: number;
   }>;
+  ctaButton?: string;
 }
 
 export interface SocialMediaLinks {

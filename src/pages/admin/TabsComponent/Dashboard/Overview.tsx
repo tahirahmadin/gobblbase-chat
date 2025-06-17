@@ -52,7 +52,6 @@ const Button = styled.button`
 
 const Overview = () => {
   const [selectedLabel, setSelectedLabel] = useState("Income");
-  const [selectedButton, setSelectedButton] = useState(timeButton[0]?.id || "");
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(
     null
   );

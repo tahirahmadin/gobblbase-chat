@@ -2305,6 +2305,7 @@ export async function enableCryptoPayment(
       chainIds,
       adminId: clientId,
     };
+    console.log(dataObj);
     let encryptedData = getCipherText(dataObj);
 
     // HMAC Response
@@ -2943,6 +2944,286 @@ export async function updateTeamName(clientId: string, teamName: string) {
     return response.data.result;
   } catch (error) {
     console.error("Error updating team name:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetches YouTube video transcript
+ */
+ export async function fetchYouTubeTranscript(url: string): Promise<any> {
+  try {
+    let endpoint = `${apiUrl}/scrape/youtube/transcript`;
+    let dataObj = { url };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(endpoint, encryptedData, {
+      headers: axiosHeaders,
+    });
+
+    if (response.data.error) {
+      throw new Error(response.data.message || "Failed to fetch YouTube transcript");
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching YouTube transcript:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetches YouTube video details
+ */
+export async function fetchYouTubeDetails(url: string): Promise<any> {
+  try {
+    let endpoint = `${apiUrl}/scrape/youtube/details`;
+    let dataObj = { url };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(endpoint, encryptedData, {
+      headers: axiosHeaders,
+    });
+
+    if (response.data.error) {
+      throw new Error(response.data.message || "Failed to fetch YouTube details");
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching YouTube details:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetches Instagram media transcript
+ */
+export async function fetchInstagramTranscript(url: string): Promise<any> {
+  try {
+    let endpoint = `${apiUrl}/scrape/instagram/transcript`;
+    let dataObj = { url };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(endpoint, encryptedData, {
+      headers: axiosHeaders,
+    });
+
+    if (response.data.error) {
+      throw new Error(response.data.message || "Failed to fetch Instagram transcript");
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching Instagram transcript:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetches Instagram post details
+ */
+export async function fetchInstagramPost(url: string): Promise<any> {
+  try {
+    let endpoint = `${apiUrl}/scrape/instagram/post`;
+    let dataObj = { url };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(endpoint, encryptedData, {
+      headers: axiosHeaders,
+    });
+
+    if (response.data.error) {
+      throw new Error(response.data.message || "Failed to fetch Instagram post");
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching Instagram post:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetches TikTok video transcript
+ */
+export async function fetchTikTokTranscript(url: string): Promise<any> {
+  try {
+    let endpoint = `${apiUrl}/scrape/tiktok/transcript`;
+    let dataObj = { url };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(endpoint, encryptedData, {
+      headers: axiosHeaders,
+    });
+
+    if (response.data.error) {
+      throw new Error(response.data.message || "Failed to fetch TikTok transcript");
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching TikTok transcript:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetches TikTok video details
+ */
+export async function fetchTikTokDetails(url: string): Promise<any> {
+  try {
+    let endpoint = `${apiUrl}/scrape/tiktok/details`;
+    let dataObj = { url };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(endpoint, encryptedData, {
+      headers: axiosHeaders,
+    });
+
+    if (response.data.error) {
+      throw new Error(response.data.message || "Failed to fetch TikTok details");
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching TikTok details:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetches Twitter/X tweet details
+ */
+export async function fetchTwitterTweet(url: string): Promise<any> {
+  try {
+    let endpoint = `${apiUrl}/scrape/twitter/tweet`;
+    let dataObj = { url };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(endpoint, encryptedData, {
+      headers: axiosHeaders,
+    });
+
+    if (response.data.error) {
+      throw new Error(response.data.message || "Failed to fetch Twitter tweet");
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching Twitter tweet:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetches LinkedIn post details
+ */
+export async function fetchLinkedInPost(url: string): Promise<any> {
+  try {
+    let endpoint = `${apiUrl}/scrape/linkedin/post`;
+    let dataObj = { url };
+    let encryptedData = getCipherText(dataObj);
+
+    // HMAC Response
+    let hmacResponse = getHmacMessageFromBody(JSON.stringify(encryptedData));
+
+    if (!hmacResponse) {
+      throw new Error("Failed to generate HMAC");
+    }
+    let axiosHeaders = {
+      HMAC: hmacResponse.hmacHash,
+      Timestamp: hmacResponse.currentTimestamp,
+    };
+
+    const response = await axios.post(endpoint, encryptedData, {
+      headers: axiosHeaders,
+    });
+
+    if (response.data.error) {
+      throw new Error(response.data.message || "Failed to fetch LinkedIn post");
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching LinkedIn post:", error);
     throw error;
   }
 }

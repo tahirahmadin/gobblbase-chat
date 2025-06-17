@@ -81,45 +81,47 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
         {/* Team Name */}
         <div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 bg-[#E9EDFF] rounded-lg px-6 py-6">
-          <label className="whitespace-nowrap font-semibold text-gray-700 block mr-6">
-            Team Name
-          </label>
-          <div className="flex items-center gap-2 w-full">
-            {isEditing ? (
-              <>
-                <input
-                  className="bg-white py-2 px-2 outline-none flex-1 text-sm border border-[#7d7d7d]"
-                  value={tempTeamName}
-                  onChange={(e) => setTempTeamName(e.target.value)}
-                  placeholder="Team name..."
-                  autoFocus
-                />
-                <div className="flex items-center gap-2">
+            <label className="whitespace-nowrap font-semibold text-gray-700 block mr-6">
+              Team Name
+            </label>
+            <div className="flex items-center gap-2 w-full">
+              {isEditing ? (
+                <>
+                  <input
+                    className="bg-white py-2 px-2 outline-none flex-1 text-sm border border-[#7d7d7d]"
+                    value={tempTeamName}
+                    onChange={(e) => setTempTeamName(e.target.value)}
+                    placeholder="Team name..."
+                    autoFocus
+                  />
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleTeamNameUpdate}
+                      className="bg-[#6AFF97] border border-black px-3 py-1 rounded text-sm font-medium hover:bg-[#4DFF88] transition-colors"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={cancelEditing}
+                      className="bg-[#FFBDBD] border border-black px-3 py-1 rounded text-sm font-medium hover:bg-[#FF9797] transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span className="flex-1 text-sm bg-white py-2 px-2 border border-[#7d7d7d]">
+                    {teamName}
+                  </span>
                   <button
-                    onClick={handleTeamNameUpdate}
-                    className="bg-[#6AFF97] border border-black px-3 py-1 rounded text-sm font-medium hover:bg-[#4DFF88] transition-colors"
+                    onClick={startEditing}
+                    className="p-1 hover:bg-[#D4DDFF] rounded transition-colors"
                   >
-                    Save
+                    <Pencil className="w-4 h-4 text-gray-500" />
                   </button>
-                  <button
-                    onClick={cancelEditing}
-                    className="bg-[#FFBDBD] border border-black px-3 py-1 rounded text-sm font-medium hover:bg-[#FF9797] transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <span className="flex-1 text-sm bg-white py-2 px-2 border border-[#7d7d7d]">{teamName}</span>
-                <button
-                  onClick={startEditing}
-                  className="p-1 hover:bg-[#D4DDFF] rounded transition-colors"
-                >
-                  <Pencil className="w-4 h-4 text-gray-500" />
-                </button>
-              </>
-            )}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -131,38 +133,40 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
               navigate("/admin/account/plan");
             }}
           >
-          <label className="whitespace-nowrap font-semibold text-gray-700  block mr-4 ">
-            Current Plan
-          </label>
-          <div className="flex items-center gap-2 w-full">
-            <span className="flex-1 font-normal text-lg md:text-2xl">{currentPlan}</span>
-            <div className="relative z-10 w-fit">
-              <div className="absolute left-[3px] top-[3.5px] h-full w-full -z-10 bg-[#6AFF97] border border-black"></div>
+            <label className="whitespace-nowrap font-semibold text-gray-700  block mr-4 ">
+              Current Plan
+            </label>
+            <div className="flex items-center gap-2 w-full">
+              <span className="flex-1 font-normal text-lg md:text-2xl">
+                {currentPlan}
+              </span>
+              <div className="relative z-10 w-fit">
+                <div className="absolute left-[3px] top-[3.5px] h-full w-full -z-10 bg-[#6AFF97] border border-black"></div>
                 <button className="min-w-[100px] bg-[#6AFF97] border border-black px-4 py-2 font-semibold text-sm">
                   VIEW
                 </button>
-              </div>  
+              </div>
             </div>
           </div>
         </div>
         {/* Members */}
         <div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 bg-[#E9EDFF] rounded-lg px-6 py-6">
-          <label className="whitespace-nowrap font-semibold text-gray-700 block mr-6">
-            Members
-          </label>
-          <div className="flex items-center gap-2 w-full">
-            <span className="font-normal text-lg md:text-2xl">
-              {membersCount ?? 0}/{membersLimit}
-            </span>
-            <div className="flex-1 h-3 bg-white rounded-full border mx-2 shadow-[inset_0_3px_3px_0_rgba(0,0,0,0.25)]">
-              <div
-                className="h-3 bg-[#4D65FF] rounded-full border-[2px] border-black"
-                style={{
-                  width: `${((membersCount ?? 0) / membersLimit) * 100}%`,
-                }}
-              />
-            </div>
+            <label className="whitespace-nowrap font-semibold text-gray-700 block mr-6">
+              Members
+            </label>
+            <div className="flex items-center gap-2 w-full">
+              <span className="font-normal text-lg md:text-2xl">
+                {membersCount ?? 0}/{membersLimit}
+              </span>
+              <div className="flex-1 h-3 bg-white rounded-full border mx-2 shadow-[inset_0_3px_3px_0_rgba(0,0,0,0.25)]">
+                <div
+                  className="h-3 bg-[#4D65FF] rounded-full border-[2px] border-black"
+                  style={{
+                    width: `${((membersCount ?? 0) / membersLimit) * 100}%`,
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -179,12 +183,22 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
           value={inviteEmail}
           onChange={(e) => setInviteEmail(e.target.value)}
         />
+        {inviteEmail &&
+          !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(inviteEmail) && (
+            <p className="text-red-500 text-sm -mt-2 mb-2">
+              Please enter a valid email address
+            </p>
+          )}
         <div className="relative z-10 w-fit">
           <div className="absolute left-[3px] top-[3.5px] h-full w-full -z-10 bg-[#6AFF97] border border-black"></div>
           <button
-            className="min-w-[100px] bg-[#6AFF97] border border-black px-4 py-2 font-semibold text-sm"
+            className="min-w-[100px] bg-[#6AFF97] border border-black px-4 py-2 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={onInvite}
-            disabled={inviteLoading}
+            disabled={
+              inviteLoading ||
+              !inviteEmail ||
+              !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(inviteEmail)
+            }
           >
             {inviteLoading ? "Inviting..." : "INVITE"}
           </button>
@@ -220,7 +234,7 @@ const Team = () => {
   const [invites, setInvites] = useState<any[]>([]);
   const [showAddMemberPanel, setShowAddMemberPanel] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [teamName, setTeamName] = useState("My Team");
+  const [teamName, setTeamName] = useState(clientData?.teamName || "My Team");
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteLoading, setInviteLoading] = useState(false);
 
