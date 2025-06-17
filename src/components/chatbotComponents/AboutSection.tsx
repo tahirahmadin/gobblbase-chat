@@ -117,15 +117,60 @@ const CustomerLeadForm: React.FC<CustomerLeadFormProps> = ({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<{
+    email?: string;
+    phone?: string;
+  }>({});
 
-  useEffect(() => {
-    if (initialMessage) {
-      setFormData((prev) => ({ ...prev, message: initialMessage }));
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) return "Email is required";
+    if (!emailRegex.test(email)) return "Please enter a valid email address";
+    return "";
+  };
+
+  const validatePhone = (phone: string) => {
+    if (!phone) return ""; // Phone is optional
+    const phoneRegex = /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/;
+    if (!phoneRegex.test(phone)) {
+      return "Please enter a valid phone number (e.g., 123-456-7890)";
     }
-  }, [initialMessage]);
+    return "";
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setFormData({ ...formData, email: newEmail });
+    setValidationErrors({
+      ...validationErrors,
+      email: validateEmail(newEmail),
+    });
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPhone = e.target.value;
+    setFormData({ ...formData, phone: newPhone });
+    setValidationErrors({
+      ...validationErrors,
+      phone: validatePhone(newPhone),
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate all fields before submission
+    const emailError = validateEmail(formData.email);
+    const phoneError = validatePhone(formData.phone);
+
+    if (emailError || phoneError) {
+      setValidationErrors({
+        email: emailError,
+        phone: phoneError,
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 
@@ -144,6 +189,7 @@ const CustomerLeadForm: React.FC<CustomerLeadFormProps> = ({
 
       // Reset form and close
       setFormData({ name: "", email: "", phone: "", message: "" });
+      setValidationErrors({});
       toast.success("Message sent successfully! We'll get back to you soon.");
       onClose();
     } catch (err) {
@@ -202,35 +248,53 @@ const CustomerLeadForm: React.FC<CustomerLeadFormProps> = ({
             <input
               type="email"
               value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              className="w-full px-4 py-3 rounded-lg border transition-all focus:ring-2 focus:ring-opacity-50"
+              onChange={handleEmailChange}
+              className={`w-full px-4 py-3 rounded-lg border transition-all focus:ring-2 focus:ring-opacity-50 ${
+                validationErrors.email ? "border-red-500" : ""
+              }`}
               style={{
                 backgroundColor: theme.isDark ? "#333" : "white",
-                borderColor: theme.isDark ? "#444" : "#ddd",
+                borderColor: validationErrors.email
+                  ? "#ef4444"
+                  : theme.isDark
+                  ? "#444"
+                  : "#ddd",
                 color: theme.isDark ? "white" : "black",
               }}
               placeholder="Enter your email"
               required
             />
+            {validationErrors.email && (
+              <p className="text-red-500 text-xs mt-1">
+                {validationErrors.email}
+              </p>
+            )}
           </div>
           <div className="space-y-1">
             <label className="block text-sm font-medium mb-1">Phone</label>
             <input
               type="tel"
               value={formData.phone}
-              onChange={(e) =>
-                setFormData({ ...formData, phone: e.target.value })
-              }
-              className="w-full px-4 py-3 rounded-lg border transition-all focus:ring-2 focus:ring-opacity-50"
+              onChange={handlePhoneChange}
+              className={`w-full px-4 py-3 rounded-lg border transition-all focus:ring-2 focus:ring-opacity-50 ${
+                validationErrors.phone ? "border-red-500" : ""
+              }`}
               style={{
                 backgroundColor: theme.isDark ? "#333" : "white",
-                borderColor: theme.isDark ? "#444" : "#ddd",
+                borderColor: validationErrors.phone
+                  ? "#ef4444"
+                  : theme.isDark
+                  ? "#444"
+                  : "#ddd",
                 color: theme.isDark ? "white" : "black",
               }}
-              placeholder="Enter your phone number"
+              placeholder="Enter your phone number (e.g., 123-456-7890)"
             />
+            {validationErrors.phone && (
+              <p className="text-red-500 text-xs mt-1">
+                {validationErrors.phone}
+              </p>
+            )}
           </div>
           <div className="space-y-1">
             <label className="block text-sm font-medium mb-1">Message</label>
