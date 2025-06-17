@@ -36,6 +36,20 @@ export default async function handler(
 
   const { username } = req.query;
 
+  // Handle manifest.json request
+  if (req.url?.includes("manifest.json")) {
+    try {
+      const manifestPath = path.join(process.cwd(), "dist", "manifest.json");
+      if (fs.existsSync(manifestPath)) {
+        const manifest = fs.readFileSync(manifestPath, "utf8");
+        res.setHeader("Content-Type", "application/json");
+        return res.status(200).send(manifest);
+      }
+    } catch (error) {
+      console.error("[Bot Route] Error serving manifest.json:", error);
+    }
+  }
+
   try {
     // Check if this is a bot request
     if (typeof username === "string") {
