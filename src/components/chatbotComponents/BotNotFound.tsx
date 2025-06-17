@@ -398,7 +398,7 @@ export default function BotNotFound({ theme }: BotNotFoundProps) {
       </Navbar>
       <section className="practial-section w-full bg-[#fff] [@media(max-width:800px)]:px-0 px-1 [@media(max-width:800px)]:py-0 py-1">
         <HeroSection className="">
-          <div className="w-[80%] flex flex-col items-center text-center md:flex-row md:text-start min-h-[60vh] bg-[#FFFEB2] border border-black">
+          <div className="w-[80%] flex flex-col items-center text-center md:flex-row md:text-start min-h-[60vh] md:min-h-[50vh] bg-[#FFFEB2] border border-black">
             <div className="left-content p-8 md:px-8 md:w-[60%] flex flex-col justify-center">
               <div className="text-sm text-gray-800 space-y-6">
                 <h1 className="main-font font-bold text-[22px] md:text-[26px] leading-[1.5] whitespace-nowrap">
