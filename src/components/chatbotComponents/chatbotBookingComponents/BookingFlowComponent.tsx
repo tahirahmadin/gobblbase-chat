@@ -775,7 +775,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
             </div>
           ) : (
             <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-4">
                 <button
                   onClick={prevMonth}
                   className="p-1"
@@ -792,7 +792,10 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                   <ChevronRight className="h-5 w-5" style={{ color: theme.highlightColor }} />
                 </button>
               </div>
-              <div className="grid grid-cols-7 gap-1 mb-2">
+              
+              {/* Single unified calendar grid */}
+              <div className="grid grid-cols-7 gap-1">
+                {/* Day headers row */}
                 {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((d) => (
                   <div
                     key={d}
@@ -801,17 +804,18 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                     {d}
                   </div>
                 ))}
-              </div>
-              <div className="grid grid-cols-7 gap-1">
+                
+                {/* Empty cells for month start offset */}
                 {Array.from({ length: off }).map((_, i) => (
-                  <div key={"e" + i} />
+                  <div key={`empty-${i}`} className="h-8" />
                 ))}
+                
+                {/* Date cells */}
                 {Array.from({ length: days }).map((_, i) => {
                   const dn = i + 1;
                   const date = new Date(y, m, dn);
                   
                   const dateString = getConsistentDateString(date);
-                  
                   const isUnavailable = isDateFullyUnavailable(date);
                   
                   return (
@@ -820,7 +824,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                       onClick={() => !isUnavailable && selectDate(date)}
                       disabled={isUnavailable}
                       className={`
-                        h-8 w-8 flex items-center justify-center rounded-md text-sm transition-colors
+                        h-8 w-8 flex items-center justify-center rounded-md text-sm transition-colors mx-auto
                         ${isUnavailable
                           ? "opacity-40 cursor-not-allowed"
                           : "hover:opacity-80 cursor-pointer"
