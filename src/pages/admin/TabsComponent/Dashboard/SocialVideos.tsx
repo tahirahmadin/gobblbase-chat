@@ -2,6 +2,16 @@ import React, { useState, useEffect } from "react";
 import { Video, Plus, X, FileText, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { removeDocumentFromAgent } from "../../../../lib/serverActions";
+import {
+  fetchYouTubeTranscript,
+  fetchYouTubeDetails,
+  fetchInstagramTranscript,
+  fetchInstagramPost,
+  fetchTikTokTranscript,
+  fetchTikTokDetails,
+  fetchTwitterTweet,
+  fetchLinkedInPost,
+} from "../../../../lib/serverActions";
 import styled from "styled-components";
 
 const Button = styled.button`
@@ -76,9 +86,6 @@ const Icon = styled.button`
   }
 `;
 
-const SCRAPE_CREATORS_API_KEY =
-  import.meta.env.VITE_PUBLIC_SCRAPE_CREATORS_API_KEY ||
-  "4VR7li6w0hUnpeg6ZfiYbrnBr5q1";
 const OPENAI_API_KEY = import.meta.env.VITE_PUBLIC_OPENAI_API_KEY;
 
 export default function SocialVideos({
@@ -94,9 +101,8 @@ export default function SocialVideos({
   const [removingVideo, setRemovingVideo] = useState(null);
   const [expandedVideoMobile, setExpandedVideoMobile] = useState(null);
   const [activeTabMobile, setActiveTabMobile] = useState("transcript");
-  const [processingVideo, setProcessingVideo] = useState(null); // Track which video is being processed
+  const [processingVideo, setProcessingVideo] = useState(null);
 
-  // Load videos from agent data when component mounts or activeBotData changes
   useEffect(() => {
     if (activeBotData?.socialVideos) {
       const loadedVideos = activeBotData.socialVideos.map((video) => ({
@@ -106,7 +112,6 @@ export default function SocialVideos({
       }));
       setVideos(loadedVideos);
 
-      // Set first video as selected if none selected
       if (loadedVideos.length > 0 && !selectedVideo) {
         setSelectedVideo(loadedVideos[0].id);
       }
@@ -116,7 +121,6 @@ export default function SocialVideos({
     }
   }, [activeBotData?.socialVideos]);
 
-  // Handle resize to reset mobile expanded state when switching to desktop
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
@@ -149,288 +153,136 @@ export default function SocialVideos({
       let transcriptData = null;
       let hasContent = false;
 
-      // First, try to get transcript/content to check if there's any useful content
       if (platform === "youtube") {
-        // Fetch transcript first
-        const transcriptResponse = await fetch(
-          `https://api.scrapecreators.com/v1/youtube/video/transcript?url=${encodeURIComponent(
-            url
-          )}`,
-          {
-            headers: {
-              "x-api-key": SCRAPE_CREATORS_API_KEY,
-            },
-          }
-        );
-
-        if (transcriptResponse.ok) {
-          transcriptData = await transcriptResponse.json();
+        try {
+          transcriptData = await fetchYouTubeTranscript(url);
           const transcriptText = transcriptData?.transcript_only_text || "";
           if (transcriptText.trim().length > 0) {
             hasContent = true;
           }
+        } catch (error) {
+          console.log("No transcript available for YouTube video");
         }
 
-        // If no transcript found, don't proceed
         if (!hasContent) {
           throw new Error("No transcript available for this video");
         }
 
-        // Only fetch video details if we have content
-        const detailsResponse = await fetch(
-          `https://api.scrapecreators.com/v1/youtube/video?url=${encodeURIComponent(
-            url
-          )}`,
-          {
-            headers: {
-              "x-api-key": SCRAPE_CREATORS_API_KEY,
-            },
-          }
-        );
-
-        if (detailsResponse.ok) {
-          videoDetails = await detailsResponse.json();
+        try {
+          videoDetails = await fetchYouTubeDetails(url);
+        } catch (error) {
+          console.log("Could not fetch YouTube details, using transcript only");
         }
       } else if (platform === "instagram") {
-        // First, try to get transcript
-        const transcriptResponse = await fetch(
-          `https://api.scrapecreators.com/v2/instagram/media/transcript?url=${encodeURIComponent(
-            url
-          )}`,
-          {
-            headers: {
-              "x-api-key": SCRAPE_CREATORS_API_KEY,
-            },
-          }
-        );
-
-        if (transcriptResponse.ok) {
-          transcriptData = await transcriptResponse.json();
+        try {
+          transcriptData = await fetchInstagramTranscript(url);
           const transcriptText = transcriptData?.transcripts?.[0]?.text || "";
           if (transcriptText.trim().length > 0) {
             hasContent = true;
           }
+        } catch (error) {
+          console.log("No transcript available for Instagram content");
         }
 
-        // If no transcript, try to get post details to check for caption
         if (!hasContent) {
-          const detailsResponse = await fetch(
-            `https://api.scrapecreators.com/v1/instagram/post?url=${encodeURIComponent(
-              url
-            )}`,
-            {
-              headers: {
-                "x-api-key": SCRAPE_CREATORS_API_KEY,
-              },
-            }
-          );
-
-          if (detailsResponse.ok) {
-            const tempDetails = await detailsResponse.json();
-            const igData =
-              tempDetails?.data?.xdt_shortcode_media || tempDetails;
+          try {
+            const tempDetails = await fetchInstagramPost(url);
+            const igData = tempDetails?.data?.xdt_shortcode_media || tempDetails;
             const captionEdges = igData?.edge_media_to_caption?.edges;
             const caption = captionEdges?.[0]?.node?.text || "";
 
             if (caption.trim().length > 0) {
               hasContent = true;
-              videoDetails = tempDetails; // Store the details since we already fetched them
+              videoDetails = tempDetails;
             }
+          } catch (error) {
+            console.log("Could not fetch Instagram post details");
           }
         }
 
-        // If still no content found, don't proceed
         if (!hasContent) {
-          throw new Error(
-            "No transcript or caption available for this content"
-          );
+          throw new Error("No transcript or caption available for this content");
         }
 
-        // Get post details if we haven't already fetched them
         if (!videoDetails) {
-          const detailsResponse = await fetch(
-            `https://api.scrapecreators.com/v1/instagram/post?url=${encodeURIComponent(
-              url
-            )}`,
-            {
-              headers: {
-                "x-api-key": SCRAPE_CREATORS_API_KEY,
-              },
-            }
-          );
-
-          if (detailsResponse.ok) {
-            videoDetails = await detailsResponse.json();
+          try {
+            videoDetails = await fetchInstagramPost(url);
+          } catch (error) {
+            console.log("Could not fetch Instagram post details");
           }
         }
       } else if (platform === "tiktok") {
-        // First, try to get transcript
-        const transcriptResponse = await fetch(
-          `https://api.scrapecreators.com/v1/tiktok/video/transcript?url=${encodeURIComponent(
-            url
-          )}`,
-          {
-            headers: {
-              "x-api-key": SCRAPE_CREATORS_API_KEY,
-            },
-          }
-        );
-
-        if (transcriptResponse.ok) {
-          transcriptData = await transcriptResponse.json();
+        try {
+          transcriptData = await fetchTikTokTranscript(url);
           const transcriptText = transcriptData?.transcript || "";
           if (transcriptText.trim().length > 0) {
             hasContent = true;
           }
+        } catch (error) {
+          console.log("No transcript available for TikTok video");
         }
 
-        // If no transcript, try to get video details to check for description
         if (!hasContent) {
-          const detailsResponse = await fetch(
-            `https://api.scrapecreators.com/v2/tiktok/video?url=${encodeURIComponent(
-              url
-            )}`,
-            {
-              headers: {
-                "x-api-key": SCRAPE_CREATORS_API_KEY,
-              },
-            }
-          );
-
-          if (detailsResponse.ok) {
-            const tempDetails = await detailsResponse.json();
+          try {
+            const tempDetails = await fetchTikTokDetails(url);
             const tikTokData = tempDetails?.aweme_detail;
             const desc = tikTokData?.desc || "";
 
             if (desc.trim().length > 0) {
               hasContent = true;
-              videoDetails = tempDetails; // Store the details since we already fetched them
+              videoDetails = tempDetails;
             }
+          } catch (error) {
+            console.log("Could not fetch TikTok video details");
           }
         }
 
-        // If still no content found, don't proceed
         if (!hasContent) {
-          throw new Error(
-            "No transcript or description available for this video"
-          );
+          throw new Error("No transcript or description available for this video");
         }
 
-        // Get video details if we haven't already fetched them
         if (!videoDetails) {
-          const detailsResponse = await fetch(
-            `https://api.scrapecreators.com/v2/tiktok/video?url=${encodeURIComponent(
-              url
-            )}`,
-            {
-              headers: {
-                "x-api-key": SCRAPE_CREATORS_API_KEY,
-              },
-            }
-          );
-
-          if (detailsResponse.ok) {
-            videoDetails = await detailsResponse.json();
+          try {
+            videoDetails = await fetchTikTokDetails(url);
+          } catch (error) {
+            console.log("Could not fetch TikTok video details");
           }
         }
       } else if (platform === "twitter") {
-        const tweetIdMatch = url.match(
-          /(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/
-        );
-
-        if (!tweetIdMatch) {
-          throw new Error("Invalid Twitter/X URL format");
-        }
-
-        const tweetId = tweetIdMatch[1];
-
-        let response;
-        let data;
-
-        // Try to get tweet data first to check for content
         try {
-          response = await fetch(
-            `https://api.scrapecreators.com/v1/twitter/tweet?url=${tweetId}`,
-            {
-              headers: {
-                "x-api-key": SCRAPE_CREATORS_API_KEY,
-              },
-            }
-          );
+          const data = await fetchTwitterTweet(url);
+          
+          const tweetText = data.legacy?.full_text || data.full_text || data.text || "";
 
-          if (response.ok) {
-            data = await response.json();
+          if (!tweetText.trim() || tweetText.trim().length === 0) {
+            throw new Error("No text content available in this tweet");
           }
+
+          hasContent = true;
+          videoDetails = data;
         } catch (error) {
-          console.log("Tweet ID approach failed, trying full URL");
+          console.error("Error fetching Twitter content:", error);
+          throw error;
         }
-
-        if (!data || !response.ok) {
-          const cleanUrl = url.split("?")[0];
-
-          response = await fetch(
-            `https://api.scrapecreators.com/v1/twitter/tweet?url=${encodeURIComponent(
-              cleanUrl
-            )}`,
-            {
-              headers: {
-                "x-api-key": SCRAPE_CREATORS_API_KEY,
-              },
-            }
-          );
-
-          if (!response.ok) {
-            throw new Error(
-              `HTTP error! status: ${
-                response.status
-              }, message: ${await response.text()}`
-            );
-          }
-
-          data = await response.json();
-        }
-
-        // Check if tweet has any text content
-        const tweetText =
-          data.legacy?.full_text || data.full_text || data.text || "";
-
-        if (!tweetText.trim() || tweetText.trim().length === 0) {
-          throw new Error("No text content available in this tweet");
-        }
-
-        hasContent = true;
-        videoDetails = data; // Use the tweet data as video details
       } else if (platform === "linkedin") {
-        const response = await fetch(
-          `https://api.scrapecreators.com/v1/linkedin/post?url=${encodeURIComponent(
-            url
-          )}`,
-          {
-            headers: {
-              "x-api-key": SCRAPE_CREATORS_API_KEY,
-            },
+        try {
+          const data = await fetchLinkedInPost(url);
+
+          const description = data.description || "";
+          if (!description.trim() || description.trim().length === 0) {
+            throw new Error("No content available in this LinkedIn post");
           }
-        );
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          hasContent = true;
+          videoDetails = data;
+        } catch (error) {
+          console.error("Error fetching LinkedIn content:", error);
+          throw error;
         }
-
-        const data = await response.json();
-
-        // Check if LinkedIn post has any description/content
-        const description = data.description || "";
-        if (!description.trim() || description.trim().length === 0) {
-          throw new Error("No content available in this LinkedIn post");
-        }
-
-        hasContent = true;
-        videoDetails = data; // Use the post data as video details
       } else {
         throw new Error(`Unsupported platform: ${platform}`);
       }
 
-      // If we reach here, we have content, so process the data based on platform
       let processedData = {};
 
       if (platform === "youtube") {
@@ -446,7 +298,6 @@ export default function SocialVideos({
           publishDate: videoDetails?.publishDateText || null,
         };
       } else if (platform === "instagram") {
-        // Extract data from Instagram's complex structure
         const igData = videoDetails?.data?.xdt_shortcode_media || videoDetails;
         const captionEdges = igData?.edge_media_to_caption?.edges;
         const caption = captionEdges?.[0]?.node?.text || "";
@@ -481,7 +332,6 @@ export default function SocialVideos({
           viewCount: viewCount,
         };
       } else if (platform === "tiktok") {
-        // Extract data from TikTok's structure
         const tikTokData = videoDetails?.aweme_detail;
         const authorNickname = tikTokData?.author?.nickname || "Unknown User";
         const authorUsername = tikTokData?.author?.unique_id || "";
@@ -503,7 +353,6 @@ export default function SocialVideos({
             : null,
         };
       } else if (platform === "twitter") {
-        // Extract data from Twitter's structure
         const tweetData = videoDetails;
         const authorName =
           tweetData.core?.user_results?.result?.core?.name ||
@@ -536,7 +385,6 @@ export default function SocialVideos({
           description: textContent,
         };
       } else if (platform === "linkedin") {
-        // Extract data from LinkedIn's structure
         const linkedinData = videoDetails;
 
         processedData = {
@@ -567,7 +415,6 @@ export default function SocialVideos({
         .split(/\s+/)
         .filter((word) => word.length > 0).length;
 
-      // Use more tokens for longer content to ensure detailed summaries
       const maxTokens =
         wordCount > 10000
           ? 2000
