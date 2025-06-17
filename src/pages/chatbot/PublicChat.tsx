@@ -51,6 +51,9 @@ export default function PublicChat({
   const [activeScreen, setActiveScreen] = useState<Screen>("chat");
   const [showCues, setShowCues] = useState<boolean>(true);
   const [storageError, setStorageError] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isPreview) {
@@ -104,7 +107,7 @@ export default function PublicChat({
   const {
     messages,
     setMessages,
-    isLoading,
+    isLoading: chatMessagesLoading,
     messagesEndRef,
     scrollToBottom,
     handleAIResponse,
@@ -345,20 +348,54 @@ export default function PublicChat({
   };
 
   useEffect(() => {
-    // Check if storage is accessible
-    try {
-      localStorage.setItem("test", "test");
-      localStorage.removeItem("test");
-    } catch (error) {
-      console.warn("Storage access is not available:", error);
-      setStorageError(true);
-    }
+    const init = async () => {
+      try {
+        // Check storage access
+        try {
+          localStorage.setItem("test", "test");
+          localStorage.removeItem("test");
+        } catch (error) {
+          console.warn("Storage access is not available:", error);
+          setStorageError(true);
+        }
+
+        // Set loading to false after initialization
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error initializing chat:", error);
+        setLoadError(
+          error instanceof Error ? error.message : "Failed to load chat"
+        );
+        setIsLoading(false);
+      }
+    };
+
+    init();
   }, []);
 
-  if (currentIsLoading || loadingPricing) {
+  if (loadError) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin h-12 w-12 border-t-2 border-blue-500 rounded-full"></div>
+      <div className="flex items-center justify-center min-h-screen p-4">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-lg w-full text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">
+            Error Loading Chat
+          </h2>
+          <p className="text-gray-600 mb-4">{loadError}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Reload Page
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -494,7 +531,7 @@ export default function PublicChat({
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col min-h-screen">
       {storageError && (
         <div
           className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4"
@@ -672,7 +709,7 @@ export default function PublicChat({
                       <ChatSection
                         theme={theme}
                         messages={messages}
-                        isLoading={isLoading}
+                        isLoading={chatMessagesLoading}
                         activeScreen={activeScreen}
                         messagesEndRef={messagesEndRef}
                         currentConfig={{
@@ -708,7 +745,7 @@ export default function PublicChat({
                               <button
                                 key={cue}
                                 onClick={() => handleCueClick(cue)}
-                                disabled={isLoading}
+                                disabled={chatMessagesLoading}
                                 className={`px-2 py-2 rounded-xl text-xs font-medium ${
                                   isPreview
                                     ? "w-full"
@@ -737,7 +774,7 @@ export default function PublicChat({
                       <InputSection
                         theme={theme}
                         message={message}
-                        isLoading={isLoading}
+                        isLoading={chatMessagesLoading}
                         setMessage={setMessage}
                         handleSendMessage={handleSendMessage}
                         handleKeyPress={handleKeyPress}

@@ -20,28 +20,27 @@ export default defineConfig({
     exclude: ["lucide-react"],
   },
   server: {
+    port: 3000,
     proxy: {
       "/api": {
-        target: "https://kifortestapi.gobbl.ai",
+        target: process.env.VITE_API_URL || "http://localhost:8000",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ""),
         secure: false,
       },
     },
-    port: 3000,
   },
   build: {
+    outDir: "dist",
+    assetsDir: "assets",
+    emptyOutDir: true,
+    sourcemap: true,
     rollupOptions: {
       input: {
-        main: "index.html",
-        // Add your bot routes here
-        bot: "src/pages/chatbot/PublicChat.tsx",
+        main: path.resolve(__dirname, "index.html"),
       },
       output: {
         manualChunks: {
           vendor: ["react", "react-dom", "react-router-dom"],
-          wagmi: ["wagmi", "viem"],
-          ui: ["lucide-react"],
         },
       },
     },
