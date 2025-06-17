@@ -66,12 +66,12 @@ const Overview = () => {
 
   useEffect(() => {
     const fetchAnalytics = async () => {
-      if (!activeTeamId) return;
+      if (!activeBotId) return;
 
       try {
         setIsLoading(true);
         setError(null);
-        const data = await getTeamAnalytics(activeTeamId);
+        const data = await getTeamAnalytics(activeBotId);
         setAnalyticsData(data);
       } catch (err) {
         setError(
@@ -83,7 +83,7 @@ const Overview = () => {
     };
 
     fetchAnalytics();
-  }, [activeTeamId]);
+  }, [activeBotId]);
 
   useEffect(() => {
     if (activeBotData?.logo) {
