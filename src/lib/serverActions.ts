@@ -289,20 +289,29 @@ export async function getAgentDetails(
   isHtmlRequest: boolean = false
 ) {
   try {
-    // Your existing code to fetch agent details
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/agent/details`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          inputParam,
-          isfetchByUsername,
-        }),
-      }
-    );
+    // Check if we have at least one parameter
+    if (!inputParam) {
+      throw new Error("Either agentId or username must be provided");
+    }
+
+    // Construct the API URL properly
+
+    const url = `${apiUrl}/api/agent/details`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        inputParam,
+        isfetchByUsername,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
     const data = await response.json();
 
