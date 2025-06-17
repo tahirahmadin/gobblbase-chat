@@ -86,6 +86,35 @@ const Icon = styled.button`
   }
 `;
 
+const cleanTikTokTranscript = (transcriptData) => {
+  try {
+    let transcript = transcriptData?.transcript || "";
+    
+    if (transcript.includes('"text"') && transcript.includes('"start_time"')) {
+      const textMatches = transcript.match(/"text":"([^"]+)"/g);
+      if (textMatches && textMatches.length > 0) {
+        const extractedTexts = textMatches.map(match => {
+          const textContent = match.match(/"text":"([^"]+)"/);
+          return textContent ? textContent[1] : '';
+        }).filter(text => text.trim().length > 0);
+        
+        if (extractedTexts.length > 0) {
+          return extractedTexts.join(' ');
+        }
+      }
+    }
+    
+    if (typeof transcript === 'string' && !transcript.includes('"start_time"')) {
+      return transcript;
+    }
+    
+    return transcript;
+  } catch (error) {
+    console.error('Error cleaning TikTok transcript:', error);
+    return transcriptData?.transcript || "";
+  }
+};
+
 const OPENAI_API_KEY = import.meta.env.VITE_PUBLIC_OPENAI_API_KEY;
 
 export default function SocialVideos({
@@ -214,20 +243,22 @@ export default function SocialVideos({
       } else if (platform === "tiktok") {
         try {
           transcriptData = await fetchTikTokTranscript(url);
-          const transcriptText = transcriptData?.transcript || "";
-          if (transcriptText.trim().length > 0) {
+          
+          const cleanedTranscript = cleanTikTokTranscript(transcriptData);
+          
+          if (cleanedTranscript && cleanedTranscript.trim().length > 0) {
             hasContent = true;
+            transcriptData = { ...transcriptData, transcript: cleanedTranscript };
           }
         } catch (error) {
           console.log("No transcript available for TikTok video");
         }
-
         if (!hasContent) {
           try {
             const tempDetails = await fetchTikTokDetails(url);
             const tikTokData = tempDetails?.aweme_detail;
             const desc = tikTokData?.desc || "";
-
+      
             if (desc.trim().length > 0) {
               hasContent = true;
               videoDetails = tempDetails;
@@ -236,11 +267,11 @@ export default function SocialVideos({
             console.log("Could not fetch TikTok video details");
           }
         }
-
+      
         if (!hasContent) {
           throw new Error("No transcript or description available for this video");
         }
-
+      
         if (!videoDetails) {
           try {
             videoDetails = await fetchTikTokDetails(url);
@@ -336,14 +367,16 @@ export default function SocialVideos({
         const authorNickname = tikTokData?.author?.nickname || "Unknown User";
         const authorUsername = tikTokData?.author?.unique_id || "";
         const desc = tikTokData?.desc || "";
-
+      
+        const cleanTranscript = transcriptData?.transcript || desc || "";
+      
         processedData = {
           title: `TikTok by @${authorUsername || authorNickname}`,
           thumbnail:
             tikTokData?.video?.cover?.url_list?.[0] ||
             tikTokData?.video?.dynamic_cover?.url_list?.[0] ||
             null,
-          transcript: transcriptData?.transcript || desc || "",
+          transcript: cleanTranscript,
           platform,
           url,
           author: authorNickname,
@@ -930,8 +963,8 @@ The summary should be detailed enough that someone reading only the summary woul
                           </div>
 
                           {/* Mobile Content Display */}
-                          <div className="p-4 bg-gray-50 max-h-64 overflow-y-auto">
-                            <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">
+                          <div className="p-4 bg-gray-50 max-h-64 overflow-y-auto overflow-x-hidden">
+                            <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed break-words overflow-wrap-anywhere">
                               {video.transcript}
                             </p>
                           </div>
@@ -1041,8 +1074,8 @@ The summary should be detailed enough that someone reading only the summary woul
 
                     {/* Content Display - Fixed height with scroll */}
                     <div className="flex-1 bg-gray-50 rounded-lg p-4 sm:p-6 overflow-hidden flex flex-col">
-                      <div className="h-full overflow-y-auto">
-                        <p className="text-xs sm:text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                      <div className="h-full overflow-y-auto overflow-x-hidden">
+                        <p className="text-xs sm:text-sm text-gray-700 whitespace-pre-wrap leading-relaxed break-words overflow-wrap-anywhere">
                           {selectedVideoData.transcript}
                         </p>
                       </div>
