@@ -199,13 +199,25 @@ const Sidebar = ({ onClose }: SidebarProps) => {
 
   const isTabExpanded = (tabName: string) => expandedTabs.includes(tabName);
 
-  // Filter nav items based on current route
-  const filteredNavItems =
-    location.pathname === "/admin/all-agents"
-      ? navItems.filter(
-          (item) => item.name === "Dashboard" || item.name === "Account"
-        )
-      : navItems;
+  // Filter nav items based on current route and activeBotId
+  const filteredNavItems = (() => {
+    if (location.pathname === "/admin/all-agents") {
+      return navItems.filter(
+        (item) => item.name === "Dashboard" || item.name === "Account"
+      );
+    }
+
+    if (!activeBotId) {
+      return navItems.filter(
+        (item) =>
+          item.name === "Dashboard" ||
+          item.name === "Account" ||
+          item.name === "Support"
+      );
+    }
+
+    return navItems;
+  })();
 
   const handleTabClick = (path: string) => {
     navigate(path);

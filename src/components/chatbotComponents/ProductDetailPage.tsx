@@ -707,6 +707,7 @@ export default function ProductDetailPage({
                   : "FREE"}
               </div>
             </div>
+
             <button
               className={`w-fit ${buttonSize} rounded-full font-bold transition-all duration-200 ${
                 isBuyNowDisabled ? "cursor-not-allowed" : "cursor-pointer"
@@ -729,7 +730,7 @@ export default function ProductDetailPage({
               onClick={handleBuyNow}
               disabled={isBuyNowDisabled}
             >
-              Buy Now
+              {selectedProduct?.ctaButton || "Buy Now"}
             </button>
           </div>
         </div>

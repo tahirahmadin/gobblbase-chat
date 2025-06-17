@@ -9,7 +9,7 @@ import {
   Save,
   Play,
   HelpCircle,
-  Trash2
+  Trash2,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import * as pdfjsLib from "pdfjs-dist";
@@ -845,6 +845,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             : `Failed to upload ${file.name}`
         );
       }
+      setRefetchBotData();
 
       const documentId =
         typeof response.result !== "string" ? response.result.documentId : "";
@@ -1199,15 +1200,15 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       toast.error("No active agent selected");
       return;
     }
-  
+
     const content = directText.trim();
-  
+
     // Don't allow saving empty content
     if (!content) {
       toast.error("Please enter some text to save");
       return;
     }
-  
+
     // Validate content
     const validation = validateDirectText();
     if (!validation.isValid) {
@@ -1215,15 +1216,15 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       toast.error(validation.message);
       return;
     }
-  
+
     try {
       setIsDirectTextSaving(true);
       setShowDirectTextError(false);
-  
+
       const timestamp = new Date().toISOString().split("T")[0];
       const title = `Direct Text: ${timestamp}`;
       const size = new TextEncoder().encode(content).length;
-  
+
       // Remove existing document if it exists
       const existingDocuments = await listAgentDocuments(activeBotId);
       if (
@@ -1234,7 +1235,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         const existingDirectTextDoc = docs.find((doc) =>
           doc.title.startsWith("Direct Text:")
         );
-  
+
         if (existingDirectTextDoc) {
           await removeDocumentFromAgent(
             activeBotId,
@@ -1245,7 +1246,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           );
         }
       }
-  
+
       // Add new document
       const response = await addDocumentToAgent(
         activeBotId,
@@ -1253,7 +1254,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         title,
         size
       );
-  
+
       if (response.error) {
         throw new Error(
           typeof response.result === "string"
@@ -1261,7 +1262,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             : "Failed to save direct text"
         );
       }
-  
+
       setTotalDocumentsSize((prev) => prev + size);
       toast.success("Direct text saved successfully");
       setShowDirectTextError(false);
@@ -1279,10 +1280,10 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       toast.error("No active agent selected");
       return;
     }
-  
+
     try {
       setIsDirectTextSaving(true);
-  
+
       // Find and remove the direct text document
       const existingDocuments = await listAgentDocuments(activeBotId);
       if (
@@ -1293,20 +1294,20 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         const directTextDoc = docs.find((doc) =>
           doc.title.startsWith("Direct Text:")
         );
-  
+
         if (directTextDoc) {
           const response = await removeDocumentFromAgent(
             activeBotId,
             directTextDoc.documentId
           );
-  
+
           if (!response.error) {
             toast.success("Direct text removed successfully");
             setDirectText("");
-            
+
             // Trigger refetch to update the UI
             setRefetchBotData();
-            
+
             // Refresh documents to update total size
             await fetchAgentDocuments();
           } else {
@@ -1460,47 +1461,6 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                   <>Loading storage information...</>
                 )}
               </span>
-
-              {/* Only show upload button for new agents since existing ones auto-upload */}
-              {!activeBotId && (
-                <Button
-                  onClick={() => handleUpload()}
-                  disabled={
-                    isUploading ||
-                    processingFile !== null ||
-                    selectedFiles.length === 0
-                  }
-                  className={`${
-                    isUploading ||
-                    processingFile !== null ||
-                    selectedFiles.length === 0
-                      ? "cursor-not-allowed"
-                      : ""
-                  } whitespace-nowrap`}
-                >
-                  {isUploading ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                      <span className="hidden sm:inline">
-                        {processingFile
-                          ? `UPLOADING ${truncateFileName(
-                              processingFile,
-                              15
-                            )}...`
-                          : "UPLOADING..."}
-                      </span>
-                      <span className="sm:hidden">UPLOADING...</span>
-                    </div>
-                  ) : (
-                    <span className="text-sm">
-                      CREATE AGENT
-                      {selectedFiles.length > 0
-                        ? ` (${selectedFiles.length})`
-                        : ""}
-                    </span>
-                  )}
-                </Button>
-              )}
             </div>
           </div>
         );
@@ -1560,12 +1520,13 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           </div>
         );
 
-        case "Direct Text":
+      case "Direct Text":
         return (
           <div className="bg-white rounded-lg px-6 py-6">
             <div className="bg-[#E7EAFF] p-6 rounded-lg">
               <p className="text-sm text-black mb-4">
-                Type or Paste any direct text to feed into your AI-employee's Brain
+                Type or Paste any direct text to feed into your AI-employee's
+                Brain
               </p>
 
               <div className="space-y-4">
@@ -1657,10 +1618,16 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                 <div className="flex justify-end relative z-10 mt-4">
                   <Button
                     onClick={handleSaveDirectText}
-                    disabled={isDirectTextSaving || !directText.trim() || countWords(directText) < 50}
+                    disabled={
+                      isDirectTextSaving ||
+                      !directText.trim() ||
+                      countWords(directText) < 50
+                    }
                     className={`${
-                      isDirectTextSaving || !directText.trim() || countWords(directText) < 50 
-                        ? "cursor-not-allowed" 
+                      isDirectTextSaving ||
+                      !directText.trim() ||
+                      countWords(directText) < 50
+                        ? "cursor-not-allowed"
                         : ""
                     }`}
                   >

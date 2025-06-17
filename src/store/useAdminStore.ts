@@ -53,6 +53,7 @@ interface ClientData {
     agents: AdminAgent[];
   }[];
   role: string;
+  teamName: string;
 }
 
 interface ClientUsageData {

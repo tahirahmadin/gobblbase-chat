@@ -2305,6 +2305,7 @@ export async function enableCryptoPayment(
       chainIds,
       adminId: clientId,
     };
+    console.log(dataObj);
     let encryptedData = getCipherText(dataObj);
 
     // HMAC Response
