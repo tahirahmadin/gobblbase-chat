@@ -23,10 +23,31 @@ function checkDistDirectory() {
   return true;
 }
 
+function serveIndexHtml(res: NextApiResponse, metaTags?: string) {
+  try {
+    const indexPath = path.join(process.cwd(), "dist", "index.html");
+    let html = fs.readFileSync(indexPath, "utf8");
+
+    if (metaTags) {
+      // Insert meta tags before the closing head tag
+      html = html.replace("</head>", `${metaTags}\n</head>`);
+    }
+
+    res.setHeader("Content-Type", "text/html");
+    res.setHeader("Cache-Control", "no-store, must-revalidate");
+    return res.status(200).send(html);
+  } catch (error) {
+    console.error("[Bot Route] Error serving index.html:", error);
+    return res.status(500).send("Error loading page");
+  }
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  console.log("[Bot Route] Request received:", req.url);
+
   // Check dist directory first
   if (!checkDistDirectory()) {
     return res
@@ -51,73 +72,26 @@ export default async function handler(
   }
 
   try {
-    // Check if this is a bot request
-    if (typeof username === "string") {
-      console.log(`[Bot Route] Fetching details for bot: ${username}`);
+    console.log("[Bot Route] Fetching bot data for:", username);
+    const agentData = await getAgentDetails(username as string, true, true);
+    console.log("[Bot Route] Agent data received:", !!agentData);
 
-      // Get agent details with HTML flag
-      const agentData = await getAgentDetails(username, true, true);
-      console.log(
-        "[Bot Route] Agent data received:",
-        agentData ? "Success" : "Failed"
-      );
-
-      if (agentData?.html) {
-        try {
-          // Read the index.html file
-          const indexPath = path.join(process.cwd(), "dist", "index.html");
-          console.log("[Bot Route] Reading index.html from:", indexPath);
-
-          let html = fs.readFileSync(indexPath, "utf8");
-          console.log("[Bot Route] Successfully read index.html");
-
-          // Replace the meta tags
-          html = html.replace(/<title>.*?<\/title>/, agentData.metaTags);
-          console.log("[Bot Route] Meta tags replaced successfully");
-
-          // Set content type to HTML
-          res.setHeader("Content-Type", "text/html");
-          return res.status(200).send(html);
-        } catch (fileError) {
-          console.error("[Bot Route] Error reading index.html:", fileError);
-          throw fileError;
-        }
-      } else {
-        console.error("[Bot Route] No agent data found for:", username);
-        // If no agent data, serve the normal SPA
-        try {
-          const indexPath = path.join(process.cwd(), "dist", "index.html");
-          const html = fs.readFileSync(indexPath, "utf8");
-          res.setHeader("Content-Type", "text/html");
-          return res.status(200).send(html);
-        } catch (fallbackError) {
-          console.error("[Bot Route] Error serving fallback:", fallbackError);
-          throw fallbackError;
-        }
-      }
+    if (!agentData) {
+      console.log("[Bot Route] No agent data found, serving default HTML");
+      return serveIndexHtml(res);
     }
 
-    // If not a bot request, serve the normal SPA
-    try {
-      const indexPath = path.join(process.cwd(), "dist", "index.html");
-      const html = fs.readFileSync(indexPath, "utf8");
-      res.setHeader("Content-Type", "text/html");
-      return res.status(200).send(html);
-    } catch (error) {
-      console.error("[Bot Route] Error serving SPA:", error);
-      throw error;
+    if (agentData.error) {
+      console.error("[Bot Route] Error in agent data:", agentData.error);
+      return serveIndexHtml(res);
     }
+
+    // Generate meta tags if we have agent data
+    const metaTags = agentData.metaTags || "";
+    console.log("[Bot Route] Serving HTML with meta tags");
+    return serveIndexHtml(res, metaTags);
   } catch (error) {
     console.error("[Bot Route] Error in handler:", error);
-    // Serve the SPA even on error
-    try {
-      const indexPath = path.join(process.cwd(), "dist", "index.html");
-      const html = fs.readFileSync(indexPath, "utf8");
-      res.setHeader("Content-Type", "text/html");
-      return res.status(200).send(html);
-    } catch (fallbackError) {
-      console.error("[Bot Route] Error serving fallback page:", fallbackError);
-      res.status(500).send("Internal Server Error");
-    }
+    return serveIndexHtml(res);
   }
 }
