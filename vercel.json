@@ -6,7 +6,29 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(bot|facebook|twitter|linkedin|discord|whatsapp|telegram).*"
+          "value": "bot"
+        }
+      ],
+      "destination": "https://kifortestapi.gobbl.ai/meta/:username"
+    },
+    {
+      "source": "/:username",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "facebook"
+        }
+      ],
+      "destination": "https://kifortestapi.gobbl.ai/meta/:username"
+    },
+    {
+      "source": "/:username",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "twitter"
         }
       ],
       "destination": "https://kifortestapi.gobbl.ai/meta/:username"
