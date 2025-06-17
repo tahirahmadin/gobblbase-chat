@@ -7,12 +7,16 @@
     "dev": "vite",
     "host": "vite --host",
     "build": "vite build",
+    "generate-static": "node scripts/generate-static.js",
+    "build:static": "npm run build && npm run generate-static",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
     "@langchain/community": "^0.3.40",
     "@langchain/core": "^0.3.44",
+    "@prerenderer/prerenderer": "^1.2.5",
+    "@prerenderer/renderer-puppeteer": "^1.2.4",
     "@react-oauth/google": "^0.12.1",
     "@stripe/react-stripe-js": "^3.6.0",
     "@stripe/stripe-js": "^7.2.0",
@@ -32,6 +36,7 @@
     "openai": "^4.93.0",
     "pdf-parse": "^1.1.1",
     "pdfjs-dist": "^5.1.91",
+    "puppeteer": "^24.10.1",
     "react": "^18.3.1",
     "react-calendly": "^4.3.1",
     "react-datepicker": "^8.3.0",
@@ -44,6 +49,7 @@
     "socket.io-client": "^4.8.1",
     "styled-components": "^6.1.18",
     "viem": "^2.30.5",
+    "vite-plugin-static-copy": "^3.0.2",
     "wagmi": "^2.15.4",
     "zustand": "^5.0.3"
   },

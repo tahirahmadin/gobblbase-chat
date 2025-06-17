@@ -173,7 +173,8 @@ export default function PublicChat({
       const currQueryable = checkFeature(currentConfig?.isQueryable);
       const currActive = checkFeature(currentConfig?.isActive);
 
-      const hasAnyFeature = currBooking || currProducts || currContact || currQueryable;
+      const hasAnyFeature =
+        currBooking || currProducts || currContact || currQueryable;
       if (messages.length >= 1 && hasAnyFeature) {
         showFeatureNotification(setMessages, scrollToBottom);
       }
@@ -228,11 +229,7 @@ export default function PublicChat({
         }, 1000);
       }
     }
-  }, [
-    messages.length,
-    currentIsLoading,
-    loadingPricing,
-  ]);
+  }, [messages.length, currentIsLoading, loadingPricing]);
 
   const logConversation = async (
     userMessage: string,
@@ -376,7 +373,9 @@ export default function PublicChat({
     const isBookingRequest = lowerFeatureText.includes("booking appointments");
     const isProductRequest = lowerFeatureText.includes("browsing our products");
     const isContactRequest = lowerFeatureText.includes("contacting us");
-    const isKnowledgeBaseRequest = lowerFeatureText.includes("answering questions about our knowledge base");
+    const isKnowledgeBaseRequest = lowerFeatureText.includes(
+      "answering questions about our knowledge base"
+    );
 
     if (isContactRequest) {
       const contactHandled = await handleContactRequest(
@@ -494,50 +493,93 @@ export default function PublicChat({
             </title>
             <meta
               name="description"
-              content={`${currentConfig.bio} | Sayy.ai Agent`}
+              content={
+                currentConfig.bio || "Chat with an AI agent powered by Sayy.ai"
+              }
             />
+
+            {/* Open Graph / Facebook */}
+            <meta property="og:type" content="website" />
             <meta
               property="og:title"
-              content={`${currentConfig.name} | Sayy.ai chatbot`}
+              content={`${currentConfig.name || "AI Agent"} | Sayy.ai chatbot`}
             />
             <meta
               property="og:description"
-              content={`${currentConfig.bio} | Sayy.ai Agent`}
+              content={
+                currentConfig.bio || "Chat with an AI agent powered by Sayy.ai"
+              }
             />
-            <meta property="og:image" content={currentConfig.logo} />
+            <meta
+              property="og:image"
+              content={
+                currentConfig.logo ||
+                "https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/banner.jpg"
+              }
+            />
             <meta
               property="og:image:alt"
-              content={`${currentConfig.name} | Sayy.ai Agent`}
+              content={`${currentConfig.name || "AI Agent"} | Sayy.ai Agent`}
             />
             <meta
               property="og:url"
               content={`https://sayy.ai/${currentConfig.username}`}
             />
+            <meta property="og:site_name" content="Sayy.ai" />
+
+            {/* Twitter */}
             <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:site" content="@sayyai" />
             <meta
               name="twitter:title"
-              content={`${currentConfig.name} | Sayy.ai Agent`}
+              content={`${currentConfig.name || "AI Agent"} | Sayy.ai Agent`}
             />
             <meta
               name="twitter:description"
-              content={`${currentConfig.bio} | Sayy.ai Agent`}
+              content={
+                currentConfig.bio || "Chat with an AI agent powered by Sayy.ai"
+              }
             />
-            <meta name="twitter:image" content={currentConfig.logo} />
+            <meta
+              name="twitter:image"
+              content={
+                currentConfig.logo ||
+                "https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/banner.jpg"
+              }
+            />
+            <meta
+              name="twitter:image:alt"
+              content={`${currentConfig.name || "AI Agent"} | Sayy.ai Agent`}
+            />
+
+            {/* Additional Meta Tags */}
+            <meta name="robots" content="index, follow" />
+            <meta name="language" content="English" />
+            <meta name="revisit-after" content="7 days" />
+            <meta name="author" content="Sayy.ai" />
+
+            {/* Canonical URL */}
+            <link
+              rel="canonical"
+              href={`https://sayy.ai/${currentConfig.username}`}
+            />
           </Helmet>
           {/* for big screen about section in left */}
-          {
-            !isPreview ? (
-              <div className={`w-1/3 hidden md:block overflow-y-auto h-screen border-r ${theme.isDark ? "border-white" : "border-black"}`}>
-                  <AboutSection
-                    theme={currentConfig.themeColors}
-                    currentConfig={currentConfig}
-                    socials={currentConfig?.socials}
-                    customHandles={currentConfig?.customHandles}
-                  />
-                </div>
-            ) : null
-          }
-          
+          {!isPreview ? (
+            <div
+              className={`w-1/3 hidden md:block overflow-y-auto h-screen border-r ${
+                theme.isDark ? "border-white" : "border-black"
+              }`}
+            >
+              <AboutSection
+                theme={currentConfig.themeColors}
+                currentConfig={currentConfig}
+                socials={currentConfig?.socials}
+                customHandles={currentConfig?.customHandles}
+              />
+            </div>
+          ) : null}
+
           <div
             className="w-full max-w-md md:max-w-full shadow-2xl overflow-hidden flex flex-col relative"
             style={{
@@ -548,52 +590,46 @@ export default function PublicChat({
                 : `${viewportHeight}px`,
             }}
           >
-            
             <div className="flex flex-col h-full">
               {isPreview ? (
-              <HeaderSection
-                theme={currentConfig.themeColors}
-                currentConfig={currentConfig}
-                activeScreen={activeScreen}
-                setActiveScreen={setActiveScreen}
-                isPreview={true}
-              /> ) : (
-              <HeaderSection
-                theme={currentConfig.themeColors}
-                currentConfig={currentConfig}
-                activeScreen={activeScreen}
-                setActiveScreen={setActiveScreen}
-                isPreview={false}
-              /> 
-                )
-              }
-
-              {isPreview ? (
-               activeScreen === "about" && (
-                <div className="flex-1 overflow-y-auto">
-                  <AboutSection
-                    theme={currentConfig.themeColors}
-                    currentConfig={currentConfig}
-                    socials={currentConfig?.socials}
-                    customHandles={currentConfig?.customHandles}
-
-                  />
-                </div>
-              )
+                <HeaderSection
+                  theme={currentConfig.themeColors}
+                  currentConfig={currentConfig}
+                  activeScreen={activeScreen}
+                  setActiveScreen={setActiveScreen}
+                  isPreview={true}
+                />
               ) : (
-                activeScreen === "about" && (
-                 <div className="w-full md:hidden flex-1 block overflow-y-auto">
-                <AboutSection
-                    theme={currentConfig.themeColors}
-                    currentConfig={currentConfig}
-                    socials={currentConfig?.socials}
-                    customHandles={currentConfig?.customHandles}
-                    
-                  />
-                  </div>
-                  )
+                <HeaderSection
+                  theme={currentConfig.themeColors}
+                  currentConfig={currentConfig}
+                  activeScreen={activeScreen}
+                  setActiveScreen={setActiveScreen}
+                  isPreview={false}
+                />
               )}
-              
+
+              {isPreview
+                ? activeScreen === "about" && (
+                    <div className="flex-1 overflow-y-auto">
+                      <AboutSection
+                        theme={currentConfig.themeColors}
+                        currentConfig={currentConfig}
+                        socials={currentConfig?.socials}
+                        customHandles={currentConfig?.customHandles}
+                      />
+                    </div>
+                  )
+                : activeScreen === "about" && (
+                    <div className="w-full md:hidden flex-1 block overflow-y-auto">
+                      <AboutSection
+                        theme={currentConfig.themeColors}
+                        currentConfig={currentConfig}
+                        socials={currentConfig?.socials}
+                        customHandles={currentConfig?.customHandles}
+                      />
+                    </div>
+                  )}
 
               {activeScreen === "chat" && (
                 <>
@@ -630,13 +666,24 @@ export default function PublicChat({
                       }}
                     >
                       {[currentConfig.prompts].map((row, i) => (
-                        <div key={i} className={`grid gap-2 ${isPreview ? "grid-cols-2" : "grid-cols-2 md:grid-cols-1"}`}>
+                        <div
+                          key={i}
+                          className={`grid gap-2 ${
+                            isPreview
+                              ? "grid-cols-2"
+                              : "grid-cols-2 md:grid-cols-1"
+                          }`}
+                        >
                           {row.map((cue) => (
                             <button
                               key={cue}
                               onClick={() => handleCueClick(cue)}
                               disabled={isLoading}
-                              className={`px-2 py-2 rounded-xl text-xs font-medium ${isPreview ? "w-full" : "w-full md:w-fit md:min-w-[120px] md:ml-auto md:pr-12 md:pl-4"} `}
+                              className={`px-2 py-2 rounded-xl text-xs font-medium ${
+                                isPreview
+                                  ? "w-full"
+                                  : "w-full md:w-fit md:min-w-[120px] md:ml-auto md:pr-12 md:pl-4"
+                              } `}
                               style={{
                                 backgroundColor: theme.isDark
                                   ? "#1c1c1c"

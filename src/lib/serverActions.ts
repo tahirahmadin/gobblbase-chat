@@ -285,31 +285,38 @@ export async function getTeamAnalytics(
 // ************** AGENT RELATED FUNCTIONS ************** //
 export async function getAgentDetails(
   inputParam: string | null,
-  isfetchByUsername: boolean
+  isfetchByUsername: boolean,
+  isHtmlRequest: boolean = false
 ) {
   try {
-    // Check if we have at least one parameter
-    if (!inputParam) {
-      throw new Error("Either agentId or username must be provided");
-    }
-    let requestParams = `inputParam=${inputParam}&isfetchByUsername=${isfetchByUsername}`;
-    let url = `${apiUrl}/agent/getAgentDetails?${requestParams}`;
+    // Your existing code to fetch agent details
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/agent/details`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          inputParam,
+          isfetchByUsername,
+        }),
+      }
+    );
 
-    let hmacResponse = getHmacMessageFromBody(requestParams);
-    if (!hmacResponse) {
-      return null;
-    }
-    let axiosHeaders = {
-      HMAC: hmacResponse.hmacHash,
-      Timestamp: hmacResponse.currentTimestamp,
-    };
-    const response = await axios.get(url, { headers: axiosHeaders });
+    const data = await response.json();
 
-    if (response.data.error) {
-      throw new Error(response.data.result || "Error fetching agent details");
+    // If this is an HTML request, return the HTML with meta tags
+    if (isHtmlRequest) {
+      const metaTags = generateMetaTags(data);
+      return {
+        html: true,
+        metaTags,
+        agentData: data,
+      };
     }
 
-    return response.data.result;
+    return data;
   } catch (error) {
     console.error("Error fetching agent details:", error);
     throw error;
@@ -2946,4 +2953,42 @@ export async function updateTeamName(clientId: string, teamName: string) {
     console.error("Error updating team name:", error);
     throw error;
   }
+}
+
+// Add this new function to generate meta tags
+export function generateMetaTags(botConfig: any) {
+  const title = botConfig?.name
+    ? `${botConfig.name} | Sayy.ai Agent`
+    : "Sayy.ai Agent";
+  const description =
+    botConfig?.bio || "Chat with an AI agent powered by Sayy.ai";
+  const image =
+    botConfig?.logo ||
+    "https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/banner.jpg";
+  const url = botConfig?.username
+    ? `https://sayy.ai/${botConfig.username}`
+    : "https://sayy.ai";
+
+  return `
+    <title>${title}</title>
+    <meta name="description" content="${description}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="${title}" />
+    <meta property="og:description" content="${description}" />
+    <meta property="og:image" content="${image}" />
+    <meta property="og:image:alt" content="${title}" />
+    <meta property="og:url" content="${url}" />
+    <meta property="og:site_name" content="Sayy.ai" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@sayyai" />
+    <meta name="twitter:title" content="${title}" />
+    <meta name="twitter:description" content="${description}" />
+    <meta name="twitter:image" content="${image}" />
+    <meta name="twitter:image:alt" content="${title}" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="English" />
+    <meta name="revisit-after" content="7 days" />
+    <meta name="author" content="Sayy.ai" />
+    <link rel="canonical" href="${url}" />
+  `;
 }
