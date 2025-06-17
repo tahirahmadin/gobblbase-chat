@@ -1,15 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/:username",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": "(facebook|bot|twitter|discord|whatsapp|linkedin|telegram)"
-        }
-      ],
-      "destination": "https://kifortestapi.gobbl.ai/meta/:username"
+      "source": "/bitcoin",
+      "destination": "https://kifortestapi.gobbl.ai/meta/bitcoin"
     }
   ]
 }
