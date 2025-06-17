@@ -35,6 +35,34 @@ const ClickableMessageText: React.FC<ClickableMessageTextProps> = ({
     }
   };
 
+  const getFeatureBubbleColors = () => {
+    if (theme.isDark) {
+      return {
+        backgroundColor: theme.mainDarkColor,
+        color: '#ffffff',
+      };
+    } else {
+      return {
+        backgroundColor: theme.mainLightColor,
+        color: '#ffffff',
+      };
+    }
+  };
+
+  const getInlineFeatureColors = () => {
+    if (theme.isDark) {
+      return {
+        backgroundColor: theme.highlightColor,
+        color: '#ffffff',
+      };
+    } else {
+      return {
+        backgroundColor: theme.highlightColor,
+        color: '#000000',
+      };
+    }
+  };
+
   if (isFeatureMessage && content.includes('\n')) {
     const lines = content.split('\n');
     const firstLine = lines[0];
@@ -68,51 +96,41 @@ const ClickableMessageText: React.FC<ClickableMessageTextProps> = ({
           gap: '6px',
           marginTop: '4px'
         }}>
-          {featuresInSecondLine.map((feature, index) => (
-            <span
-              key={index}
-              onClick={() => handleFeatureClick(feature)}
-              className="feature-bubble-inline"
-              style={{
-                background: `linear-gradient(135deg, ${theme.mainLightColor}, ${theme.mainDarkColor})`,
-                color: '#ffffff',
-                padding: '4px 8px',
-                borderRadius: '12px',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                display: 'inline-block',
-                margin: '2px',
-                fontSize: '0.85em',
-                fontWeight: '600',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
-                transition: 'all 0.15s ease',
-                opacity: isLoading ? 0.7 : 1,
-                textShadow: 'none',
-                border: 'none',
-                textDecoration: 'none',
-                whiteSpace: 'nowrap',
-                verticalAlign: 'middle',
-                lineHeight: '1.2',
-                wordBreak: 'keep-all',
-                position: 'relative'
-              }}
-              onMouseEnter={(e) => {
-                if (!isLoading) {
-                  e.currentTarget.style.background = `linear-gradient(135deg, ${theme.mainDarkColor}, ${theme.mainLightColor})`;
-                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isLoading) {
-                  e.currentTarget.style.background = `linear-gradient(135deg, ${theme.mainLightColor}, ${theme.mainDarkColor})`;
-                  e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.15)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }
-              }}
-            >
-              {feature}
-            </span>
-          ))}
+          {featuresInSecondLine.map((feature, index) => {
+            const colors = getFeatureBubbleColors();
+            
+            return (
+              <span
+                key={index}
+                onClick={() => handleFeatureClick(feature)}
+                className="feature-bubble-inline"
+                style={{
+                  backgroundColor: colors.backgroundColor,
+                  color: colors.color,
+                  padding: '4px 8px',
+                  borderRadius: '12px',
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  display: 'inline-block',
+                  margin: '2px',
+                  fontSize: '0.85em',
+                  fontWeight: '600',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                  transition: 'all 0.15s ease',
+                  opacity: isLoading ? 0.7 : 1,
+                  textShadow: 'none',
+                  border: 'none',
+                  textDecoration: 'none',
+                  whiteSpace: 'nowrap',
+                  verticalAlign: 'middle',
+                  lineHeight: '1.2',
+                  wordBreak: 'keep-all',
+                  position: 'relative'
+                }}
+              >
+                {feature}
+              </span>
+            );
+          })}
         </div>
       </div>
     );
@@ -130,14 +148,16 @@ const ClickableMessageText: React.FC<ClickableMessageTextProps> = ({
           
           for (let i = 0; i < segments.length; i++) {
             if (i > 0) {
+              const colors = getInlineFeatureColors();
+              
               newParts.push(
                 <span
                   key={`${index}-${partIndex}-${i}`}
                   onClick={() => handleFeatureClick(feature)}
                   className="feature-bubble-inline"
                   style={{
-                    background: `linear-gradient(135deg, ${theme.mainLightColor}, ${theme.mainDarkColor})`,
-                    color: '#ffffff',
+                    backgroundColor: colors.backgroundColor,
+                    color: colors.color,
                     padding: '0px 3px',
                     borderRadius: '4px',
                     cursor: isLoading ? 'not-allowed' : 'pointer',
@@ -156,18 +176,6 @@ const ClickableMessageText: React.FC<ClickableMessageTextProps> = ({
                     lineHeight: '1',
                     wordBreak: 'keep-all',
                     position: 'relative'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isLoading) {
-                      e.currentTarget.style.background = `linear-gradient(135deg, ${theme.mainDarkColor}, ${theme.mainLightColor})`;
-                      e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.15)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isLoading) {
-                      e.currentTarget.style.background = `linear-gradient(135deg, ${theme.mainLightColor}, ${theme.mainDarkColor})`;
-                      e.currentTarget.style.boxShadow = '0 0.5px 1px rgba(0,0,0,0.1)';
-                    }
                   }}
                 >
                   {feature}
