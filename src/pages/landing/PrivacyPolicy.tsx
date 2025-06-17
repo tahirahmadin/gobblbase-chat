@@ -1,5 +1,5 @@
 import { ChevronRight, Linkedin, Menu, X } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
@@ -10,37 +10,6 @@ const Container = styled.div`
   overflow-x: hidden;
 `;
 
-const UpgradeButton = styled.button`
-  position: relative;
-  background: #fffc45;
-  padding: 0.6vh 1vw;
-  border: 2px solid black;
-  cursor: pointer;
-  transition: background 0.3s;
-  font-size: clamp(8px, 4vw, 15px);
-  &::before {
-    content: "";
-    position: absolute;
-    top: 5px;
-    right: -5px;
-    width: 100%;
-    height: 100%;
-    border: 2px solid #000000;
-    z-index: -1; // place it behind the button
-    background: #fffc45;
-  }
-  @media (max-width: 600px) {
-    min-width: 100px;
-  }
-  &:disabled {
-    background: rgba(255, 252, 69, 0.82);
-    color: #b0b0b0;
-    cursor: not-allowed;
-  }
-  &:disabled::before {
-    background: rgba(255, 252, 69, 0.74);
-  }
-`;
 const Navbar = styled.nav`
     top; 1px;
     z-index: 111111;
@@ -518,7 +487,7 @@ const PrivacyPolicy = () => {
                 <WhiteBackground>
                   <span>
                     <h2 className="main-font relative z-10 font-[800] text-[1.2rem]">
-                      Plans & Pricing
+                     Privacy Policy
                     </h2>
                   </span>
                 </WhiteBackground>
@@ -740,10 +709,538 @@ const PrivacyPolicy = () => {
                 </div>
               </PurpleContent>
             </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>7. Who We Share Data With</PurpleHeading>
+              <PurpleContent>
+                <div className="scrollbar-custom w-[100%] min-w-full overflow-x-scroll md:overflow-hidden">
+                  <table className="w-1/2 min-w-[500px] border-separate border-spacing-y-2 ">
+                    <thead className="sticky top-0 z-5 text-left ">
+                      <tr className="para-font text-[18px]">
+                        <th className="px-4 py-1 font-[500]">PROVIDER</th>
+                        <th className="px-4 py-1 font-[500]">PURPOSE</th>
+                        <th className="px-4 py-1 font-[500]">REGION</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white text-left">
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">AWS</td>
+                        <td className="px-4 py-1 font-[500]">
+                          Hosting, storage, backups
+                        </td>
+                        <td className="px-4 py-1 font-[500]">us-east-1</td>
+                      </tr>
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">Amazon SES</td>
+                        <td className="px-4 py-1 font-[500]">
+                          Transactional email
+                        </td>
+                        <td className="px-4 py-1 font-[500]">us-east-1</td>
+                      </tr>
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">
+                          Stripe / Razorpay
+                        </td>
+                        <td className="px-4 py-1 font-[500]">
+                          Payment processing
+                        </td>
+                        <td className="px-4 py-1 font-[500]">Global</td>
+                      </tr>
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">OpenAI</td>
+                        <td className="px-4 py-1 font-[500]">
+                          AI model processing (GPT)
+                        </td>
+                        <td className="px-4 py-1 font-[500]">USA</td>
+                      </tr>
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">Meta (LLaMA)</td>
+                        <td className="px-4 py-1 font-[500]">
+                          LLM inference (Sayy-hosted)
+                        </td>
+                        <td className="px-4 py-1 font-[500]">USA (private)</td>
+                      </tr>
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">AWS CloudTrail</td>
+                        <td className="px-4 py-1 font-[500]">
+                          Usage and audit logs
+                        </td>
+                        <td className="px-4 py-1 font-[500]">us-east-1</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>8. International Transfers</PurpleHeading>
+              <PurpleContent>
+                <div className="mb-4">
+                  <h2>We comply with global data transfer laws using:</h2>
+                  <ul className="list-[inherit] ml-6">
+                    <li>Standard Contractual Clauses (SCCs)</li>
+                    <li>Adequacy mechanisms</li>
+                    <li>Encrypted transmission & storage</li>
+                  </ul>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>9. Data Retention</PurpleHeading>
+              <PurpleContent>
+                <div className="scrollbar-custom w-[100%] min-w-full overflow-x-scroll md:overflow-hidden">
+                  <table className="w-1/2 min-w-[500px] border-separate border-spacing-y-2 ">
+                    <thead className="sticky top-0 z-5 text-left ">
+                      <tr className="para-font text-[18px]">
+                        <th className="px-4 py-1 font-[500]">DATA TYPE</th>
+                        <th className="px-4 py-1 font-[500]">DURATION</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white text-left">
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">Account Data</td>
+                        <td className="px-4 py-1 font-[500]">
+                          Active + 30 days post-deletion
+                        </td>
+                      </tr>
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">
+                          Backup Snapshots
+                        </td>
+                        <td className="px-4 py-1 font-[500]">30 days</td>
+                      </tr>
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">Logs</td>
+                        <td className="px-4 py-1 font-[500]">12 months</td>
+                      </tr>
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">
+                          Payment Records
+                        </td>
+                        <td className="px-4 py-1 font-[500]">
+                          7 years (legal requirement)
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>10. Your Rights</PurpleHeading>
+              <PurpleContent>
+                <div className="">
+                  <h2>You may:</h2>
+                  <ul className="list-[inherit] ml-6">
+                    <li>Access, correct, or delete data</li>
+                    <li>Export your data (portability). </li>
+                    <li>Restrict or object to processing</li>
+                    <li>Withdraw consent at any time </li>
+                    <li>
+                      Submit requests via
+                      <a target="_blank" href="https://sayy.ai/privacy">
+                        https://sayy.ai/privacy
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+                <div className="mt-4">
+                  <h2>We do not sell or rent your personal data.</h2>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>11. Cookies</PurpleHeading>
+              <PurpleContent>
+                <div className="scrollbar-custom w-[100%] min-w-full overflow-x-scroll md:overflow-hidden">
+                  <table className="w-1/2 min-w-[500px] border-separate border-spacing-y-2 ">
+                    <thead className="sticky top-0 z-5 text-left ">
+                      <tr className="para-font text-[18px]">
+                        <th className="px-4 py-1 font-[500]">TYPE</th>
+                        <th className="px-4 py-1 font-[500]">PURPOSE</th>
+                        <th className="px-4 py-1 font-[500]">LIFESPAN</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white text-left">
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">Essential</td>
+                        <td className="px-4 py-1 font-[500]">Login/session</td>
+                        <td className="px-4 py-1 font-[500]">Session</td>
+                      </tr>
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">Preferences</td>
+                        <td className="px-4 py-1 font-[500]">UI settings</td>
+                        <td className="px-4 py-1 font-[500]">365 days</td>
+                      </tr>
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">Analytics</td>
+                        <td className="px-4 py-1 font-[500]">Usage tracking</td>
+                        <td className="px-4 py-1 font-[500]">12 months</td>
+                      </tr>
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">Marketing</td>
+                        <td className="px-4 py-1 font-[500]">Not used</td>
+                        <td className="px-4 py-1 font-[500]">N/A</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>12. Security</PurpleHeading>
+              <PurpleContent>
+                <div className="">
+                  <ul className="list-[inherit] ml-6">
+                    <li>TLS encryption in transit</li>
+                    <li>AES-256 encryption at rest</li>
+                    <li>IAM and MFA-based access control</li>
+                    <li>CloudTrail + real-time auditing</li>
+                    <li>Quarterly penetration testing</li>
+                  </ul>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>13. Children</PurpleHeading>
+              <PurpleContent>
+                <div className="">
+                  <h2>
+                    Sayy is not intended for children under age 13. We do not
+                    knowingly collect data from minors.
+                  </h2>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>14. Changes</PurpleHeading>
+              <PurpleContent>
+                <div className="">
+                  <h2>If we make significant updates, we will:</h2>
+                  <ul className="list-[inherit] ml-6">
+                    <li>
+                      Post them on
+                      <a href="https://sayy.ai/privacy">
+                        https://sayy.ai/privacy
+                      </a>
+                    </li>
+                    <li>Provide 7 days' notice for material changes</li>
+                  </ul>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>15. Contact Us</PurpleHeading>
+              <PurpleContent>
+                <div className="">
+                  <h2>
+                    Privacy inquiries:{" "}
+                    <a href="https://sayy.ai/privacy">
+                      https://sayy.ai/privacy
+                    </a>
+                  </h2>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            {/* Appendix A – Cookie Notice */}
+            <article className="flex flex-col w-full">
+              <h1
+                style={{
+                  fontSize: "clamp(16px, 4vw, 18px)",
+                }}
+                className="text-black pt-[4vh] pb-2 font-[600] main-font"
+              >
+                Appendix A – Cookie Notice
+              </h1>
+              <div
+                style={{
+                  fontSize: "clamp(14px, 4vw, 16px)",
+                }}
+                className="pb-[2vh] para-font font-[400] text-black"
+              >
+                {/* table  */}
+                <div className="scrollbar-custom w-[100%] min-w-full overflow-x-scroll md:overflow-hidden">
+                  <table className="w-[70%] min-w-[500px] border-separate border-spacing-y-2 ">
+                    <thead className="sticky top-0 z-5 text-left bg-[#FFD2BA] ">
+                      <tr className="para-font text-[18px] ">
+                        <th className="px-4 py-1 font-[500] border border-black border-r-0">
+                          COOKIE TYPE
+                        </th>
+                        <th className="px-4 py-1 font-[500] border border-black border-x-0">
+                          PURPOSE
+                        </th>
+                        <th className="px-4 py-1 font-[500] border border-black border-x-0">
+                          LIFESPAN
+                        </th>
+                        <th className="px-4 py-1 font-[500] border border-black border-l-0">
+                          OPT-OUT AVAILABLE
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-left bg-[#EAEFFF]">
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">Essential</td>
+                        <td className="px-4 py-1 font-[500]">Login/session</td>
+                        <td className="px-4 py-1 font-[500]">Session</td>
+                        <td className="px-4 py-1 font-[500]">No</td>
+                      </tr>
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">Preferences</td>
+                        <td className="px-4 py-1 font-[500]">UI settings</td>
+                        <td className="px-4 py-1 font-[500]">365 days</td>
+                        <td className="px-4 py-1 font-[500]">Yes</td>
+                      </tr>
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">Analytics</td>
+                        <td className="px-4 py-1 font-[500]">Feature usage</td>
+                        <td className="px-4 py-1 font-[500]">12 months</td>
+                        <td className="px-4 py-1 font-[500]">Yes</td>
+                      </tr>
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">Marketing</td>
+                        <td className="px-4 py-1 font-[500]">Not used</td>
+                        <td className="px-4 py-1 font-[500]">N/A</td>
+                        <td className="px-4 py-1 font-[500]">N/A</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </article>
+
+            {/* Appendix B – Sub-Processors */}
+            <article className="flex flex-col w-full">
+              <h1
+                style={{
+                  fontSize: "clamp(16px, 4vw, 18px)",
+                }}
+                className="text-black pb-2 font-[600] main-font"
+              >
+                Appendix B – Sub-Processors
+              </h1>
+              <div
+                style={{
+                  fontSize: "clamp(14px, 4vw, 16px)",
+                }}
+                className="pb-[2vh] para-font font-[400] text-black"
+              >
+                {/* table  */}
+                <div className="scrollbar-custom w-[100%] min-w-full overflow-x-scroll md:overflow-hidden">
+                  <table className="w-[70%] min-w-[500px] border-separate border-spacing-y-2 ">
+                    <thead className="sticky top-0 z-5 text-left bg-[#FFD2BA] ">
+                      <tr className="para-font text-[18px] ">
+                        <th className="px-4 py-1 font-[500] border border-black border-r-0">
+                          Sub-Processor
+                        </th>
+                        <th className="px-4 py-1 font-[500] border border-black border-x-0">
+                          PURPOSE
+                        </th>
+                        <th className="px-4 py-1 font-[500] border border-black border-x-0">
+                          REGION
+                        </th>
+                        <th className="px-4 py-1 font-[500] border border-black border-l-0">
+                          Data Handled
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-left bg-[#EAEFFF]">
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">AWS</td>
+                        <td className="px-4 py-1 font-[500]">
+                          Hosting, storage, logging
+                        </td>
+                        <td className="px-4 py-1 font-[500]">us-east-1</td>
+                        <td className="px-4 py-1 font-[500]">
+                          All platform data
+                        </td>
+                      </tr>
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">Amazon SES</td>
+                        <td className="px-4 py-1 font-[500]">Email delivery</td>
+                        <td className="px-4 py-1 font-[500]">us-east-1</td>
+                        <td className="px-4 py-1 font-[500]">Email metadata</td>
+                      </tr>
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">
+                          Stripe / Razorpay
+                        </td>
+                        <td className="px-4 py-1 font-[500]">
+                          Payment processing
+                        </td>
+                        <td className="px-4 py-1 font-[500]">Global</td>
+                        <td className="px-4 py-1 font-[500]">
+                          Billing-related metadata
+                        </td>
+                      </tr>
+                      <tr className="para-font text-[15px]"> 
+                        <td className="px-4 py-1 font-[500]">OpenAI</td>
+                        <td className="px-4 py-1 font-[500]">
+                          GPT model API (LLM)
+                        </td>
+                        <td className="px-4 py-1 font-[500]">USA</td>
+                        <td className="px-4 py-1 font-[500]">
+                          Prompts and completions
+                        </td>
+                      </tr>
+                      <tr className="para-font text-[15px]">
+                        <td className="px-4 py-1 font-[500]">Meta (LLaMA)</td>
+                        <td className="px-4 py-1 font-[500]">
+                          On-device model inference
+                        </td>
+                        <td className="px-4 py-1 font-[500]">
+                          USA (Sayy infra)
+                        </td>
+                        <td className="px-4 py-1 font-[500]">
+                          Prompts only (no output sharing)
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </article>
+
+            {/* Appendix C – Data Processing Addendum (DPA) */}
+            <article className="flex flex-col w-full">
+              <h1
+                style={{
+                  fontSize: "clamp(16px, 4vw, 18px)",
+                }}
+                className="text-black pb-2 font-[600] main-font"
+              >
+                Appendix C – Data Processing Addendum (DPA)
+              </h1>
+              <div
+                style={{
+                  fontSize: "clamp(14px, 4vw, 16px)",
+                }}
+                className="pb-[2vh] para-font font-[400] text-black flex flex-col gap-4"
+              >
+                <div className="mt-4">
+                  <h2>Sayy acts as a Data Processor for customer data.</h2>
+                </div>
+                <div className="">
+                  <h2>Highlights:</h2>
+                  <ul className="list-[inherit] ml-6">
+                    <li>Follows instructions from Data Controller (you)</li>
+                    <li>Notifies of breaches within 72 hours </li>
+                    <li>Deletes data within 30 days of account closure</li>
+                    <li>Sub-processors listed in Appendix B</li>
+                    <li>
+                      One audit permitted per year with 30 days’ notice (cost
+                      borne by customer)
+                    </li>
+                  </ul>
+                </div>
+                <div className="mt-4">
+                  <h2>SCCs used for international transfers as required</h2>
+                </div>
+              </div>
+            </article>
+
+            {/* Appendix D – California Privacy Notice (CCPA / CPRA) */}
+            <article className="flex flex-col w-full">
+              <h1
+                style={{
+                  fontSize: "clamp(16px, 4vw, 18px)",
+                }}
+                className="text-black pb-2 font-[600] main-font"
+              >
+                Appendix D – California Privacy Notice (CCPA / CPRA)
+              </h1>
+              <div
+                style={{
+                  fontSize: "clamp(14px, 4vw, 16px)",
+                }}
+                className="pb-[2vh] para-font font-[400] text-black flex flex-col gap-4"
+              >
+                <div className="">
+                  <h2>California residents have the right to:</h2>
+                  <ul className="list-[inherit] ml-6">
+                    <li>Know what personal data is collected</li>
+                    <li>Request access, correction, or deletion</li>
+                    <li>Opt out of sale/sharing (Sayy does neither)</li>
+                    <li>
+                      Limit sensitive information use (we don’t collect it)
+                    </li>
+                  </ul>
+                </div>
+                <div className="mt-4">
+                  <h2>
+                    Submit requests at{" "}
+                    <a href="https://sayy.ai/privacy">
+                      https://sayy.ai/privacy
+                    </a>{" "}
+                  </h2>
+                </div>
+              </div>
+            </article>
+
+            {/* Appendix E – AI Processing Notice */}
+            <article className="flex flex-col w-full">
+              <h1
+                style={{
+                  fontSize: "clamp(16px, 4vw, 18px)",
+                }}
+                className="text-black pb-2 font-[600] main-font"
+              >
+                Appendix E – AI Processing Notice
+              </h1>
+              <div
+                style={{
+                  fontSize: "clamp(14px, 4vw, 16px)",
+                }}
+                className="pb-[2vh] para-font font-[400] text-black flex flex-col gap-4"
+              >
+                <div className="mt-4">
+                  <h2>Sayy integrates LLMs as part of its services.</h2>
+                </div>
+                <div className="">
+                  <h2>Model Providers:</h2>
+                  <ul className="list-[inherit] ml-6">
+                    <li>OpenAI GPT Models via API</li>
+                    <li>Meta LLaMA Models hosted internally by Sayy</li>
+                  </ul>
+                </div>
+                <div className="">
+                  <h2>Input Handling:</h2>
+                  <ul className="list-[inherit] ml-6">
+                    <li>Inputs (prompts) are routed securely to models</li>
+                    <li>Outputs are optionally logged for QA/debugging</li>
+                    <li>OpenAI may retain transient logs (per their policy)</li>
+                    <li>Meta models run isolated and do not share data externally</li>
+                  </ul>
+                </div>
+                <div className="">
+                  <h2>What We Don’t Do:</h2>
+                  <ul className="list-[inherit] ml-6">
+                    <li>No prompts are used to train any model unless you explicitly opt in</li>
+                    <li>We do not sell or monetize your inputs or outputs</li>
+                  </ul>
+                </div>
+                 <div className="">
+                  <h2>LLaMA inferences stay 100% within Sayy’s environment</h2>
+                </div>
+              </div>
+            </article>
+
+
+            {/* orange small footer  */}
+            <div className="bg-[#FFD2BA] text-black w-full border border-black px-2 py-8 text-center">
+              <h1 className="para-font font-[500] text-[16px]">Thank you for trusting Sayy.ai. We are committed to protecting your data and providing a secure, transparent AI experience.</h1>
+            </div>
           </div>
         </HeroSection>
       </section>
-
       <footer className="practial-section w-full bg-[#ECECEC] border border-[#000000] [@media(max-width:800px)]:px-0 px-1 [@media(max-width:800px)]:py-0 py-1">
         <FooterSection>
           <FooterUpper>

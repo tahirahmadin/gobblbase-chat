@@ -54,6 +54,7 @@ import Overview from "./pages/admin/TabsComponent/Dashboard/Overview";
 import Support from "./pages/admin/Support";
 import Team from "./pages/admin/TabsComponent/Account/Team";
 import PrivacyPolicy from "./pages/landing/PrivacyPolicy";
+import TermConditions from "./pages/landing/TermConditions";
 
 // Add type definition for window
 declare global {
@@ -233,6 +234,7 @@ function App() {
                     <Route path="/admin/*" element={<Dashboard />} />
                     <Route path="/pricing" element={<Pricing />} />
                     <Route path="/privacy" element={<PrivacyPolicy />} />
+                    <Route path="/terms-condition" element={<TermConditions />} />
                     <Route path="/" element={<Home />} />
                   </>
                 )}
