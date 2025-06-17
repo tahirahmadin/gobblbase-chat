@@ -185,7 +185,7 @@ function CustomerBookingPage() {
   );
 }
 
-function App() {
+const App = () => {
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
@@ -198,6 +198,18 @@ function App() {
                   <Route path="*" element={<Maintenance />} />
                 ) : (
                   <>
+                    {/* Bot route should be first to take precedence */}
+                    <Route
+                      path="/:botUsername"
+                      element={
+                        <PublicChat
+                          chatHeight={null}
+                          previewConfig={null}
+                          isPreview={false}
+                          screenName=""
+                        />
+                      }
+                    />
                     <Route path="/admin/signup" element={<Login />} />
                     <Route
                       path="/admin/dashboard/create-bot"
@@ -210,17 +222,6 @@ function App() {
                     <Route
                       path="/reschedule/:bookingId"
                       element={<RescheduleBookingWrapper />}
-                    />
-                    <Route
-                      path=":botUsername"
-                      element={
-                        <PublicChat
-                          chatHeight={null}
-                          previewConfig={null}
-                          isPreview={false}
-                          screenName=""
-                        />
-                      }
                     />
                     <Route
                       path="/admin/payment-success"
@@ -243,6 +244,6 @@ function App() {
       </QueryClientProvider>
     </HelmetProvider>
   );
-}
+};
 
 export default App;

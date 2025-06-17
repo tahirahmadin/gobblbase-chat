@@ -16,6 +16,7 @@ import { useProductsLogic } from "../../hooks/useProductsLogic";
 import { useContactLogic } from "../../hooks/useContactLogic";
 import { useChatMessages } from "../../hooks/useChatMessages";
 import { useFeatureNotifications } from "../../hooks/useFeatureNotifications";
+import { getAgentDetails } from "../../lib/serverActions";
 
 type Screen = "about" | "chat" | "browse";
 
@@ -54,6 +55,7 @@ export default function PublicChat({
   const [error, setError] = useState<Error | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [botData, setBotData] = useState<any>(null);
 
   useEffect(() => {
     if (!isPreview) {
@@ -350,6 +352,8 @@ export default function PublicChat({
   useEffect(() => {
     const init = async () => {
       try {
+        console.log("Initializing PublicChat for bot:", botUsername);
+
         // Check storage access
         try {
           localStorage.setItem("test", "test");
@@ -359,7 +363,21 @@ export default function PublicChat({
           setStorageError(true);
         }
 
-        // Set loading to false after initialization
+        // Fetch bot data
+        if (botUsername) {
+          console.log("Fetching bot data...");
+          const data = await getAgentDetails(botUsername, true, false);
+          console.log("Bot data received:", data);
+
+          if (!data || data.error) {
+            throw new Error(data?.error || "Failed to load bot data");
+          }
+
+          setBotData(data);
+        } else {
+          throw new Error("No bot username provided");
+        }
+
         setIsLoading(false);
       } catch (error) {
         console.error("Error initializing chat:", error);
@@ -371,7 +389,15 @@ export default function PublicChat({
     };
 
     init();
-  }, []);
+  }, [botUsername]);
+
+  // Debug render
+  console.log("PublicChat render:", {
+    isLoading,
+    loadError,
+    hasBotData: !!botData,
+    botUsername,
+  });
 
   if (loadError) {
     return (
@@ -400,131 +426,16 @@ export default function PublicChat({
     );
   }
 
-  const handleFeatureClick = async (featureText: string): Promise<void> => {
-    if (!currentConfig?.agentId) return;
-
-    const userMsg: ChatMessage = {
-      id: Date.now().toString(),
-      content: featureText,
-      timestamp: new Date(),
-      sender: "user",
-    };
-    setMessages((m) => [...m, userMsg]);
-    setMessage("");
-    setShowCues(false);
-    scrollToBottom();
-
-    const messageCountBefore = messages.length + 1;
-    let responseContent = "";
-
-    const lowerFeatureText = featureText.toLowerCase();
-
-    const isBookingRequest = lowerFeatureText.includes("booking appointments");
-    const isProductRequest = lowerFeatureText.includes("browsing our products");
-    const isContactRequest = lowerFeatureText.includes("contacting us");
-    const isKnowledgeBaseRequest = lowerFeatureText.includes(
-      "answering questions about our knowledge base"
-    );
-
-    if (isContactRequest) {
-      const contactHandled = await handleContactRequest(
-        featureText,
-        setMessages,
-        scrollToBottom,
-        currentConfig?.customerLeadFlag
-      );
-
-      if (contactHandled) {
-        setTimeout(() => {
-          const currentMessages = messages;
-          const newMessages = currentMessages.slice(messageCountBefore);
-          const latestBotMessage = newMessages.find(
-            (msg) => msg.sender === "agent"
-          );
-          responseContent = latestBotMessage
-            ? latestBotMessage.content
-            : "Contact collection initiated";
-          logConversation(featureText, responseContent);
-        }, 200);
-        return;
-      }
-    }
-
-    if (isBookingRequest) {
-      const bookingHandled = handleBookingRequest(
-        featureText,
-        setMessages,
-        scrollToBottom
-      );
-
-      if (bookingHandled) {
-        responseContent = "Booking calendar displayed";
-        logConversation(featureText, responseContent);
-        return;
-      }
-    }
-
-    if (isProductRequest) {
-      const productHandled = handleProductRequest(
-        featureText,
-        setMessages,
-        scrollToBottom
-      );
-
-      if (productHandled) {
-        responseContent = "Product catalog displayed";
-        logConversation(featureText, responseContent);
-        return;
-      }
-    }
-
-    if (isKnowledgeBaseRequest) {
-      try {
-        await handleAIResponse(featureText);
-
-        setTimeout(() => {
-          const currentMessages = messages;
-          const latestAgentMessage = currentMessages
-            .slice(messageCountBefore)
-            .find((msg) => msg.sender === "agent");
-
-          if (latestAgentMessage) {
-            responseContent = latestAgentMessage.content;
-            logConversation(featureText, responseContent);
-          }
-        }, 1000);
-      } catch (error) {
-        console.error("Error handling AI response:", error);
-        responseContent = "Error occurred while processing request";
-        logConversation(featureText, responseContent);
-      }
-    }
-  };
-
-  const hasClickableFeatures = (content: string): boolean => {
-    const clickableFeatures = [
-      "Booking appointments",
-      "Browsing our products",
-      "Contacting us",
-      "Answering questions about our knowledge base",
-    ];
-    return clickableFeatures.some((feature) => content.includes(feature));
-  };
-
-  if (botConfigError && !isPreview) {
+  if (!botData) {
     return (
-      <div className="w-full h-screen flex items-center justify-center">
-        <div
-          className="w-full h-full max-w-md shadow-2xl overflow-hidden flex flex-col relative"
-          style={{
-            height: previewConfig
-              ? chatHeight
-                ? chatHeight
-                : 620
-              : `${viewportHeight}px`,
-          }}
-        >
-          <BotNotFound theme={theme} />
+      <div className="flex items-center justify-center min-h-screen p-4">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-lg w-full text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">
+            Bot Not Found
+          </h2>
+          <p className="text-gray-600 mb-4">
+            The requested bot could not be found.
+          </p>
         </div>
       </div>
     );

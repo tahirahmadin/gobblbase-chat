@@ -12,8 +12,8 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: "src/utils/metaConfig.ts",
-          dest: "dist",
+          src: "public/*",
+          dest: "",
         },
       ],
     }),
@@ -47,5 +47,10 @@ export default defineConfig({
       },
     },
     chunkSizeWarningLimit: 1000,
+  },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
   },
 });
