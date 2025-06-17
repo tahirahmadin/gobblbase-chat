@@ -250,11 +250,11 @@ export async function getTeamDetails(adminId: string, clientId: string) {
 }
 
 export async function getTeamAnalytics(
-  clientId: string
+  agentId: string
 ): Promise<AnalyticsData> {
   try {
-    let requestParams = `teamId=${clientId}`;
-    let url = `${apiUrl}/client/getAnalytics?${requestParams}`;
+    let requestParams = `agentId=${agentId}`;
+    let url = `${apiUrl}/agent/getAnalytics?${requestParams}`;
 
     // HMAC Response
     let hmacResponse = getHmacMessageFromBody(requestParams);
