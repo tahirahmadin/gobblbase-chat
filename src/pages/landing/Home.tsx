@@ -1443,12 +1443,12 @@ const Home = () => {
               </div>
               <article className="left-side w-[100%] lg:w-[fit-content] z-10">
                 <Subheadline>
-                  <div className="headline-para mt-4 mb-10 lg:mt-0 lg:mb-8 w-[100%] text-center lg:text-start">
-                    <span className="flex flex-col space-y-2 ">
-                      <h1 className="para-font text-[2.7rem] font-[700] text-[#aeb8ff]">
+                  <div className="headline-para mt-14 mb-10 lg:mt-0 lg:mb-8 w-[100%] text-center lg:text-start">
+                    <span className="flex flex-col space-y-1">
+                      <h1 className="para-font text-[2.4rem] font-[700] text-[#aeb8ff]">
                         Sayy AI to your new Employee!
                       </h1>
-                      <p className="para-font text-[1.4rem]">
+                      <p className="para-font text-[1.3rem]">
                         Handle sales, support, and scheduling—all{" "}
                         <br className="hidden md:block" /> in one place.
                       </p>
@@ -1463,7 +1463,7 @@ const Home = () => {
                       />
                     </span>
 
-                    <div className="btns grid grid-cols-2 gap-x-4 gap-y-8 mt-4 place-items-center">
+                    <div className="btns grid grid-cols-2 gap-x-4 gap-y-6 mt-2 place-items-center">
                       {buttonData.map((btn, id) => {
                         const isSelected = selectedBrains.includes(id);
                         return (
@@ -1497,7 +1497,7 @@ const Home = () => {
                       })}
                     </div>
 
-                    <div className="relative z-10 mt-12">
+                    <div className="relative z-10 mt-6">
                       <CTAButton onClick={() => navigate("/admin")}>
                         LAUNCH MY FREE AI-MPLOYEE
                         <ChevronRight size={20} className="ml-2" />
