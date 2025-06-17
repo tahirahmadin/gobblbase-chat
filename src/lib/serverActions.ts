@@ -294,19 +294,22 @@ export async function getAgentDetails(
       throw new Error("Either agentId or username must be provided");
     }
 
-    // Construct the API URL properly
+    let requestParams = `inputParam=${inputParam}&isfetchByUsername=${isfetchByUsername}`;
+    let url = `${apiUrl}/agent/getAgentDetails?${requestParams}`;
 
-    const url = `${apiUrl}/api/agent/details`;
+    let hmacResponse = getHmacMessageFromBody(requestParams);
+    if (!hmacResponse) {
+      return null;
+    }
 
     const response = await fetch(url, {
-      method: "POST",
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
+        HMAC: hmacResponse.hmacHash,
+        Timestamp: hmacResponse.currentTimestamp,
       },
-      body: JSON.stringify({
-        inputParam,
-        isfetchByUsername,
-      }),
+      credentials: "include",
     });
 
     if (!response.ok) {
