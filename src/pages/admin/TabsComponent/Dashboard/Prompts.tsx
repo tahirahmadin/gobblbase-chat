@@ -77,13 +77,13 @@ const Button = styled.button`
   }
 
   &:disabled {
-    background: #CDCDCD;
+    background: #cdcdcd;
     border: 1px solid #7d7d7d;
-    color: #7D7D7D;
+    color: #7d7d7d;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #CDCDCD;
+    background: #cdcdcd;
     border: 1px solid #7d7d7d;
   }
 `;
@@ -122,7 +122,6 @@ const Card = styled.div`
     }
 `;
 
-
 const GENERIC_LLM_SYSTEM_PROMPT = (context: string) =>
   `You are an AI assistant that creates specific, actionable prompts based on document content. 
 
@@ -141,7 +140,6 @@ Document Content:
 ${context}
 
 Output format should be a JSON array of strings as example: ["Key findings?", "Implementation steps?", "Main topics?", "Cost details?", "Timeline info?", "Next actions?", "Risk factors?", "Contact info?"]`;
-
 
 // Utility to extract JSON array from markdown code block
 function extractJsonArray(str: string): string {
@@ -249,28 +247,6 @@ const Prompts = () => {
     setNewPrompt("");
     // Do NOT add to selectedPrompts automatically
     // Do NOT update previewConfig here
-  };
-
-  const handleRemovePrompt = (prompt: string, isCustom: boolean) => {
-    let updatedSelected = [...selectedPrompts];
-    let updatedCustom = [...customPrompts];
-
-    if (isCustom) {
-      updatedCustom = customPrompts.filter((p) => p !== prompt);
-      setCustomPrompts(updatedCustom);
-      // Also remove from selectedPrompts if present
-      updatedSelected = updatedSelected.filter((p) => p !== prompt);
-      setSelectedPrompts(updatedSelected);
-    } else {
-      updatedSelected = selectedPrompts.filter((p) => p !== prompt);
-      setSelectedPrompts(updatedSelected);
-    }
-
-    // Update preview config with the new state (only selectedPrompts)
-    setPreviewConfig({
-      ...activeBotData,
-      prompts: updatedSelected,
-    });
   };
 
   const handleSavePrompts = async () => {
@@ -436,7 +412,10 @@ const Prompts = () => {
                         </div>
                       </>
                     ) : (
-                      <button onClick={() => handlePromptSelect(prompt)} className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"></button>
+                      <button
+                        onClick={() => handlePromptSelect(prompt)}
+                        className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"
+                      ></button>
                     )}
                     <button
                       onClick={() => handlePromptSelect(prompt)}
@@ -484,7 +463,10 @@ const Prompts = () => {
                         </div>
                       </>
                     ) : (
-                      <button onClick={() => handlePromptSelect(prompt)} className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"></button>
+                      <button
+                        onClick={() => handlePromptSelect(prompt)}
+                        className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"
+                      ></button>
                     )}
                     <button
                       onClick={() => handlePromptSelect(prompt)}

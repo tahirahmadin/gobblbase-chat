@@ -27,7 +27,7 @@ export default function InputSection({
       {/* Input Field */}
       <div className="relative flex items-center">
         <input
-          className={`w-full pl-4 pr-12 py-3 rounded-full  text-sm focus:outline-none ${
+          className={`w-full pl-4 pr-12 py-3 rounded-full text-sm focus:outline-none ${
             theme.isDark ? "placeholder-gray-900" : "placeholder-gray-100"
           }`}
           placeholder="Ask away..."

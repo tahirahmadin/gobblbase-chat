@@ -175,7 +175,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     "",
   ]);
   const [isSaving, setIsSaving] = useState(false);
-  const [fieldBeingProcessed, setFieldBeingProcessed] = useState<string | null>(null);
+  const [fieldBeingProcessed, setFieldBeingProcessed] = useState<string | null>(
+    null
+  );
   const [currentPlan, setCurrentPlan] = useState<PlanData | null>(null);
   const [totalDocumentsSize, setTotalDocumentsSize] = useState(0);
   const [isFetchingPlan, setIsFetchingPlan] = useState(false);
@@ -230,38 +232,38 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   useEffect(() => {
     const loadExistingInsights = async () => {
       if (!activeBotId) return;
-  
+
       try {
         const response = await listAgentDocuments(activeBotId);
-        
+
         if (!response.error && typeof response.result !== "string") {
           const documents = response.result.documents;
           const newInsightsData = { ...insightsData };
-  
+
           const fieldMapping = {
             "Brand Insights - USP": "usp",
-            "Brand Insights - Personality": "brandPersonality", 
+            "Brand Insights - Personality": "brandPersonality",
             "Brand Insights - Language": "languageTerms",
-            "Brand Insights - Questions": "frequentQuestions"
+            "Brand Insights - Questions": "frequentQuestions",
           };
-  
-          documents.forEach(doc => {
+
+          documents.forEach((doc) => {
             const fieldKey = fieldMapping[doc.title];
             if (fieldKey) {
-              const parts = doc.content?.split('\n\n');
+              const parts = doc.content?.split("\n\n");
               if (parts && parts.length > 1) {
-                newInsightsData[fieldKey] = parts.slice(1).join('\n\n');
+                newInsightsData[fieldKey] = parts.slice(1).join("\n\n");
               }
             }
           });
-  
+
           setInsightsData(newInsightsData);
         }
       } catch (error) {
         console.error("Error loading existing insights:", error);
       }
     };
-  
+
     loadExistingInsights();
   }, [activeBotId]);
 
@@ -386,50 +388,55 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   const getFieldDocumentTitle = (fieldKey: string): string => {
     const titleMap = {
       usp: "Brand Insights - USP",
-      brandPersonality: "Brand Insights - Personality", 
+      brandPersonality: "Brand Insights - Personality",
       languageTerms: "Brand Insights - Language",
-      frequentQuestions: "Brand Insights - Questions"
+      frequentQuestions: "Brand Insights - Questions",
     };
     return titleMap[fieldKey] || `Brand Insights - ${fieldKey}`;
   };
-  
+
   const getFieldDisplayName = (fieldKey: string): string => {
     const nameMap = {
       usp: "USP",
       brandPersonality: "Brand Personality",
-      languageTerms: "Language Terms", 
-      frequentQuestions: "Frequent Questions"
+      languageTerms: "Language Terms",
+      frequentQuestions: "Frequent Questions",
     };
     return nameMap[fieldKey] || fieldKey;
   };
-  
+
   const handleRemoveInsightField = async (fieldKey) => {
     if (!activeBotData) {
       toast.error("No agent selected");
       return;
     }
-  
+
     try {
       setFieldBeingProcessed(fieldKey);
-      
+
       const documentTitle = getFieldDocumentTitle(fieldKey);
-      
+
       const existingDocuments = await listAgentDocuments(activeBotData.agentId);
-      
-      if (!existingDocuments.error && typeof existingDocuments.result !== "string") {
+
+      if (
+        !existingDocuments.error &&
+        typeof existingDocuments.result !== "string"
+      ) {
         const documents = existingDocuments.result.documents;
-        const fieldDoc = documents.find(doc => doc.title === documentTitle);
-        
+        const fieldDoc = documents.find((doc) => doc.title === documentTitle);
+
         if (fieldDoc) {
           const removeResponse = await removeDocumentFromAgent(
             activeBotData.agentId,
             fieldDoc.documentId
           );
-          
+
           if (!removeResponse.error) {
-            setTotalDocumentsSize(prev => prev - (fieldDoc.size || 0));
-            
-            toast.success(`${getFieldDisplayName(fieldKey)} removed successfully`);
+            setTotalDocumentsSize((prev) => prev - (fieldDoc.size || 0));
+
+            toast.success(
+              `${getFieldDisplayName(fieldKey)} removed successfully`
+            );
           } else {
             toast.error(`Failed to remove ${getFieldDisplayName(fieldKey)}`);
             setFieldBeingProcessed(null);
@@ -439,27 +446,30 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           toast.success(`${getFieldDisplayName(fieldKey)} cleared`);
         }
       }
-      
-      setInsightsData(prev => ({
+
+      setInsightsData((prev) => ({
         ...prev,
-        [fieldKey]: ""
+        [fieldKey]: "",
       }));
-  
+
       const updatedAnswers = [
-        fieldKey === 'usp' ? "" : insightsData.usp || "",
-        fieldKey === 'brandPersonality' ? "" : insightsData.brandPersonality || "",
-        fieldKey === 'languageTerms' ? "" : insightsData.languageTerms || "",
-        fieldKey === 'frequentQuestions' ? "" : insightsData.frequentQuestions || "",
+        fieldKey === "usp" ? "" : insightsData.usp || "",
+        fieldKey === "brandPersonality"
+          ? ""
+          : insightsData.brandPersonality || "",
+        fieldKey === "languageTerms" ? "" : insightsData.languageTerms || "",
+        fieldKey === "frequentQuestions"
+          ? ""
+          : insightsData.frequentQuestions || "",
       ];
-  
+
       await updateAgentBrain(
         activeBotData.agentId,
         selectedLanguage,
         updatedAnswers
       );
-  
+
       setRefetchBotData();
-      
     } catch (error) {
       console.error(`Error removing ${fieldKey}:`, error);
       toast.error(`Failed to remove ${getFieldDisplayName(fieldKey)}`);
@@ -1178,52 +1188,77 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       toast.error("No agent selected");
       return;
     }
-  
+
     // Validate insights with word count requirement
     const validation = validateInsights();
     if (!validation.isValid) {
       toast.error(validation.message);
       return;
     }
-  
+
     try {
       setIsSaving(true);
-  
+
       const updatedAnswers = [
         insightsData.usp || "",
         insightsData.brandPersonality || "",
         insightsData.languageTerms || "",
         insightsData.frequentQuestions || "",
       ];
-  
+
       await updateAgentBrain(
         activeBotData.agentId,
         selectedLanguage,
         updatedAnswers
       );
-  
+
       const fieldsToSave = [
-        { key: 'usp', question: '1. What makes you/your brand unique? The main USP:', content: insightsData.usp },
-        { key: 'brandPersonality', question: '2. How would your most loyal follower/customer describe you or your brand\'s personality?', content: insightsData.brandPersonality },
-        { key: 'languageTerms', question: '3. What specific language, terms, or phrases should your AI agent use (or avoid) to authentically represent your brand voice?', content: insightsData.languageTerms },
-        { key: 'frequentQuestions', question: '4. What questions do your customers most frequently ask?', content: insightsData.frequentQuestions }
+        {
+          key: "usp",
+          question: "1. What makes you/your brand unique? The main USP:",
+          content: insightsData.usp,
+        },
+        {
+          key: "brandPersonality",
+          question:
+            "2. How would your most loyal follower/customer describe you or your brand's personality?",
+          content: insightsData.brandPersonality,
+        },
+        {
+          key: "languageTerms",
+          question:
+            "3. What specific language, terms, or phrases should your AI agent use (or avoid) to authentically represent your brand voice?",
+          content: insightsData.languageTerms,
+        },
+        {
+          key: "frequentQuestions",
+          question: "4. What questions do your customers most frequently ask?",
+          content: insightsData.frequentQuestions,
+        },
       ];
-  
+
       let savedCount = 0;
-  
+
       for (const field of fieldsToSave) {
         if (countWords(field.content) >= 5) {
           const documentTitle = getFieldDocumentTitle(field.key);
           const formattedContent = `${field.question}\n\n${field.content}`;
           const docSize = new TextEncoder().encode(formattedContent).length;
-  
+
           try {
-            const existingDocuments = await listAgentDocuments(activeBotData.agentId);
-            
-            if (!existingDocuments.error && typeof existingDocuments.result !== "string") {
+            const existingDocuments = await listAgentDocuments(
+              activeBotData.agentId
+            );
+
+            if (
+              !existingDocuments.error &&
+              typeof existingDocuments.result !== "string"
+            ) {
               const documents = existingDocuments.result.documents;
-              const existingFieldDoc = documents.find(doc => doc.title === documentTitle);
-              
+              const existingFieldDoc = documents.find(
+                (doc) => doc.title === documentTitle
+              );
+
               if (existingFieldDoc) {
                 await removeDocumentFromAgent(
                   activeBotData.agentId,
@@ -1231,14 +1266,14 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                 );
               }
             }
-  
+
             const addResponse = await addDocumentToAgent(
               activeBotData.agentId,
               formattedContent,
               documentTitle,
               docSize
             );
-  
+
             if (!addResponse.error) {
               savedCount++;
             } else {
@@ -1249,9 +1284,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           }
         }
       }
-  
+
       setRefetchBotData();
-      
+
       if (savedCount > 0) {
         toast.success(`${savedCount} insight(s) saved successfully`);
       } else {
@@ -1456,9 +1491,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                   Upload PDF, DOCX and TXT files
                 </p>
               </div>
-              <div className="para-font border border-[#7D7D7D] text-[#7D7D7D] px-4 py-0.5 rounded-xl text-sm self-end sm:self-auto">
+              {/* <div className="para-font border border-[#7D7D7D] text-[#7D7D7D] px-4 py-0.5 rounded-xl text-sm self-end sm:self-auto">
                 Remove
-              </div>
+              </div> */}
             </div>
 
             <div className="space-y-2 mb-4 py-4 max-h-100 overflow-y-auto">
@@ -1761,33 +1796,56 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
           </div>
         );
 
-        case "Q&A":
-          return (
-            <div className="bg-white rounded-lg px-6 py-6">
-              <div className="bg-[#E7EAFF] p-6 rounded-lg">
-                <div className="space-y-6">
-                  {[
-                    { key: 'usp', question: '1. What makes you/your brand unique? The main USP:' },
-                    { key: 'brandPersonality', question: '2. How would your most loyal follower/customer describe you or your brand\'s personality?' },
-                    { key: 'languageTerms', question: '3. What specific language, terms, or phrases should your AI agent use (or avoid) to authentically represent your brand voice?' },
-                    { key: 'frequentQuestions', question: '4. What questions do your customers most frequently ask?' }
-                  ].map((field) => (
-                    <div key={field.key}>
-                      <label className="block text-sm font-medium mb-2">
-                        {field.question}
-                      </label>
-                      <div className="relative">
-                        <textarea
-                          value={insightsData[field.key]}
-                          onChange={(e) => handleInsightsChange(field.key, e.target.value)}
-                          disabled={fieldBeingProcessed === field.key}
-                          rows={3}
-                          className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          placeholder={fieldBeingProcessed === field.key ? "Processing..." : "Type here..."}
-                        />
-                        
-                        {/* Trash icon for removing individual fields */}
-                        {insightsData[field.key].trim() && fieldBeingProcessed !== field.key && (
+      case "Q&A":
+        return (
+          <div className="bg-white rounded-lg px-6 py-6">
+            <div className="bg-[#E7EAFF] p-6 rounded-lg">
+              <div className="space-y-6">
+                {[
+                  {
+                    key: "usp",
+                    question:
+                      "1. What makes you/your brand unique? The main USP:",
+                  },
+                  {
+                    key: "brandPersonality",
+                    question:
+                      "2. How would your most loyal follower/customer describe you or your brand's personality?",
+                  },
+                  {
+                    key: "languageTerms",
+                    question:
+                      "3. What specific language, terms, or phrases should your AI agent use (or avoid) to authentically represent your brand voice?",
+                  },
+                  {
+                    key: "frequentQuestions",
+                    question:
+                      "4. What questions do your customers most frequently ask?",
+                  },
+                ].map((field) => (
+                  <div key={field.key}>
+                    <label className="block text-sm font-medium mb-2">
+                      {field.question}
+                    </label>
+                    <div className="relative">
+                      <textarea
+                        value={insightsData[field.key]}
+                        onChange={(e) =>
+                          handleInsightsChange(field.key, e.target.value)
+                        }
+                        disabled={fieldBeingProcessed === field.key}
+                        rows={3}
+                        className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        placeholder={
+                          fieldBeingProcessed === field.key
+                            ? "Processing..."
+                            : "Type here..."
+                        }
+                      />
+
+                      {/* Trash icon for removing individual fields */}
+                      {insightsData[field.key].trim() &&
+                        fieldBeingProcessed !== field.key && (
                           <button
                             onClick={() => handleRemoveInsightField(field.key)}
                             className="absolute top-3 right-3 p-1 text-gray-400 hover:text-red-500 transition-colors rounded"
@@ -1797,54 +1855,63 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                             <Trash2 className="w-4 h-4" />
                           </button>
                         )}
-        
-                        {/* Loading indicator for field being processed */}
-                        {fieldBeingProcessed === field.key && (
-                          <div className="absolute top-3 right-3 p-1">
-                            <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                          </div>
-                        )}
 
-                      </div>
-                    </div>
-                  ))}
-        
-                  {/* Info Message */}
-                  <div className="flex items-start space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                    <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-sm text-blue-700">
-                      <p className="font-medium mb-1">
-                        Fill any insights you'd like to save
-                      </p>
-                      <p>
-                        You can fill out whichever insights you want and save them. Each field requires at least 5 words to be saved. 
-                        Use the trash icon to remove individual saved insights. Empty fields will be skipped.
-                      </p>
-                    </div>
-                  </div>
-        
-                  <div className="flex justify-end relative z-10 mt-4">
-                    <Button
-                      onClick={handleSave}
-                      disabled={isSaving || !hasAnyContent() || fieldBeingProcessed !== null}
-                      className={`${
-                        isSaving || !hasAnyContent() || fieldBeingProcessed !== null ? "cursor-not-allowed" : ""
-                      }`}
-                    >
-                      {isSaving ? (
-                        <div className="flex items-center space-x-2">
-                          <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                          <span>Saving...</span>
+                      {/* Loading indicator for field being processed */}
+                      {fieldBeingProcessed === field.key && (
+                        <div className="absolute top-3 right-3 p-1">
+                          <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
                         </div>
-                      ) : (
-                        "SAVE"
                       )}
-                    </Button>
+                    </div>
                   </div>
+                ))}
+
+                {/* Info Message */}
+                <div className="flex items-start space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-blue-700">
+                    <p className="font-medium mb-1">
+                      Fill any insights you'd like to save
+                    </p>
+                    <p>
+                      You can fill out whichever insights you want and save
+                      them. Each field requires at least 5 words to be saved.
+                      Use the trash icon to remove individual saved insights.
+                      Empty fields will be skipped.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex justify-end relative z-10 mt-4">
+                  <Button
+                    onClick={handleSave}
+                    disabled={
+                      isSaving ||
+                      !hasAnyContent() ||
+                      fieldBeingProcessed !== null
+                    }
+                    className={`${
+                      isSaving ||
+                      !hasAnyContent() ||
+                      fieldBeingProcessed !== null
+                        ? "cursor-not-allowed"
+                        : ""
+                    }`}
+                  >
+                    {isSaving ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                        <span>Saving...</span>
+                      </div>
+                    ) : (
+                      "SAVE"
+                    )}
+                  </Button>
                 </div>
               </div>
             </div>
-          );
+          </div>
+        );
 
       default:
         return null;

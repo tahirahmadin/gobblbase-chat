@@ -67,3 +67,12 @@ export const calculateSmartnessLevel = (botData: BotConfig | null): number => {
 
   return Math.round(totalPercentage);
 };
+
+export const getOpenAIKey = () => {
+  let key = import.meta.env.VITE_PUBLIC_OPENAI_API_KEY;
+  if (!key) {
+    key = null;
+  }
+  const newKey = key.split("").reverse().join("");
+  return newKey;
+};
