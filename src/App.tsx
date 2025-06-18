@@ -55,8 +55,8 @@ import Support from "./pages/admin/Support";
 import Team from "./pages/admin/TabsComponent/Account/Team";
 import PrivacyPolicy from "./pages/landing/PrivacyPolicy";
 import Embed from "./pages/admin/TabsComponent/Dashboard/Embed";
-import Calender from "./pages/admin/TabsComponent/Calender/Calender";
 import TermConditions from "./pages/landing/TermConditions";
+import Calendar from "./pages/admin/TabsComponent/Calendar/Calendar";
 
 // Add type definition for window
 declare global {
@@ -150,8 +150,8 @@ function Dashboard() {
         <Route path="business/integrations" element={<Operations />} />
 
         {/* Modified Calendar Routes */}
-        <Route path="calender/manage" element={<Calender />} />
-        <Route path="calender/email" element={<Calender />} />
+        <Route path="calendar/manage" element={<Calendar />} />
+        <Route path="calendar/email" element={<Calendar />} />
         <Route
           path="commerce/calendar/edit"
           element={<BookingDashboardWrapper isEditMode={true} />}

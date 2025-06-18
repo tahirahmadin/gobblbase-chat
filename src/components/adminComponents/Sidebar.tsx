@@ -168,13 +168,13 @@ const Sidebar = ({ onClose }: SidebarProps) => {
       ],
     },
     {
-      name: "Calender",
+      name: "Calendar",
       icon: <Users className="w-5 h-5" />,
-      path: "/admin/calender",
+      path: "/admin/calendar",
       expandable: true,
       subItems: [
-        { name: "Manage", path: "/admin/calender/manage" },
-        { name: "Email", path: "/admin/calender/email" },
+        { name: "Manage", path: "/admin/calendar/manage" },
+        { name: "Email", path: "/admin/calendar/email" },
       ],
     },
     {
