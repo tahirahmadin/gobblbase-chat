@@ -7,6 +7,7 @@ import { useAdminStore } from "../../../../store/useAdminStore";
 import { AnalyticsData } from "../../../../types";
 import { useNavigate } from "react-router-dom";
 import { calculateSmartnessLevel } from "../../../../utils/helperFn";
+import UsageSummary from "../../../../components/UsageSummary";
 
 const timeButton = [
   { id: "Income", value: "1D" },
@@ -60,7 +61,8 @@ const Overview = () => {
 
   const navigate = useNavigate();
   const { activeBotId, activeBotData } = useBotConfig();
-  const { adminId, clientData, activeTeamId } = useAdminStore();
+  const { adminId, clientData, activeTeamId, clientUsage, fetchClientUsage } =
+    useAdminStore();
   const [agentPicture, setAgentPicture] = useState<string | null>(null);
   const [smartnessLevel, setSmartnessLevel] = useState(0);
 
@@ -84,6 +86,12 @@ const Overview = () => {
 
     fetchAnalytics();
   }, [activeBotId]);
+
+  useEffect(() => {
+    if (activeTeamId) {
+      fetchClientUsage({ clientId: activeTeamId });
+    }
+  }, [activeTeamId, fetchClientUsage]);
 
   useEffect(() => {
     if (activeBotData?.logo) {
@@ -125,10 +133,7 @@ const Overview = () => {
     },
     {
       label: "Credits Used",
-      value: `${
-        (analyticsData?.totalCredits || 0) -
-        (analyticsData?.availableCredits || 0)
-      } / ${analyticsData?.totalCredits || 0}`,
+      value: analyticsData?.totalCredits,
     },
     {
       label: "Leads",
@@ -167,7 +172,7 @@ const Overview = () => {
                   Current Plan
                 </span>
                 <span className="font-medium text-lg">
-                  {analyticsData?.planId}
+                  {clientUsage?.usage.planId || analyticsData?.planId || "FREE"}
                 </span>
               </div>
               <div className="relative z-10">
@@ -191,28 +196,12 @@ const Overview = () => {
                 <span className="whitespace-nowrap text-gray-500 font-semibold text-sm">
                   Payments Setup
                 </span>
-                <span className="font-medium text-lg">
-                  {(() => {
-                    const activeMethods = [
-                      clientData?.paymentMethods.stripe.isActivated &&
-                        clientData?.paymentMethods.stripe.enabled &&
-                        "Stripe",
-                      clientData?.paymentMethods.crypto.enabled &&
-                        clientData?.paymentMethods.crypto.walletAddress &&
-                        "Crypto",
-                      clientData?.paymentMethods.razorpay.enabled && "Razorpay",
-                    ].filter(Boolean);
-
-                    if (activeMethods.length === 0) return "None";
-                    if (activeMethods.length > 1) return "MULTIPLE";
-                    return activeMethods[0];
-                  })()}
-                </span>
+                <span className="font-medium text-lg">Stripe</span>
               </div>
               <div className="relative z-10">
                 <Button
                   onClick={() => {
-                    navigate("/admin/account/payments");
+                    navigate("/admin/account/income");
                   }}
                   style={{
                     background: "#6aff97",
@@ -220,7 +209,7 @@ const Overview = () => {
                     minWidth: 100,
                   }}
                 >
-                  Modify
+                  Setup
                 </Button>
               </div>
             </div>
@@ -362,26 +351,24 @@ const Overview = () => {
           </div>
         </div>
       </div>
+
+      {/* Usage Summary Section - New */}
+      <div className="px-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-800">Team Overview</h3>
+          <button
+            onClick={() => navigate("/admin/account/usage")}
+            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+          >
+            View Detailed Usage →
+          </button>
+        </div>
+        <UsageSummary showDetails={true} />
+      </div>
+
       {/* Analytics Section */}
       <div className="p-6 bg-[#e9edfc] sm:rounded-xl">
-        {/* <div className="flex gap-2 mb-4 justify-center sm:justify-start">
-          {timeButton.map((timeBtn) => (
-            <button
-              key={timeBtn.id}
-              className={`px-4 py-1 rounded font-semibold rounded-lg
-                ${
-                  selectedButton === timeBtn.id
-                    ? "bg-black text-[#AEB8FF]"
-                    : "bg-transparent border border-black text-black"
-                }
-              `}
-              onClick={() => setSelectedButton(timeBtn.id)}
-            >
-              {timeBtn.value}
-            </button>
-          ))}
-        </div> */}
-        <div className="mb-4 font-semibold text-lg">Your Analytics</div>
+        <div className="mb-4 font-semibold text-lg">Agent Analytics</div>
 
         {isLoading ? (
           <div className="flex justify-center items-center h-56">
@@ -405,7 +392,9 @@ const Overview = () => {
                 >
                   <div className="text-2xl font-semibold">
                     {item?.value &&
-                      parseFloat(item.value.toString()).toFixed(2)}
+                      (typeof item.value === "string"
+                        ? item.value
+                        : parseFloat(item.value.toString()).toFixed(2))}
                   </div>
                   <div className="text-xs text-black mt-1">{item.label}</div>
                 </div>

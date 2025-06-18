@@ -2182,7 +2182,7 @@ export async function getStripeBillingSession(
   teamId: string
 ): Promise<string> {
   try {
-    let requestParams = `clientId=${adminId}&adminId=${teamId}`;
+    let requestParams = `clientId=${teamId}&adminId=${adminId}`;
     let url = `${apiUrl}/product/createBillingSession?${requestParams}`;
 
     // HMAC Response

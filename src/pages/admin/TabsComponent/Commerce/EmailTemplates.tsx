@@ -3,7 +3,7 @@ import { useBotConfig } from "../../../../store/useBotConfig";
 import { useAdminStore } from "../../../../store/useAdminStore";
 import TemplateEditor from "../Emails/TemplateEditor";
 import { toast } from "react-hot-toast";
-import { Eye } from "lucide-react";
+import { Eye, Loader2 } from "lucide-react";
 
 interface EmailTemplate {
   subText: string;
@@ -29,6 +29,7 @@ const EmailTemplates = ({ isCommerce }: { isCommerce?: boolean }) => {
     fetchEmailTemplates,
     updateEmailTemplate,
     setEmailTemplates,
+    isEmailTemplatesLoading,
   } = useAdminStore();
 
   const [saving, setSaving] = useState(false);
@@ -127,6 +128,27 @@ const EmailTemplates = ({ isCommerce }: { isCommerce?: boolean }) => {
     }
   };
 
+  if (isEmailTemplatesLoading) {
+    return (
+      <div className="max-full mx-auto h-full">
+        <div className="mt-4 p-6">
+          <h2 className="text-2xl font-semibold text-gray-900">
+            Email Templates
+          </h2>
+          <p className="text-gray-600 mt-1">
+            Tailor messages to match every customer action
+          </p>
+        </div>
+        <div className="flex items-center justify-center h-64">
+          <div className="flex items-center space-x-2 text-gray-500">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span className="text-lg">Loading templates...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!emailTemplates) {
     return <div>No templates found</div>;
   }
@@ -151,7 +173,7 @@ const EmailTemplates = ({ isCommerce }: { isCommerce?: boolean }) => {
         {/* Sidebar with scrolling */}
         <div className="w-full md:w-1/3 p-6">
           <div className="space-y-2">
-            {Object.entries(emailTemplates)
+            {Object.entries(emailTemplates!)
               .slice(isCommerce ? 0 : 5, isCommerce ? 5 : 7)
               .map(([key, value]) => {
                 const template = value as EmailTemplate;

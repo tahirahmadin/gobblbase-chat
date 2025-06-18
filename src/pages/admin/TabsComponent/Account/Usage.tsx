@@ -2,8 +2,17 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAdminStore } from "../../../../store/useAdminStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { ChevronDown, Loader2 } from "lucide-react";
+import {
+  ChevronDown,
+  Loader2,
+  TrendingUp,
+  TrendingDown,
+  Users,
+  CreditCard,
+} from "lucide-react";
 import { getStripeBillingSession } from "../../../../lib/serverActions";
+import { useUsageData } from "../../../../hooks/useUsageData";
+
 const timeFrames = [
   "All Time",
   "This Year",
@@ -11,6 +20,7 @@ const timeFrames = [
   "This Week",
   "Today",
 ];
+
 interface ClientUsageData {
   creditsInfo: {
     totalCredits: number;
@@ -55,17 +65,23 @@ const Usage = () => {
   const { adminId, clientUsage, fetchClientUsage, clientData, activeTeamId } =
     useAdminStore();
 
+  const {
+    creditsUsed,
+    totalCredits,
+    availableCredits,
+    totalAgents,
+    agentLimit,
+    totalTokens,
+    formatAgentLimit,
+  } = useUsageData();
+
   const [selectedAgent, setSelectedAgent] = useState("All Agents");
   const [timeFrame, setTimeFrame] = useState("All Time");
   const [currentPlan, setCurrentPlan] = useState("");
-  const [creditsUsed, setCreditsUsed] = useState(0);
-  const [totalCredits, setTotalCredits] = useState(0);
   const [agentsUsed, setAgentsUsed] = useState(0);
-  const [totalAgents, setTotalAgents] = useState(0);
   const [usageData, setUsageData] = useState<ClientUsageData | null>(null);
 
   const [loading, setLoading] = useState(true);
-  const [agentLimit, setAgentLimit] = useState(0);
   const [agentsList, setAgentsList] = useState<{ id: string; name: string }[]>(
     []
   );
@@ -81,6 +97,7 @@ const Usage = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isAgentDropdownOpen, setIsAgentDropdownOpen] = useState(false);
   const [billingLoading, setBillingLoading] = useState(false);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -98,11 +115,12 @@ const Usage = () => {
       }
     }
 
-  document.addEventListener("mousedown", handleClickOutside);
-  return () => {
-    document.removeEventListener("mousedown", handleClickOutside);
-  };
-}, []);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   useEffect(() => {
     const currentYear = new Date().getFullYear();
 
@@ -125,22 +143,20 @@ const Usage = () => {
 
   useEffect(() => {
     const fetchUsageData = async () => {
-      if (!adminId) return;
+      if (!activeTeamId) return;
 
       try {
         setLoading(true);
 
         if (!clientUsage) return;
         setUsageData(clientUsage);
-        setAgentLimit(clientUsage.usage.agentLimit);
-        setTotalAgents(clientUsage.totalAgentCount);
+        setAgentsUsed(clientUsage.totalAgentCount);
 
         const agents = clientUsage.usage.agentUsage.map((agent) => ({
           id: agent.agentId,
           name: agent.agentName,
         }));
         setAgentsList(agents);
-        setAgentsUsed(clientUsage.totalAgentCount);
 
         const dailyUsageCollection: DailyUsage[] = [];
 
@@ -170,11 +186,8 @@ const Usage = () => {
 
         if (clientData) {
           setCurrentPlan(clientData.planId);
-          setTotalCredits(clientData.creditsPerMonth);
-
-          const calculatedCreditsUsed =
-            clientData.creditsPerMonth - clientData.availableCredits;
-          setCreditsUsed(calculatedCreditsUsed);
+        } else if (clientUsage.usage.planId) {
+          setCurrentPlan(clientUsage.usage.planId);
         }
 
         generateUsageHistory(clientUsage, "All Agents", timeFrame);
@@ -188,7 +201,7 @@ const Usage = () => {
     };
 
     fetchUsageData();
-  }, [adminId]);
+  }, [activeTeamId, clientUsage]);
 
   useEffect(() => {
     if (dataInitialized && usageData) {
@@ -257,12 +270,6 @@ const Usage = () => {
 
     if (agent === "All Agents") {
       agentDailyUsage = [...allDailyUsage];
-      if (clientData) {
-        const calculatedCreditsUsed =
-          clientData.creditsPerMonth - clientData.availableCredits;
-        setCreditsUsed(calculatedCreditsUsed);
-        setTotalCredits(clientData.creditsPerMonth);
-      }
       setAgentsUsed(data.totalAgentCount);
       setSelectedAgentTokens(data.usage.totalTokensUsedAllAgents);
     } else {
@@ -276,14 +283,10 @@ const Usage = () => {
           (usage) => usage.agentId === selectedAgentId
         );
 
-        setCreditsUsed(selectedAgentData.totalTokensUsed);
-        setTotalCredits(0);
         setAgentsUsed(1);
         setSelectedAgentTokens(selectedAgentData.totalTokensUsed);
       } else {
         agentDailyUsage = [];
-        setCreditsUsed(0);
-        setTotalCredits(0);
         setAgentsUsed(0);
         setSelectedAgentTokens(0);
       }
@@ -454,10 +457,6 @@ const Usage = () => {
     }
   };
 
-  const formatAgentLimit = (limit: number) => {
-    return limit === 9999 ? "Unlimited" : limit.toString();
-  };
-
   const handleAgentChange = (agentName: string) => {
     setSelectedAgent(agentName);
     if (usageData) {
@@ -471,6 +470,7 @@ const Usage = () => {
       generateUsageHistory(usageData, selectedAgent, newTimeFrame);
     }
   };
+
   const navigate = useNavigate();
   const navigateToPlans = () => {
     navigate("/admin/account/plans");
@@ -506,14 +506,20 @@ const Usage = () => {
         {/* Filters */}
         <div className="flex flex-row justify-center gap-2 w-full sm:w-auto">
           {/* agent drop down  */}
-          <div className="relative w-30 xs:w-48 flex items-center z-[10]"  ref={agentDropdownRef}>
+          <div
+            className="relative w-30 xs:w-48 flex items-center z-[10]"
+            ref={agentDropdownRef}
+          >
             <button
               onClick={() => setIsAgentDropdownOpen(!isAgentDropdownOpen)}
               className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
             >
               {selectedAgent || "All Agents"}
             </button>
-            <div onClick={() => setIsAgentDropdownOpen(!isAgentDropdownOpen)} className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
+            <div
+              onClick={() => setIsAgentDropdownOpen(!isAgentDropdownOpen)}
+              className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0"
+            >
               <ChevronDown
                 size={20}
                 className={`text-[#000000] stroke-[3px] transition-transform ${
@@ -552,7 +558,10 @@ const Usage = () => {
             )}
           </div>
           {/* all time drop down  */}
-          <div className="relative w-30 xs:w-48 flex items-center z-[10]"  ref={timeDropdownRef}>
+          <div
+            className="relative w-30 xs:w-48 flex items-center z-[10]"
+            ref={timeDropdownRef}
+          >
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
@@ -561,7 +570,7 @@ const Usage = () => {
             </button>
             <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
               <ChevronDown
-              onClick={() => setIsOpen(!isOpen)}
+                onClick={() => setIsOpen(!isOpen)}
                 size={20}
                 className={`text-[#000000] stroke-[3px] transition-transform  ${
                   isOpen ? "rotate-180" : ""
@@ -575,7 +584,7 @@ const Usage = () => {
                   <button
                     key={frame}
                     onClick={() => {
-                      handleTimeFrameChange(frame); // directly call with string
+                      handleTimeFrameChange(frame);
                       setIsOpen(false);
                     }}
                     className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
@@ -641,20 +650,27 @@ const Usage = () => {
           </div>
         </div>
 
-        {/* Credits Used */}
+        {/* Credits Used - Enhanced */}
         <div className="bg-[#D4DEFF] rounded-lg p-4 flex flex-col justify-between flex-1 w-[220px] max-w-[100%] basis-[220px]">
           <div className="flex items-center mb-2">
-            <span className="text-2xl font-bold mr-2">{creditsUsed}</span>
+            <CreditCard className="w-5 h-5 mr-2 text-blue-600" />
+            <span className="text-2xl font-bold mr-2">
+              {selectedAgent === "All Agents"
+                ? creditsUsed.toLocaleString()
+                : selectedAgentTokens.toLocaleString()}
+            </span>
             <span className="text-gray-700">
-              {selectedAgent === "All Agents" && totalCredits > 0
-                ? `/ ${totalCredits.toLocaleString()} Credits used`
-                : "Credits used"}
+              {selectedAgent === "All Agents"
+                ? totalCredits > 0
+                  ? `/ ${totalCredits.toLocaleString()} Credits used`
+                  : "Credits used"
+                : "Tokens used"}
             </span>
           </div>
           {selectedAgent === "All Agents" && totalCredits > 0 && (
             <div className="w-full h-3 bg-white rounded-full shadow-[inset_0_3px_3px_0_rgba(0,0,0,0.25)]">
               <div
-                className="h-3   bg-[#4D65FF] border border-black rounded-full"
+                className="h-3 bg-[#4D65FF] border border-black rounded-full"
                 style={{
                   width: `${
                     totalCredits > 0 ? (creditsUsed / totalCredits) * 100 : 0
@@ -663,11 +679,22 @@ const Usage = () => {
               ></div>
             </div>
           )}
+          {selectedAgent === "All Agents" && (
+            <div className="text-xs text-gray-600 mt-1">
+              Available: {availableCredits.toLocaleString()} credits
+            </div>
+          )}
+          {selectedAgent !== "All Agents" && (
+            <div className="text-xs text-gray-600 mt-1">
+              {selectedAgent} usage
+            </div>
+          )}
         </div>
 
-        {/* Agents Used */}
+        {/* Agents Used - Enhanced */}
         <div className="bg-[#D4DEFF] rounded-lg p-4 flex flex-col justify-between flex-1 w-[220px] max-w-[100%] basis-[220px]">
           <div className="flex items-center mb-2">
+            <Users className="w-5 h-5 mr-2 text-blue-600" />
             <span className="text-2xl font-bold mr-2">{agentsUsed}</span>
             <span className="text-gray-700">
               {selectedAgent === "All Agents"
@@ -694,6 +721,71 @@ const Usage = () => {
           )}
         </div>
       </div>
+
+      {/* Agent Usage Breakdown - New Section */}
+      {selectedAgent === "All Agents" && usageData && (
+        <div className="mb-6">
+          <h3 className="text-lg font-bold mb-4">Agent Usage Breakdown</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {usageData.usage.agentUsage.map((agent) => (
+              <div
+                key={agent.agentId}
+                className="bg-white border rounded-lg p-4 shadow-sm"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-semibold text-gray-800">
+                    {agent.agentName}
+                  </h4>
+                  <span className="text-sm text-gray-500">
+                    ID: {agent.agentId.slice(0, 8)}...
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">
+                      Total Tokens Used:
+                    </span>
+                    <span className="font-semibold">
+                      {agent.totalTokensUsed.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">
+                      Usage Sessions:
+                    </span>
+                    <span className="font-semibold">
+                      {agent.usageData.length}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full"
+                      style={{
+                        width: `${
+                          usageData.usage.totalTokensUsedAllAgents > 0
+                            ? (agent.totalTokensUsed /
+                                usageData.usage.totalTokensUsedAllAgents) *
+                              100
+                            : 0
+                        }%`,
+                      }}
+                    ></div>
+                  </div>
+                  <div className="text-xs text-gray-500 text-center">
+                    {usageData.usage.totalTokensUsedAllAgents > 0
+                      ? `${(
+                          (agent.totalTokensUsed /
+                            usageData.usage.totalTokensUsedAllAgents) *
+                          100
+                        ).toFixed(1)}% of total usage`
+                      : "0% of total usage"}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Usage History */}
       <div className="w-[92vw] lg:w-full">
