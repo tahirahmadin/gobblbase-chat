@@ -161,7 +161,7 @@ const EmailTemplates = ({ isCommerce }: { isCommerce?: boolean }) => {
                     key={key}
                     className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition border ${
                       selectedId === key && template.isActive
-                        ? "bg-[#EAEFFF] border-[none] text-white rounded-[12px]"
+                        ? "bg-[#CEFFDC] border-[#6AFF97] text-white rounded-[12px]"
                         : template.isActive
                         ? "bg-[#EAEFFF] border-[none] text-white rounded-[12px]"
                         : selectedId === key
