@@ -144,7 +144,7 @@ const Payments = () => {
     setHasCryptoChanges(true);
   };
 
-  const handleEnableCrypto = async () => {
+  const handleEnableCrypto = async (enableFlag: boolean) => {
     if (!adminId) {
       toast.error("No client selected");
       return;
@@ -173,14 +173,14 @@ const Payments = () => {
 
       const result = await enableCryptoPayment(
         adminId,
-        cryptoEnabled,
+        enableFlag,
         cryptoAddress,
         validChainIds
       );
       toast.success(result.message);
       refetchClientData(); // Refresh client data to update UI
     } catch (error: any) {
-      toast.error(error.message || "Failed to enable crypto payment");
+      toast.error("Failed to enable crypto payment");
     }
   };
 
@@ -570,7 +570,9 @@ const Payments = () => {
                   type="checkbox"
                   className="sr-only peer"
                   checked={cryptoEnabled}
-                  onChange={(e) => setCryptoEnabled(e.target.checked)}
+                  onChange={(e) => {
+                    handleEnableCrypto(e.target.checked);
+                  }}
                 />
                 <div className="w-11 h-6 bg-[#CDCDCD] peer-focus:outline-none peer-focus:ring-none peer-focus:ring-none rounded-full border border-black peer peer-checked:after:translate-x-full peer-checked:after:border-black after:content-[''] after:absolute after:top-[0px] after:left-[0px] after:bg-white after:border-black after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[#6AFF97]"></div>
               </label>
@@ -631,7 +633,7 @@ const Payments = () => {
                         <div className="relative w-fit z-10">
                           <div className="absolute top-[4px] left-[4px] bg-[#6AFF97] w-full h-full -z-10 border border-black"></div>
                           <button
-                            onClick={handleEnableCrypto}
+                            onClick={() => handleEnableCrypto(true)}
                             disabled={!hasCryptoChanges || isSaving}
                             className={`bg-[#6AFF97] border border-black z-10 px-6 py-2.5 text-sm font-semibold transition-colors ${
                               !hasCryptoChanges || isSaving

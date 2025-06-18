@@ -31,13 +31,13 @@ const Button = styled.button`
   }
 
   &:disabled {
-    background: #CDCDCD;
+    background: #cdcdcd;
     border: 1px solid #7d7d7d;
-    color: #7D7D7D;
+    color: #7d7d7d;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #CDCDCD;
+    background: #cdcdcd;
     border: 1px solid #7d7d7d;
   }
 `;
@@ -79,7 +79,7 @@ const Header = () => {
       teamName: "My Team",
       teamId: "my-team",
       role: "owner",
-      email: adminEmail,
+      email: adminEmail || "",
       agents: agents || [],
     };
     return [myTeam, ...(clientData?.otherTeams || [])];
@@ -88,47 +88,110 @@ const Header = () => {
   const selectedTeam = allTeams.find((t) => t.teamId === selectedTeamId);
   const selectedAgent =
     selectedTeam?.agents.find((a) => a.agentId === activeBotId) || null;
-    console.log(selectedAgent, "selected log")
-  // useEffect(() => {
-  //   if (!activeBotId && isAdminLoggedIn && activeTeamId) {
-  //     navigate("/admin/all-agents");
-  //   }
-  // }, [activeBotId, isAdminLoggedIn, activeTeamId]);
 
-  // useEffect(() => {
-  //   if (activeBotId && activeBotData) {
-  //     console.log("activeBotData");
-  //     console.log(activeBotData);
-  //     console.log(activeBotId);
-  //     if (activeBotData.isQueryable) {
-  //       navigate("/admin/dashboard/overview");
-  //     } else {
-  //       navigate("/admin/dashboard/profile");
-  //     }
-  //   }
-  // }, [activeBotId, activeBotData?.isQueryable]);
-
-  // Set default selected team on mount or when teams change
+  // Simplified team selection logic
   useEffect(() => {
-    if (selectedTeamId === "" && allTeams.length > 0) {
-      let tid = allTeams[0].teamId;
-      setSelectedTeamId(tid ? tid : "");
+    if (allTeams.length === 0) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const teamParam = urlParams.get("team");
+
+    // Priority 1: URL parameter
+    if (teamParam && allTeams.some((team) => team.teamId === teamParam)) {
+      setSelectedTeamId(teamParam);
+      return;
     }
-  }, [allTeams, selectedTeamId]);
+
+    // Priority 2: activeTeamId from store
+    if (activeTeamId) {
+      const matchingTeam = allTeams.find(
+        (team) =>
+          team.teamId === activeTeamId ||
+          (team.teamId === "my-team" && activeTeamId === adminId)
+      );
+      if (matchingTeam) {
+        setSelectedTeamId(matchingTeam.teamId);
+        return;
+      }
+    }
+
+    // Priority 3: Default to first team
+    if (selectedTeamId === "" && allTeams.length > 0) {
+      setSelectedTeamId(allTeams[0].teamId);
+    }
+  }, [allTeams, activeTeamId, adminId, selectedTeamId]);
+
+  // Initialize team selection when admin state changes
+  useEffect(() => {
+    if (
+      isAdminLoggedIn &&
+      adminId &&
+      allTeams.length > 0 &&
+      selectedTeamId === ""
+    ) {
+      // Default to "my-team" for logged in admin
+      setSelectedTeamId("my-team");
+    }
+  }, [isAdminLoggedIn, adminId, allTeams, selectedTeamId]);
+
+  // Handle clicking outside dropdown to close it
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleTeamSelect = (teamId: string) => {
+    // Validate that the team exists
+    const teamExists = allTeams.some((team) => team.teamId === teamId);
+    if (!teamExists) {
+      console.error("Team not found:", teamId);
+      return;
+    }
+
     setSelectedTeamId(teamId);
-    setActiveTeamId(teamId === "my-team" ? adminId : teamId);
-    setActiveBotId(null); // Reset agent selection
+    const newActiveTeamId = teamId === "my-team" ? adminId : teamId;
+
+    // Update the store
+    setActiveTeamId(newActiveTeamId);
+
+    // Reset agent selection when changing teams
+    setActiveBotId(null);
+
+    // Close dropdown
     setIsDropdownOpen(false);
+
+    // Navigate to all agents page with team parameter
     navigate(`/admin/all-agents?team=${teamId}`);
   };
 
   const handleAgentSelect = (agentId: string, teamId: string) => {
+    // Set the agent
     setActiveBotId(agentId);
-    setActiveTeamId(teamId === "my-team" ? adminId : teamId);
+
+    // Update team if needed
+    const newActiveTeamId = teamId === "my-team" ? adminId : teamId;
+    if (activeTeamId !== newActiveTeamId) {
+      setActiveTeamId(newActiveTeamId);
+    }
+
+    // Close dropdown
     setIsDropdownOpen(false);
+
+    // Clear any editing state
     localStorage.removeItem("editingProduct");
+
+    // Navigate to overview
     navigate("/admin/dashboard/overview");
   };
 

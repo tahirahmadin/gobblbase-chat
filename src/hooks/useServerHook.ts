@@ -25,7 +25,7 @@ export const useServerHook = ({ initHook = false }: { initHook: boolean }) => {
 
   useEffect(() => {
     // On reload, check localStorage for agentId and set if valid
-    if (agents.length > 0 && initHook) {
+    if (agents.length > 0 && initHook && !isAgentsLoaded) {
       let storedAgentId: string | null = null;
       if (typeof window !== "undefined") {
         storedAgentId = localStorage.getItem("activeBotId");
@@ -48,7 +48,7 @@ export const useServerHook = ({ initHook = false }: { initHook: boolean }) => {
         }
       }
     }
-  }, [agents, setActiveBotId, initHook, activeTeamId]);
+  }, [agents, setActiveBotId, initHook, activeTeamId, isAgentsLoaded]);
 
   useEffect(() => {
     if (activeBotId && initHook) {

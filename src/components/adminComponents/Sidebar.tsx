@@ -16,6 +16,7 @@ import { useAdminStore } from "../../store/useAdminStore";
 import { useUserStore } from "../../store/useUserStore";
 import { useBotConfig } from "../../store/useBotConfig";
 import { AdminAgent } from "../../types";
+import { useServerHook } from "../../hooks/useServerHook";
 
 interface SubNavItem {
   name: string;
@@ -111,6 +112,7 @@ const LogoutModal = ({
 const Sidebar = ({ onClose }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+
   const [expandedTabs, setExpandedTabs] = useState<string[]>([]);
   const { adminLogout, clientData, adminEmail, adminId, setActiveTeamId } =
     useAdminStore();
@@ -229,7 +231,10 @@ const Sidebar = ({ onClose }: SidebarProps) => {
   const filteredNavItems = (() => {
     if (location.pathname === "/admin/all-agents") {
       return navItems.filter(
-        (item) => item.name === "Dashboard" || item.name === "Account"
+        (item) =>
+          item.name === "Dashboard" ||
+          item.name === "Account" ||
+          item.name === "Team"
       );
     }
 
