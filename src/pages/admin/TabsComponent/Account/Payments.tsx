@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   RefreshCw,
   AlertCircle,
@@ -15,7 +15,43 @@ import {
 } from "../../../../lib/serverActions";
 import { toast } from "react-hot-toast";
 import { useAdminStore } from "../../../../store/useAdminStore";
+import styled from "styled-components";
+const Button = styled.button`
+  position: relative;
+  background: #6aff97;
+  padding: 0.6vh 1vw;
+  border: 1px solid black;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: clamp(8px, 4vw, 15px);
+  font-family: "DM Sans", sans-serif;
+  font-weight: 400;
 
+  &::before {
+    content: "";
+    position: absolute;
+    top: 4px;
+    right: -4px;
+    width: 100%;
+    height: 100%;
+    border: 1px solid #000000;
+    z-index: -1; // place it behind the button
+    background: #6aff97;
+  }
+  @media (max-width: 600px) {
+    min-width: 100px;
+  }
+  &:disabled {
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+    color: #7D7D7D;
+    cursor: not-allowed;
+  }
+  &:disabled::before {
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+  }
+`;
 interface Transaction {
   _id: string;
   agentId: string;
@@ -76,7 +112,29 @@ const Payments = () => {
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const currencies = ["USD", "AED", "EUR", "GBP", "INR"];
   const [isMethodOpen, setIsMethodOpen] = useState(false);
+  const currencyDropdownRef = useRef(null);
+  const methodDropdownRef = useRef(null);
+  useEffect(() => {
+  const handleClickOutside = (event: MouseEvent) => {
+    if (
+      currencyDropdownRef.current &&
+      !currencyDropdownRef.current.contains(event.target as Node)
+    ) {
+      setIsCurrencyOpen(false);
+    }
+    if (
+      methodDropdownRef.current &&
+      !methodDropdownRef.current.contains(event.target as Node)
+    ) {
+      setIsMethodOpen(false);
+    }
+  };
 
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
   useEffect(() => {
     if (clientData) {
       //Stripe States
@@ -242,14 +300,14 @@ const Payments = () => {
               <label className="para-font block text-[1rem] text-black whitespace-nowrap">
                 Currency
               </label>
-              <div className="relative w-40 lg:w-48  flex items-center">
+              <div  ref={currencyDropdownRef} className="relative w-40 lg:w-48  flex items-center" >
                 <button
                   onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
                   className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
                 >
                   {currency}
                 </button>
-                <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
+                <div onClick={() => setIsCurrencyOpen(!isCurrencyOpen)} className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
                   <ChevronDown
                     size={20}
                     className={`text-[#000000] stroke-[3px] transition-transform  ${
@@ -281,7 +339,7 @@ const Payments = () => {
               <label className="para-font block text-[1rem] text-black whitespace-nowrap">
                 Preferred Method
               </label>
-              <div className="relative w-40 lg:w-48 flex items-center">
+              <div ref={methodDropdownRef} className="relative w-40 lg:w-48 flex items-center">
                 <button
                   onClick={() => setIsMethodOpen(!isMethodOpen)}
                   className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
@@ -289,7 +347,7 @@ const Payments = () => {
                   {preferredMethod.charAt(0).toUpperCase() +
                     preferredMethod.slice(1)}
                 </button>
-                <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
+                <div  onClick={() => setIsMethodOpen(!isMethodOpen)} className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
                   <ChevronDown
                     size={20}
                     className={`text-[#000000] stroke-[3px] transition-transform  ${
@@ -339,13 +397,12 @@ const Payments = () => {
               </div>
             </div>
             <div className="w-fit flex justify-start items-center relative z-10 ml-6 lg:ml-0 lg:mt-4">
-              <div className="absolute top-[4px] left-[4px] bg-[#6AFF97] w-full h-full border border-black"></div>
-              <button
+              <Button
                 onClick={handleSave}
-                className="z-10 px-6 py-2 bg-[#6AFF97] border border-black text-sm font-semibold transition-colors disabled:cursor-not-allowed"
+                className=""
               >
                 Save
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -392,10 +449,9 @@ const Payments = () => {
                   </span>
                   {/* disconnect button is active  */}
                   <div className="w-fit flex justify-start items-center relative z-10">
-                    <div className="absolute top-[4px] left-[4px] bg-[#6AFF97] w-full h-full border border-black"></div>
-                    <button className="z-10 px-6 py-2 bg-[#6AFF97] border border-black text-sm font-semibold transition-colors disabled:cursor-not-allowed">
+                    <Button className="">
                       Disconnect
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -452,11 +508,10 @@ const Payments = () => {
                   </div>
                 </div>
                 <div className="relative w-fit z-10">
-                  <div className="absolute top-[4px] left-[4px] w-full h-full -z-10 bg-[#6AFF97] border border-black"></div>
-                  <button
+                  <Button
                     onClick={handleProceedKYC}
                     disabled={isLoadingStripe}
-                    className="w-full z-10 flex items-center justify-center space-x-2 px-6 py-3 bg-[#6AFF97] border border-black text-sm font-semibold transition-colors disabled:cursor-not-allowed"
+                    className="flex items-center gap-2"
                   >
                     {isLoadingStripe ? (
                       <>
@@ -475,7 +530,7 @@ const Payments = () => {
                         )}
                       </>
                     )}
-                  </button>
+                  </Button>
                 </div>
 
                 {clientData?.paymentMethods?.stripe?.reasons &&
@@ -629,11 +684,10 @@ const Payments = () => {
                         </div>
 
                         <div className="relative w-fit z-10">
-                          <div className="absolute top-[4px] left-[4px] bg-[#6AFF97] w-full h-full -z-10 border border-black"></div>
-                          <button
+                          <Button
                             onClick={handleEnableCrypto}
                             disabled={!hasCryptoChanges || isSaving}
-                            className={`bg-[#6AFF97] border border-black z-10 px-6 py-2.5 text-sm font-semibold transition-colors ${
+                            className={` ${
                               !hasCryptoChanges || isSaving
                                 ? "cursor-not-allowed"
                                 : ""
@@ -647,7 +701,7 @@ const Payments = () => {
                             ) : (
                               <span>Save</span>
                             )}
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     </div>

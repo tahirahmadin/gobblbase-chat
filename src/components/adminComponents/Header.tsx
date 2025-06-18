@@ -31,13 +31,13 @@ const Button = styled.button`
   }
 
   &:disabled {
-    background: #CDCDCD;
+    background: #cdcdcd;
     border: 1px solid #7d7d7d;
-    color: #7D7D7D;
+    color: #7d7d7d;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #CDCDCD;
+    background: #cdcdcd;
     border: 1px solid #7d7d7d;
   }
 `;
@@ -70,6 +70,22 @@ const Header = () => {
   const isAllAgentsPage = location.pathname === "/admin/all-agents";
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
 
+  //closing dropdowns when click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   //Handeling agentDetails refresh when change trigger
   const hook1 = useServerHook({ initHook: true });
 
@@ -88,7 +104,7 @@ const Header = () => {
   const selectedTeam = allTeams.find((t) => t.teamId === selectedTeamId);
   const selectedAgent =
     selectedTeam?.agents.find((a) => a.agentId === activeBotId) || null;
-    console.log(selectedAgent, "selected log")
+  console.log(selectedAgent, "selected log");
   // useEffect(() => {
   //   if (!activeBotId && isAdminLoggedIn && activeTeamId) {
   //     navigate("/admin/all-agents");
@@ -146,7 +162,7 @@ const Header = () => {
           <div className="" ref={dropdownRef}>
             <div className="flex items-center">
               {/* Team Dropdown */}
-              <div className="relative mr-4 z-[100]">
+              <div className="relative mr-4 z-[100] ">
                 <button
                   onClick={() =>
                     setIsDropdownOpen(
