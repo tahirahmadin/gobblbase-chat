@@ -146,7 +146,7 @@ const Header = () => {
           <div className="" ref={dropdownRef}>
             <div className="flex items-center">
               {/* Team Dropdown */}
-              <div className="relative mr-4 ">
+              <div className="relative mr-4 z-[100]">
                 <button
                   onClick={() =>
                     setIsDropdownOpen(
@@ -173,7 +173,7 @@ const Header = () => {
                   )}
                 </button>
                 {isDropdownOpen === "team" && (
-                  <div className="w-28 md:w-44 truncate whitespace-nowrap absolute z-[10]  top-[46px] pb-4 shadow-lg bg-[#000]">
+                  <div className="w-28 md:w-44 truncate whitespace-nowrap absolute z-[100] top-[46px] pb-4 shadow-lg bg-[#000]">
                     <h1 className="team-heading px-3  py-2 text-[12px] text-white">
                       Teams
                     </h1>
@@ -192,7 +192,7 @@ const Header = () => {
                 )}
               </div>
               {/* Agent Dropdown */}
-              <div className="sm:relative">
+              <div className="sm:relative z-[100]">
                 <button
                   onClick={() =>
                     setIsDropdownOpen(
@@ -234,7 +234,7 @@ const Header = () => {
                   )}
                 </button>
                 {isDropdownOpen === "agent" && selectedTeam && (
-                  <div className="min-w-[100%] px-4 sm:px-0 xs:w-44 truncate whitespace-nowrap absolute z-[10] top-[58px] sm:top-[48px] left-0 shadow-lg bg-[#000]">
+                  <div className="min-w-[100%] px-4 sm:px-0 xs:w-44 truncate whitespace-nowrap absolute z-[40] top-[58px] sm:top-[48px] left-0 shadow-lg bg-[#000]">
                     <h1 className="team-heading px-3 py-2 text-[12px] text-white">
                       Agent
                     </h1>

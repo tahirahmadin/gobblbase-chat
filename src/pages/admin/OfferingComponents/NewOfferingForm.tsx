@@ -230,7 +230,7 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
             const isActive = i === step;
 
             return (
-              <div key={s} className="mb-4 flex flex-col md:flex-row items-start w-full relative">
+              <div key={s} className="mb-4 flex flex-col md:flex-row items-start w-full relative z-10">
                 <div
                   className={`flex items-center mx-auto h-12 z-30 ${
                     isActive

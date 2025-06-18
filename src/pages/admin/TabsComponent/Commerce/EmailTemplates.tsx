@@ -18,7 +18,7 @@ interface EmailTemplatesResponse {
   [key: string]: EmailTemplate | string;
 }
 
-const EmailTemplates = () => {
+const EmailTemplates = ({ isCommerce }: { isCommerce?: boolean }) => {
   const [selectedId, setSelectedId] = useState<string>("physicalProduct");
   const { activeBotId } = useBotConfig();
   const [preview, setPreview] = useState(false);
@@ -152,7 +152,7 @@ const EmailTemplates = () => {
         <div className="w-full md:w-1/3 p-6">
           <div className="space-y-2">
             {Object.entries(emailTemplates)
-              .filter(([_, value]) => typeof value !== "string")
+              .slice(isCommerce ? 0 : 5, isCommerce ? 5 : 7)
               .map(([key, value]) => {
                 const template = value as EmailTemplate;
 

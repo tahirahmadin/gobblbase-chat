@@ -93,7 +93,6 @@ const Button = styled.button`
     transition: background 0.3s;
   }
 
-<<<<<<< HEAD
    &:disabled {
     background: #CDCDCD;
     border: 1px solid #7d7d7d;
@@ -103,15 +102,6 @@ const Button = styled.button`
   &:disabled::before {
     background: #CDCDCD;
     border: 1px solid #7d7d7d;
-=======
-  &:disabled {
-    background: #d1d5db;
-    cursor: not-allowed;
-    color: #6b7280;
-  }
-  &:disabled::before {
-    background: #d1d5db;
->>>>>>> origin/test
   }
 `;
 

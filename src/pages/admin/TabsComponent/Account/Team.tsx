@@ -130,7 +130,7 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
           <div
             className="flex flex-col sm:flex-row sm:items-center gap-2 bg-[#E9EDFF] rounded-lg px-6 py-6"
             onClick={() => {
-              navigate("/admin/account/plan");
+              navigate("/admin/account/plans");
             }}
           >
             <label className="whitespace-nowrap font-semibold text-gray-700  block mr-4 ">
@@ -142,7 +142,12 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
               </span>
               <div className="relative z-10 w-fit">
                 <div className="absolute left-[3px] top-[3.5px] h-full w-full -z-10 bg-[#6AFF97] border border-black"></div>
-                <button className="min-w-[100px] bg-[#6AFF97] border border-black px-4 py-2 font-semibold text-sm">
+                <button
+                  className="min-w-[100px] bg-[#6AFF97] border border-black px-4 py-2 font-semibold text-sm"
+                  onClick={() => {
+                    navigate("/admin/account/plans");
+                  }}
+                >
                   VIEW
                 </button>
               </div>
