@@ -63,11 +63,17 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderDetails, setOrderDetails] = useState<{
     product: any;
-    items: { title: string; quantity: number; price: number }[];
+    items: {
+      title: string;
+      quantity: number;
+      price: number;
+      priceType: string;
+    }[];
     total: number;
     orderId?: string;
     paymentMethod?: string;
     paymentDate?: string;
+    priceType?: string;
   } | null>(null);
 
   useEffect(() => {
@@ -144,11 +150,13 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
 
     setOrderDetails({
       ...details,
+      priceType: details.product.priceType,
       items: [
         {
           title: details.product.title,
           quantity: selectedProduct.quantity || 1,
           price: details.product.price,
+          priceType: details.product.priceType,
         },
       ],
     });

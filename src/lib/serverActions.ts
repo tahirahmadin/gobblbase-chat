@@ -1958,6 +1958,8 @@ export async function saveDigitalProduct(
   agentId: string,
   productId?: string
 ) {
+  console.log("form");
+  console.log(form);
   let formData = new FormData();
   formData.append("type", "digitalProduct");
   formData.append("agentId", agentId);
@@ -1978,7 +1980,7 @@ export async function saveDigitalProduct(
     form.quantityType === "unlimited" ? "true" : "false"
   );
   formData.append("quantityType", form.quantityType);
-  formData.append("ctaButton", form.cta);
+  formData.append("ctaButton", form.ctaButton);
   form.images.forEach((img: File | null, idx: number) => {
     if (img) formData.append(`image${idx + 1}`, img);
   });
@@ -2951,7 +2953,7 @@ export async function updateTeamName(clientId: string, teamName: string) {
 /**
  * Fetches YouTube video transcript
  */
- export async function fetchYouTubeTranscript(url: string): Promise<any> {
+export async function fetchYouTubeTranscript(url: string): Promise<any> {
   try {
     let endpoint = `${apiUrl}/scrape/youtube/transcript`;
     let dataObj = { url };
@@ -2973,7 +2975,9 @@ export async function updateTeamName(clientId: string, teamName: string) {
     });
 
     if (response.data.error) {
-      throw new Error(response.data.message || "Failed to fetch YouTube transcript");
+      throw new Error(
+        response.data.message || "Failed to fetch YouTube transcript"
+      );
     }
 
     return response.data;
@@ -3008,7 +3012,9 @@ export async function fetchYouTubeDetails(url: string): Promise<any> {
     });
 
     if (response.data.error) {
-      throw new Error(response.data.message || "Failed to fetch YouTube details");
+      throw new Error(
+        response.data.message || "Failed to fetch YouTube details"
+      );
     }
 
     return response.data;
@@ -3043,7 +3049,9 @@ export async function fetchInstagramTranscript(url: string): Promise<any> {
     });
 
     if (response.data.error) {
-      throw new Error(response.data.message || "Failed to fetch Instagram transcript");
+      throw new Error(
+        response.data.message || "Failed to fetch Instagram transcript"
+      );
     }
 
     return response.data;
@@ -3078,7 +3086,9 @@ export async function fetchInstagramPost(url: string): Promise<any> {
     });
 
     if (response.data.error) {
-      throw new Error(response.data.message || "Failed to fetch Instagram post");
+      throw new Error(
+        response.data.message || "Failed to fetch Instagram post"
+      );
     }
 
     return response.data;
@@ -3113,7 +3123,9 @@ export async function fetchTikTokTranscript(url: string): Promise<any> {
     });
 
     if (response.data.error) {
-      throw new Error(response.data.message || "Failed to fetch TikTok transcript");
+      throw new Error(
+        response.data.message || "Failed to fetch TikTok transcript"
+      );
     }
 
     return response.data;
@@ -3148,7 +3160,9 @@ export async function fetchTikTokDetails(url: string): Promise<any> {
     });
 
     if (response.data.error) {
-      throw new Error(response.data.message || "Failed to fetch TikTok details");
+      throw new Error(
+        response.data.message || "Failed to fetch TikTok details"
+      );
     }
 
     return response.data;
@@ -3228,7 +3242,6 @@ export async function fetchLinkedInPost(url: string): Promise<any> {
   }
 }
 
-
 export async function createBookingPaymentIntent(payload: {
   cart: any[];
   clientId: string;
@@ -3274,7 +3287,9 @@ export async function createBookingPaymentIntent(payload: {
     }
 
     if (response.data.error) {
-      throw new Error(response.data.message || "Failed to create booking payment intent");
+      throw new Error(
+        response.data.message || "Failed to create booking payment intent"
+      );
     }
 
     return response.data;

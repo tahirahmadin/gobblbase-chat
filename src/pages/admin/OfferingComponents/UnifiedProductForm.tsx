@@ -31,7 +31,6 @@ const Button = styled.button`
   font-weight: 400;
   font-family: "DM Sans", sans-serif;
 
-
   &::before {
     content: "";
     position: absolute;
@@ -127,7 +126,7 @@ type UnifiedFormType = {
   descriptionEnabled?: boolean;
   price?: string;
   priceType?: string;
-  cta?: string;
+  ctaButton?: string;
   thumbnail?: File | null;
   thumbnailUrl?: string;
   images?: (File | null)[];
@@ -1827,7 +1826,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                   onClick={() => setIsOpen(!isOpen)}
                   className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
                 >
-                  {form.cta || "Buy Now"}
+                  {form.ctaButton || "Buy Now"}
                 </button>
                 <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
                   <ChevronDown
@@ -1844,11 +1843,11 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       <button
                         key={label}
                         onClick={() => {
-                          setForm((f) => ({ ...f, cta: label }));
+                          setForm((f) => ({ ...f, ctaButton: label }));
                           setIsOpen(false);
                         }}
                         className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
-                          form.cta === label ? "bg-[#AEB8FF]" : ""
+                          form.ctaButton === label ? "bg-[#AEB8FF]" : ""
                         }`}
                       >
                         {label}
