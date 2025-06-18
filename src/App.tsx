@@ -56,6 +56,7 @@ import Team from "./pages/admin/TabsComponent/Account/Team";
 import PrivacyPolicy from "./pages/landing/PrivacyPolicy";
 import Embed from "./pages/admin/TabsComponent/Dashboard/Embed";
 import Calender from "./pages/admin/TabsComponent/Calender/Calender";
+import TermConditions from "./pages/landing/TermConditions";
 
 // Add type definition for window
 declare global {
@@ -240,6 +241,10 @@ function App() {
                     <Route path="/admin/*" element={<Dashboard />} />
                     <Route path="/pricing" element={<Pricing />} />
                     <Route path="/privacy" element={<PrivacyPolicy />} />
+                    <Route
+                      path="/terms-condition"
+                      element={<TermConditions />}
+                    />
                     <Route path="/" element={<Home />} />
                   </>
                 )}

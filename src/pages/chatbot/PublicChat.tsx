@@ -467,7 +467,7 @@ export default function PublicChat({
     return (
       <div className="w-full h-screen flex items-center justify-center">
         <div
-          className="w-full h-full max-w-md shadow-2xl overflow-hidden flex flex-col relative"
+          className="w-full h-full shadow-2xl overflow-hidden flex flex-col relative"
           style={{
             height: previewConfig
               ? chatHeight

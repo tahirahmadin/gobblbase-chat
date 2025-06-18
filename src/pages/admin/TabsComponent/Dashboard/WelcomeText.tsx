@@ -31,12 +31,15 @@ const Button = styled.button`
     background: #6aff97;
   }
 
-  &:disabled {
-    background: #6aff97;
+   &:disabled {
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+    color: #7D7D7D;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #6aff97;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
   }
 `;
 const welcomeTemplates = [
@@ -221,7 +224,7 @@ const WelcomeText = () => {
               rows={4}
             />
             <div className="flex justify-end relative z-10">
-              <Button onClick={handleCustomMessageSave} className="">
+              <Button disabled={!customMessage.trim()} onClick={handleCustomMessageSave} className="">
                 ENTER
               </Button>
             </div>

@@ -1,23 +1,15 @@
+import { ChevronRight, Linkedin, Menu, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Bot, ChevronRight, Linkedin, Menu, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
-interface BotNotFoundProps {
-  theme: {
-    isDark: boolean;
-    mainDarkColor: string;
-    mainLightColor: string;
-    highlightColor: string;
-  };
-}
 const Container = styled.div`
   font-family: "DM Sans", sans-serif;
   background: #f5f6fa;
   min-height: 100vh;
   overflow-x: hidden;
-  width: 100%;
 `;
+
 const Navbar = styled.nav`
     top; 1px;
     z-index: 111111;
@@ -88,7 +80,7 @@ const LoginButton = styled.button`
   @media (max-width: 600px) {
     min-width: 100px;
   }
-  &:disabled {
+    &:disabled {
     background: #CDCDCD;
     border: 1px solid #7d7d7d;
     color: #7D7D7D;
@@ -99,6 +91,72 @@ const LoginButton = styled.button`
     border: 1px solid #7d7d7d;
   }
 `;
+
+const WhiteBackground = styled.span`
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 60%;
+  position: relative;
+  z-index: 10;
+  width: fit-content;
+
+  span {
+    font-family: "DM Sans", sans-serif;
+    font-size: clamp(9px, 4vw, 16px);
+    font-weight: 600;
+    background: white;
+    border: 1px solid black;
+    width: fit-content;
+    height: 100%;
+    width: 100%;
+    color: black;
+    padding: 1vh 2vw;
+    border-radius: 60px;
+    @media (max-width: 600px) {
+      border-radius: 30px;
+      padding: 1vh 10vw 1vh 8vw;
+    }
+    &::before {
+      content: "";
+      position: absolute;
+      transform: translate(-0.4rem, -0.05rem);
+      bottom: 0px;
+      left: 0;
+      width: 0;
+      height: 0;
+      border-left: 24px solid transparent;
+      border-right: 24px solid transparent;
+      border-bottom: 24px solid white;
+      z-index: 0;
+      @media (max-width: 600px) {
+        transform: translate(-0.5rem, -0.05rem);
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 28px solid white;
+      }
+    }
+    &::after {
+      content: "";
+      position: absolute;
+      transform: translate(-0.5rem, 0rem);
+      bottom: 0px;
+      left: 0;
+      width: 0;
+      height: 0;
+      border-left: 30px solid transparent;
+      border-right: 30px solid transparent;
+      border-bottom: 30px solid black;
+      z-index: -4;
+      @media (max-width: 600px) {
+        transform: translate(-0.65rem, 0);
+        border-left: 30px solid transparent;
+        border-right: 30px solid transparent;
+        border-bottom: 30px solid black;
+      }
+    }
+  }
+`;
 const CTAButton = styled.button`
   position: relative;
   display: flex;
@@ -106,10 +164,10 @@ const CTAButton = styled.button`
   justify-content: space-between;
   background: #6aff97;
   padding: 1.43vh 1.2vw;
-  border: 1px solid black;
+  border: 2px solid black;
   cursor: pointer;
   transition: background 0.3s;
-  font-size: clamp(8px, 4vw, 15px);
+  font-size: clamp(8px, 4vw, 16px);
   color: black;
   width: 100%;
   font-family: "DM Sans", sans-serif;
@@ -117,11 +175,11 @@ const CTAButton = styled.button`
   &::before {
     content: "";
     position: absolute;
-    top: 4px;
-    right: -4px;
+    top: 5px;
+    right: -5px;
     width: 100%;
     height: 100%;
-    border: 1px solid #000000;
+    border: 2px solid #000000;
     z-index: -1; // place it behind the button
     background: #6aff97;
   }
@@ -140,20 +198,44 @@ const CTAButton = styled.button`
 const HeroSection = styled.section`
   color: #fff;
   position: relative;
+  min-height: 540px;
   height: 100%;
   display: flex;
   align-items: center;
   flex-direction: column;
-  padding: 20vh 3vw 12vh 3vw;
+  padding: 12vh 3vw 6vh 3vw;
   font-family: lato, sans-serif;
   @media (max-width: 600px) {
-    padding: 18vh 0vw 6vh 0vw;
+    padding: 18vh 3vw 6vh 3vw;
     flex-direction: column;
     align-items: center;
     justify-content: center;
   }
   .heading-top {
   }
+`;
+const PurpleSection = styled.article`
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #000;
+  width: 100%;
+`;
+const PurpleHeading = styled.h1`
+  background: #d4deff;
+  border-bottom: 1px solid #000;
+  padding: 1vh 2vw;
+  color: black;
+  font-weight: 600;
+  font-family: "Lato", sans-serif;
+  font-size: clamp(16px, 4vw, 18px);
+`;
+const PurpleContent = styled.div`
+  background: #eaefff;
+  padding: 2vh 2vw;
+  font-family: "DM Sans", sans-serif;
+  font-size: clamp(14px, 4vw, 16px);
+  font-weight: 400;
+  color: black;
 `;
 
 // Footer styling
@@ -307,10 +389,9 @@ const FooterBelow = styled.div`
     }
   }
 `;
-
-export default function BotNotFound({ theme }: BotNotFoundProps) {
-  const [menuOpen, setMenuOpen] = useState(false);
+const TermConditions = () => {
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
     if (menuOpen) {
       document.body.style.overflow = "hidden";
@@ -399,37 +480,229 @@ export default function BotNotFound({ theme }: BotNotFoundProps) {
           </NavLinks>
         </Header>
       </Navbar>
+
       <section className="practial-section w-full bg-[#fff] [@media(max-width:800px)]:px-0 px-1 [@media(max-width:800px)]:py-0 py-1">
         <HeroSection className="">
-          <div className="w-[80%] flex flex-col items-center text-center md:flex-row md:text-start min-h-[60vh] md:min-h-[50vh] bg-[#FFFEB2] border border-black">
-            <div className="left-content p-8 md:px-8 md:w-[60%] flex flex-col justify-center">
-              <div className="text-sm text-gray-800 space-y-6">
-                <h1 className="main-font font-bold text-[22px] md:text-[26px] leading-[1.5] whitespace-nowrap">
-                  Oops! The AI-mployee <br  className="block md:hidden"/> is off-duty.
-                </h1>
-                <p className="para-font text-[14px] md:text-[16px] font-[500]">
-                  The agent you're looking for might be taking a break, or this link may have expired.
+          <div className="flex flex-col [@media(min-width:601px)]:flex-row items-center justify-between w-full gap-4 mb-8">
+            <div className="heading-content text-black w-full px-4 sm:px-0 [@media(max-width:600px)]:flex [@media(max-width:600px)]:flex-col [@media(max-width:600px)]:items-center [@media(max-width:600px)]:text-center ">
+              <div className="flex [@media(max-width:600px)]:items-center [@media(max-width:600px)]:flex-col gap-2 items-end justify-between ">
+                <WhiteBackground>
+                  <span>
+                    <h2 className="main-font relative z-10 font-[800] text-[1.2rem]">
+                      Terms of Use for Sayy
+                    </h2>
+                  </span>
+                </WhiteBackground>
+                <p className="para-font text-[14px] md:text-[1rem] font-[500]">
+                  Effective Date: June 3, 2025
                 </p>
-                <div className="relative w-fit z-10 mx-auto md:mx-0">
-                  <CTAButton onClick={() => navigate("/admin")}>
-                      CREATE NEW AGENT
-                      <ChevronRight size={20} className="ml-2" />
-                  </CTAButton>
-                </div>
               </div>
+              <p className="para-font text-[14px] md:text-[1rem] font-[500] mt-8 [@media(min-width:601px)]:w-[50%]">
+                These Terms of Use ("Terms") govern your access to and use of
+                Sayy.ai ("Sayy," "we," "our," or "us"), operated by Gobbl, Inc.,
+                a Delaware C-Corporation. By using Sayy, you agree to these
+                Terms. If you do not agree, please discontinue use.
+              </p>
             </div>
-            <div className="right-img md:w-[40%] flex items-center mt-auto">
-              <img
-                src="/assets/page-not-found-goobl.svg"
-                height={"100%"}
-                width={"100%"}
-                alt=""
-              />
+          </div>
+          <div className="flex flex-col w-full gap-10">
+            <PurpleSection>
+              <PurpleHeading>1. Eligibility</PurpleHeading>
+              <PurpleContent>
+                <div className="">
+                  <h2>
+                    You must be at least 13 years old to use Sayy. If you're
+                    using Sayy on behalf of an organization, you represent that
+                    you have authority to bind that organization.
+                  </h2>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>2. Account Registration</PurpleHeading>
+              <PurpleContent>
+                <div className="">
+                  <h2>
+                    You must provide accurate information and maintain the
+                    security of your account credentials.{" "}
+                  </h2>
+                  <h2>
+                    You are responsible for all activity under your account.
+                  </h2>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>3. Use of Services</PurpleHeading>
+              <PurpleContent>
+                <div className="">
+                  <h2>
+                    You may use Sayy to create and run AI-powered agents for
+                    lawful purposes. You may not:
+                  </h2>
+                  <ul className="list-[inherit] ml-6">
+                    <li>Use Sayy to break the law or infringe rights</li>
+                    <li>Attempt to access unauthorized systems</li>
+                    <li>Scrape, reverse engineer, or disrupt our platform</li>
+                    <li>
+                      Use Sayy to generate or distribute harmful, deceptive, or
+                      unlawful content
+                    </li>
+                  </ul>
+                </div>
+                <div className="mt-4">
+                  <h2>
+                    We reserve the right to suspend accounts that violate these
+                    rules.
+                  </h2>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>4. Intellectual Property</PurpleHeading>
+              <PurpleContent>
+                <div className="">
+                  <h2>
+                    Sayy and all related content (excluding user content) are
+                    the property of Gobbl, Inc. You may not use our trademarks
+                    or content without permission.
+                  </h2>
+                  <h2>
+                    You retain ownership of content you create using Sayy but
+                    grant us a non-exclusive license to host and process it as
+                    needed to operate the service.
+                  </h2>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>5. Payments</PurpleHeading>
+              <PurpleContent>
+                <div className="">
+                  <h2>
+                    Some Sayy features require payment. By subscribing, you
+                    agree to our pricing terms. All billing is handled by our
+                    partners (e.g., Stripe, Razorpay).
+                  </h2>
+                  <h2>
+                    We reserve the right to change pricing at any time with
+                    prior notice.
+                  </h2>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>6. Third-Party Services</PurpleHeading>
+              <PurpleContent>
+                <div className="">
+                  <h2>
+                    You may connect Sayy to external services (e.g., Google,
+                    Shopify). We are not responsible for those services or how
+                    they handle your data.
+                  </h2>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>7. AI Model Usage</PurpleHeading>
+              <PurpleContent>
+                <div className="">
+                  <h2>
+                    Prompts sent to Sayy agents may be processed by third-party
+                    AI models (e.g., OpenAI, Meta LLaMA) as disclosed in our
+                    Privacy Policy. You are responsible for
+                  </h2>
+                  <h2>content submitted to or generated by AI.</h2>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>8. Termination</PurpleHeading>
+              <PurpleContent>
+                <div className="">
+                  <h2>
+                    You may stop using Sayy at any time. We may suspend or
+                    terminate your access if you violate these Terms or for
+                    operational reasons.
+                  </h2>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>9. Disclaimers</PurpleHeading>
+              <PurpleContent>
+                <div className="">
+                  <h2>
+                    Sayy is provided "as-is" without warranties. We do not
+                    guarantee uninterrupted service or perfect accuracy from AI
+                    responses.
+                  </h2>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>10. Limitation of Liability</PurpleHeading>
+              <PurpleContent>
+                <div className="">
+                  <h2>
+                    To the fullest extent permitted by law, Gobbl, Inc. shall not be liable for indirect, incidental, or consequential damages from your use of Sayy.
+                  </h2>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>11. Governing Law</PurpleHeading>
+              <PurpleContent>
+                <div className="">
+                  <h2>
+                   These Terms are governed by the laws of the State of Delaware, USA. Disputes must be resolved in Delaware courts.
+                  </h2>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>12. Changes to Terms</PurpleHeading>
+              <PurpleContent>
+                <div className="">
+                  <h2>
+                    We may update these Terms from time to time. Continued use of Sayy after updates means you accept the revised Terms.
+                  </h2>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            <PurpleSection>
+              <PurpleHeading>13. Contact</PurpleHeading>
+              <PurpleContent>
+                <div className="">
+                  <h2>
+                    Questions? Reach us at: <a href="https://sayy.ai/terms">https://sayy.ai/terms</a> 
+                  </h2>
+                  <h2>Phone: <a href="">+1 (619) 404-4599</a></h2>
+                </div>
+              </PurpleContent>
+            </PurpleSection>
+
+            {/* orange small footer  */}
+            <div className="bg-[#FFD2BA] text-black w-full border border-black px-2 py-8 text-center">
+              <h1 className="para-font font-[500] text-[16px]">
+                By using Sayy, you agree to these Terms of Use.
+              </h1>
             </div>
           </div>
         </HeroSection>
       </section>
-
       <footer className="practial-section w-full bg-[#ECECEC] border border-[#000000] [@media(max-width:800px)]:px-0 px-1 [@media(max-width:800px)]:py-0 py-1">
         <FooterSection>
           <FooterUpper>
@@ -548,46 +821,8 @@ export default function BotNotFound({ theme }: BotNotFoundProps) {
           </FooterBelow>
         </FooterSection>
       </footer>
-      {/* <div
-          className="w-full h-full flex flex-col items-center justify-center p-6 text-center"
-          style={{
-            backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
-            color: theme.isDark ? "white" : "black",
-          }}
-        >
-          <div className="mb-8">
-            <div
-              className="w-24 h-24 mx-auto rounded-full flex items-center justify-center"
-              style={{
-                backgroundColor: theme.mainDarkColor,
-                border: `2px solid ${theme.isDark ? "white" : "black"}`,
-                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-              }}
-            >
-              <Bot
-                className="w-12 h-12"
-                style={{ color: theme.isDark ? "black" : "white" }}
-              />
-            </div>
-          </div>
-          <h1 className="main-font text-3xl font-bold mb-6">Agent not found</h1>
-          <p className="para-font text-xl max-w-sm mx-auto mb-12">
-            The agent you're looking for doesn't exist. Would you like to create
-            your own?
-          </p>
-          <Link
-            to="/"
-            className="para-font px-8 py-4 rounded-xl text-lg font-medium transition-all duration-200 hover:opacity-90"
-            style={{
-              backgroundColor: theme.mainDarkColor,
-              color: !theme.isDark ? "black" : "white",
-              border: `2px solid ${theme.isDark ? "white" : "black"}`,
-              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-            }}
-          >
-            Create Your Agent
-          </Link>
-        </div> */}
     </Container>
   );
-}
+};
+
+export default TermConditions;
