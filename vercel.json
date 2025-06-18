@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://kiforapi.gobbl.ai/:path*"
+      "destination": "/api/:path*"
     },
     {
       "source": "/(.*)",

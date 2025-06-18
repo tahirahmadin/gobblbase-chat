@@ -27,7 +27,7 @@ import CryptoJS from "crypto-js";
 import { backendApiUrl } from "../utils/constants";
 
 // ==================== Constants ====================
-let apiUrl = "/api"; // Always use proxy to avoid CORS issues
+let apiUrl = import.meta.env.PROD ? backendApiUrl : "/api";
 
 // ==================== Encryption & Security ====================
 
