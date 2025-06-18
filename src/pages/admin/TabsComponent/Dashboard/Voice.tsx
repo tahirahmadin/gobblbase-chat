@@ -14,7 +14,7 @@ const Button = styled.button`
   transition: background 0.3s;
   font-size: clamp(8px, 4vw, 15px);
   font-weight: 400;
-    font-family: "DM Sans", sans-serif;
+  font-family: "DM Sans", sans-serif;
 
   @media (max-width: 600px) {
     min-width: 120px;
@@ -33,13 +33,13 @@ const Button = styled.button`
   }
 
   &:disabled {
-    background: #CDCDCD;
+    background: #cdcdcd;
     border: 1px solid #7d7d7d;
-    color: #7D7D7D;
+    color: #7d7d7d;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #CDCDCD;
+    background: #cdcdcd;
     border: 1px solid #7d7d7d;
   }
 `;
@@ -48,6 +48,8 @@ const personalityOptions: PersonalityOption[] = PERSONALITY_OPTIONS;
 const Voice = () => {
   const { activeBotId, activeBotData, setRefetchBotData } = useBotConfig();
   const [selectedPersonality, setSelectedPersonality] =
+    useState<PersonalityOption>(personalityOptions[0]);
+  const [initialPersonality, setInitialPersonality] =
     useState<PersonalityOption>(personalityOptions[0]);
   const [customVoiceName, setCustomVoiceName] = useState("");
   const [customVoiceCharacteristics, setCustomVoiceCharacteristics] =
@@ -62,9 +64,14 @@ const Voice = () => {
       );
       if (personality) {
         setSelectedPersonality(personality);
+        setInitialPersonality(personality);
       }
     }
   }, [activeBotData]);
+
+  const hasChanges = () => {
+    return selectedPersonality.id !== initialPersonality.id;
+  };
 
   const handlePersonalitySelect = (personality: PersonalityOption) => {
     setSelectedPersonality(personality);
@@ -214,8 +221,8 @@ const Voice = () => {
       <div className="flex justify-end relative z-10">
         <Button
           onClick={handleSave}
-          disabled={isSaving}
-          className={`${isSaving ? "cursor-not-allowed" : ""}`}
+          disabled={isSaving || !hasChanges()}
+          className={`${isSaving || !hasChanges() ? "cursor-not-allowed" : ""}`}
         >
           {isSaving ? (
             <div className="flex items-center space-x-2">

@@ -91,6 +91,21 @@ export function useChatMessages(
   const handleAIResponse = async (msgToSend: string): Promise<boolean> => {
     if (!currentConfig?.agentId) return false;
 
+    // Check if the bot is queryable
+    if (currentConfig.isQueryable === false) {
+      setMessages((m) => [
+        ...m,
+        {
+          id: (Date.now() + 3).toString(),
+          content:
+            "This bot is currently disabled. Please contact the administrator to enable it.",
+          timestamp: new Date(),
+          sender: "agent",
+        },
+      ]);
+      return true; // Return true since we handled the message
+    }
+
     // Check if the bot is active
     if (currentConfig.isActive === false) {
       setMessages((m) => [
