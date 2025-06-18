@@ -483,7 +483,7 @@ const Usage = () => {
         {/* Filters */}
         <div className="flex flex-row justify-center gap-2 w-full sm:w-auto">
           {/* agent drop down  */}
-          <div className="relative w-30 xs:w-48 flex items-center">
+          <div className="relative w-30 xs:w-48 flex items-center z-[10]">
             <button
               onClick={() => setIsAgentDropdownOpen(!isAgentDropdownOpen)}
               className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
@@ -529,7 +529,7 @@ const Usage = () => {
             )}
           </div>
           {/* all time drop down  */}
-          <div className="relative w-30 xs:w-48 flex items-center ">
+          <div className="relative w-30 xs:w-48 flex items-center z-[10]">
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
@@ -573,7 +573,7 @@ const Usage = () => {
           <span className="text-xs text-gray-600 mb-1">Current Plan</span>
           <div className="flex items-center justify-between">
             <span className="font-bold text-lg">{currentPlan || "FREE"}</span>
-            <div className="relative z-10 ">
+            <div className="relative z-[5] ">
               <div className="absolute top-[3.5px] left-[3px] -z-10 bg-[#6AFF97] border border-black w-full h-full"></div>
               <button
                 style={{
@@ -594,7 +594,7 @@ const Usage = () => {
           <span className="text-xs text-gray-600 mb-1">Billing History</span>
           <div className="flex items-center justify-between">
             <span className="font-bold text-lg">Stripe</span>
-            <div className="relative z-10 ">
+            <div className="relative z-[5] ">
               <div className="absolute top-[3.5px] left-[3px] -z-10 bg-[#6AFF97] border border-black w-full h-full"></div>
               <button
                 style={{

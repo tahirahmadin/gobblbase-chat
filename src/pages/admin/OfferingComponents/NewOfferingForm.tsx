@@ -235,7 +235,7 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
               className="mb-4 flex flex-col md:flex-row items-start w-full relative"
             >
               <div
-                className={`flex items-center mx-auto h-12 z-30 ${
+                className={`flex items-center mx-auto h-12 z-[20] ${
                   isActive
                     ? "bg-[#4D65FF] border-[#4f46e5] w-[80%] md:w-[fit-content] text-white rounded-full translate-y-8"
                     : isCompleted

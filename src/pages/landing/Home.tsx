@@ -2645,55 +2645,55 @@ const Home = () => {
             </FooterUpper>
             <FooterBelow>
               <img
-                src="/assets/landing-asset/assemble/footer-card-1.png"
+                src="/assets/landing-asset/assemble/footer-card-1.jpg"
                 alt="Kifor Mascot"
                 width={"100%"}
               />
               <span className="footer-card-2">
                 <img
-                  src="/assets/landing-asset/assemble/footer-card-2.png"
+                  src="/assets/landing-asset/assemble/footer-card-2.jpg"
                   alt="Kifor Mascot"
                   className="mascot-img"
                 />
               </span>
               <span className="footer-card-3">
                 <img
-                  src="/assets/landing-asset/assemble/footer-card-3.png"
+                  src="/assets/landing-asset/assemble/footer-card-3.jpg"
                   alt="Kifor Mascot"
                   className="mascot-img"
                 />
               </span>
               <span className="footer-card-4">
                 <img
-                  src="/assets/landing-asset/assemble/footer-card-4.png"
+                  src="/assets/landing-asset/assemble/footer-card-4.jpg"
                   alt="Kifor Mascot"
                   className="mascot-img"
                 />
               </span>
               <span className="footer-card-5">
                 <img
-                  src="/assets/landing-asset/assemble/footer-card-5.png"
+                  src="/assets/landing-asset/assemble/footer-card-5.jpg"
                   alt="Kifor Mascot"
                   className="mascot-img"
                 />
               </span>
               <span className="footer-card-6">
                 <img
-                  src="/assets/landing-asset/assemble/footer-card-6.png"
+                  src="/assets/landing-asset/assemble/footer-card-6.jpg"
                   alt="Kifor Mascot"
                   className="mascot-img"
                 />
               </span>
               <span className="footer-card-7">
                 <img
-                  src="/assets/landing-asset/assemble/footer-card-7.png"
+                  src="/assets/landing-asset/assemble/footer-card-7.jpg"
                   alt="Kifor Mascot"
                   className="mascot-img"
                 />
               </span>
               <span className="footer-card-8">
                 <img
-                  src="/assets/landing-asset/assemble/footer-card-8.png"
+                  src="/assets/landing-asset/assemble/footer-card-8.jpg"
                   alt="Kifor Mascot"
                   className="mascot-img"
                 />
