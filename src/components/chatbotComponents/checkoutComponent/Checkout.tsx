@@ -235,8 +235,11 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
                 {selectedProduct.quantity || 1}x {selectedProduct.title}
               </div>
               <div style={{ color: theme.isDark ? "#fff" : "#000" }}>
-                {selectedProduct.price * (selectedProduct.quantity || 1)}{" "}
-                {activeBotData?.currency || "USD"}
+                {selectedProduct.priceType === "free"
+                  ? "Free"
+                  : `${
+                      selectedProduct.price * (selectedProduct.quantity || 1)
+                    } ${activeBotData?.currency || "USD"}`}
               </div>
             </div>
             <div className="flex justify-between items-center mb-4 font-bold">
@@ -244,8 +247,11 @@ export function Checkout({ theme, onBack }: CheckoutProps) {
                 Total Amount
               </div>
               <div style={{ color: theme.highlightColor }}>
-                {selectedProduct.price * (selectedProduct.quantity || 1)}{" "}
-                {activeBotData?.currency || "USD"}
+                {selectedProduct.priceType === "free"
+                  ? "Free"
+                  : `${
+                      selectedProduct.price * (selectedProduct.quantity || 1)
+                    } ${activeBotData?.currency || "USD"}`}
               </div>
             </div>
           </div>
