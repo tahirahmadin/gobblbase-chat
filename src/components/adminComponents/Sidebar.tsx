@@ -234,7 +234,8 @@ const Sidebar = ({ onClose }: SidebarProps) => {
         (item) =>
           item.name === "Dashboard" ||
           item.name === "Account" ||
-          item.name === "Team"
+          item.name === "Team" ||
+          item.name === "Support"
       );
     }
 
@@ -243,7 +244,8 @@ const Sidebar = ({ onClose }: SidebarProps) => {
         (item) =>
           item.name === "Dashboard" ||
           item.name === "Account" ||
-          item.name === "Support"
+          item.name === "Support" ||
+          item.name === "Team"
       );
     }
 
