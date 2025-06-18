@@ -1915,7 +1915,7 @@ export async function savePhysicalProduct(
     form.quantityType === "unlimited" ? "true" : "false"
   );
   formData.append("quantityType", form.quantityType);
-  formData.append("ctaButton", form.cta);
+  formData.append("ctaButton", form.ctaButton);
   if (form.variedQuantities) {
     formData.append("variedQuantities", JSON.stringify(form.variedQuantities));
   }
@@ -2043,7 +2043,7 @@ export async function saveServiceProduct(
     form.quantityType === "unlimited" ? "true" : "false"
   );
   formData.append("quantityType", form.quantityType);
-  formData.append("ctaButton", form.cta);
+  formData.append("ctaButton", form.ctaButton);
   formData.append("locationType", form.locationType);
   if (form.address) {
     formData.append("address", form.address);
@@ -2099,7 +2099,7 @@ export async function saveEventProduct(
   formData.append("eventType", form.eventType);
   formData.append("price", form.price);
   formData.append("priceType", form.priceType);
-  formData.append("ctaButton", form.cta);
+  formData.append("ctaButton", form.ctaButton);
   if (form.slots && form.slots[0]) {
     formData.append("slotDate", form.slots[0].date);
     formData.append("slotStart", form.slots[0].start);
