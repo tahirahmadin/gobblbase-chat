@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Copy, ExternalLink, Globe, Check } from "lucide-react";
 import { useBotConfig } from "../../../../store/useBotConfig";
 
-const embedAgent = ["Embed a Chat Bubble?", "Embed the IFrame directly"];
+const embedAgent = ["Embed the IFrame directly"];
 export default function Embed() {
   const [selectedEmbedAgent, setSelectedEmbedAgent] = useState<string>(
     embedAgent[0]
@@ -15,7 +15,7 @@ export default function Embed() {
   );
 
   const iframeCode = `<iframe
-  src="https://Sayy.ai/${activeBotData?.username}"
+  src="https://sayy.ai/${activeBotData?.username}"
   width="100%"
   style="height: 100%; min-height: 600px"
   frameborder="0"
@@ -27,11 +27,11 @@ export default function Embed() {
   }
 </script>
 <script
-  src="https://Sayy.ai/embed.min.js"
+  src="https://sayy.ai/embed.min.js"
   async>
 </script>`;
 
-  const chatbotUrl = `https://Sayy.ai/${activeBotData?.username}`;
+  const chatbotUrl = `https://sayy.ai/${activeBotData?.username}`;
 
   const handleCopy = (code: string) => {
     navigator.clipboard.writeText(code);

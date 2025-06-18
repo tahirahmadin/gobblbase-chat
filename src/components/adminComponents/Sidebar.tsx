@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
   Briefcase,
@@ -10,10 +10,12 @@ import {
   LayoutDashboard,
   Bot,
   Headphones,
+  ChevronUp,
 } from "lucide-react";
 import { useAdminStore } from "../../store/useAdminStore";
 import { useUserStore } from "../../store/useUserStore";
 import { useBotConfig } from "../../store/useBotConfig";
+import { AdminAgent } from "../../types";
 
 interface SubNavItem {
   name: string;
@@ -30,6 +32,14 @@ interface NavItem {
 
 interface SidebarProps {
   onClose?: () => void;
+}
+
+interface Team {
+  teamName: string;
+  teamId: string;
+  role: string;
+  email: string;
+  agents: AdminAgent[];
 }
 
 // LogoutModal component (popup style above button)
@@ -102,13 +112,12 @@ const Sidebar = ({ onClose }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [expandedTabs, setExpandedTabs] = useState<string[]>([]);
-  const { adminLogout, clientData } = useAdminStore();
+  const { adminLogout, clientData, adminEmail, adminId, setActiveTeamId } =
+    useAdminStore();
   const { logout: userLogout } = useUserStore();
-  const { clearBotConfig } = useBotConfig();
-  const { activeBotId } = useBotConfig();
+  const { clearBotConfig, activeBotId, activeBotData } = useBotConfig();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const { adminEmail } = useAdminStore();
-  const { activeBotData } = useBotConfig();
+  const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false);
 
   const navItems: NavItem[] = [
     {
@@ -126,12 +135,13 @@ const Sidebar = ({ onClose }: SidebarProps) => {
       subItems: [
         { name: "Overview", path: "/admin/dashboard/overview" },
         { name: "Profile", path: "/admin/dashboard/profile" },
-        { name: "Brain/PDF", path: "/admin/dashboard/brain" },
+        { name: "Brain", path: "/admin/dashboard/brain" },
         { name: "AI Model", path: "/admin/dashboard/ai-model" },
         { name: "Voice", path: "/admin/dashboard/voice" },
         { name: "Theme", path: "/admin/dashboard/theme" },
         { name: "Welcome Text", path: "/admin/dashboard/welcome" },
         { name: "Prompts", path: "/admin/dashboard/prompts" },
+        { name: "Embed Agent", path: "/admin/dashboard/embed" },
       ],
     },
     {
@@ -140,11 +150,31 @@ const Sidebar = ({ onClose }: SidebarProps) => {
       path: "/admin/products",
       expandable: true,
       subItems: [
-        { name: "Add Product", path: "/admin/commerce/add" },
+        { name: "Add New", path: "/admin/commerce/add" },
         { name: "Manage", path: "/admin/commerce/manage" },
-        { name: "Orders", path: "/admin/operations/orders" },
-        { name: "Bookings", path: "/admin/commerce/calendar" },
+        { name: "Email", path: "/admin/commerce/email" },
         { name: "Policies", path: "/admin/commerce/policies" },
+      ],
+    },
+    {
+      name: "Business",
+      icon: <Briefcase className="w-5 h-5" />,
+      path: "/admin/operations",
+      expandable: true,
+      subItems: [
+        { name: "Orders", path: "/admin/business/orders" },
+        { name: "Payments", path: "/admin/business/payments" },
+        { name: "Income", path: "/admin/business/income" },
+      ],
+    },
+    {
+      name: "Calender",
+      icon: <Users className="w-5 h-5" />,
+      path: "/admin/calender",
+      expandable: true,
+      subItems: [
+        { name: "Manage", path: "/admin/calender/manage" },
+        { name: "Email", path: "/admin/calender/email" },
       ],
     },
     {
@@ -158,16 +188,16 @@ const Sidebar = ({ onClose }: SidebarProps) => {
       ],
     },
     {
-      name: "Settings",
-      icon: <Briefcase className="w-5 h-5" />,
-      path: "/admin/operations",
+      name: "Team",
+      icon: <Users className="w-5 h-5" />,
+      path: "/admin/team",
       expandable: true,
-      subItems: [
-        { name: "Email", path: "/admin/operations/email" },
-        { name: "Integrations", path: "/admin/operations/integrations" },
-        { name: "Embed", path: "/admin/operations/embed" },
-      ],
+      subItems:
+        clientData?.role !== "member"
+          ? [{ name: "Members", path: "/admin/account/team" }]
+          : [],
     },
+
     {
       name: "Account",
       icon: <Users className="w-5 h-5" />,
@@ -175,13 +205,9 @@ const Sidebar = ({ onClose }: SidebarProps) => {
       expandable: true,
       subItems: [
         // { name: "Billing", path: "/admin/account/billing" },
-        { name: "Income", path: "/admin/account/income" },
-        { name: "Payments", path: "/admin/account/payments" },
-        { name: "Plans", path: "/admin/account/plans" },
+
+        { name: "Plans & Pricing", path: "/admin/account/plans" },
         { name: "Usage", path: "/admin/account/usage" },
-        ...(clientData?.role !== "member"
-          ? [{ name: "Team", path: "/admin/account/team" }]
-          : []),
       ],
     },
     {
@@ -227,6 +253,13 @@ const Sidebar = ({ onClose }: SidebarProps) => {
     }
   };
 
+  const handleLogout = () => {
+    userLogout();
+    adminLogout();
+    clearBotConfig();
+    navigate("/admin");
+  };
+
   return (
     <div className="w-64 bg-black h-screen text-white p-4 flex flex-col overflow-y-auto">
       <div className="mb-8 flex justify-center">
@@ -238,6 +271,7 @@ const Sidebar = ({ onClose }: SidebarProps) => {
           />
         </Link>
       </div>
+
       <nav className="flex-1 space-y-2">
         {filteredNavItems.map((item) => (
           <div key={item.name} className="space-y-1">
@@ -316,14 +350,9 @@ const Sidebar = ({ onClose }: SidebarProps) => {
           <LogoutModal
             open={showLogoutModal}
             onClose={() => setShowLogoutModal(false)}
-            onConfirm={() => {
-              userLogout();
-              adminLogout();
-              clearBotConfig();
-              navigate("/admin");
-            }}
+            onConfirm={handleLogout}
             email={adminEmail}
-            photo={activeBotData?.logo || null}
+            photo={activeBotData?.logo || ""}
           />
         </div>
       </div>

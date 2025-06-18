@@ -1,6 +1,8 @@
 import { useLocation } from "react-router-dom";
 import AddNew from "./AddNew";
 import Manage from "./Manage";
+import Policies from "./Policies";
+import EmailTemplates from "./EmailTemplates";
 
 const Commerce = () => {
   const location = useLocation();
@@ -9,8 +11,14 @@ const Commerce = () => {
   const renderContent = () => {
     if (currentPath.includes("/commerce/add")) {
       return <AddNew />;
+    } else if (currentPath.includes("/commerce/manage")) {
+      return <Manage />;
+    } else if (currentPath.includes("/commerce/policies")) {
+      return <Policies />;
+    } else if (currentPath.includes("/commerce/email")) {
+      return <EmailTemplates isCommerce={true} />;
     }
-    return <Manage />;
+    return <AddNew />;
   };
 
   return (
