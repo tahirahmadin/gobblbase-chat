@@ -46,6 +46,7 @@ declare global {
 interface HeaderSectionProps {
   theme: Theme;
   currentConfig: BotConfig;
+  isPreview: boolean;
   activeScreen: "about" | "chat" | "browse";
   setActiveScreen: (screen: "about" | "chat" | "browse") => void;
 }
@@ -83,6 +84,7 @@ function HeaderSection({
   theme,
   currentConfig,
   activeScreen,
+  isPreview,
   setActiveScreen,
 }: HeaderSectionProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -783,6 +785,7 @@ function HeaderSection({
   );
 
   const getWhatsAppNumber = () => {
+    if (!currentConfig.whatsappNumber?.number) return null;
     let countryCodeWithoutPlus =
       currentConfig.whatsappNumber.countryCode.replace("+", "");
     return `${countryCodeWithoutPlus}${currentConfig.whatsappNumber.number}`;
@@ -836,21 +839,23 @@ function HeaderSection({
                 >
                   <History className="h-5 w-5" />
                 </button> */}
-                <a
-                  target="_blank"
-                  href={`https://api.whatsapp.com/send?phone=${getWhatsAppNumber()}`}
-                >
-                  <button
-                    className="p-2 rounded-full hover:bg-opacity-10 hover:bg-white"
-                    style={{
-                      backgroundColor: !theme.isDark ? "white" : "black",
-                      color: theme.highlightColor,
-                      border: `2px solid ${theme.isDark ? "white" : "black"}`,
-                    }}
+                {currentConfig.whatsappNumber?.number && (
+                  <a
+                    target="_blank"
+                    href={`https://api.whatsapp.com/send?phone=${getWhatsAppNumber()}`}
                   >
-                    <FaWhatsapp className="h-5 w-5" />
-                  </button>
-                </a>
+                    <button
+                      className="p-2 rounded-full hover:bg-opacity-10 hover:bg-white"
+                      style={{
+                        backgroundColor: !theme.isDark ? "white" : "black",
+                        color: theme.highlightColor,
+                        border: `2px solid ${theme.isDark ? "white" : "black"}`,
+                      }}
+                    >
+                      <FaWhatsapp className="h-5 w-5" />
+                    </button>
+                  </a>
+                )}
                 <button
                   className="p-2 rounded-full hover:bg-opacity-10 hover:bg-white"
                   style={{
@@ -898,31 +903,62 @@ function HeaderSection({
 
       {/* Navigation Bar */}
       <div
-        className="flex justify-around pt-2"
-        style={{ backgroundColor: theme.isDark ? "black" : "white" }}
+        className={`flex pt-2  ${
+          isPreview ? "justify-around gap-1" : "justify-around gap-2 md:gap-4 md:justify-start"}`}
+        style={{ backgroundColor: theme.isDark ? "black" : "white" ,
+        }}
       >
-        <button
-          onClick={() => setActiveScreen("about")}
-          className={`text-xs  px-4 py-1 flex items-center space-x-1 pb-2`}
-          style={{
-            fontWeight: 500,
-            color: activeScreen === "about" ? theme.highlightColor : "#bfbfbf",
-            borderBlockEnd:
-              activeScreen === "about"
-                ? `4px solid ${theme.highlightColor}`
-                : "none",
-          }}
-        >
-          <Info
-            className="h-3.5 w-3.5"
+        {isPreview ? (
+          <button
+            onClick={() => setActiveScreen("about")}
+            className={`text-xs  px-4 py-1 flex items-center space-x-1 pb-2`}
             style={{
-              marginRight: 3,
+              fontWeight: 500,
               color:
                 activeScreen === "about" ? theme.highlightColor : "#bfbfbf",
+              borderBlockEnd:
+                activeScreen === "about"
+                  ? `4px solid ${theme.highlightColor}`
+                  : "none",
             }}
-          />
-          ABOUT
-        </button>
+          >
+            <Info
+              className="h-3.5 w-3.5"
+              style={{
+                marginRight: 3,
+                color:
+                  activeScreen === "about" ? theme.highlightColor : "#bfbfbf",
+              }}
+            />
+            ABOUT
+          </button>
+        ) : 
+        (
+          <button
+            onClick={() => setActiveScreen("about")}
+            className={`text-xs  px-4 py-1 md:hidden flex items-center space-x-1 pb-2`}
+            style={{
+              fontWeight: 500,
+              color:
+                activeScreen === "about" ? theme.highlightColor : "#bfbfbf",
+              borderBlockEnd:
+                activeScreen === "about"
+                  ? `4px solid ${theme.highlightColor}`
+                  : "none",
+            }}
+          >
+            <Info
+              className="h-3.5 w-3.5"
+              style={{
+                marginRight: 3,
+                color:
+                  activeScreen === "about" ? theme.highlightColor : "#bfbfbf",
+              }}
+            />
+            ABOUT
+          </button>
+        )}
+
         <button
           onClick={() => setActiveScreen("chat")}
           className={`text-xs  px-4 py-1 relative flex items-center space-x-1`}
@@ -964,7 +1000,7 @@ function HeaderSection({
                 activeScreen === "browse" ? theme.highlightColor : "#bfbfbf",
             }}
           />{" "}
-          PRODUCTS
+          BROWSE
         </button>
       </div>
 

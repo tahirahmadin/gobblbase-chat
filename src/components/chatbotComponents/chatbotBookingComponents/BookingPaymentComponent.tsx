@@ -10,9 +10,8 @@ import { useBotConfig } from "../../../store/useBotConfig";
 import { useUserStore } from "../../../store/useUserStore";
 import toast from "react-hot-toast";
 import { CreditCard, Wallet } from "lucide-react";
-import { Theme } from "../../types";
-import { bookAppointment, updateClientBillingDetails } from "../../../lib/serverActions";
-import { backendApiUrl } from "../../../utils/constants";
+import { Theme } from "../../../types";
+import { bookAppointment, createBookingPaymentIntent } from "../../../lib/serverActions"; // Added import
 import { useCryptoPayment } from "../../../hooks/useCryptoHook";
 
 interface BookingPaymentProps {
@@ -252,32 +251,37 @@ function CryptoBookingForm({
     "0x61": "USDT on BSC Testnet",
   };
 
-  const bookingProduct = useMemo(() => ({
-    _id: `booking_${bookingDetails.businessId}_${Date.now()}`,
-    price: price.amount,
-    title: `Booking: ${bookingDetails.date} ${bookingDetails.startTime}`,
-    description: `Booking for ${bookingDetails.name} on ${bookingDetails.date}`,
-    quantity: 1,
-    type: "booking",
-    checkType: "booking",
-    metadata: {
+  const bookingProduct = useMemo(
+    () => ({
+      _id: `booking_${bookingDetails.businessId}_${Date.now()}`,
+      price: price.amount,
+      title: `Booking: ${bookingDetails.date} ${bookingDetails.startTime}`,
+      description: `Booking for ${bookingDetails.name} on ${bookingDetails.date}`,
+      quantity: 1,
       type: "booking",
-      bookingDetails: bookingDetails,
-    },
-  }), [bookingDetails, price.amount]);
+      checkType: "booking",
+      metadata: {
+        type: "booking",
+        bookingDetails: bookingDetails,
+      },
+    }),
+    [bookingDetails, price.amount]
+  );
 
-
-  const shippingData = useMemo(() => ({
-    name: bookingDetails.name,
-    email: bookingDetails.email,
-    phone: bookingDetails.phone,
-    country: "US", 
-    address1: bookingDetails.location,
-    address2: "",
-    city: "",
-    zipcode: "",
-    saveDetails: false,
-  }), [bookingDetails]);
+  const shippingData = useMemo(
+    () => ({
+      name: bookingDetails.name,
+      email: bookingDetails.email,
+      phone: bookingDetails.phone,
+      country: "US",
+      address1: bookingDetails.location,
+      address2: "",
+      city: "",
+      zipcode: "",
+      saveDetails: false,
+    }),
+    [bookingDetails]
+  );
 
   const {
     isConnected,
@@ -309,13 +313,15 @@ function CryptoBookingForm({
         paymentMethod: "USDT",
         paymentAmount: price.amount,
         paymentCurrency: "USDT",
-      }).then(() => {
-        toast.success("Booking confirmed!");
-        onSuccess();
-      }).catch((err) => {
-        console.error("Booking error:", err);
-        toast.error("Booking failed. Please try again.");
-      });
+      })
+        .then(() => {
+          toast.success("Booking confirmed!");
+          onSuccess();
+        })
+        .catch((err) => {
+          console.error("Booking error:", err);
+          toast.error("Booking failed. Please try again.");
+        });
     },
     onOrderDetails: () => {}, // Not needed for bookings
     walletAddress: walletAddress || "",
@@ -464,7 +470,7 @@ export function BookingPaymentComponent({
   const [freeBookingLoading, setFreeBookingLoading] = useState(false);
   const [freeBookingError, setFreeBookingError] = useState<string | null>(null);
 
-  // Check if any payment method is enabled 
+  // Check if any payment method is enabled
   const availablePaymentMethods = useMemo(() => {
     if (!activeBotData?.paymentMethods) return [];
 
@@ -481,7 +487,7 @@ export function BookingPaymentComponent({
 
   const hasEnabledPaymentMethods = availablePaymentMethods.length > 0;
 
-  // Auto-select first available payment method 
+  // Auto-select first available payment method
   useEffect(() => {
     if (
       availablePaymentMethods.length > 0 &&
@@ -571,46 +577,30 @@ export function BookingPaymentComponent({
           },
         };
 
-        const response = await fetch(
-          `${backendApiUrl}/product/create-booking-payment-intent`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              cart: [bookingAsProduct],
-              clientId: clientId,
-              agentId: activeBotId || bookingDetails.businessId,
-              userId: userId || bookingDetails.email,
-              userEmail: userEmail || bookingDetails.email,
-              stripeAccountId: activeBotData.paymentMethods.stripe.accountId,
-              amount: Math.round(price.amount * 100),
-              currency: price.currency || "USD",
-              // Adding booking-specific shipping data
-              shipping: {
-                name: bookingDetails.name,
-                email: bookingDetails.email,
-                phone: bookingDetails.phone,
-                country: "US", // Default or get from booking details
-                address1: bookingDetails.location,
-                address2: "",
-                city: "",
-                zipcode: "",
-                saveDetails: false,
-              },
-            }),
-          }
-        );
+        // Use the new server action instead of direct fetch
+        const data = await createBookingPaymentIntent({
+          cart: [bookingAsProduct],
+          clientId: clientId,
+          agentId: activeBotId || bookingDetails.businessId,
+          userId: userId || bookingDetails.email,
+          userEmail: userEmail || bookingDetails.email,
+          stripeAccountId: activeBotData.paymentMethods.stripe.accountId,
+          amount: Math.round(price.amount * 100),
+          currency: price.currency || "USD",
+          // Adding booking-specific shipping data
+          shipping: {
+            name: bookingDetails.name,
+            email: bookingDetails.email,
+            phone: bookingDetails.phone,
+            country: "US", // Default or get from booking details
+            address1: bookingDetails.location,
+            address2: "",
+            city: "",
+            zipcode: "",
+            saveDetails: false,
+          },
+        });
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(
-            errorData.message || "Failed to create payment intent"
-          );
-        }
-
-        const data = await response.json();
         console.log("Payment intent created successfully:", data);
         setClientSecret(data.clientSecret);
       } catch (error: any) {
@@ -633,6 +623,7 @@ export function BookingPaymentComponent({
     userEmail,
     selectedMethod,
     stripePromise,
+    clientId, // Added clientId to dependencies
   ]);
 
   const renderPaymentMethod = () => {

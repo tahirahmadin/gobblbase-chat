@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -34,11 +34,12 @@ import Login from "./pages/admin/Login";
 import { useAdminStore } from "./store/useAdminStore";
 import CreateNewBot from "./pages/admin/CreateNewBot";
 import Plans from "./pages/admin/TabsComponent/Account/Plans";
-import Billing from "./pages/admin/Billing";
 import Usage from "./pages/admin/TabsComponent/Account/Usage";
+import { IS_MAINTENANCE_MODE } from "./utils/constants";
+import Maintenance from "./pages/Maintenance";
 
 import Commerce from "./pages/admin/TabsComponent/Commerce/Commerce";
-import Operations from "./pages/admin/TabsComponent/Settings/Operations";
+import Operations from "./pages/admin/TabsComponent/Business/Operations";
 import Home from "./pages/landing/Home";
 import AllAgents from "./pages/admin/AllAgents";
 import Pricing from "./pages/landing/Pricing";
@@ -48,8 +49,14 @@ import PaymentCancelPage from "./pages/admin/PlanComponents/PaymentCancelPage";
 import { useUserStore } from "./store/useUserStore";
 import RescheduleBookingWrapper from "./components/chatbotComponents/chatbotBookingComponents/RescheduleBookingWrapper";
 import Payments from "./pages/admin/TabsComponent/Account/Payments";
-import Income from "./pages/admin/TabsComponent/Account/Income";
+import Income from "./pages/admin/TabsComponent/Business/Income";
 import Overview from "./pages/admin/TabsComponent/Dashboard/Overview";
+import Support from "./pages/admin/Support";
+import Team from "./pages/admin/TabsComponent/Account/Team";
+import PrivacyPolicy from "./pages/landing/PrivacyPolicy";
+import Embed from "./pages/admin/TabsComponent/Dashboard/Embed";
+import TermConditions from "./pages/landing/TermConditions";
+import Calendar from "./pages/admin/TabsComponent/Calendar/Calendar";
 
 // Add type definition for window
 declare global {
@@ -128,18 +135,27 @@ function Dashboard() {
         <Route path="dashboard/theme" element={<Theme />} />
         <Route path="dashboard/welcome" element={<WelcomeText />} />
         <Route path="dashboard/prompts" element={<Prompts />} />
-        <Route path="operations" element={<Operations />} />
+        <Route path="dashboard/embed" element={<Embed />} />
 
-        <Route path="operations/integrations" element={<Operations />} />
-        <Route path="operations/embed" element={<Operations />} />
-        <Route path="operations/orders" element={<Operations />} />
-        <Route path="operations/email" element={<Operations />} />
         <Route path="commerce" element={<Commerce />} />
         <Route path="commerce/add" element={<Commerce />} />
         <Route path="commerce/manage" element={<Commerce />} />
+        <Route path="commerce/email" element={<Commerce />} />
+
+        <Route path="business" element={<Operations />} />
+        <Route path="business/orders" element={<Operations />} />
+        <Route path="business/payments" element={<Payments />} />
+        <Route path="business/income" element={<Income />} />
+
+        <Route path="business/integrations" element={<Operations />} />
 
         {/* Modified Calendar Routes */}
-        <Route path="commerce/calendar" element={<BookingDashboardWrapper />} />
+        <Route path="calendar/manage" element={<Calendar />} />
+        <Route path="calendar/email" element={<Calendar />} />
+        <Route 
+          path="commerce/calendar" 
+          element={<BookingDashboardWrapper />} 
+        />
         <Route
           path="commerce/calendar/edit"
           element={<BookingDashboardWrapper isEditMode={true} />}
@@ -151,11 +167,13 @@ function Dashboard() {
         <Route path="commerce/policies" element={<Policies />} />
         <Route path="crm/chat-logs" element={<ChatLogs />} />
         <Route path="crm/leads" element={<CustomerLeads />} />
-        <Route path="account/payments" element={<Payments />} />
+
         <Route path="account/income" element={<Income />} />
         <Route path="account/plans" element={<Plans />} />
         <Route path="account/usage" element={<Usage />} />
+        <Route path="account/team" element={<Team />} />
         <Route path="all-agents" element={<AllAgents />} />
+        <Route path="support" element={<Support />} />
         <Route path="dashboard/overview" element={<Overview />} />
         <Route path="*" element={<Navigate to="dashboard/profile" replace />} />
       </Routes>
@@ -188,38 +206,52 @@ function App() {
             <Router>
               <Toaster position="top-right" />
               <Routes>
-                <Route path="/admin/signup" element={<Login />} />
-                <Route
-                  path="/admin/dashboard/create-bot"
-                  element={<CreateNewBot />}
-                />
-                <Route path="/book/:agentId" element={<CustomerBookingPage />} />
-                <Route
-                  path="/reschedule/:bookingId"
-                  element={<RescheduleBookingWrapper />}
-                />
-                <Route
-                  path=":botUsername"
-                  element={
-                    <PublicChat
-                      chatHeight={null}
-                      previewConfig={null}
-                      isPreview={false}
-                      screenName=""
+                {IS_MAINTENANCE_MODE ? (
+                  <Route path="*" element={<Maintenance />} />
+                ) : (
+                  <>
+                    <Route path="/admin/signup" element={<Login />} />
+                    <Route
+                      path="/admin/dashboard/create-bot"
+                      element={<CreateNewBot />}
                     />
-                  }
-                />
-                <Route
-                  path="/admin/payment-success"
-                  element={<PaymentSuccessPage />}
-                />
-                <Route
-                  path="/admin/payment-cancel"
-                  element={<PaymentCancelPage />}
-                />
-                <Route path="/admin/*" element={<Dashboard />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/" element={<Home />} />
+                    <Route
+                      path="/book/:agentId"
+                      element={<CustomerBookingPage />}
+                    />
+                    <Route
+                      path="/reschedule/:bookingId"
+                      element={<RescheduleBookingWrapper />}
+                    />
+                    <Route
+                      path=":botUsername"
+                      element={
+                        <PublicChat
+                          chatHeight={null}
+                          previewConfig={null}
+                          isPreview={false}
+                          screenName=""
+                        />
+                      }
+                    />
+                    <Route
+                      path="/admin/payment-success"
+                      element={<PaymentSuccessPage />}
+                    />
+                    <Route
+                      path="/admin/payment-cancel"
+                      element={<PaymentCancelPage />}
+                    />
+                    <Route path="/admin/*" element={<Dashboard />} />
+                    <Route path="/pricing" element={<Pricing />} />
+                    <Route path="/privacy" element={<PrivacyPolicy />} />
+                    <Route
+                      path="/terms-condition"
+                      element={<TermConditions />}
+                    />
+                    <Route path="/" element={<Home />} />
+                  </>
+                )}
               </Routes>
             </Router>
           </TimezoneProvider>

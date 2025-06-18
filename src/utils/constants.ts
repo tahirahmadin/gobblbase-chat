@@ -5,8 +5,24 @@ import {
   PersonalityOption,
 } from "./../types";
 
-// export const backendApiUrl = "https://kifortestapi.gobbl.ai";
-export const backendApiUrl = "https://kiforapi.gobbl.ai";
+export const backendApiUrl = "https://kifortestapi.gobbl.ai";
+// export const backendApiUrl = "https://kiforapi.gobbl.ai";
+
+export const backendSocketUrl = "wss://kifortestapi.gobbl.ai";
+// export const backendSocketUrl = "wss://kiforapi.gobbl.ai";
+
+export const mainDomainUrl = "https://test.sayy.ai";
+// export const backendSocketUrl = "wss://kiforapi.gobbl.ai";
+export const IS_MAINTENANCE_MODE = false;
+
+// USDT conversion rates (as of March 2024)
+export const USDT_CONVERSION_RATES = {
+  USD: 1, // Base rate
+  INR: 83.12, // 1 USDT = 83.12 INR
+  AED: 3.67, // 1 USDT = 3.67 AED
+  GBP: 0.79, // 1 USDT = 0.79 GBP
+  EUR: 0.92, // 1 USDT = 0.92 EUR
+};
 
 export const AVAILABLE_THEMES: Theme[] = [
   {
@@ -150,6 +166,18 @@ export const MODEL_PRESETS: ModelOption[] = [
     traits: ["Fast", "Efficient", "General-purpose"],
     details: "Credits Cost: 1",
     creditsCost: 1,
+  },
+  {
+    id: "mistral-saba",
+    name: "Mistral Saba",
+    image:
+      "https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/mistral-ai-icon.svg",
+    contextWindow: "32k",
+    description:
+      "Specialized Arabic language model with 24B parameters. Outperforms models 5x its size on Arabic tasks while being faster and more cost-effective. Excellent for Arabic chat, content generation, and customer support.",
+    traits: ["Arabic specialized", "Cost-effective", "High performance"],
+    details: "Credits Cost: 3",
+    creditsCost: 3,
   },
   // {
   //   id: "llama-3-pro",

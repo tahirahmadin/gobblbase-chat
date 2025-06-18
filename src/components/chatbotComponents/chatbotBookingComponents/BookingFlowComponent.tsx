@@ -243,6 +243,13 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   const [loadingAvailability, setLoadingAvailability] = useState(false);
   const [availabilityDebug, setAvailabilityDebug] = useState<string>("");
 
+  const [dynamicPrice, setDynamicPrice] = useState({
+    isFree: servicePrice === "Free", 
+    amount: servicePrice !== "Free" ? parseFloat(servicePrice.replace(/[^0-9.]/g, "")) || 0 : 0,
+    currency: globalCurrency, 
+    displayPrice: servicePrice
+  });
+
   const availablePaymentMethods = useMemo(() => {
     if (!activeBotData?.paymentMethods) return [];
     
@@ -256,6 +263,14 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
   }, [activeBotData?.paymentMethods]);
 
   const hasEnabledPaymentMethods = availablePaymentMethods.length > 0;
+
+  const isBookingFree = useMemo(() => {
+    return settings?.price?.isFree || dynamicPrice.isFree;
+  }, [settings?.price?.isFree, dynamicPrice.isFree]);
+
+  const isLoginRequired = useMemo(() => {
+    return !isBookingFree; 
+  }, [isBookingFree]);
 
   const validateForm = () => {
     const isNameValid = name.trim().length >= 2;
@@ -288,13 +303,6 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
       setIsFormValid(validateForm());
     }, 0);
   };
-  
-  const [dynamicPrice, setDynamicPrice] = useState({
-    isFree: servicePrice === "Free", 
-    amount: servicePrice !== "Free" ? parseFloat(servicePrice.replace(/[^0-9.]/g, "")) || 0 : 0,
-    currency: globalCurrency, 
-    displayPrice: servicePrice
-  });
   
   useEffect(() => {
     if (isLoggedIn && userEmail) {
@@ -643,7 +651,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
     };
 
   const selectSlot = (slot: Slot) => {
-    if (!isLoggedIn) {
+    if (isLoginRequired && !isLoggedIn) {
       setSelectedSlot(null);
       return;
     }
@@ -767,7 +775,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
             </div>
           ) : (
             <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-4">
                 <button
                   onClick={prevMonth}
                   className="p-1"
@@ -784,7 +792,10 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                   <ChevronRight className="h-5 w-5" style={{ color: theme.highlightColor }} />
                 </button>
               </div>
-              <div className="grid grid-cols-7 gap-1 mb-2">
+              
+              {/* Single unified calendar grid */}
+              <div className="grid grid-cols-7 gap-1">
+                {/* Day headers row */}
                 {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((d) => (
                   <div
                     key={d}
@@ -793,17 +804,18 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                     {d}
                   </div>
                 ))}
-              </div>
-              <div className="grid grid-cols-7 gap-1">
+                
+                {/* Empty cells for month start offset */}
                 {Array.from({ length: off }).map((_, i) => (
-                  <div key={"e" + i} />
+                  <div key={`empty-${i}`} className="h-8" />
                 ))}
+                
+                {/* Date cells */}
                 {Array.from({ length: days }).map((_, i) => {
                   const dn = i + 1;
                   const date = new Date(y, m, dn);
                   
                   const dateString = getConsistentDateString(date);
-                  
                   const isUnavailable = isDateFullyUnavailable(date);
                   
                   return (
@@ -812,7 +824,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                       onClick={() => !isUnavailable && selectDate(date)}
                       disabled={isUnavailable}
                       className={`
-                        h-8 w-8 flex items-center justify-center rounded-md text-sm transition-colors
+                        h-8 w-8 flex items-center justify-center rounded-md text-sm transition-colors mx-auto
                         ${isUnavailable
                           ? "opacity-40 cursor-not-allowed"
                           : "hover:opacity-80 cursor-pointer"
@@ -854,7 +866,7 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
           return aHour * 60 + aMin - (bHour * 60 + bMin);
         });
       
-        if (!isLoggedIn) {
+        if (isLoginRequired && !isLoggedIn) {
           return (
             <div>
               <div className="flex justify-between items-center mb-4">
@@ -877,8 +889,8 @@ const BookingFlowComponent: React.FC<ChatbotBookingProps> = ({
                 <div>{fmtDateFull(selectedDate)}</div>
               </div>
               
-              <LoginCard theme={theme} />
-            </div>
+                <LoginCard theme={theme} />
+              </div>
           );
         }
         

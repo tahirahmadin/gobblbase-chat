@@ -6,12 +6,14 @@ import { toast } from "react-hot-toast";
 import styled from "styled-components";
 const Button = styled.button`
   position: relative;
-  background: #4d65ff;
+  background: #6aff97;
   padding: 0.6vh 1vw;
-  border: 2px solid black;
+  border: 1px solid black;
   cursor: pointer;
   transition: background 0.3s;
-  font-size: clamp(8px, 4vw, 16px);
+  font-size: clamp(8px, 4vw, 15px);
+  font-weight: 400;
+  font-family: "DM Sans", sans-serif;
   background: #6aff97;
   @media (max-width: 600px) {
     min-width: 120px;
@@ -20,21 +22,24 @@ const Button = styled.button`
   &::before {
     content: "";
     position: absolute;
-    top: 5px;
-    right: -5px;
+    top: 4px;
+    right: -4px;
     width: 100%;
     height: 100%;
-    border: 2px solid #000000;
+    border: 1px solid #000000;
     z-index: -1; // place it behind the button
     background: #6aff97;
   }
 
-  &:disabled {
-    background: #d6ffe0;
+   &:disabled {
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+    color: #7D7D7D;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #d6ffe0;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
   }
 `;
 const welcomeTemplates = [
@@ -172,7 +177,7 @@ const WelcomeText = () => {
                     </div>
                   </>
                 ) : (
-                  <div className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"></div>
+                  <button onClick={() => handleTemplateSelect(template)} className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3 curser-pointer"></button>
                 )}
                 <button
                   onClick={() => handleTemplateSelect(template)}
@@ -199,7 +204,7 @@ const WelcomeText = () => {
                 </div>
               </>
             ) : (
-              <div className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"></div>
+              <div  onClick={handleCustomMessageSave} className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"></div>
             )}
 
             <h3 className="para-font text-md md:text-lg text-[#0D0D0D] font-[500]">
@@ -219,7 +224,7 @@ const WelcomeText = () => {
               rows={4}
             />
             <div className="flex justify-end relative z-10">
-              <Button onClick={handleCustomMessageSave} className="">
+              <Button disabled={!customMessage.trim()} onClick={handleCustomMessageSave} className="">
                 ENTER
               </Button>
             </div>

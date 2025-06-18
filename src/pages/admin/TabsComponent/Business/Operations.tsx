@@ -1,24 +1,22 @@
 import { useLocation } from "react-router-dom";
 import Integrations from "../Integrations";
-import Embed from "./Embed";
+import Embed from "../Dashboard/Embed";
 import Orders from "./Orders";
-import EmailTemplates from "./EmailTemplates";
+import EmailTemplates from "../Commerce/EmailTemplates";
 
 const Operations = () => {
   const location = useLocation();
   const currentPath = location.pathname;
 
   const renderContent = () => {
-    if (currentPath.includes("/operations/integrations")) {
+    if (currentPath.includes("/business/integrations")) {
       return <Integrations />;
     }
-    if (currentPath.includes("/operations/embed")) {
-      return <Embed />;
-    }
-    if (currentPath.includes("/operations/orders")) {
+
+    if (currentPath.includes("/business/orders")) {
       return <Orders />;
     }
-    if (currentPath.includes("/operations/email")) {
+    if (currentPath.includes("/business/email")) {
       return <EmailTemplates />;
     }
   };

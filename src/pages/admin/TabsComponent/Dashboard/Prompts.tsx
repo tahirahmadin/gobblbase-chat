@@ -24,7 +24,7 @@ const Icon = styled.button`
   align-items: center;
   justify-content: center;
   background: #aeb8ff;
-  border: 2px solid black;
+  border: 1px solid black;
   cursor: pointer;
   transition: background 0.3s;
   font-size: clamp(8px, 4vw, 16px);
@@ -40,25 +40,26 @@ const Icon = styled.button`
   &::before {
     content: "";
     position: absolute;
-    top: 5px;
-    right: -5px;
+    top: 4px;
+    right: -4px;
     width: 100%;
     height: 100%;
-    border: 2px solid #000000;
+    border: 1px solid #000000;
     z-index: -1; // place it behind the button
     background: #aeb8ff;
   }
 `;
 const Button = styled.button`
   position: relative;
-  background: #4d65ff;
   padding: 0.6vh 1vw;
-  border: 2px solid black;
+  border: 1px solid black;
   cursor: pointer;
   transition: background 0.3s;
-  font-size: clamp(8px, 4vw, 16px);
+  font-size: clamp(8px, 4vw, 15px);
+  font-weight: 400;
+  font-family: "DM Sans", sans-serif;
   background: #6aff97;
-  font-weight: bold;
+  color: #000000;
   @media (max-width: 600px) {
     min-width: 120px;
   }
@@ -70,17 +71,20 @@ const Button = styled.button`
     right: -5px;
     width: 100%;
     height: 100%;
-    border: 2px solid #000000;
+    border: 1px solid #000000;
     z-index: -1; // place it behind the button
     background: #6aff97;
   }
 
   &:disabled {
-    background: #d6ffe0;
+    background: #cdcdcd;
+    border: 1px solid #7d7d7d;
+    color: #7d7d7d;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #d6ffe0;
+    background: #cdcdcd;
+    border: 1px solid #7d7d7d;
   }
 `;
 const Card = styled.div`
@@ -117,8 +121,25 @@ const Card = styled.div`
       margin: 4vh 0
     }
 `;
+
 const GENERIC_LLM_SYSTEM_PROMPT = (context: string) =>
-  `You are an AI assistant helping to engage users for a business or service. Based on the following context, generate 8 engaging, concise, and friendly opening prompts (cues) that encourage users to interact, ask questions, or explore the agent's capabilities. Make sure to never use Sayy related text while genrating prompts. Return only array of strings of max 3-4 words each.\n Context:\n${context}. Output format should be a JSON array of strings as example: ["Return policy?","Best Products?","Summarise the business!","Need support?","Consltation fees?","Book live call","Explore our features!"]`;
+  `You are an AI assistant that creates specific, actionable prompts based on document content. 
+
+Analyze the following document content and generate 8 short, specific prompts that users would naturally want to ask about this content. Focus on:
+- Key topics, concepts, or subjects mentioned in the document
+- Important details users might want to know more about
+- Specific processes, procedures, or steps described
+- Main sections or points that warrant further exploration
+- Data, facts, or findings that users might want clarified
+
+Make each prompt 2-4 words max, specific to the actual content, and naturally conversational. Avoid generic business terms and focus on what's actually in the document.
+
+Never use Sayy related text while generating prompts. Return only array of strings of max 3-4 words each.
+
+Document Content:
+${context}
+
+Output format should be a JSON array of strings as example: ["Key findings?", "Implementation steps?", "Main topics?", "Cost details?", "Timeline info?", "Next actions?", "Risk factors?", "Contact info?"]`;
 
 // Utility to extract JSON array from markdown code block
 function extractJsonArray(str: string): string {
@@ -228,28 +249,6 @@ const Prompts = () => {
     // Do NOT update previewConfig here
   };
 
-  const handleRemovePrompt = (prompt: string, isCustom: boolean) => {
-    let updatedSelected = [...selectedPrompts];
-    let updatedCustom = [...customPrompts];
-
-    if (isCustom) {
-      updatedCustom = customPrompts.filter((p) => p !== prompt);
-      setCustomPrompts(updatedCustom);
-      // Also remove from selectedPrompts if present
-      updatedSelected = updatedSelected.filter((p) => p !== prompt);
-      setSelectedPrompts(updatedSelected);
-    } else {
-      updatedSelected = selectedPrompts.filter((p) => p !== prompt);
-      setSelectedPrompts(updatedSelected);
-    }
-
-    // Update preview config with the new state (only selectedPrompts)
-    setPreviewConfig({
-      ...activeBotData,
-      prompts: updatedSelected,
-    });
-  };
-
   const handleSavePrompts = async () => {
     if (!activeBotData) return;
     setIsSaving(true);
@@ -275,7 +274,7 @@ const Prompts = () => {
       // Fetch context from backend
       const contextResult = await queryDocument(
         activeBotData.agentId,
-        "Give me a summary of this agent's business, offerings, and user goals so that I can generate cues/prompts for the agent."
+        "Provide a comprehensive overview of all the main topics, key information, important details, processes, and actionable items covered in the uploaded documents. Include any specific data, timelines, procedures, or important points mentioned."
       );
       const context = contextResult.toString() || "";
       // Compose LLM system prompt
@@ -284,7 +283,7 @@ const Prompts = () => {
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [{ role: "system", content: systemPrompt }],
-        temperature: 0.6,
+        temperature: 0.4,
       });
 
       let output = completion.choices[0].message.content;
@@ -413,7 +412,10 @@ const Prompts = () => {
                         </div>
                       </>
                     ) : (
-                      <div className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"></div>
+                      <button
+                        onClick={() => handlePromptSelect(prompt)}
+                        className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"
+                      ></button>
                     )}
                     <button
                       onClick={() => handlePromptSelect(prompt)}
@@ -461,7 +463,10 @@ const Prompts = () => {
                         </div>
                       </>
                     ) : (
-                      <div className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"></div>
+                      <button
+                        onClick={() => handlePromptSelect(prompt)}
+                        className="relative w-[25px] h-[25px] bg-[#CDCDCD] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3"
+                      ></button>
                     )}
                     <button
                       onClick={() => handlePromptSelect(prompt)}

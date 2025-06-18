@@ -10,6 +10,7 @@ import { Checkout } from "./checkoutComponent/Checkout";
 
 interface BrowseSectionProps {
   theme: Theme;
+  isPreview?: boolean;
   currentConfig?: {
     agentId?: string;
     name?: string;
@@ -30,6 +31,7 @@ export default function BrowseSection({
   showOnlyBooking = false,
   isBookingConfigured: propIsBookingConfigured,
   containerStyle,
+  isPreview = false,
   setActiveScreen,
 }: BrowseSectionProps) {
   const {
@@ -148,8 +150,8 @@ export default function BrowseSection({
                   Browse
                 </h2>
 
-                {/* Product grid always visible */}
-                <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 px-4">
+                {/* Product grid always visible */} 
+                <div className={` ${isPreview ? "grid grid-cols-2 gap-4 " : "grid grid-cols-2 gap-4 md:flex md:flex-wrap md:gap-12 "} px-4`}>
                   {products.map((product) => (
                     <div
                       key={product._id}
@@ -158,6 +160,9 @@ export default function BrowseSection({
                       style={{
                         backgroundColor: theme.isDark ? "#000" : "#fff",
                         color: theme.isDark ? "#fff" : "#000",
+                        maxWidth: "180px",
+                        width: "100%",
+                        minWidth: "100px",
                       }}
                     >
                       {/* Product Type Bubble */}
@@ -178,9 +183,9 @@ export default function BrowseSection({
                           product.images?.[0] || "https://i.imgur.com/EJLFNOwg.jpg"
                         }
                         alt={product.title}
-                        className="w-full h-28 object-cover"
+                        className={`w-full object-cover px-6 py-4 ${isPreview ? "h-32" : " h-40 "}`}
                       />
-                      <div className="p-2">
+                      <div className="px-6 py-2">
                         <h3
                           className="text-sm mb-1"
                           style={{ fontWeight: 500 }}

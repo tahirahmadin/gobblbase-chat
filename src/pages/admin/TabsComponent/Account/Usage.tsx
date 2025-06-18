@@ -1,8 +1,25 @@
-import React, { useState, useEffect } from "react";
-import { getClientUsage, getClient } from "../../../../lib/serverActions";
+import React, { useState, useEffect, useRef } from "react";
 import { useAdminStore } from "../../../../store/useAdminStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import {
+  ChevronDown,
+  Loader2,
+  TrendingUp,
+  TrendingDown,
+  Users,
+  CreditCard,
+} from "lucide-react";
+import { getStripeBillingSession } from "../../../../lib/serverActions";
+import { useUsageData } from "../../../../hooks/useUsageData";
+
+const timeFrames = [
+  "All Time",
+  "This Year",
+  "This Month",
+  "This Week",
+  "Today",
+];
 
 interface ClientUsageData {
   creditsInfo: {
@@ -45,19 +62,26 @@ interface DailyUsage {
 }
 
 const Usage = () => {
-  const { adminId } = useAdminStore();
+  const { adminId, clientUsage, fetchClientUsage, clientData, activeTeamId } =
+    useAdminStore();
+
+  const {
+    creditsUsed,
+    totalCredits,
+    availableCredits,
+    totalAgents,
+    agentLimit,
+    totalTokens,
+    formatAgentLimit,
+  } = useUsageData();
 
   const [selectedAgent, setSelectedAgent] = useState("All Agents");
   const [timeFrame, setTimeFrame] = useState("All Time");
   const [currentPlan, setCurrentPlan] = useState("");
-  const [creditsUsed, setCreditsUsed] = useState(0);
-  const [totalCredits, setTotalCredits] = useState(0);
   const [agentsUsed, setAgentsUsed] = useState(0);
-  const [totalAgents, setTotalAgents] = useState(0);
   const [usageData, setUsageData] = useState<ClientUsageData | null>(null);
-  const [clientData, setClientData] = useState<ClientData | null>(null);
+
   const [loading, setLoading] = useState(true);
-  const [agentLimit, setAgentLimit] = useState(0);
   const [agentsList, setAgentsList] = useState<{ id: string; name: string }[]>(
     []
   );
@@ -67,6 +91,35 @@ const Usage = () => {
   const [selectedAgentTokens, setSelectedAgentTokens] = useState(0);
   const [allDailyUsage, setAllDailyUsage] = useState<DailyUsage[]>([]);
   const [dataInitialized, setDataInitialized] = useState(false);
+
+  const agentDropdownRef = useRef(null);
+  const timeDropdownRef = useRef(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isAgentDropdownOpen, setIsAgentDropdownOpen] = useState(false);
+  const [billingLoading, setBillingLoading] = useState(false);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        agentDropdownRef.current &&
+        !agentDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsAgentDropdownOpen(false);
+      }
+
+      if (
+        timeDropdownRef.current &&
+        !timeDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     const currentYear = new Date().getFullYear();
@@ -83,70 +136,62 @@ const Usage = () => {
   }, []);
 
   useEffect(() => {
+    if (activeTeamId) {
+      fetchClientUsage({ clientId: activeTeamId });
+    }
+  }, [activeTeamId]);
+
+  useEffect(() => {
     const fetchUsageData = async () => {
-      if (!adminId) return;
+      if (!activeTeamId) return;
 
       try {
         setLoading(true);
 
-        const [usageData, clientData] = await Promise.all([
-          getClientUsage(adminId),
-          getClient(adminId),
-        ]);
+        if (!clientUsage) return;
+        setUsageData(clientUsage);
+        setAgentsUsed(clientUsage.totalAgentCount);
 
-        if (usageData) {
-          setUsageData(usageData);
-          setAgentLimit(usageData.usage.agentLimit);
-          setTotalAgents(usageData.totalAgentCount);
+        const agents = clientUsage.usage.agentUsage.map((agent) => ({
+          id: agent.agentId,
+          name: agent.agentName,
+        }));
+        setAgentsList(agents);
 
-          const agents = usageData.usage.agentUsage.map((agent) => ({
-            id: agent.agentId,
-            name: agent.agentName,
-          }));
-          setAgentsList(agents);
-          setAgentsUsed(usageData.totalAgentCount);
+        const dailyUsageCollection: DailyUsage[] = [];
 
-          const dailyUsageCollection: DailyUsage[] = [];
+        clientUsage.usage.agentUsage.forEach((agent) => {
+          agent.usageData.forEach((dayData) => {
+            const dateStr = dayData.date;
+            const dateParts = /(\d{2})([A-Z]{3})(\d{4})/.exec(dateStr);
 
-          usageData.usage.agentUsage.forEach((agent) => {
-            agent.usageData.forEach((dayData) => {
-              const dateStr = dayData.date;
-              const dateParts = /(\d{2})([A-Z]{3})(\d{4})/.exec(dateStr);
+            if (dateParts) {
+              const [_, dayStr, monthStr, yearStr] = dateParts;
+              const day = parseInt(dayStr);
+              const year = parseInt(yearStr);
 
-              if (dateParts) {
-                const [_, dayStr, monthStr, yearStr] = dateParts;
-                const day = parseInt(dayStr);
-                const year = parseInt(yearStr);
-
-                dailyUsageCollection.push({
-                  day,
-                  month: monthStr,
-                  year,
-                  date: dateStr,
-                  usage: dayData.totalTokensUsed,
-                  agentId: agent.agentId,
-                });
-              }
-            });
+              dailyUsageCollection.push({
+                day,
+                month: monthStr,
+                year,
+                date: dateStr,
+                usage: dayData.totalTokensUsed,
+                agentId: agent.agentId,
+              });
+            }
           });
+        });
 
-          setAllDailyUsage(dailyUsageCollection);
-        }
+        setAllDailyUsage(dailyUsageCollection);
 
         if (clientData) {
-          setClientData(clientData);
           setCurrentPlan(clientData.planId);
-          setTotalCredits(clientData.creditsPerMonth);
-
-          const calculatedCreditsUsed =
-            clientData.creditsPerMonth - clientData.availableCredits;
-          setCreditsUsed(calculatedCreditsUsed);
+        } else if (clientUsage.usage.planId) {
+          setCurrentPlan(clientUsage.usage.planId);
         }
 
-        if (usageData) {
-          generateUsageHistory(usageData, "All Agents", timeFrame);
-          setDataInitialized(true);
-        }
+        generateUsageHistory(clientUsage, "All Agents", timeFrame);
+        setDataInitialized(true);
       } catch (err) {
         console.error("Error fetching usage data:", err);
         toast.error("Failed to load usage data");
@@ -156,13 +201,17 @@ const Usage = () => {
     };
 
     fetchUsageData();
-  }, [adminId]);
+  }, [activeTeamId, clientUsage]);
 
   useEffect(() => {
     if (dataInitialized && usageData) {
       generateUsageHistory(usageData, selectedAgent, timeFrame);
     }
   }, [dataInitialized]);
+
+  useEffect(() => {
+    if (clientUsage) setUsageData(clientUsage);
+  }, [clientUsage]);
 
   const getMonthName = (monthAbbr: string) => {
     const monthMap: { [key: string]: string } = {
@@ -221,12 +270,6 @@ const Usage = () => {
 
     if (agent === "All Agents") {
       agentDailyUsage = [...allDailyUsage];
-      if (clientData) {
-        const calculatedCreditsUsed =
-          clientData.creditsPerMonth - clientData.availableCredits;
-        setCreditsUsed(calculatedCreditsUsed);
-        setTotalCredits(clientData.creditsPerMonth);
-      }
       setAgentsUsed(data.totalAgentCount);
       setSelectedAgentTokens(data.usage.totalTokensUsedAllAgents);
     } else {
@@ -240,14 +283,10 @@ const Usage = () => {
           (usage) => usage.agentId === selectedAgentId
         );
 
-        setCreditsUsed(selectedAgentData.totalTokensUsed);
-        setTotalCredits(0);
         setAgentsUsed(1);
         setSelectedAgentTokens(selectedAgentData.totalTokensUsed);
       } else {
         agentDailyUsage = [];
-        setCreditsUsed(0);
-        setTotalCredits(0);
         setAgentsUsed(0);
         setSelectedAgentTokens(0);
       }
@@ -418,20 +457,14 @@ const Usage = () => {
     }
   };
 
-  const formatAgentLimit = (limit: number) => {
-    return limit === 9999 ? "Unlimited" : limit.toString();
-  };
-
-  const handleAgentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const agentName = e.target.value;
+  const handleAgentChange = (agentName: string) => {
     setSelectedAgent(agentName);
     if (usageData) {
       generateUsageHistory(usageData, agentName, timeFrame);
     }
   };
 
-  const handleTimeFrameChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newTimeFrame = e.target.value;
+  const handleTimeFrameChange = (newTimeFrame: string) => {
     setTimeFrame(newTimeFrame);
     if (usageData) {
       generateUsageHistory(usageData, selectedAgent, newTimeFrame);
@@ -441,6 +474,19 @@ const Usage = () => {
   const navigate = useNavigate();
   const navigateToPlans = () => {
     navigate("/admin/account/plans");
+  };
+
+  const handleBillingHistory = async () => {
+    if (!activeTeamId || !adminId) return;
+    try {
+      setBillingLoading(true);
+      const url = await getStripeBillingSession(adminId, activeTeamId);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      toast.error("Failed to open Stripe Billing");
+    } finally {
+      setBillingLoading(false);
+    }
   };
 
   const maxUsage = Math.max(...usageHistory.map((day) => day.usage), 1);
@@ -454,64 +500,177 @@ const Usage = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6 max-w-6xl mx-auto">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+    <div className="p-4 sm:p-6 mx-auto">
+      <div className="mt-8 sm:mt-0 flex flex-col items-center sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
         <h1 className="text-xl font-bold">Usage</h1>
         {/* Filters */}
-        <div className="flex flex-row gap-2 w-full sm:w-auto">
-          <select
-            className="border border-blue-300 rounded px-3 py-2 bg-blue-100 text-gray-800 mb-2 flex-1 sm:flex-none"
-            value={selectedAgent}
-            onChange={handleAgentChange}
+        <div className="flex flex-row justify-center gap-2 w-full sm:w-auto">
+          {/* agent drop down  */}
+          <div
+            className="relative w-30 xs:w-48 flex items-center z-[10]"
+            ref={agentDropdownRef}
           >
-            <option>All Agents</option>
-            {agentsList.map((agent) => (
-              <option key={agent.id}>{agent.name}</option>
-            ))}
-          </select>
-          <select
-            className="border border-blue-300 rounded px-3 py-2 bg-blue-100 text-gray-800 mb-2 flex-1 sm:flex-none"
-            value={timeFrame}
-            onChange={handleTimeFrameChange}
+            <button
+              onClick={() => setIsAgentDropdownOpen(!isAgentDropdownOpen)}
+              className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
+            >
+              {selectedAgent || "All Agents"}
+            </button>
+            <div
+              onClick={() => setIsAgentDropdownOpen(!isAgentDropdownOpen)}
+              className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0"
+            >
+              <ChevronDown
+                size={20}
+                className={`text-[#000000] stroke-[3px] transition-transform ${
+                  isAgentDropdownOpen ? "rotate-180" : ""
+                }`}
+              />
+            </div>
+            {isAgentDropdownOpen && (
+              <div className="absolute z-10 mt-1 top-8 w-full bg-white border border-[#7D7D7D] shadow-sm rounded-sm">
+                <button
+                  onClick={() => {
+                    handleAgentChange("All Agents");
+                    setIsAgentDropdownOpen(false);
+                  }}
+                  className={`whitespace-nowrap w-full text-left px-3 py-2 text-sm hover:bg-blue-100 transition-colors ${
+                    selectedAgent === "All Agents" ? "bg-[#AEB8FF]" : ""
+                  }`}
+                >
+                  All Agents
+                </button>
+                {agentsList.map((agent) => (
+                  <button
+                    key={agent.id}
+                    onClick={() => {
+                      handleAgentChange(agent.name);
+                      setIsAgentDropdownOpen(false);
+                    }}
+                    className={`whitespace-nowrap w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                      selectedAgent === agent.name ? "bg-[#AEB8FF]" : ""
+                    }`}
+                  >
+                    {agent.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          {/* all time drop down  */}
+          <div
+            className="relative w-30 xs:w-48 flex items-center z-[10]"
+            ref={timeDropdownRef}
           >
-            <option>All Time</option>
-            <option>This Year</option>
-            <option>This Month</option>
-            <option>This Week</option>
-            <option>Today</option>
-          </select>
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
+            >
+              {timeFrame}
+            </button>
+            <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
+              <ChevronDown
+                onClick={() => setIsOpen(!isOpen)}
+                size={20}
+                className={`text-[#000000] stroke-[3px] transition-transform  ${
+                  isOpen ? "rotate-180" : ""
+                }`}
+              />
+            </div>
+
+            {isOpen && (
+              <div className="absolute z-10 mt-1 top-8 w-full bg-white border border-[#7D7D7D] shadow-sm rounded-sm">
+                {timeFrames.map((frame) => (
+                  <button
+                    key={frame}
+                    onClick={() => {
+                      handleTimeFrameChange(frame);
+                      setIsOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                      timeFrame === frame ? "bg-[#AEB8FF]" : ""
+                    }`}
+                  >
+                    {frame}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-4 mb-6">
+      <div className="flex flex-wrap gap-4 mb-6 w-full">
         {/* Current Plan */}
-        <div className="bg-green-100 rounded-lg p-4 flex flex-col justify-between w-full sm:w-56">
+        <div className="bg-[#CEFFDC] rounded-lg p-4 flex flex-col justify-between flex-1 w-[220px] max-w-[100%] basis-[220px]">
           <span className="text-xs text-gray-600 mb-1">Current Plan</span>
-          <span className="font-bold text-lg mb-3">
-            {currentPlan || "FREE"}
-          </span>
-          <button
-            onClick={navigateToPlans}
-            className="bg-white border border-green-300 text-green-900 font-semibold px-4 py-1 rounded shadow hover:bg-green-200 w-full"
-          >
-            VIEW
-          </button>
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-lg">{currentPlan || "FREE"}</span>
+            <div className="relative z-[5] ">
+              <div className="absolute top-[3.5px] left-[3px] -z-10 bg-[#6AFF97] border border-black w-full h-full"></div>
+              <button
+                style={{
+                  fontSize: "clamp(8px,4vw, 15px)",
+                  fontWeight: "400",
+                }}
+                onClick={navigateToPlans}
+                className="bg-[#6AFF97] para-font border border-black text-black px-4 py-1 min-w-[120px]"
+              >
+                VIEW
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Credits Used */}
-        <div className="bg-blue-100 rounded-lg p-4 flex-1 flex flex-col justify-between min-w-[200px]">
+        {/* Billing History */}
+        <div className="bg-[#CEFFDC] rounded-lg p-4 flex flex-col justify-between flex-1 w-[220px] max-w-[100%] basis-[220px]">
+          <span className="text-xs text-gray-600 mb-1">Billing History</span>
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-lg">Stripe</span>
+            <div className="relative z-[5] ">
+              <div className="absolute top-[3.5px] left-[3px] -z-10 bg-[#6AFF97] border border-black w-full h-full"></div>
+              <button
+                style={{
+                  fontSize: "clamp(8px,4vw, 15px)",
+                  fontWeight: "400",
+                }}
+                onClick={handleBillingHistory}
+                disabled={billingLoading}
+                className="bg-[#6AFF97] para-font border border-black text-black px-4 py-1 min-w-[120px]"
+              >
+                {billingLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-3 w-4 animate-spin" /> Loading...
+                  </span>
+                ) : (
+                  "VIEW"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Credits Used - Enhanced */}
+        <div className="bg-[#D4DEFF] rounded-lg p-4 flex flex-col justify-between flex-1 w-[220px] max-w-[100%] basis-[220px]">
           <div className="flex items-center mb-2">
-            <span className="text-2xl font-bold mr-2">{creditsUsed}</span>
+            <CreditCard className="w-5 h-5 mr-2 text-blue-600" />
+            <span className="text-2xl font-bold mr-2">
+              {selectedAgent === "All Agents"
+                ? creditsUsed.toLocaleString()
+                : selectedAgentTokens.toLocaleString()}
+            </span>
             <span className="text-gray-700">
-              {selectedAgent === "All Agents" && totalCredits > 0
-                ? `/ ${totalCredits.toLocaleString()} Credits used`
-                : "Credits used"}
+              {selectedAgent === "All Agents"
+                ? totalCredits > 0
+                  ? `/ ${totalCredits.toLocaleString()} Credits used`
+                  : "Credits used"
+                : "Tokens used"}
             </span>
           </div>
           {selectedAgent === "All Agents" && totalCredits > 0 && (
-            <div className="w-full h-2 bg-white rounded-full">
+            <div className="w-full h-3 bg-white rounded-full shadow-[inset_0_3px_3px_0_rgba(0,0,0,0.25)]">
               <div
-                className="h-2 bg-blue-500 rounded-full"
+                className="h-3 bg-[#4D65FF] border border-black rounded-full"
                 style={{
                   width: `${
                     totalCredits > 0 ? (creditsUsed / totalCredits) * 100 : 0
@@ -520,11 +679,22 @@ const Usage = () => {
               ></div>
             </div>
           )}
+          {selectedAgent === "All Agents" && (
+            <div className="text-xs text-gray-600 mt-1">
+              Available: {availableCredits.toLocaleString()} credits
+            </div>
+          )}
+          {selectedAgent !== "All Agents" && (
+            <div className="text-xs text-gray-600 mt-1">
+              {selectedAgent} usage
+            </div>
+          )}
         </div>
 
-        {/* Agents Used */}
-        <div className="bg-blue-100 rounded-lg p-4 flex-1 flex flex-col justify-between min-w-[200px]">
+        {/* Agents Used - Enhanced */}
+        <div className="bg-[#D4DEFF] rounded-lg p-4 flex flex-col justify-between flex-1 w-[220px] max-w-[100%] basis-[220px]">
           <div className="flex items-center mb-2">
+            <Users className="w-5 h-5 mr-2 text-blue-600" />
             <span className="text-2xl font-bold mr-2">{agentsUsed}</span>
             <span className="text-gray-700">
               {selectedAgent === "All Agents"
@@ -533,10 +703,12 @@ const Usage = () => {
             </span>
           </div>
           {selectedAgent === "All Agents" && (
-            <div className="w-full h-2 bg-white rounded-full">
+            <div className="w-full h-3 bg-white rounded-full shadow-[inset_0_3px_3px_0_rgba(0,0,0,0.25)]">
               <div
-                className={`h-2 rounded-full ${
-                  agentLimit === 9999 ? "bg-green-500" : "bg-blue-500"
+                className={`h-3 rounded-full ${
+                  agentLimit === 9999
+                    ? "bg-green-500"
+                    : "bg-[#4D65FF] border border-black"
                 }`}
                 style={{
                   width:
@@ -550,12 +722,77 @@ const Usage = () => {
         </div>
       </div>
 
+      {/* Agent Usage Breakdown - New Section */}
+      {selectedAgent === "All Agents" && usageData && (
+        <div className="mb-6">
+          <h3 className="text-lg font-bold mb-4">Agent Usage Breakdown</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {usageData.usage.agentUsage.map((agent) => (
+              <div
+                key={agent.agentId}
+                className="bg-white border rounded-lg p-4 shadow-sm"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-semibold text-gray-800">
+                    {agent.agentName}
+                  </h4>
+                  <span className="text-sm text-gray-500">
+                    ID: {agent.agentId.slice(0, 8)}...
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">
+                      Total Tokens Used:
+                    </span>
+                    <span className="font-semibold">
+                      {agent.totalTokensUsed.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">
+                      Usage Sessions:
+                    </span>
+                    <span className="font-semibold">
+                      {agent.usageData.length}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full"
+                      style={{
+                        width: `${
+                          usageData.usage.totalTokensUsedAllAgents > 0
+                            ? (agent.totalTokensUsed /
+                                usageData.usage.totalTokensUsedAllAgents) *
+                              100
+                            : 0
+                        }%`,
+                      }}
+                    ></div>
+                  </div>
+                  <div className="text-xs text-gray-500 text-center">
+                    {usageData.usage.totalTokensUsedAllAgents > 0
+                      ? `${(
+                          (agent.totalTokensUsed /
+                            usageData.usage.totalTokensUsedAllAgents) *
+                          100
+                        ).toFixed(1)}% of total usage`
+                      : "0% of total usage"}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Usage History */}
       <div className="w-[92vw] lg:w-full">
         <h3 className="text-lg font-bold mb-2">Usage History</h3>
-        <div className="border rounded-lg bg-white min-h-[220px] mb-2 w-full overflow-x-auto">
+        <div className="border rounded-lg bg-white min-h-[220px] mb-2 w-[200px] min-w-full overflow-x-auto">
           {/* Chart */}
-          <div className="w-screen">
+          <div className="">
             <div
               className={`pt-6 px-4 h-44 flex items-end gap-2`}
               style={{ minWidth: 0 }}

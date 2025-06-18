@@ -10,10 +10,13 @@ const Button = styled.button`
   position: relative;
   background: #6aff97;
   padding: 0.6vh 1vw;
-  border: 2px solid black;
+  border: 1px solid black;
   cursor: pointer;
   transition: background 0.3s;
-  font-size: clamp(8px, 4vw, 16px);
+  font-size: clamp(8px, 4vw, 15px);
+  font-weight: 400;
+  font-family: "DM Sans", sans-serif;
+
   white-space: nowrap;
   @media (max-width: 600px) {
     min-width: 120px;
@@ -22,22 +25,24 @@ const Button = styled.button`
   &::before {
     content: "";
     position: absolute;
-    top: 5px;
-    right: -5px;
+    top: 4px;
+    right: -4px;
     width: 100%;
     height: 100%;
-    border: 2px solid #000000;
+    border: 1px solid #000000;
     z-index: -1; // place it behind the button
     background: #6aff97;
   }
 
   &:disabled {
-    background: #d6ffe0;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+    color: #7D7D7D;
     cursor: not-allowed;
-    color: black;
   }
   &:disabled::before {
-    background: #d6ffe0;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
   }
 `;
 const AiModel = () => {

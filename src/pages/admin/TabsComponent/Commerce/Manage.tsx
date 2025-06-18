@@ -12,31 +12,34 @@ const Button = styled.button`
   position: relative;
   background: #6aff97;
   padding: 0.6vh 1vw;
-  border: 2px solid black;
+  border: 1px solid black;
   cursor: pointer;
   transition: background 0.3s;
-  font-size: clamp(8px, 4vw, 16px);
-  font-weight: 600;
+  font-size: clamp(8px, 4vw, 15px);
+  font-family: "DM Sans", sans-serif;
+  font-weight: 400;
   min-width: 120px;
   &::before {
     content: "";
     position: absolute;
-    top: 5px;
-    right: -5px;
+    top: 4px;
+    right: -4px;
     width: 100%;
     height: 100%;
-    border: 2px solid #000000;
+    border: 1px solid #000000;
     z-index: -1;
     background: #6aff97;
   }
 
   &:disabled {
-    background: #6aff97;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+    color: #7D7D7D;
     cursor: not-allowed;
-    color: black;
   }
   &:disabled::before {
-    background: #d6ffe0;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
   }
 `;
 const TABS = [
@@ -114,9 +117,9 @@ const Manage = () => {
   }, [tab, products]);
 
   const handleDelete = async (productId: string) => {
-    if (!activeBotId) return;
+    if (!productId) return;
     try {
-      const data = await deleteMainProduct(productId, activeBotId);
+      const data = await deleteMainProduct(productId);
       if (data && data.error === false) {
         toast.success("Product deleted successfully!");
         setProducts((prev) => prev.filter((p) => p._id !== productId));
@@ -267,9 +270,7 @@ const Manage = () => {
                   <th className="py-1.5 px-2 text-left text-sm rounded-l-[12px] text-center">
                     CODE
                   </th>
-                  <th className="py-1.5 px-2 text-left text-sm ">
-                    ITEM NAME
-                  </th>
+                  <th className="py-1.5 px-2 text-left text-sm ">ITEM NAME</th>
                   <th className="py-1.5 px-2 text-left text-sm text-center">
                     PRICE
                   </th>

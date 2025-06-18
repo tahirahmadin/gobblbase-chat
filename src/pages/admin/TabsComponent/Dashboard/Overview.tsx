@@ -2,11 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useBotConfig } from "../../../../store/useBotConfig";
 import { PERSONALITY_OPTIONS } from "../../../../utils/constants";
 import styled from "styled-components";
-import { getClientAnalytics } from "../../../../lib/serverActions";
+import { getTeamAnalytics } from "../../../../lib/serverActions";
 import { useAdminStore } from "../../../../store/useAdminStore";
 import { AnalyticsData } from "../../../../types";
 import { useNavigate } from "react-router-dom";
 import { calculateSmartnessLevel } from "../../../../utils/helperFn";
+import UsageSummary from "../../../../components/UsageSummary";
 
 const timeButton = [
   { id: "Income", value: "1D" },
@@ -19,19 +20,21 @@ const Button = styled.button`
   position: relative;
   background: #4d65ff;
   padding: 0.2vh 1vw;
-  border: 2px solid black;
+  border: 1px solid black;
   cursor: pointer;
   transition: background 0.3s;
   font-size: clamp(8px, 4vw, 15px);
+  font-weight: 400;
+  font-family: "DM Sans", sans-serif;
   color: white;
   &::before {
     content: "";
     position: absolute;
-    top: 5px;
-    right: -5px;
+    top: 4px;
+    right: -4px;
     width: 100%;
     height: 100%;
-    border: 2px solid #000000;
+    border: 1px solid #000000;
     z-index: -1; // place it behind the button
     background: #6aff97;
   }
@@ -50,7 +53,6 @@ const Button = styled.button`
 
 const Overview = () => {
   const [selectedLabel, setSelectedLabel] = useState("Income");
-  const [selectedButton, setSelectedButton] = useState(timeButton[0]?.id || "");
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(
     null
   );
@@ -59,18 +61,19 @@ const Overview = () => {
 
   const navigate = useNavigate();
   const { activeBotId, activeBotData } = useBotConfig();
-  const { adminId, clientData } = useAdminStore();
+  const { adminId, clientData, activeTeamId, clientUsage, fetchClientUsage } =
+    useAdminStore();
   const [agentPicture, setAgentPicture] = useState<string | null>(null);
   const [smartnessLevel, setSmartnessLevel] = useState(0);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
-      if (!adminId) return;
+      if (!activeBotId) return;
 
       try {
         setIsLoading(true);
         setError(null);
-        const data = await getClientAnalytics(adminId);
+        const data = await getTeamAnalytics(activeBotId);
         setAnalyticsData(data);
       } catch (err) {
         setError(
@@ -82,7 +85,13 @@ const Overview = () => {
     };
 
     fetchAnalytics();
-  }, [adminId]);
+  }, [activeBotId]);
+
+  useEffect(() => {
+    if (activeTeamId) {
+      fetchClientUsage({ clientId: activeTeamId });
+    }
+  }, [activeTeamId, fetchClientUsage]);
 
   useEffect(() => {
     if (activeBotData?.logo) {
@@ -124,9 +133,7 @@ const Overview = () => {
     },
     {
       label: "Credits Used",
-      value: `${
-        (clientData?.creditsPerMonth || 0) - (clientData?.availableCredits || 0)
-      } / ${clientData?.creditsPerMonth || 0}`,
+      value: analyticsData?.totalCredits,
     },
     {
       label: "Leads",
@@ -141,6 +148,7 @@ const Overview = () => {
   return (
     <div className="overflow-scroll h-[100%]">
       {/* Top Section: Agent Info and Plan */}
+
       <div className="p-6 flex flex-col sm:flex-row sm:items-end lg:items-start xl:items-end gap-6 sm:gap-2 md:gap-6 mb-6 items-start justify-between">
         <div>
           {/* Profile Image Upload */}
@@ -164,7 +172,7 @@ const Overview = () => {
                   Current Plan
                 </span>
                 <span className="font-medium text-lg">
-                  {analyticsData?.planId}
+                  {clientUsage?.usage.planId || analyticsData?.planId || "FREE"}
                 </span>
               </div>
               <div className="relative z-10">
@@ -188,28 +196,12 @@ const Overview = () => {
                 <span className="whitespace-nowrap text-gray-500 font-semibold text-sm">
                   Payments Setup
                 </span>
-                <span className="font-medium text-lg">
-                  {(() => {
-                    const activeMethods = [
-                      clientData?.paymentMethods.stripe.isActivated &&
-                        clientData?.paymentMethods.stripe.enabled &&
-                        "Stripe",
-                      clientData?.paymentMethods.crypto.enabled &&
-                        clientData?.paymentMethods.crypto.walletAddress &&
-                        "Crypto",
-                      clientData?.paymentMethods.razorpay.enabled && "Razorpay",
-                    ].filter(Boolean);
-
-                    if (activeMethods.length === 0) return "None";
-                    if (activeMethods.length > 1) return "MULTIPLE";
-                    return activeMethods[0];
-                  })()}
-                </span>
+                <span className="font-medium text-lg">Stripe</span>
               </div>
               <div className="relative z-10">
                 <Button
                   onClick={() => {
-                    navigate("/admin/account/payments");
+                    navigate("/admin/account/income");
                   }}
                   style={{
                     background: "#6aff97",
@@ -217,7 +209,7 @@ const Overview = () => {
                     minWidth: 100,
                   }}
                 >
-                  Modify
+                  Setup
                 </Button>
               </div>
             </div>
@@ -256,8 +248,8 @@ const Overview = () => {
                 <path
                   d="M34.8312 6.60821C53.8154 8.29096 61.9708 22.7212 62.4349 36.7213"
                   stroke="#4D65FF"
-                  stroke-width="5"
-                  stroke-linecap="round"
+                  strokeWidth="5"
+                  strokeLinecap="round"
                 />
                 <g filter="url(#filter1_d_5068_3436)">
                   <rect
@@ -322,8 +314,8 @@ const Overview = () => {
                 <path
                   d="M34.8312 6.60821C53.8154 8.29096 61.9708 22.7212 62.4349 36.7213"
                   stroke="#4D65FF"
-                  stroke-width="5"
-                  stroke-linecap="round"
+                  strokeWidth="5"
+                  strokeLinecap="round"
                 />
                 <g filter="url(#filter1_d_5068_3436)">
                   <rect
@@ -359,26 +351,24 @@ const Overview = () => {
           </div>
         </div>
       </div>
+
+      {/* Usage Summary Section - New */}
+      <div className="px-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-800">Team Overview</h3>
+          <button
+            onClick={() => navigate("/admin/account/usage")}
+            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+          >
+            View Detailed Usage →
+          </button>
+        </div>
+        <UsageSummary showDetails={true} />
+      </div>
+
       {/* Analytics Section */}
       <div className="p-6 bg-[#e9edfc] sm:rounded-xl">
-        {/* <div className="flex gap-2 mb-4 justify-center sm:justify-start">
-          {timeButton.map((timeBtn) => (
-            <button
-              key={timeBtn.id}
-              className={`px-4 py-1 rounded font-semibold rounded-lg
-                ${
-                  selectedButton === timeBtn.id
-                    ? "bg-black text-[#AEB8FF]"
-                    : "bg-transparent border border-black text-black"
-                }
-              `}
-              onClick={() => setSelectedButton(timeBtn.id)}
-            >
-              {timeBtn.value}
-            </button>
-          ))}
-        </div> */}
-        <div className="mb-4 font-semibold text-lg">Your Analytics</div>
+        <div className="mb-4 font-semibold text-lg">Agent Analytics</div>
 
         {isLoading ? (
           <div className="flex justify-center items-center h-56">
@@ -400,7 +390,12 @@ const Overview = () => {
                         : "bg-[#D4DEFF] border-[#AEB8FF]"
                     }`}
                 >
-                  <div className="text-2xl font-semibold">{item.value}</div>
+                  <div className="text-2xl font-semibold">
+                    {item?.value &&
+                      (typeof item.value === "string"
+                        ? item.value
+                        : parseFloat(item.value.toString()).toFixed(2))}
+                  </div>
                   <div className="text-xs text-black mt-1">{item.label}</div>
                 </div>
               ))}

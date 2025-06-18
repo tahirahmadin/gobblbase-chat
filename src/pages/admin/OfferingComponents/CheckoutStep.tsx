@@ -6,32 +6,36 @@ const Button = styled.button`
   position: relative;
   background: #6aff97;
   padding: 0.6vh 1vw;
-  border: 2px solid black;
+  border: 1px solid black;
   cursor: pointer;
   transition: background 0.3s;
-  font-size: clamp(8px, 4vw, 16px);
+  font-size: clamp(8px, 4vw, 15px);
+  font-weight: 400;
+  font-family: "DM Sans", sans-serif;
+
   min-width: 120px;
 
   &::before {
     content: "";
     position: absolute;
-    transform: translate(6px, 6px);
-    top: 0px;
-    left: 0px;
+    top: 4px;
+    left: 4px;
     width: 100%;
     height: 100%;
-    border: 2px solid #000000;
+    border: 1px solid #000000;
     z-index: -1;
     background: #6aff97;
   }
 
-  &:disabled {
-    background: #6aff97;
+  &&:disabled {
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+    color: #7D7D7D;
     cursor: not-allowed;
-    color: black;
   }
   &:disabled::before {
-    background: #d6ffe0;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
   }
 `;
 interface EmailTemplate {
@@ -44,6 +48,7 @@ interface EmailTemplate {
 }
 
 type CheckoutStepProps = {
+  type: string;
   form: any;
   setForm: React.Dispatch<any>;
   onNext: () => void;
@@ -51,6 +56,7 @@ type CheckoutStepProps = {
 };
 
 const CheckoutStep: React.FC<CheckoutStepProps> = ({
+  type,
   form,
   setForm,
   onNext,
@@ -75,7 +81,8 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
   };
   // Get the product type from the form (default to physical if missing)
 
-  const productType = form.type || "physicalProduct";
+  const productType = type || "physicalProduct";
+
   const templateKey =
     templateKeyMap[productType] || templateKeyMap["physicalProduct"];
   const template = emailTemplates?.[templateKey] as EmailTemplate | undefined;
@@ -198,11 +205,7 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
                 </div>
               </div>
               <div className="flex items-center justify-center gap-4 mt-2 z-10 relative">
-                <Button
-                  className=""
-                  onClick={handleSave}
-                  disabled={saving}
-                >
+                <Button className="" onClick={handleSave} disabled={saving}>
                   {saving ? "Saving..." : "Save Email"}
                 </Button>
               </div>
@@ -211,10 +214,7 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
         </div>
       </div>
       <div className="flex justify-end mt-8 relative z-10">
-        <Button
-          className=""
-          onClick={onNext}
-        >
+        <Button className="" onClick={onNext}>
           NEXT
         </Button>
       </div>

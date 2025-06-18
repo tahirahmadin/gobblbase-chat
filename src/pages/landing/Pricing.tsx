@@ -35,13 +35,15 @@ const UpgradeButton = styled.button`
   @media (max-width: 600px) {
     min-width: 100px;
   }
-  &:disabled {
-    background: rgba(255, 252, 69, 0.82);
-    color: #b0b0b0;
+   &:disabled {
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+    color: #7D7D7D;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: rgba(255, 252, 69, 0.74);
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
   }
 `;
 const Navbar = styled.nav`
@@ -114,12 +116,15 @@ const LoginButton = styled.button`
   @media (max-width: 600px) {
     min-width: 100px;
   }
-  &:disabled {
-    background: #d6ffe0;
+   &:disabled {
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+    color: #7D7D7D;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #d6ffe0;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
   }
 `;
 
@@ -238,6 +243,46 @@ const PurpleBackground = styled.span`
     }
   }
 `;
+const CTAButton = styled.button`
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #6aff97;
+  padding: 1.43vh 1.2vw;
+  border: 2px solid black;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: clamp(8px, 4vw, 16px);
+  color: black;
+  width: 100%;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 600;
+  &::before {
+    content: "";
+    position: absolute;
+    top: 5px;
+    right: -5px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #000000;
+    z-index: -1; // place it behind the button
+    background: #6aff97;
+  }
+  @media (max-width: 600px) {
+    min-width: 100px;
+  }
+   &:disabled {
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+    color: #7D7D7D;
+    cursor: not-allowed;
+  }
+  &:disabled::before {
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+  }
+`;
 // hero pricing section
 const HeroSection = styled.section`
   color: #fff;
@@ -306,8 +351,9 @@ const FooterHeadline = styled.h2`
 `;
 
 const FooterSub = styled.p`
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-family: "DM Sans", sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
   color: #e6eaff;
   margin-bottom: 8px;
 `;
@@ -326,43 +372,6 @@ const FooterRight = styled.div`
     background: #0a0a0a;
     justify-content: space-between;
     padding: 1vh 3vw;
-  }
-`;
-const CTAButton = styled.button`
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #6aff97;
-  padding: 1.43vh 1.2vw;
-  border: 2px solid black;
-  cursor: pointer;
-  transition: background 0.3s;
-  font-size: clamp(8px, 4vw, 16px);
-  color: black;
-  width: 100%;
-  font-family: "DM Sans", sans-serif;
-  font-weight: 600;
-  &::before {
-    content: "";
-    position: absolute;
-    top: 5px;
-    right: -5px;
-    width: 100%;
-    height: 100%;
-    border: 2px solid #000000;
-    z-index: -1; // place it behind the button
-    background: #6aff97;
-  }
-  @media (max-width: 600px) {
-    min-width: 100px;
-  }
-  &:disabled {
-    background: #d6ffe0;
-    cursor: not-allowed;
-  }
-  &:disabled::before {
-    background: #d6ffe0;
   }
 `;
 
@@ -396,13 +405,14 @@ const SocialIcon = styled.a`
 `;
 const FooterLogo = styled.div`
   display: flex;
-  align-items: end;
+  flex-direction: column;
   justify-content: center;
+  align-items: center;
   position: relative;
-  gap: 12px;
+  gap: 20px;
   font-size: 1.08rem;
   width: 100%;
-  padding: 2vh 3vw 4vh 3vw;
+  padding: 2vh 3vw 2vh 3vw;
   background: #0a0a0a;
   height: 100%;
   @media (max-width: 800px) {
@@ -463,7 +473,7 @@ interface PlanData {
 const Pricing = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { adminId } = useAdminStore();
+  const { activeTeamId } = useAdminStore();
   const [plans, setPlans] = useState<PlanData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPlain, setSelectedPlain] = useState<string>("");
@@ -471,7 +481,7 @@ const Pricing = () => {
 
   const fetchPlans = async () => {
     try {
-      const response = await getPlans(adminId || "null");
+      const response = await getPlans(activeTeamId || "null");
 
       setPlans(response as PlanData[]);
       setLoading(false);
@@ -486,7 +496,7 @@ const Pricing = () => {
 
   useEffect(() => {
     fetchPlans();
-  }, [adminId]);
+  }, [activeTeamId]);
 
   useEffect(() => {
     if (menuOpen) {
@@ -705,7 +715,7 @@ const Pricing = () => {
 
                       {/* Price */}
                       <div className="para-font text-[1rem] font-bold text-black">
-                        {plan.price}
+                        ${plan.price}
                       </div>
                       <div className="text-gray-600 mb-4 text-base">
                         per month
@@ -764,107 +774,116 @@ const Pricing = () => {
       </section>
 
       {/* footer  */}
-      <section className="practial-section w-full bg-[#ECECEC] border border-[#000000] [@media(max-width:800px)]:px-0 px-1 [@media(max-width:800px)]:py-0 py-1">
-        <FooterSection>
-          <FooterUpper>
-            <FooterLeft>
-              <div>
-                <FooterHeadline>
-                  Your new AI-ployee is here (& free) !
-                </FooterHeadline>
-                <FooterSub>
-                  Experience the future of sales: an AI-powered agent that
-                  adapts to your business needs, engages customers, and drives
-                  growth continuously.
-                </FooterSub>
-              </div>
-              <div className="relative z-10 mt-2 pr-4 [@media(max-width:800px)]:mx-auto">
-                <CTAButton onClick={() => navigate("/admin")}>
-                  LAUNCH YOUR FREE AGENT
-                  <ChevronRight size={20} className="ml-2" />
-                </CTAButton>
-              </div>
-            </FooterLeft>
-            <FooterRight>
-              <FooterSocial>
-                <h1 className="[@media(max-width:800px)]:hidden">Follow us</h1>
-                <SocialIcon href="" title="X">
-                  <img src="/assets/icons/prime_twitter.png" alt="" />
-                </SocialIcon>
-                <SocialIcon title="LinkedIn">
-                  <Linkedin strokeWidth="2px" />
-                </SocialIcon>
-              </FooterSocial>
-              <FooterLogo className="logo">
-                <img
-                  src="/assets/landing-asset/assemble/footer-logo.svg"
-                  alt="footer logo"
-                  className="[@media(max-width:800px)]:hidden"
-                />
-                <p className="hidden [@media(max-width:800px)]:block">
-                  © 2025 Sayy AI
-                </p>
-              </FooterLogo>
-            </FooterRight>
-          </FooterUpper>
-          <FooterBelow>
-            <img
-              src="/assets/landing-asset/assemble/footer-card-1.png"
-              alt="Kifor Mascot"
-              width={"100%"}
-            />
-            <span className="footer-card-2">
-              <img
-                src="/assets/landing-asset/assemble/footer-card-2.png"
-                alt="Kifor Mascot"
-                className="mascot-img"
-              />
-            </span>
-            <span className="footer-card-3">
-              <img
-                src="/assets/landing-asset/assemble/footer-card-3.png"
-                alt="Kifor Mascot"
-                className="mascot-img"
-              />
-            </span>
-            <span className="footer-card-4">
-              <img
-                src="/assets/landing-asset/assemble/footer-card-4.png"
-                alt="Kifor Mascot"
-                className="mascot-img"
-              />
-            </span>
-            <span className="footer-card-5">
-              <img
-                src="/assets/landing-asset/assemble/footer-card-5.png"
-                alt="Kifor Mascot"
-                className="mascot-img"
-              />
-            </span>
-            <span className="footer-card-6">
-              <img
-                src="/assets/landing-asset/assemble/footer-card-6.png"
-                alt="Kifor Mascot"
-                className="mascot-img"
-              />
-            </span>
-            <span className="footer-card-7">
-              <img
-                src="/assets/landing-asset/assemble/footer-card-7.png"
-                alt="Kifor Mascot"
-                className="mascot-img"
-              />
-            </span>
-            <span className="footer-card-8">
-              <img
-                src="/assets/landing-asset/assemble/footer-card-8.png"
-                alt="Kifor Mascot"
-                className="mascot-img"
-              />
-            </span>
-          </FooterBelow>
-        </FooterSection>
-      </section>
+      <footer className="practial-section w-full bg-[#ECECEC] border border-[#000000] [@media(max-width:800px)]:px-0 px-1 [@media(max-width:800px)]:py-0 py-1">
+                <FooterSection>
+                  <FooterUpper>
+                    <FooterLeft>
+                      <div>
+                        <FooterHeadline>
+                          Your new AI-ployee is here (& free) !
+                        </FooterHeadline>
+                        <FooterSub>
+                          Experience the future of sales: an AI-powered agent that
+                          adapts to your business needs, engages customers, and drives
+                          growth continuously.
+                        </FooterSub>
+                      </div>
+                      <div className="relative z-10 mt-2 pr-4 [@media(max-width:800px)]:mx-auto">
+                        <CTAButton onClick={() => navigate("/admin")}>
+                          LAUNCH YOUR FREE AGENT
+                          <ChevronRight size={20} className="ml-2" />
+                        </CTAButton>
+                      </div>
+                    </FooterLeft>
+                    <FooterRight>
+                      <FooterSocial>
+                        <h1 className="[@media(max-width:800px)]:hidden">
+                          Follow us
+                        </h1>
+                        <SocialIcon href="" title="X">
+                          <img src="/assets/icons/prime_twitter.png" alt="" />
+                        </SocialIcon>
+                        <SocialIcon title="LinkedIn">
+                          <Linkedin strokeWidth="2px" />
+                        </SocialIcon>
+                      </FooterSocial>
+                      <FooterLogo className="logo">
+                        <div className="">
+                            <img
+                              src="/assets/landing-asset/assemble/footer-logo.svg"
+                              alt="footer logo"
+                              className="[@media(max-width:800px)]:hidden"
+                            />
+                            <p className="hidden [@media(max-width:800px)]:block">
+                              © 2025 Sayy AI
+                            </p>
+                        </div>
+                        
+                        <div className="privacy-links flex gap-12">
+                          <button onClick={() => navigate("/privacy")} className="para-font text-[15px]">Privacy Policy</button>
+                          <button onClick={() => navigate("/terms-condition")} className="para-font text-[15xpx]">Terms of Use</button>
+                        </div>
+                      </FooterLogo>
+                    </FooterRight>
+                  </FooterUpper>
+                  <FooterBelow>
+                    <img
+                      src="/assets/landing-asset/assemble/footer-card-1.png"
+                      alt="Kifor Mascot"
+                      width={"100%"}
+                    />
+                    <span className="footer-card-2">
+                      <img
+                        src="/assets/landing-asset/assemble/footer-card-2.png"
+                        alt="Kifor Mascot"
+                        className="mascot-img"
+                      />
+                    </span>
+                    <span className="footer-card-3">
+                      <img
+                        src="/assets/landing-asset/assemble/footer-card-3.png"
+                        alt="Kifor Mascot"
+                        className="mascot-img"
+                      />
+                    </span>
+                    <span className="footer-card-4">
+                      <img
+                        src="/assets/landing-asset/assemble/footer-card-4.png"
+                        alt="Kifor Mascot"
+                        className="mascot-img"
+                      />
+                    </span>
+                    <span className="footer-card-5">
+                      <img
+                        src="/assets/landing-asset/assemble/footer-card-5.png"
+                        alt="Kifor Mascot"
+                        className="mascot-img"
+                      />
+                    </span>
+                    <span className="footer-card-6">
+                      <img
+                        src="/assets/landing-asset/assemble/footer-card-6.png"
+                        alt="Kifor Mascot"
+                        className="mascot-img"
+                      />
+                    </span>
+                    <span className="footer-card-7">
+                      <img
+                        src="/assets/landing-asset/assemble/footer-card-7.png"
+                        alt="Kifor Mascot"
+                        className="mascot-img"
+                      />
+                    </span>
+                    <span className="footer-card-8">
+                      <img
+                        src="/assets/landing-asset/assemble/footer-card-8.png"
+                        alt="Kifor Mascot"
+                        className="mascot-img"
+                      />
+                    </span>
+                  </FooterBelow>
+                </FooterSection>
+              </footer>
     </Container>
   );
 };

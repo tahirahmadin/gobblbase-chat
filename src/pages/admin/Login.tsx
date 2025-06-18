@@ -69,11 +69,14 @@ const Button = styled.button`
   }
 
   &:disabled {
-    background: #d6ffe0;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+    color: #7D7D7D;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #d6ffe0;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
   }
 `;
 declare global {
@@ -105,7 +108,7 @@ const Login: React.FC = () => {
     agents,
     handleGoogleLoginSuccess,
     handleGoogleLoginError,
-    adminLogout,
+    isLoading,
   } = useAdminStore();
 
   // Only initialize once
@@ -115,8 +118,10 @@ const Login: React.FC = () => {
     console.log("Login state:", {
       isAdminLoggedIn,
       agentsLength: agents.length,
+      isLoading: isLoading,
     });
-    if (isAdminLoggedIn) {
+
+    if (isAdminLoggedIn && !isLoading) {
       if (agents.length > 0) {
         console.log("Redirecting to profile...");
         navigate("/admin/dashboard/overview", { replace: true });

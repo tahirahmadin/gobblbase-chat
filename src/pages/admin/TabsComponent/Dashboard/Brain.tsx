@@ -7,6 +7,9 @@ import {
   AlertCircle,
   ChevronDown,
   Save,
+  Play,
+  HelpCircle,
+  Trash2,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import * as pdfjsLib from "pdfjs-dist";
@@ -25,6 +28,7 @@ import { updateAgentBrain } from "../../../../lib/serverActions";
 import { calculateSmartnessLevel } from "../../../../utils/helperFn";
 import styled from "styled-components";
 import { backendApiUrl } from "../../../../utils/constants";
+import SocialVideos from "./SocialVideos";
 
 const Icon = styled.button`
   position: relative;
@@ -43,8 +47,8 @@ const Icon = styled.button`
   }
 
   @media (max-width: 600px) {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
   }
 
   &::before {
@@ -62,36 +66,42 @@ const Icon = styled.button`
 
 const Button = styled.button`
   position: relative;
-  background: #4d65ff;
+  background: #6aff97;
   padding: 0.6vh 1vw;
-  border: 2px solid black;
+  border: 1px solid black;
   cursor: pointer;
   transition: background 0.3s;
-  font-size: clamp(8px, 4vw, 16px);
-  color: white;
+  font-size: clamp(8px, 4vw, 15px);
+  font-weight: 400;
+  font-family: "DM Sans", sans-serif;
   @media (max-width: 600px) {
-    min-width: 120px;
+    min-width: 100px;
+    padding: 8px 12px;
+    font-size: 12px;
   }
 
   &::before {
     content: "";
     position: absolute;
-    top: 5px;
-    right: -5px;
+    top: 4px;
+    right: -4px;
     width: 100%;
     height: 100%;
-    border: 2px solid #000000;
+    border: 1px solid #000000;
     z-index: -1;
     background: #6aff97;
+    transition: background 0.3s;
   }
 
-  &:disabled {
-    background: #6aff97;
+   &:disabled {
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+    color: #7D7D7D;
     cursor: not-allowed;
-    color: black;
   }
   &:disabled::before {
-    background: #d6ffe0;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
   }
 `;
 
@@ -155,11 +165,25 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     "",
   ]);
   const [isSaving, setIsSaving] = useState(false);
+  const [fieldBeingProcessed, setFieldBeingProcessed] = useState<string | null>(
+    null
+  );
   const [currentPlan, setCurrentPlan] = useState<PlanData | null>(null);
   const [totalDocumentsSize, setTotalDocumentsSize] = useState(0);
   const [isFetchingPlan, setIsFetchingPlan] = useState(false);
+  const [isDirectTextSaving, setIsDirectTextSaving] = useState(false);
+  const [showDirectTextError, setShowDirectTextError] = useState(false);
   const languages = ["English", "Spanish", "French"];
   const [isOpen, setIsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("File Uploads");
+  const [directText, setDirectText] = useState("");
+
+  const tabs = [
+    { id: "File Uploads", label: "File Uploads", icon: "upload" },
+    { id: "Social Links", label: "Social Links", icon: "play" },
+    { id: "Direct Text", label: "Direct Text", icon: "text" },
+    { id: "Q&A", label: "Q&A", icon: "question" },
+  ];
 
   useEffect(() => {
     if (activeBotData) {
@@ -180,6 +204,12 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         });
       }
 
+      if (activeBotData.directTextContent) {
+        setDirectText(activeBotData.directTextContent);
+      } else {
+        setDirectText("");
+      }
+
       const newSmartnessLevel = calculateSmartnessLevel(activeBotData);
       setSmartnessLevel(newSmartnessLevel);
     }
@@ -188,6 +218,44 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { adminId } = useAdminStore();
   const { activeBotId, setActiveBotId, fetchBotData } = useBotConfig();
+
+  useEffect(() => {
+    const loadExistingInsights = async () => {
+      if (!activeBotId) return;
+
+      try {
+        const response = await listAgentDocuments(activeBotId);
+
+        if (!response.error && typeof response.result !== "string") {
+          const documents = response.result.documents;
+          const newInsightsData = { ...insightsData };
+
+          const fieldMapping = {
+            "Brand Insights - USP": "usp",
+            "Brand Insights - Personality": "brandPersonality",
+            "Brand Insights - Language": "languageTerms",
+            "Brand Insights - Questions": "frequentQuestions",
+          };
+
+          documents.forEach((doc) => {
+            const fieldKey = fieldMapping[doc.title];
+            if (fieldKey) {
+              const parts = doc.content?.split("\n\n");
+              if (parts && parts.length > 1) {
+                newInsightsData[fieldKey] = parts.slice(1).join("\n\n");
+              }
+            }
+          });
+
+          setInsightsData(newInsightsData);
+        }
+      } catch (error) {
+        console.error("Error loading existing insights:", error);
+      }
+    };
+
+    loadExistingInsights();
+  }, [activeBotId]);
 
   // Fetch the user's current plan
   useEffect(() => {
@@ -234,9 +302,38 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         const totalSize = allDocs.reduce((total, doc) => total + doc.size, 0);
         setTotalDocumentsSize(totalSize);
 
-        const filteredDocs = allDocs.filter(
-          (doc) => doc.title !== "Brand Insights"
-        );
+        // Filter out Brand Insights, Direct Text, and Social Media content from File Uploads display
+        const filteredDocs = allDocs.filter((doc) => {
+          const title = doc.title;
+
+          // Filter out Brand Insights
+          if (title === "Brand Insights") return false;
+          if (title.startsWith("Brand Insights - ")) return false;
+
+          // Filter out Direct Text documents
+          if (title.startsWith("Direct Text:")) return false;
+
+          // Filter out Social Media content (from Social Links tab)
+          const socialPlatforms = [
+            "Youtube",
+            "Instagram",
+            "Tiktok",
+            "Twitter",
+            "Linkedin",
+            "Reddit",
+          ];
+          const contentTypes = ["Transcript", "Summary"];
+
+          for (const platform of socialPlatforms) {
+            for (const contentType of contentTypes) {
+              if (title.startsWith(`Social: ${platform} ${contentType}:`)) {
+                return false;
+              }
+            }
+          }
+
+          return true;
+        });
 
         const docs = filteredDocs.map((doc) => ({
           name: truncateFileName(doc.title, 30),
@@ -276,6 +373,99 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
       "..." +
       extension
     );
+  };
+
+  const getFieldDocumentTitle = (fieldKey: string): string => {
+    const titleMap = {
+      usp: "Brand Insights - USP",
+      brandPersonality: "Brand Insights - Personality",
+      languageTerms: "Brand Insights - Language",
+      frequentQuestions: "Brand Insights - Questions",
+    };
+    return titleMap[fieldKey] || `Brand Insights - ${fieldKey}`;
+  };
+
+  const getFieldDisplayName = (fieldKey: string): string => {
+    const nameMap = {
+      usp: "USP",
+      brandPersonality: "Brand Personality",
+      languageTerms: "Language Terms",
+      frequentQuestions: "Frequent Questions",
+    };
+    return nameMap[fieldKey] || fieldKey;
+  };
+
+  const handleRemoveInsightField = async (fieldKey) => {
+    if (!activeBotData) {
+      toast.error("No agent selected");
+      return;
+    }
+
+    try {
+      setFieldBeingProcessed(fieldKey);
+
+      const documentTitle = getFieldDocumentTitle(fieldKey);
+
+      const existingDocuments = await listAgentDocuments(activeBotData.agentId);
+
+      if (
+        !existingDocuments.error &&
+        typeof existingDocuments.result !== "string"
+      ) {
+        const documents = existingDocuments.result.documents;
+        const fieldDoc = documents.find((doc) => doc.title === documentTitle);
+
+        if (fieldDoc) {
+          const removeResponse = await removeDocumentFromAgent(
+            activeBotData.agentId,
+            fieldDoc.documentId
+          );
+
+          if (!removeResponse.error) {
+            setTotalDocumentsSize((prev) => prev - (fieldDoc.size || 0));
+
+            toast.success(
+              `${getFieldDisplayName(fieldKey)} removed successfully`
+            );
+          } else {
+            toast.error(`Failed to remove ${getFieldDisplayName(fieldKey)}`);
+            setFieldBeingProcessed(null);
+            return;
+          }
+        } else {
+          toast.success(`${getFieldDisplayName(fieldKey)} cleared`);
+        }
+      }
+
+      setInsightsData((prev) => ({
+        ...prev,
+        [fieldKey]: "",
+      }));
+
+      const updatedAnswers = [
+        fieldKey === "usp" ? "" : insightsData.usp || "",
+        fieldKey === "brandPersonality"
+          ? ""
+          : insightsData.brandPersonality || "",
+        fieldKey === "languageTerms" ? "" : insightsData.languageTerms || "",
+        fieldKey === "frequentQuestions"
+          ? ""
+          : insightsData.frequentQuestions || "",
+      ];
+
+      await updateAgentBrain(
+        activeBotData.agentId,
+        selectedLanguage,
+        updatedAnswers
+      );
+
+      setRefetchBotData();
+    } catch (error) {
+      console.error(`Error removing ${fieldKey}:`, error);
+      toast.error(`Failed to remove ${getFieldDisplayName(fieldKey)}`);
+    } finally {
+      setFieldBeingProcessed(null);
+    }
   };
 
   // Handle adding links
@@ -516,7 +706,9 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
   };
 
   // Handle file upload - Enhanced with automatic processing
-  const handleUpload = async (filesToUpload: File[] = selectedFiles) => {
+  const handleUpload = async (
+    filesToUpload: File[] = selectedFiles
+  ): Promise<void> => {
     if (!adminId) {
       toast.error("Admin ID is required");
       return;
@@ -681,7 +873,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             if (onCancel) {
               setTimeout(() => {
                 onCancel();
-              }, 1500);
+              }, 4000); // Increased delay to allow prompt generation
             }
           }
         } catch (error) {
@@ -791,6 +983,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             : `Failed to upload ${file.name}`
         );
       }
+      setRefetchBotData();
 
       const documentId =
         typeof response.result !== "string" ? response.result.documentId : "";
@@ -1009,84 +1202,86 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
         updatedAnswers
       );
 
-      // Create insights document with only filled fields that meet word count
-      const insights = [];
-      if (countWords(insightsData.usp) >= 5)
-        insights.push(
-          `1. What makes you/your brand unique? The main USP:\n${insightsData.usp}`
-        );
-      if (countWords(insightsData.brandPersonality) >= 5)
-        insights.push(
-          `2. How would your most loyal follower/customer describe you or your brand's personality?\n${insightsData.brandPersonality}`
-        );
-      if (countWords(insightsData.languageTerms) >= 5)
-        insights.push(
-          `3. What specific language, terms, or phrases should your AI agent use (or avoid) to authentically represent your brand voice?\n${insightsData.languageTerms}`
-        );
-      if (countWords(insightsData.frequentQuestions) >= 5)
-        insights.push(
-          `4. What questions do your customers most frequently ask?\n${insightsData.frequentQuestions}`
-        );
+      const fieldsToSave = [
+        {
+          key: "usp",
+          question: "1. What makes you/your brand unique? The main USP:",
+          content: insightsData.usp,
+        },
+        {
+          key: "brandPersonality",
+          question:
+            "2. How would your most loyal follower/customer describe you or your brand's personality?",
+          content: insightsData.brandPersonality,
+        },
+        {
+          key: "languageTerms",
+          question:
+            "3. What specific language, terms, or phrases should your AI agent use (or avoid) to authentically represent your brand voice?",
+          content: insightsData.languageTerms,
+        },
+        {
+          key: "frequentQuestions",
+          question: "4. What questions do your customers most frequently ask?",
+          content: insightsData.frequentQuestions,
+        },
+      ];
 
-      if (insights.length > 0) {
-        const formattedInsights = `BRAND INSIGHTS:\n\n${insights.join("\n\n")}`;
+      let savedCount = 0;
 
-        const docSize = new TextEncoder().encode(formattedInsights).length;
+      for (const field of fieldsToSave) {
+        if (countWords(field.content) >= 5) {
+          const documentTitle = getFieldDocumentTitle(field.key);
+          const formattedContent = `${field.question}\n\n${field.content}`;
+          const docSize = new TextEncoder().encode(formattedContent).length;
 
-        try {
-          const existingDocuments = await listAgentDocuments(
-            activeBotData.agentId
-          );
-          let existingInsightsDoc = null;
-
-          if (
-            !existingDocuments.error &&
-            typeof existingDocuments.result !== "string"
-          ) {
-            const documents = existingDocuments.result.documents;
-            existingInsightsDoc = documents.find(
-              (doc) => doc.title === "Brand Insights"
-            );
-          }
-
-          if (existingInsightsDoc) {
-            const removeResponse = await removeDocumentFromAgent(
-              activeBotData.agentId,
-              existingInsightsDoc.documentId
+          try {
+            const existingDocuments = await listAgentDocuments(
+              activeBotData.agentId
             );
 
-            if (removeResponse.error) {
-              console.warn(
-                "Could not remove existing Brand Insights document:",
-                typeof removeResponse.result === "string"
-                  ? removeResponse.result
-                  : "Unknown error"
+            if (
+              !existingDocuments.error &&
+              typeof existingDocuments.result !== "string"
+            ) {
+              const documents = existingDocuments.result.documents;
+              const existingFieldDoc = documents.find(
+                (doc) => doc.title === documentTitle
               );
+
+              if (existingFieldDoc) {
+                await removeDocumentFromAgent(
+                  activeBotData.agentId,
+                  existingFieldDoc.documentId
+                );
+              }
             }
-          }
 
-          const addResponse = await addDocumentToAgent(
-            activeBotData.agentId,
-            formattedInsights,
-            "Brand Insights",
-            docSize
-          );
-
-          if (addResponse.error) {
-            console.error(
-              "Failed to add Brand Insights document:",
-              typeof addResponse.result === "string"
-                ? addResponse.result
-                : "Unknown error"
+            const addResponse = await addDocumentToAgent(
+              activeBotData.agentId,
+              formattedContent,
+              documentTitle,
+              docSize
             );
+
+            if (!addResponse.error) {
+              savedCount++;
+            } else {
+              console.error(`Failed to save ${field.key}:`, addResponse.result);
+            }
+          } catch (fieldError) {
+            console.error(`Error saving ${field.key}:`, fieldError);
           }
-        } catch (docError) {
-          console.error("Error managing Brand Insights document:", docError);
         }
       }
 
       setRefetchBotData();
-      toast.success("Insights saved successfully");
+
+      if (savedCount > 0) {
+        toast.success(`${savedCount} insight(s) saved successfully`);
+      } else {
+        toast.error("No insights were saved");
+      }
     } catch (error: any) {
       console.error("Error updating agent brain:", error);
       toast.error(error.message || "Failed to save insights");
@@ -1105,137 +1300,209 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
     return formatFileSize(remainingBytes);
   };
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 h-full overflow-y-auto">
-      {/* Left Section - Power Your Agent's Intelligence */}
-      <div className="space-y-6 ">
-        <div>
-          <h2 className="main-font font-bold text-lg sm:text-xl md:text-2xl text-[#000000] mb-2">
-            Power Your Agent's Intelligence
-          </h2>
-          <p className="para-font text-xs md:sm text-[#0D0D0D] mb-4 font-[500]">
-            The more you share, the smarter your agent becomes. Each detail you
-            provide enhances its ability to deliver precise, knowledgeable
-            responses. Complete all sections to unlock your agent's full
-            potential!
-          </p>
+  const validateDirectText = (): { isValid: boolean; message: string } => {
+    const content = directText.trim();
 
-          {/* Agent Name (if creating new agent) */}
-          {!activeBotId && (
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2">
-                Agent Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={agentName}
-                onChange={(e) => setAgentName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="Enter agent name"
-              />
-            </div>
-          )}
+    if (!content) {
+      return { isValid: true, message: "" };
+    }
 
-          {/* Agent Smartness */}
-          <div className="pb-6 pt-4 border-b-2 border-[#CDCDCD] w-full flex flex-col xs:flex-row xs:gap-4">
-            <h1
-              style={{ lineHeight: "20px" }}
-              className="para-font text-[#000000] block text-sm sm:text-lg font-medium"
-            >
-              Agent Smartness
-            </h1>
-            <div className="xs:flex-1 relative pt-2">
-              <div
-                style={{ outline: "3px solid #CDCDCD" }}
-                className="w-full overflow-hidden h-2 text-xs flex rounded bg-[#FFFFFF] shadow-[inset_0_3px_3px_0_rgba(0,0,0,0.25)]"
-              >
-                <div
-                  style={{ width: `${smartnessLevel}%` }}
-                  className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#4D65FF] border border-[#135220] rounded-lg"
-                />
-              </div>
-              <div className="text-right">
-                <span className="text-xs font-semibold inline-block text-blue-600">
-                  {smartnessLevel}% COMPLETE
-                </span>
-              </div>
-            </div>
-          </div>
+    const wordCount = countWords(content);
 
-          {/* Agent Language */}
-          <div className="py-8 sm:py-6 flex items-center gap-5">
-            <h1
-              style={{ lineHeight: "20px", whiteSpace: "nowrap" }}
-              className="para-font text-[#000000] block text-sm sm:text-lg font-medium"
-            >
-              Agent Language
-            </h1>
-            <div className="relative w-60 flex  ">
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
-              >
-                {selectedLanguage}
-              </button>
-              <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
-                <ChevronDown
-                  size={20}
-                  className={`text-[#000000] stroke-[3px] transition-transform  ${
-                    isOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </div>
+    if (wordCount < 50) {
+      return {
+        isValid: false,
+        message: `Minimum 50 words required. You have ${wordCount} words.`,
+      };
+    }
 
-              {isOpen && (
-                <div className="absolute z-10 mt-1 top-8 w-full bg-white border border-[#7D7D7D] shadow-sm rounded-sm">
-                  {languages.map((lang) => (
-                    <button
-                      key={lang}
-                      onClick={() => {
-                        setSelectedLanguage(lang);
-                        setIsOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
-                        selectedLanguage === lang ? "bg-[#AEB8FF]" : ""
-                      }`}
-                    >
-                      {lang}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+    const size = new TextEncoder().encode(content).length;
 
-          {/* Upload Files */}
-          <div>
-            <div className="content flex justify-between items-center gap-4 pr-6">
-              <span className="texts">
-                <h3 className="main-font block text-md sm:text-xl font-bold text-[#000000]">
+    if (currentPlan) {
+      const availableSpace = currentPlan.totalDocSize - totalDocumentsSize;
+
+      if (size > availableSpace) {
+        const sizeInKB = Math.round(size / 1024);
+        const availableInKB = Math.round(availableSpace / 1024);
+        return {
+          isValid: false,
+          message: `Text too large (${sizeInKB}KB). Available space: ${availableInKB}KB`,
+        };
+      }
+    }
+
+    return { isValid: true, message: "" };
+  };
+
+  // Save direct text using add document API
+  const handleSaveDirectText = async () => {
+    if (!activeBotId) {
+      toast.error("No active agent selected");
+      return;
+    }
+
+    const content = directText.trim();
+
+    // Don't allow saving empty content
+    if (!content) {
+      toast.error("Please enter some text to save");
+      return;
+    }
+
+    // Validate content
+    const validation = validateDirectText();
+    if (!validation.isValid) {
+      setShowDirectTextError(true);
+      toast.error(validation.message);
+      return;
+    }
+
+    try {
+      setIsDirectTextSaving(true);
+      setShowDirectTextError(false);
+
+      const timestamp = new Date().toISOString().split("T")[0];
+      const title = `Direct Text: ${timestamp}`;
+      const size = new TextEncoder().encode(content).length;
+
+      // Remove existing document if it exists
+      const existingDocuments = await listAgentDocuments(activeBotId);
+      if (
+        !existingDocuments.error &&
+        typeof existingDocuments.result !== "string"
+      ) {
+        const docs = existingDocuments.result.documents;
+        const existingDirectTextDoc = docs.find((doc) =>
+          doc.title.startsWith("Direct Text:")
+        );
+
+        if (existingDirectTextDoc) {
+          await removeDocumentFromAgent(
+            activeBotId,
+            existingDirectTextDoc.documentId
+          );
+          setTotalDocumentsSize(
+            (prev) => prev - (existingDirectTextDoc.size || 0)
+          );
+        }
+      }
+
+      // Add new document
+      const response = await addDocumentToAgent(
+        activeBotId,
+        content,
+        title,
+        size
+      );
+
+      if (response.error) {
+        throw new Error(
+          typeof response.result === "string"
+            ? response.result
+            : "Failed to save direct text"
+        );
+      }
+
+      setTotalDocumentsSize((prev) => prev + size);
+      toast.success("Direct text saved successfully");
+      setShowDirectTextError(false);
+      setRefetchBotData();
+    } catch (error) {
+      console.error("Error saving direct text:", error);
+      toast.error("Failed to save direct text");
+    } finally {
+      setIsDirectTextSaving(false);
+    }
+  };
+
+  const handleRemoveDirectText = async () => {
+    if (!activeBotId) {
+      toast.error("No active agent selected");
+      return;
+    }
+
+    try {
+      setIsDirectTextSaving(true);
+
+      // Find and remove the direct text document
+      const existingDocuments = await listAgentDocuments(activeBotId);
+      if (
+        !existingDocuments.error &&
+        typeof existingDocuments.result !== "string"
+      ) {
+        const docs = existingDocuments.result.documents;
+        const directTextDoc = docs.find((doc) =>
+          doc.title.startsWith("Direct Text:")
+        );
+
+        if (directTextDoc) {
+          const response = await removeDocumentFromAgent(
+            activeBotId,
+            directTextDoc.documentId
+          );
+
+          if (!response.error) {
+            toast.success("Direct text removed successfully");
+            setDirectText("");
+
+            // Trigger refetch to update the UI
+            setRefetchBotData();
+
+            // Refresh documents to update total size
+            await fetchAgentDocuments();
+          } else {
+            toast.error("Failed to remove direct text");
+          }
+        } else {
+          // No saved document, just clear the input
+          setDirectText("");
+          toast.success("Text cleared");
+        }
+      }
+    } catch (error) {
+      console.error("Error removing direct text:", error);
+      toast.error("Failed to remove direct text");
+    } finally {
+      setIsDirectTextSaving(false);
+    }
+  };
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "File Uploads":
+        return (
+          <div className="bg-white rounded-lg px-6 py-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 pr-6 mb-4">
+              <div className="flex-1">
+                <h3 className="main-font block text-base font-bold text-[#000000]">
                   Upload Files
                 </h3>
-                <p className="text-xs text-gray-500 mb-2">
+                <p className="text-sm text-gray-500 mb-2">
                   Upload PDF, DOCX and TXT files
                 </p>
-              </span>
-              <span className="para-font border border-[#7D7D7D] text-[#7D7D7D] px-2 py-0.5 xs:px-4 rounded-xl -mr-6">
+              </div>
+              {/* <div className="para-font border border-[#7D7D7D] text-[#7D7D7D] px-4 py-0.5 rounded-xl text-sm self-end sm:self-auto">
                 Remove
-              </span>
+              </div> */}
             </div>
-            <div className="space-y-2 mb-3">
+
+            <div className="space-y-2 mb-4 py-4 max-h-100 overflow-y-auto">
               {uploadedFiles.map((file) => (
                 <div
                   key={file.name + (file.documentId || "")}
                   className="flex flex-row items-center justify-between space-x-2"
                 >
-                  <div className="flex justify-between items-center px-2 py-1 border w-[80%] bg-[#CEFFDC] border-2 border-[#6AFF97]">
+                  <div className="flex justify-between items-center px-2 py-1 border w-[75%] sm:w-[80%] bg-[#CEFFDC] border-2 border-[#6AFF97]">
                     <span className="text-sm truncate">{file.name}</span>
-                    <span className="text-xs text-gray-500 whitespace-nowrap">
+                    <span className="text-sm text-gray-500 whitespace-nowrap ml-2">
                       {file.size}
                     </span>
                   </div>
 
-                  <div style={{ zIndex: "4" }} className="icon relative pr-8">
+                  <div
+                    style={{ zIndex: "4" }}
+                    className="icon relative pr-4 sm:pr-8"
+                  >
                     {processingFile === file.name ? (
                       <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
                     ) : (
@@ -1260,17 +1527,19 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                   key={file.name}
                   className="flex items-center justify-between bg-blue-50 border border-blue-100 rounded-md px-3 py-2"
                 >
-                  <div className="flex items-center space-x-2">
-                    <FileText className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">
-                      {truncateFileName(file.name, 30)}
+                  <div className="flex items-center space-x-2 flex-1 min-w-0">
+                    <FileText className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                    <span className="text-sm truncate">
+                      {truncateFileName(file.name, 25)}
                     </span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-sm text-gray-500 flex-shrink-0">
                       {formatFileSize(file.size)}
                     </span>
-                    <span className="text-xs text-blue-500">(Selected)</span>
+                    <span className="text-sm text-blue-500 flex-shrink-0">
+                      (Selected)
+                    </span>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 flex-shrink-0">
                     {isUploading ? (
                       <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
                     ) : (
@@ -1293,7 +1562,7 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
             </div>
 
             <div
-              className="border-2 border-dashed border-gray-300 rounded-lg p-6 mb-3 cursor-pointer"
+              className="border-2 border-dashed border-gray-300 rounded-lg p-6 mb-4 cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
               onDragOver={handleDragOver}
               onDrop={handleDrop}
@@ -1308,23 +1577,23 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
               />
               <div className="flex flex-col items-center">
                 <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                <p className="text-sm text-gray-600 mb-1">
+                <p className="text-sm text-gray-600 mb-1 text-center">
                   Click to select files or drag and drop
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-sm text-gray-500 text-center">
                   Supported formats: PDF, DOCX, TXT
                 </p>
-                <p className="text-xs text-blue-500 mt-1">
+                <p className="text-sm text-blue-500 mt-1 text-center">
                   You can select multiple files at once
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-500">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+              <span className="text-sm text-gray-500">
                 {!isFetchingPlan && currentPlan ? (
                   <>
-                    Max total size: {formatFileSize(currentPlan.totalDocSize)} |
+                    Max total size: {formatFileSize(currentPlan.totalDocSize)} |{" "}
                     Available: {getRemainingStorage()} | At least one document
                     is required
                   </>
@@ -1332,146 +1601,595 @@ const Brain: React.FC<BrainProps> = ({ onCancel }) => {
                   <>Loading storage information...</>
                 )}
               </span>
-
-              {/* Only show upload button for new agents since existing ones auto-upload */}
-              {!activeBotId && (
-                <button
-                  onClick={() => handleUpload()}
-                  disabled={
-                    isUploading ||
-                    processingFile !== null ||
-                    selectedFiles.length === 0
-                  }
-                  className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
-                >
-                  {isUploading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {processingFile
-                        ? `UPLOADING ${truncateFileName(processingFile, 15)}...`
-                        : "UPLOADING..."}
-                    </>
-                  ) : (
-                    `CREATE AGENT${
-                      selectedFiles.length > 0
-                        ? ` WITH ${selectedFiles.length} FILES`
-                        : ""
-                    }`
-                  )}
-                </button>
-              )}
             </div>
           </div>
-        </div>
-      </div>
+        );
 
-      {/* Right Section - SMARTEN UP */}
-      <div className="p-6 rounded-lg" style={{ backgroundColor: "#D4DEFF" }}>
-        <div className="mb-6">
-          <h2 className="main-font text-[#000000] text-lg font-[1000]">
-            SMARTEN UP
+      case "Social Links":
+        return (
+          <div className="bg-white rounded-lg">
+            <div className="p-2">
+              <SocialVideos
+                activeBotData={activeBotData}
+                activeBotId={activeBotId}
+                onRefreshData={() => setRefetchBotData()}
+                onAddToAgent={async (
+                  title: string,
+                  content: string,
+                  size: number,
+                  videoMetadata?: any
+                ) => {
+                  if (!activeBotId) {
+                    toast.error("No active agent selected");
+                    return false;
+                  }
+
+                  try {
+                    const response = await addDocumentToAgent(
+                      activeBotId,
+                      content,
+                      title,
+                      size,
+                      videoMetadata
+                    );
+
+                    if (response.error) {
+                      throw new Error(
+                        typeof response.result === "string"
+                          ? response.result
+                          : "Failed to add video content to agent"
+                      );
+                    }
+                    setTotalDocumentsSize((prev) => prev + size);
+
+                    await fetchAgentDocuments();
+                    setRefetchBotData();
+
+                    return true;
+                  } catch (error) {
+                    console.error(
+                      "Error adding video content to agent:",
+                      error
+                    );
+                    toast.error("Failed to add video content to agent");
+                    return false;
+                  }
+                }}
+              />
+            </div>
+          </div>
+        );
+
+      case "Direct Text":
+        return (
+          <div className="bg-white rounded-lg px-6 py-6">
+            <div className="bg-[#E7EAFF] p-6 rounded-lg">
+              <p className="text-sm text-black mb-4">
+                Type or Paste any direct text to feed into your AI-employee's
+                Brain
+              </p>
+
+              <div className="space-y-4">
+                <div className="relative">
+                  <textarea
+                    value={directText}
+                    onChange={(e) => {
+                      setDirectText(e.target.value);
+                      if (showDirectTextError) {
+                        setShowDirectTextError(false);
+                      }
+                    }}
+                    disabled={isDirectTextSaving}
+                    rows={8}
+                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                    placeholder={
+                      isDirectTextSaving
+                        ? "Processing..."
+                        : "Type here... (Minimum 50 words required)"
+                    }
+                    style={{
+                      maxHeight: "250px",
+                      overflowY: "auto",
+                    }}
+                  />
+
+                  {/* Trash icon - removes the saved document */}
+                  {directText.trim() && !isDirectTextSaving && (
+                    <button
+                      onClick={handleRemoveDirectText}
+                      className="absolute top-3 right-3 p-1 text-gray-400 hover:text-red-500 transition-colors rounded"
+                      title="Remove saved text"
+                      type="button"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+
+                  {/* Word/char counter */}
+                  {directText && (
+                    <div className="absolute bottom-2 right-2 text-sm text-gray-500 bg-white px-2 py-1 rounded shadow">
+                      <span className="hidden sm:inline">
+                        {directText.length} chars |{" "}
+                      </span>
+                      {countWords(directText)} words
+                    </div>
+                  )}
+                </div>
+
+                {/* Word count and limits info */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                    <span
+                      className={`${
+                        directText.trim() && countWords(directText) >= 50
+                          ? "text-green-600"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      Words: {countWords(directText)}/50 minimum
+                    </span>
+
+                    {currentPlan && (
+                      <span className="text-gray-500">
+                        Available space: {getRemainingStorage()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Validation message */}
+                {showDirectTextError &&
+                  (() => {
+                    const validation = validateDirectText();
+                    if (!validation.isValid) {
+                      return (
+                        <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                          <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                          <div className="text-sm text-red-700">
+                            {validation.message}
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+
+                {/* Save button */}
+                <div className="flex justify-end relative z-10 mt-4">
+                  <Button
+                    onClick={handleSaveDirectText}
+                    disabled={
+                      isDirectTextSaving ||
+                      !directText.trim() ||
+                      countWords(directText) < 50
+                    }
+                    className={`${
+                      isDirectTextSaving ||
+                      !directText.trim() ||
+                      countWords(directText) < 50
+                        ? "cursor-not-allowed"
+                        : ""
+                    }`}
+                  >
+                    {isDirectTextSaving ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                        <span>Saving...</span>
+                      </div>
+                    ) : (
+                      "SAVE"
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "Q&A":
+        return (
+          <div className="bg-white rounded-lg px-6 py-6">
+            <div className="bg-[#E7EAFF] p-6 rounded-lg">
+              <div className="space-y-6">
+                {[
+                  {
+                    key: "usp",
+                    question:
+                      "1. What makes you/your brand unique? The main USP:",
+                  },
+                  {
+                    key: "brandPersonality",
+                    question:
+                      "2. How would your most loyal follower/customer describe you or your brand's personality?",
+                  },
+                  {
+                    key: "languageTerms",
+                    question:
+                      "3. What specific language, terms, or phrases should your AI agent use (or avoid) to authentically represent your brand voice?",
+                  },
+                  {
+                    key: "frequentQuestions",
+                    question:
+                      "4. What questions do your customers most frequently ask?",
+                  },
+                ].map((field) => (
+                  <div key={field.key}>
+                    <label className="block text-sm font-medium mb-2">
+                      {field.question}
+                    </label>
+                    <div className="relative">
+                      <textarea
+                        value={insightsData[field.key]}
+                        onChange={(e) =>
+                          handleInsightsChange(field.key, e.target.value)
+                        }
+                        disabled={fieldBeingProcessed === field.key}
+                        rows={3}
+                        className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        placeholder={
+                          fieldBeingProcessed === field.key
+                            ? "Processing..."
+                            : "Type here..."
+                        }
+                      />
+
+                      {/* Trash icon for removing individual fields */}
+                      {insightsData[field.key].trim() &&
+                        fieldBeingProcessed !== field.key && (
+                          <button
+                            onClick={() => handleRemoveInsightField(field.key)}
+                            className="absolute top-3 right-3 p-1 text-gray-400 hover:text-red-500 transition-colors rounded"
+                            title={`Remove ${getFieldDisplayName(field.key)}`}
+                            type="button"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+
+                      {/* Loading indicator for field being processed */}
+                      {fieldBeingProcessed === field.key && (
+                        <div className="absolute top-3 right-3 p-1">
+                          <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Info Message */}
+                <div className="flex items-start space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-blue-700">
+                    <p className="font-medium mb-1">
+                      Fill any insights you'd like to save
+                    </p>
+                    <p>
+                      You can fill out whichever insights you want and save
+                      them. Each field requires at least 5 words to be saved.
+                      Use the trash icon to remove individual saved insights.
+                      Empty fields will be skipped.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex justify-end relative z-10 mt-4">
+                  <Button
+                    onClick={handleSave}
+                    disabled={
+                      isSaving ||
+                      !hasAnyContent() ||
+                      fieldBeingProcessed !== null
+                    }
+                    className={`${
+                      isSaving ||
+                      !hasAnyContent() ||
+                      fieldBeingProcessed !== null
+                        ? "cursor-not-allowed"
+                        : ""
+                    }`}
+                  >
+                    {isSaving ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                        <span>Saving...</span>
+                      </div>
+                    ) : (
+                      "SAVE"
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  const renderTabIcon = (iconType: string, isActive: boolean) => {
+    const iconProps = {
+      size: 12,
+      className: "text-current",
+    };
+
+    switch (iconType) {
+      case "upload":
+        return <Upload {...iconProps} />;
+      case "play":
+        return <Play {...iconProps} fill="currentColor" />;
+      case "text":
+        return <span className="text-xs font-bold">T</span>;
+      case "question":
+        return <HelpCircle {...iconProps} />;
+      default:
+        return <span className="text-xs">{iconType}</span>;
+    }
+  };
+
+  return (
+    <div className="h-full flex flex-col p-6 overflow-y-auto">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
+        <div className="flex-1 text-center lg:text-left">
+          <h2 className="main-font font-bold text-xl text-[#000000] mb-3">
+            Power Your Agent's Intelligence
           </h2>
-          <p className="para-font text-sm text-[#000000] font-[500]">
-            Share Your Insights to Unlock Your Agent's Full Potential
+          <p className="para-font text-sm text-[#0D0D0D] font-[500] max-w-2xl mx-auto lg:mx-0">
+            The more you share, the smarter your agent becomes. Each detail you
+            provide enhances its ability to deliver precise, knowledgeable
+            responses. Complete all sections to unlock your agent's full
+            potential!
           </p>
         </div>
 
-        <div className="space-y-6">
-          <div>
-            <label className="block text-sm sm:text-[16px] font-medium mb-2">
-              1. What makes you/your brand unique? The main USP:
-            </label>
-            <textarea
-              value={insightsData.usp}
-              onChange={(e) => handleInsightsChange("usp", e.target.value)}
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-              placeholder="Type here..."
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm sm:text-[16px] font-medium mb-2">
-              2. How would your most loyal follower/customer describe you or
-              your brand's personality?
-            </label>
-            <textarea
-              value={insightsData.brandPersonality}
-              onChange={(e) =>
-                handleInsightsChange("brandPersonality", e.target.value)
-              }
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-              placeholder="Type here..."
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm sm:text-[16px] font-medium mb-2">
-              3. What specific language, terms, or phrases should your AI agent
-              use (or avoid) to authentically represent your brand voice?
-            </label>
-            <textarea
-              value={insightsData.languageTerms}
-              onChange={(e) =>
-                handleInsightsChange("languageTerms", e.target.value)
-              }
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-              placeholder="Type here..."
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm sm:text-[16px] font-medium mb-2">
-              4. What questions do your customers most frequently ask?
-            </label>
-            <textarea
-              value={insightsData.frequentQuestions}
-              onChange={(e) =>
-                handleInsightsChange("frequentQuestions", e.target.value)
-              }
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-              placeholder="Type here..."
-            />
-          </div>
-
-          {/* Info Message */}
-          <div className="flex items-start space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
-            <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-blue-700">
-              <p className="font-medium mb-1">
-                Fill any insights you'd like to save
-              </p>
-              <p>
-                You can fill out whichever insights you want and save them. Each
-                field requires at least 5 words to be saved. Empty fields will
-                be skipped.
-              </p>
+        {/* Agent Smartness and Brain Capacity Circles */}
+        <div className="flex flex-row gap-4 lg:flex-col xl:flex-row w-full sm:w-fit">
+          <div className="flex flex-col items-center bg-[#EAEFFF] rounded-lg px-4 py-8 lg:py-4 min-w-36 w-full sm:w-fit">
+            <div className="relative w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center">
+              <svg
+                className="absolute top-[-2px] left-[-2px]"
+                width="48"
+                height="48"
+                viewBox="0 0 71 71"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                style={{
+                  width: "clamp(48px, 10vw, 58px)",
+                  height: "clamp(48px, 10vw, 58px)",
+                }}
+              >
+                <g filter="url(#filter0_d_5068_3436)">
+                  <rect
+                    x="9.27344"
+                    y="9.53906"
+                    width="50.1885"
+                    height="50.1885"
+                    rx="25.0943"
+                    fill="white"
+                  />
+                  <rect
+                    x="9.77344"
+                    y="10.0391"
+                    width="49.1885"
+                    height="49.1885"
+                    rx="24.5943"
+                    stroke="black"
+                  />
+                </g>
+                <path
+                  d="M34.8312 6.60821C53.8154 8.29096 61.9708 22.7212 62.4349 36.7213"
+                  stroke="#4D65FF"
+                  stroke-width="5"
+                  stroke-linecap="round"
+                />
+                <g filter="url(#filter1_d_5068_3436)">
+                  <rect
+                    x="3.5"
+                    y="3.76562"
+                    width="61.7356"
+                    height="61.7356"
+                    rx="30.8678"
+                    stroke="black"
+                  />
+                </g>
+              </svg>
+              <span className="text-sm font-semibold z-10">
+                {smartnessLevel}%
+              </span>
+            </div>
+            <div className="text-sm text-black my-2 text-center">
+              Agent Smartness
             </div>
           </div>
-
-          <div className="flex justify-end relative z-10 mt-4">
-            <Button
-              onClick={handleSave}
-              disabled={isSaving || !hasAnyContent()}
-              className={`${
-                isSaving || !hasAnyContent() ? "cursor-not-allowed" : ""
-              }`}
-            >
-              {isSaving ? (
-                <div className="flex items-center space-x-2">
-                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                  <span>Saving...</span>
-                </div>
-              ) : (
-                "SAVE"
-              )}
-            </Button>
+          <div className="flex flex-col items-center bg-[#EAEFFF] rounded-lg px-4 py-8 lg:py-4 min-w-36 w-full sm:w-fit">
+            <div className="relative w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center">
+              <svg
+                className="absolute top-[-2px] left-[-2px]"
+                width="48"
+                height="48"
+                viewBox="0 0 71 71"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                style={{
+                  width: "clamp(48px, 10vw, 58px)",
+                  height: "clamp(48px, 10vw, 58px)",
+                }}
+              >
+                <g filter="url(#filter0_d_5068_3436)">
+                  <rect
+                    x="9.27344"
+                    y="9.53906"
+                    width="50.1885"
+                    height="50.1885"
+                    rx="25.0943"
+                    fill="white"
+                  />
+                  <rect
+                    x="9.77344"
+                    y="10.0391"
+                    width="49.1885"
+                    height="49.1885"
+                    rx="24.5943"
+                    stroke="black"
+                  />
+                </g>
+                <path
+                  d="M34.8312 6.60821C53.8154 8.29096 61.9708 22.7212 62.4349 36.7213"
+                  stroke="#4D65FF"
+                  stroke-width="5"
+                  stroke-linecap="round"
+                />
+                <g filter="url(#filter1_d_5068_3436)">
+                  <rect
+                    x="3.5"
+                    y="3.76562"
+                    width="61.7356"
+                    height="61.7356"
+                    rx="30.8678"
+                    stroke="black"
+                  />
+                </g>
+              </svg>
+              <span className="text-sm font-semibold z-10">
+                {smartnessLevel}%
+              </span>
+            </div>
+            <div className="text-sm text-black my-2 text-center">
+              Brain Capacity
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Agent Language
+      <div className="mb-8 flex flex-row items-center gap-5">
+        <h1 className="para-font text-[#000000] block text-sm font-medium whitespace-nowrap">
+          Agent Language
+        </h1>
+        <div className="relative flex flex-1 max-w-xs">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="flex-1 px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
+          >
+            {selectedLanguage}
+          </button>
+          <div className="bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
+            <ChevronDown
+              size={16}
+              className={`text-[#000000] stroke-[3px] transition-transform ${
+                isOpen ? "rotate-180" : ""
+              }`}
+            />
+          </div>
+
+          {isOpen && (
+            <div className="absolute z-10 mt-1 top-8 w-full bg-white border border-[#7D7D7D] shadow-sm rounded-sm">
+              {languages.map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => {
+                    setSelectedLanguage(lang);
+                    setIsOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                    selectedLanguage === lang ? "bg-[#AEB8FF]" : ""
+                  }`}
+                >
+                  {lang}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div> */}
+
+      {/* Tab Navigation */}
+      <div className="flex flex-wrap gap-2 mb-8">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full border-2 border-black text-sm font-medium transition-colors ${
+              activeTab === tab.id
+                ? "bg-black text-[#6aff97]"
+                : "bg-white text-black"
+            }`}
+          >
+            <span
+              className={`w-5 h-5 rounded-full flex items-center justify-center text-xs transition-colors ${
+                activeTab === tab.id
+                  ? "bg-[#6aff97] text-black"
+                  : "bg-black text-white"
+              }`}
+            >
+              {renderTabIcon(tab.icon, activeTab === tab.id)}
+            </span>
+            <span className="hidden sm:inline">{tab.label}</span>
+            <span className="sm:hidden">{tab.label.split(" ")[0]}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Tab Content */}
+      <div className="mb-6">{renderTabContent()}</div>
+
+      {/* Agent Name (if creating new agent) */}
+      {!activeBotId && (
+        <div className="mt-6 px-6">
+          <label className="block text-sm font-medium mb-2">
+            Agent Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            value={agentName}
+            onChange={(e) => setAgentName(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            placeholder="Enter agent name"
+          />
+
+          {/* Create Agent Button */}
+          {(selectedFiles.length > 0 || links.length > 0) && (
+            <div className="mt-4 flex justify-end">
+              <Button
+                onClick={() => handleUpload()}
+                disabled={
+                  isUploading ||
+                  processingFile !== null ||
+                  (selectedFiles.length === 0 && links.length === 0)
+                }
+                className={`${
+                  isUploading ||
+                  processingFile !== null ||
+                  (selectedFiles.length === 0 && links.length === 0)
+                    ? "cursor-not-allowed"
+                    : ""
+                }`}
+              >
+                {isUploading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                    <span className="hidden sm:inline">
+                      {processingFile
+                        ? `UPLOADING ${truncateFileName(processingFile, 15)}...`
+                        : "UPLOADING..."}
+                    </span>
+                    <span className="sm:hidden">UPLOADING...</span>
+                  </div>
+                ) : (
+                  <span className="text-sm">
+                    CREATE AGENT
+                    {selectedFiles.length > 0 || links.length > 0
+                      ? ` (${selectedFiles.length + links.length})`
+                      : ""}
+                  </span>
+                )}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

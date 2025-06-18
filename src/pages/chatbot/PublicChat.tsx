@@ -173,7 +173,8 @@ export default function PublicChat({
       const currQueryable = checkFeature(currentConfig?.isQueryable);
       const currActive = checkFeature(currentConfig?.isActive);
 
-      const hasAnyFeature = currBooking || currProducts || currContact || currQueryable;
+      const hasAnyFeature =
+        currBooking || currProducts || currContact || currQueryable;
       if (messages.length >= 1 && hasAnyFeature) {
         showFeatureNotification(setMessages, scrollToBottom);
       }
@@ -228,11 +229,7 @@ export default function PublicChat({
         }, 1000);
       }
     }
-  }, [
-    messages.length,
-    currentIsLoading,
-    loadingPricing,
-  ]);
+  }, [messages.length, currentIsLoading, loadingPricing]);
 
   const logConversation = async (
     userMessage: string,
@@ -376,7 +373,9 @@ export default function PublicChat({
     const isBookingRequest = lowerFeatureText.includes("booking appointments");
     const isProductRequest = lowerFeatureText.includes("browsing our products");
     const isContactRequest = lowerFeatureText.includes("contacting us");
-    const isKnowledgeBaseRequest = lowerFeatureText.includes("answering questions about our knowledge base");
+    const isKnowledgeBaseRequest = lowerFeatureText.includes(
+      "answering questions about our knowledge base"
+    );
 
     if (isContactRequest) {
       const contactHandled = await handleContactRequest(
@@ -467,7 +466,7 @@ export default function PublicChat({
     return (
       <div className="w-full h-screen flex items-center justify-center">
         <div
-          className="w-full h-full max-w-md shadow-2xl overflow-hidden flex flex-col relative"
+          className="w-full h-full shadow-2xl overflow-hidden flex flex-col relative"
           style={{
             height: previewConfig
               ? chatHeight
@@ -524,8 +523,24 @@ export default function PublicChat({
             />
             <meta name="twitter:image" content={currentConfig.logo} />
           </Helmet>
+          {/* for big screen about section in left */}
+          {!isPreview ? (
+            <div
+              className={`w-1/3 hidden md:block overflow-y-auto h-screen border-r ${
+                theme.isDark ? "border-white" : "border-black"
+              }`}
+            >
+              <AboutSection
+                theme={currentConfig.themeColors}
+                currentConfig={currentConfig}
+                socials={currentConfig?.socials}
+                customHandles={currentConfig?.customHandles}
+              />
+            </div>
+          ) : null}
+
           <div
-            className="w-full max-w-md shadow-2xl overflow-hidden flex flex-col relative"
+            className="w-full max-w-md md:max-w-full shadow-2xl overflow-hidden flex flex-col relative"
             style={{
               height: previewConfig
                 ? chatHeight
@@ -535,23 +550,45 @@ export default function PublicChat({
             }}
           >
             <div className="flex flex-col h-full">
-              <HeaderSection
-                theme={currentConfig.themeColors}
-                currentConfig={currentConfig}
-                activeScreen={activeScreen}
-                setActiveScreen={setActiveScreen}
-              />
-
-              {activeScreen === "about" && (
-                <div className="flex-1 overflow-y-auto">
-                  <AboutSection
-                    theme={currentConfig.themeColors}
-                    currentConfig={currentConfig}
-                    socials={currentConfig?.socials}
-                    customHandles={currentConfig?.customHandles}
-                  />
-                </div>
+              {isPreview ? (
+                <HeaderSection
+                  theme={currentConfig.themeColors}
+                  currentConfig={currentConfig}
+                  activeScreen={activeScreen}
+                  setActiveScreen={setActiveScreen}
+                  isPreview={true}
+                />
+              ) : (
+                <HeaderSection
+                  theme={currentConfig.themeColors}
+                  currentConfig={currentConfig}
+                  activeScreen={activeScreen}
+                  setActiveScreen={setActiveScreen}
+                  isPreview={false}
+                />
               )}
+
+              {isPreview
+                ? activeScreen === "about" && (
+                    <div className="flex-1 overflow-y-auto">
+                      <AboutSection
+                        theme={currentConfig.themeColors}
+                        currentConfig={currentConfig}
+                        socials={currentConfig?.socials}
+                        customHandles={currentConfig?.customHandles}
+                      />
+                    </div>
+                  )
+                : activeScreen === "about" && (
+                    <div className="w-full md:hidden flex-1 block overflow-y-auto">
+                      <AboutSection
+                        theme={currentConfig.themeColors}
+                        currentConfig={currentConfig}
+                        socials={currentConfig?.socials}
+                        customHandles={currentConfig?.customHandles}
+                      />
+                    </div>
+                  )}
 
               {activeScreen === "chat" && (
                 <>
@@ -582,19 +619,30 @@ export default function PublicChat({
 
                   {showCues && currentConfig?.prompts && (
                     <div
-                      className="p-2 grid grid-cols-1 gap-1"
+                      className="p-2 grid grid-cols-1 gap-1 "
                       style={{
                         backgroundColor: theme.isDark ? "#1c1c1c" : "#e9e9e9",
                       }}
                     >
                       {[currentConfig.prompts].map((row, i) => (
-                        <div key={i} className="grid grid-cols-2 gap-2">
+                        <div
+                          key={i}
+                          className={`grid gap-2 ${
+                            isPreview
+                              ? "grid-cols-2"
+                              : "grid-cols-2 md:grid-cols-1"
+                          }`}
+                        >
                           {row.map((cue) => (
                             <button
                               key={cue}
                               onClick={() => handleCueClick(cue)}
                               disabled={isLoading}
-                              className="px-2 py-1 rounded-xl text-xs font-medium"
+                              className={`px-2 py-2 rounded-xl text-xs font-medium ${
+                                isPreview
+                                  ? "w-full"
+                                  : "w-full md:w-fit md:min-w-[120px] md:ml-auto md:pr-12 md:pl-4"
+                              } `}
                               style={{
                                 backgroundColor: theme.isDark
                                   ? "#1c1c1c"
@@ -630,6 +678,7 @@ export default function PublicChat({
               {activeScreen === "browse" && (
                 <div className="flex-1 overflow-y-auto">
                   <BrowseSection
+                    isPreview={isPreview}
                     theme={theme}
                     currentConfig={{
                       agentId: currentConfig?.agentId,

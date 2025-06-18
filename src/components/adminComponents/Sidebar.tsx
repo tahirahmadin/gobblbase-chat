@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
   Briefcase,
@@ -9,10 +9,14 @@ import {
   ChevronDown,
   LayoutDashboard,
   Bot,
+  Headphones,
+  ChevronUp,
 } from "lucide-react";
 import { useAdminStore } from "../../store/useAdminStore";
 import { useUserStore } from "../../store/useUserStore";
 import { useBotConfig } from "../../store/useBotConfig";
+import { AdminAgent } from "../../types";
+import { useServerHook } from "../../hooks/useServerHook";
 
 interface SubNavItem {
   name: string;
@@ -27,80 +31,17 @@ interface NavItem {
   subItems?: SubNavItem[];
 }
 
-const navItems: NavItem[] = [
-  {
-    name: "Dashboard",
-    icon: <LayoutDashboard className="w-5 h-5" />,
-    path: "/admin/dashboard",
-    expandable: true,
-    subItems: [{ name: "All Agents", path: "/admin/all-agents" }],
-  },
-  {
-    name: "Agent Setup",
-    icon: <Bot className="w-5 h-5" />,
-    path: "/admin/dashboard",
-    expandable: true,
-    subItems: [
-      { name: "Overview", path: "/admin/dashboard/overview" },
-      { name: "Profile", path: "/admin/dashboard/profile" },
-      { name: "Brain/PDF", path: "/admin/dashboard/brain" },
-      { name: "AI Model", path: "/admin/dashboard/ai-model" },
-      { name: "Voice", path: "/admin/dashboard/voice" },
-      { name: "Theme", path: "/admin/dashboard/theme" },
-      { name: "Welcome Text", path: "/admin/dashboard/welcome" },
-      { name: "Prompts", path: "/admin/dashboard/prompts" },
-    ],
-  },
+interface SidebarProps {
+  onClose?: () => void;
+}
 
-  {
-    name: "Products",
-    icon: <Package className="w-5 h-5" />,
-    path: "/admin/products",
-    expandable: true,
-    subItems: [
-      { name: "Add Product", path: "/admin/commerce/add" },
-      { name: "Manage", path: "/admin/commerce/manage" },
-      { name: "Orders", path: "/admin/operations/orders" },
-      { name: "Bookings", path: "/admin/commerce/calendar" },
-      { name: "Policies", path: "/admin/commerce/policies" },
-    ],
-  },
-
-  {
-    name: "CRM",
-    icon: <Users className="w-5 h-5" />,
-    path: "/admin/crm",
-    expandable: true,
-    subItems: [
-      { name: "Customer Leads", path: "/admin/crm/leads" },
-      { name: "Chat Logs", path: "/admin/crm/chat-logs" },
-    ],
-  },
-  {
-    name: "Settings",
-    icon: <Briefcase className="w-5 h-5" />,
-    path: "/admin/operations",
-    expandable: true,
-    subItems: [
-      { name: "Email", path: "/admin/operations/email" },
-      { name: "Integrations", path: "/admin/operations/integrations" },
-      { name: "Embed", path: "/admin/operations/embed" },
-    ],
-  },
-  {
-    name: "Account",
-    icon: <Users className="w-5 h-5" />,
-    path: "/admin/account",
-    expandable: true,
-    subItems: [
-      // { name: "Billing", path: "/admin/account/billing" },
-      { name: "Income", path: "/admin/account/income" },
-      { name: "Payments", path: "/admin/account/payments" },
-      { name: "Plans", path: "/admin/account/plans" },
-      { name: "Usage", path: "/admin/account/usage" },
-    ],
-  },
-];
+interface Team {
+  teamName: string;
+  teamId: string;
+  role: string;
+  email: string;
+  agents: AdminAgent[];
+}
 
 // LogoutModal component (popup style above button)
 const LogoutModal = ({
@@ -168,26 +109,115 @@ const LogoutModal = ({
   );
 };
 
-interface SidebarProps {
-  onClose?: () => void;
-}
-
 const Sidebar = ({ onClose }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [expandedTabs, setExpandedTabs] = useState<string[]>([]);
-  const { adminLogout } = useAdminStore();
-  const { logout: userLogout } = useUserStore();
-  const { clearBotConfig } = useBotConfig();
-  const { activeBotId } = useBotConfig();
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const { adminEmail } = useAdminStore();
-  const { activeBotData } = useBotConfig();
 
-  // If we're on the All Agents page, don't render the sidebar
-  if (location.pathname === "/admin/all-agents") {
-    return null;
-  }
+  const [expandedTabs, setExpandedTabs] = useState<string[]>([]);
+  const { adminLogout, clientData, adminEmail, adminId, setActiveTeamId } =
+    useAdminStore();
+  const { logout: userLogout } = useUserStore();
+  const { clearBotConfig, activeBotId, activeBotData } = useBotConfig();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false);
+
+  const navItems: NavItem[] = [
+    {
+      name: "Dashboard",
+      icon: <LayoutDashboard className="w-5 h-5" />,
+      path: "/admin/dashboard",
+      expandable: true,
+      subItems: [{ name: "All Agents", path: "/admin/all-agents" }],
+    },
+    {
+      name: "Agent Setup",
+      icon: <Bot className="w-5 h-5" />,
+      path: "/admin/dashboard",
+      expandable: true,
+      subItems: [
+        { name: "Overview", path: "/admin/dashboard/overview" },
+        { name: "Profile", path: "/admin/dashboard/profile" },
+        { name: "Brain", path: "/admin/dashboard/brain" },
+        { name: "AI Model", path: "/admin/dashboard/ai-model" },
+        { name: "Voice", path: "/admin/dashboard/voice" },
+        { name: "Theme", path: "/admin/dashboard/theme" },
+        { name: "Welcome Text", path: "/admin/dashboard/welcome" },
+        { name: "Prompts", path: "/admin/dashboard/prompts" },
+        { name: "Embed Agent", path: "/admin/dashboard/embed" },
+      ],
+    },
+    {
+      name: "Products",
+      icon: <Package className="w-5 h-5" />,
+      path: "/admin/products",
+      expandable: true,
+      subItems: [
+        { name: "Add New", path: "/admin/commerce/add" },
+        { name: "Manage", path: "/admin/commerce/manage" },
+        { name: "Email", path: "/admin/commerce/email" },
+        { name: "Policies", path: "/admin/commerce/policies" },
+      ],
+    },
+    {
+      name: "Business",
+      icon: <Briefcase className="w-5 h-5" />,
+      path: "/admin/operations",
+      expandable: true,
+      subItems: [
+        { name: "Orders", path: "/admin/business/orders" },
+        { name: "Payments", path: "/admin/business/payments" },
+        { name: "Income", path: "/admin/business/income" },
+      ],
+    },
+    {
+      name: "Calendar",
+      icon: <Users className="w-5 h-5" />,
+      path: "/admin/calendar",
+      expandable: true,
+      subItems: [
+        { name: "Manage", path: "/admin/calendar/manage" },
+        { name: "Email", path: "/admin/calendar/email" },
+      ],
+    },
+    {
+      name: "CRM",
+      icon: <Users className="w-5 h-5" />,
+      path: "/admin/crm",
+      expandable: true,
+      subItems: [
+        { name: "Customer Leads", path: "/admin/crm/leads" },
+        { name: "Chat Logs", path: "/admin/crm/chat-logs" },
+      ],
+    },
+    {
+      name: "Team",
+      icon: <Users className="w-5 h-5" />,
+      path: "/admin/team",
+      expandable: true,
+      subItems:
+        clientData?.role !== "member"
+          ? [{ name: "Members", path: "/admin/account/team" }]
+          : [],
+    },
+
+    {
+      name: "Account",
+      icon: <Users className="w-5 h-5" />,
+      path: "/admin/account",
+      expandable: true,
+      subItems: [
+        // { name: "Billing", path: "/admin/account/billing" },
+
+        { name: "Plans & Pricing", path: "/admin/account/plans" },
+        { name: "Usage", path: "/admin/account/usage" },
+      ],
+    },
+    {
+      name: "Support",
+      icon: <Headphones className="w-5 h-5" />,
+      path: "/admin/support",
+    },
+  ];
 
   const toggleTab = (tabName: string) => {
     localStorage.removeItem("editingProduct");
@@ -197,13 +227,30 @@ const Sidebar = ({ onClose }: SidebarProps) => {
 
   const isTabExpanded = (tabName: string) => expandedTabs.includes(tabName);
 
-  // Filter nav items based on current route
-  const filteredNavItems =
-    location.pathname === "/admin/all-agents"
-      ? navItems.filter(
-          (item) => item.name === "Dashboard" || item.name === "Account"
-        )
-      : navItems;
+  // Filter nav items based on current route and activeBotId
+  const filteredNavItems = (() => {
+    if (location.pathname === "/admin/all-agents") {
+      return navItems.filter(
+        (item) =>
+          item.name === "Dashboard" ||
+          item.name === "Account" ||
+          item.name === "Team" ||
+          item.name === "Support"
+      );
+    }
+
+    if (!activeBotId) {
+      return navItems.filter(
+        (item) =>
+          item.name === "Dashboard" ||
+          item.name === "Account" ||
+          item.name === "Support" ||
+          item.name === "Team"
+      );
+    }
+
+    return navItems;
+  })();
 
   const handleTabClick = (path: string) => {
     navigate(path);
@@ -211,6 +258,13 @@ const Sidebar = ({ onClose }: SidebarProps) => {
     if (onClose) {
       onClose();
     }
+  };
+
+  const handleLogout = () => {
+    userLogout();
+    adminLogout();
+    clearBotConfig();
+    navigate("/admin");
   };
 
   return (
@@ -224,6 +278,7 @@ const Sidebar = ({ onClose }: SidebarProps) => {
           />
         </Link>
       </div>
+
       <nav className="flex-1 space-y-2">
         {filteredNavItems.map((item) => (
           <div key={item.name} className="space-y-1">
@@ -302,14 +357,9 @@ const Sidebar = ({ onClose }: SidebarProps) => {
           <LogoutModal
             open={showLogoutModal}
             onClose={() => setShowLogoutModal(false)}
-            onConfirm={() => {
-              userLogout();
-              adminLogout();
-              clearBotConfig();
-              navigate("/admin");
-            }}
+            onConfirm={handleLogout}
             email={adminEmail}
-            photo={activeBotData?.logo || null}
+            photo={activeBotData?.logo || ""}
           />
         </div>
       </div>

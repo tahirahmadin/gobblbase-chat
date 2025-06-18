@@ -19,10 +19,12 @@ interface OrderSuccessScreenProps {
     orderId?: string;
     paymentMethod?: string;
     paymentDate?: string;
+    priceType?: string;
     product: {
       title: string;
       price: number;
       quantity: number;
+      priceType: string;
     };
   };
 }
@@ -92,8 +94,11 @@ export const OrderSuccessScreen: React.FC<OrderSuccessScreenProps> = ({
                   </span>
                 </div>
                 <span>
-                  {orderDetails.product.price.toFixed(2)}{" "}
-                  {activeBotData?.currency}{" "}
+                  {orderDetails.product.priceType === "free"
+                    ? "Free"
+                    : `${orderDetails.product.price.toFixed(2)} ${
+                        activeBotData?.currency
+                      }`}
                 </span>
               </div>
               <p
@@ -109,7 +114,8 @@ export const OrderSuccessScreen: React.FC<OrderSuccessScreenProps> = ({
                 style={{ color: theme.isDark ? "#e0e0e0" : "#666666" }}
               >
                 <span className="mr-2">•</span>
-                <strong>Payment Id:</strong> {orderDetails.orderId}{" "}
+                <strong>Payment Id:</strong>{" "}
+                {orderDetails.orderId ? orderDetails.orderId : "N/A"}
               </p>
               <p
                 className="text-sm mb-2"

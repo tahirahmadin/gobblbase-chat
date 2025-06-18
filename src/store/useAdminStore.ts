@@ -5,7 +5,8 @@ import {
   signUpClient,
   getEmailTemplates,
   updateEmailTemplates,
-  getClient,
+  getTeamDetails,
+  getTeamUsage,
 } from "../lib/serverActions";
 import { toast } from "react-hot-toast";
 import { AdminAgent } from "../types";
@@ -38,21 +39,64 @@ interface ClientData {
     available: number;
     pending: number;
   };
+  teamMembers: {
+    email: string;
+    role: string;
+    status: string;
+  }[];
+
+  otherTeams: {
+    teamName: string;
+    teamId: string;
+    role: string;
+    email: string;
+    agents: AdminAgent[];
+  }[];
+  role: string;
+  teamName: string;
+}
+
+interface ClientUsageData {
+  creditsInfo: {
+    totalCredits: number;
+    availableCredits: number;
+  };
+  usage: {
+    agentUsage: {
+      totalTokensUsed: number;
+      usageData: {
+        _id: string;
+        clientId: string;
+        agentId: string;
+        date: string;
+        totalTokensUsed: number;
+      }[];
+      agentId: string;
+      agentName: string;
+    }[];
+    totalTokensUsedAllAgents: number;
+    planId: string;
+    agentLimit: number;
+  };
+  totalAgentCount: number;
 }
 
 interface AdminState {
   // Admin data state
   adminId: string | null;
   adminEmail: string | null;
-  clientData: ClientData | null;
   isAdminLoggedIn: boolean;
-  agents: AdminAgent[];
+  activeTeamId: string | null;
   isLoading: boolean;
   error: string | null;
+  clientData: ClientData | null;
+  agents: AdminAgent[];
   totalAgents: number;
   emailTemplates: EmailTemplatesResponse | null;
-
+  isEmailTemplatesLoading: boolean;
+  clientUsage: ClientUsageData | null;
   setError: (error: string | null) => void;
+  setActiveTeamId: (teamId: string | null) => void;
   // Admin operations
   fetchAllAgents: () => Promise<void>;
   deleteAgent: (agentId: string) => Promise<void>;
@@ -65,20 +109,20 @@ interface AdminState {
     agentId: string,
     updatedData: any,
     emailTemplateId: string
-  ) => Promise<void>;
+  ) => Promise<boolean>;
   setEmailTemplates: (templates: EmailTemplatesResponse) => void;
   isAgentsLoaded: boolean;
   // Session management
   initializeSession: () => Promise<boolean>;
   refetchClientData: () => Promise<void>;
+  fetchClientUsage: (params: { clientId: string }) => Promise<ClientUsageData>;
 }
 
 // Add a type for the expected result
 interface SignUpResult {
-  _id: string;
+  teamId: string;
   signUpVia: { via: string; handle: string };
-  totalAgents?: number;
-  [key: string]: any;
+  agents: AdminAgent[];
 }
 
 interface EmailTemplate {
@@ -97,10 +141,97 @@ interface EmailTemplatesResponse {
 export const useAdminStore = create<AdminState>()((set, get) => {
   // Initialize session when store is created
   const initializeStore = async () => {
-    const storedEmail = localStorage.getItem("adminEmail");
-    if (storedEmail) {
-      await get().initializeSession();
+    try {
+      const storedEmail =
+        typeof window !== "undefined"
+          ? localStorage.getItem("adminEmail")
+          : null;
+      if (storedEmail) {
+        await get().initializeSession();
+      }
+    } catch (error) {
+      console.warn("Failed to initialize admin store:", error);
     }
+  };
+
+  // Helper function to handle signup response
+  const handleSignupResponse = async (
+    email: string,
+    storedTeamId: string | null
+  ) => {
+    console.log("Starting handleSignupResponse with email:", email);
+    const signupRes = await signUpClient("google", email);
+    console.log("signupRes", signupRes);
+
+    if (signupRes.error) {
+      console.log("Signup response has error:", signupRes.error);
+      const errorMessage =
+        typeof signupRes.result === "string"
+          ? signupRes.result
+          : JSON.stringify(signupRes.result);
+
+      if (
+        errorMessage.includes("unauthorized") ||
+        errorMessage.includes("invalid")
+      ) {
+        console.log("Unauthorized or invalid error detected");
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("adminEmail");
+          localStorage.removeItem("teamId");
+        }
+        set({ isAdminLoggedIn: false, isLoading: false });
+        return false;
+      }
+
+      set({ error: errorMessage, isLoading: false });
+      return false;
+    }
+
+    console.log("Checking signupRes.result type:", typeof signupRes.result);
+    if (
+      typeof signupRes.result === "object" &&
+      signupRes.result !== null &&
+      "teamId" in signupRes.result
+    ) {
+      console.log("Valid signup result object found");
+
+      const result = signupRes.result as SignUpResult;
+      if (storedTeamId) {
+        localStorage.setItem("teamId", storedTeamId);
+      } else {
+        localStorage.setItem("teamId", result.teamId);
+      }
+      const clientId = result.teamId;
+      const currentTeamId = storedTeamId ? storedTeamId : result.teamId;
+      const tempAgents = result.agents;
+
+      console.log("result", result);
+      console.log("clientId", clientId);
+      console.log("ownerAgents", tempAgents);
+
+      // Fetch client information
+      console.log("Fetching client information for adminId:", clientId);
+      const clientResponse = await getTeamDetails(clientId, currentTeamId);
+      console.log("Client response:", clientResponse);
+
+      // Set all state updates in one go to avoid multiple re-renders
+      set({
+        adminId: clientId,
+        activeTeamId: currentTeamId,
+        adminEmail: result.signUpVia.handle,
+        agents: tempAgents,
+        totalAgents: tempAgents.length,
+        isAdminLoggedIn: true,
+        isLoading: false,
+        error: null,
+        clientData: clientResponse.error ? null : clientResponse,
+      });
+
+      console.log("State updated successfully");
+      return true;
+    }
+    console.log("Invalid signup result format");
+    return false;
   };
 
   // Call initialization
@@ -110,6 +241,7 @@ export const useAdminStore = create<AdminState>()((set, get) => {
     // Initial state
     adminId: null,
     adminEmail: null,
+    activeTeamId: null,
     isAdminLoggedIn: false,
     isAgentsLoaded: false,
     agents: [],
@@ -117,148 +249,80 @@ export const useAdminStore = create<AdminState>()((set, get) => {
     error: null,
     totalAgents: 0,
     emailTemplates: null,
-
+    isEmailTemplatesLoading: false,
+    clientData: null,
     clientInfo: null,
+    clientUsage: null,
 
     // Basic setters
     setError: (error) => set({ error }),
+    setActiveTeamId: (teamId) => set({ activeTeamId: teamId }),
 
     // Session management
     initializeSession: async () => {
-      const storedEmail = localStorage.getItem("adminEmail");
-
-      if (!storedEmail) {
-        set({ isAdminLoggedIn: false });
-        return false;
-      }
-
       try {
-        set({ isLoading: true });
-        const response = await signUpClient("google", storedEmail);
+        const storedEmail =
+          typeof window !== "undefined"
+            ? localStorage.getItem("adminEmail")
+            : null;
 
-        if (response.error) {
-          // Only clear session if it's an authentication error
-          const errorMessage =
-            typeof response.result === "string"
-              ? response.result
-              : JSON.stringify(response.result);
-          if (
-            errorMessage.includes("unauthorized") ||
-            errorMessage.includes("invalid")
-          ) {
-            localStorage.removeItem("adminEmail");
-            set({ isAdminLoggedIn: false, isLoading: false });
-          } else {
-            // For other errors, keep the session but show error
-            set({ error: errorMessage, isLoading: false });
-          }
+        if (!storedEmail) {
+          set({ isAdminLoggedIn: false });
           return false;
         }
+        const storedTeamId =
+          typeof window !== "undefined" ? localStorage.getItem("teamId") : null;
 
-        if (
-          typeof response.result === "object" &&
-          response.result !== null &&
-          "_id" in response.result
-        ) {
-          const result = response.result as SignUpResult;
-          const adminId = result._id;
-          const tempAgents = await fetchClientAgents(adminId);
+        set({ isLoading: true });
+        const isSignupSuccess = await handleSignupResponse(
+          storedEmail,
+          storedTeamId
+        );
 
-          // Fetch client information
-          const clientResponse = await getClient(adminId);
-
-          console.log("Client response:", clientResponse);
-          set({
-            adminId,
-            adminEmail: result.signUpVia.handle,
-            isAdminLoggedIn: true,
-            totalAgents: tempAgents.length,
-            agents: tempAgents,
-            isLoading: false,
-            error: null, // Clear any previous errors
-            clientData: clientResponse.error ? null : clientResponse,
-          });
-          return true;
+        if (isSignupSuccess) {
+          // Fetch usage data after adminId is set
+          await get().fetchClientUsage({ clientId: get().adminId! });
         }
-        return false;
+
+        return isSignupSuccess;
       } catch (error) {
         console.error("Error restoring session:", error);
-        // Only clear session for authentication errors
         if (
           error instanceof Error &&
           (error.message.includes("unauthorized") ||
             error.message.includes("invalid"))
         ) {
           localStorage.removeItem("adminEmail");
+          localStorage.removeItem("teamId");
           set({ isAdminLoggedIn: false, isLoading: false });
         } else {
-          // For other errors, keep the session but show error
           set({ error: (error as Error).message, isLoading: false });
         }
         return false;
       }
     },
 
-    // Complex actions
     handleGoogleLoginSuccess: async (credentialResponse: any) => {
       try {
-        // Get user info from the response
         const userInfo = credentialResponse.userInfo;
 
         if (!userInfo || !userInfo.email) {
           throw new Error("Invalid user info received from Google");
         }
 
-        // Store email in localStorage for session management
         localStorage.setItem("adminEmail", userInfo.email);
 
-        const response = await signUpClient("google", userInfo.email);
+        const isSignupSuccess = await handleSignupResponse(
+          userInfo.email,
+          null
+        );
 
-        if (response.error) {
-          console.error("Signup failed with error:", response.result);
-          toast.error("Failed to complete signup process");
-          return;
-        }
-
-        // Store the userId from the response
-        if (
-          typeof response.result === "object" &&
-          response.result !== null &&
-          "_id" in response.result
-        ) {
-          const result = response.result as SignUpResult;
-          const adminId = result._id;
-          console.log("Successfully got admin ID:", adminId);
-
-          let tempAgents = await fetchClientAgents(adminId);
-          console.log("Fetched agents:", tempAgents);
-
-          // First set the basic auth state
-          set({
-            adminId,
-            adminEmail: result.signUpVia.handle,
-            isAdminLoggedIn: true,
-            error: null,
-          });
-
-          // Then set the agents data
-          set({
-            totalAgents: tempAgents.length,
-            agents: tempAgents,
-            isLoading: false,
-          });
-
-          console.log("State updated with:", {
-            adminId,
-            adminEmail: result.signUpVia.handle,
-            isAdminLoggedIn: true,
-            agentsCount: tempAgents.length,
-          });
-
+        if (isSignupSuccess) {
           toast.success(`Successfully signed in!`);
+          // Fetch usage data after adminId is set
+          await get().fetchClientUsage({ clientId: get().adminId! });
         } else {
-          console.error("Invalid response format:", response.result);
-          toast.error("Invalid response from server");
+          toast.error("Failed to complete signup process");
         }
       } catch (error) {
         console.error("Detailed error during Google login:", error);
@@ -277,11 +341,14 @@ export const useAdminStore = create<AdminState>()((set, get) => {
 
     refetchClientData: async () => {
       const adminId = get().adminId;
-      if (!adminId) {
+      const activeTeamId = get().activeTeamId;
+
+      if (!activeTeamId || !adminId) {
         throw new Error("Admin ID is not set");
       }
-      const clientData = await getClient(adminId);
+      const clientData = await getTeamDetails(adminId, activeTeamId);
       set({ clientData });
+      localStorage.setItem("teamId", activeTeamId);
     },
     // Admin operations
     fetchAllAgents: async () => {
@@ -327,28 +394,35 @@ export const useAdminStore = create<AdminState>()((set, get) => {
         error: null,
         totalAgents: 0,
         emailTemplates: null,
+        isEmailTemplatesLoading: false,
         clientData: null,
       });
 
       // Clear the stored email
+      localStorage.removeItem("activeBotId");
       localStorage.removeItem("adminEmail");
+      localStorage.removeItem("teamId");
     },
 
     // Email template actions
     fetchEmailTemplates: async (agentId: string) => {
       try {
+        set({ isEmailTemplatesLoading: true });
         const response = await getEmailTemplates(agentId);
         if (response) {
           set({
             emailTemplates: response,
+            isEmailTemplatesLoading: false,
           });
         } else {
           set({
             emailTemplates: null,
+            isEmailTemplatesLoading: false,
           });
         }
       } catch (err: any) {
         console.error("Error fetching email templates:", err);
+        set({ isEmailTemplatesLoading: false });
       }
     },
 
@@ -363,15 +437,30 @@ export const useAdminStore = create<AdminState>()((set, get) => {
           updatedData,
           emailTemplateId
         );
-        // Optionally, you can refetch templates after update
-        if (response) {
-          set({ emailTemplates: response });
+
+        if (!response?.error && response?.result) {
+          set({ emailTemplates: response.result });
+          return true;
+        } else {
+          return false;
         }
       } catch (err: any) {
+        return false;
       } finally {
       }
     },
 
     setEmailTemplates: (templates) => set({ emailTemplates: templates }),
+
+    fetchClientUsage: async (params: { clientId: string }) => {
+      try {
+        const usage = await getTeamUsage(params.clientId);
+        set({ clientUsage: usage });
+        return usage;
+      } catch (error) {
+        toast.error("Failed to fetch client usage");
+        throw error;
+      }
+    },
   };
 });

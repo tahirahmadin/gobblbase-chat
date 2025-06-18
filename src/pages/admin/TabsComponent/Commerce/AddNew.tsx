@@ -7,14 +7,13 @@ import { useBotConfig } from "../../../../store/useBotConfig";
 import styled from "styled-components";
 
 const AddNewButton = styled.button`
-
     &::before{
       content: "";
       height: 100%;
       width: 100%;
       position: absolute;
-      left:5px;
-      top: 5px;
+      left:4px;
+      top: 4px;
       background: #D4DEFF;
       border: 1px solid black;
       z-index: -1;

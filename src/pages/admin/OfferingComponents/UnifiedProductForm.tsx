@@ -23,32 +23,35 @@ const Button = styled.button`
   position: relative;
   background: #6aff97;
   padding: 0.6vh 1vw;
-  border: 2px solid black;
+  border: 1px solid black;
   cursor: pointer;
   transition: background 0.3s;
-  font-size: clamp(8px, 4vw, 16px);
+  font-size: clamp(8px, 4vw, 15px);
   min-width: 120px;
+  font-weight: 400;
+  font-family: "DM Sans", sans-serif;
 
   &::before {
     content: "";
     position: absolute;
-    transform: translate(6px, 6px);
-    top: 0px;
-    left: 0px;
+    top: 4px;
+    left: 4px;
     width: 100%;
     height: 100%;
-    border: 2px solid #000000;
+    border: 1px solid #000000;
     z-index: -1;
     background: #6aff97;
   }
 
   &:disabled {
-    background: #6aff97;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+    color: #7D7D7D;
     cursor: not-allowed;
-    color: black;
   }
   &:disabled::before {
-    background: #d6ffe0;
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
   }
 `;
 const Lable = styled.label`
@@ -125,7 +128,7 @@ type UnifiedFormType = {
   descriptionEnabled?: boolean;
   price?: string;
   priceType?: string;
-  cta?: string;
+  ctaButton?: string;
   thumbnail?: File | null;
   thumbnailUrl?: string;
   images?: (File | null)[];
@@ -815,34 +818,34 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                       </label>
                     </div>
                   </label>
-                  <label className="flex gap-2 flex-col  items-start  xs:flex-row xs:items-center lg:flex-col lg:items-start lg:ml-0 lg:mt-2 xl:flex-row xl:items-center" >
-                      <span className="flex items-center gap-4">
-                        <input
-                          type="radio"
-                          name="uploadType"
-                          value="redirect"
-                          checked={form.uploadType === "redirect"}
-                          onChange={(e) =>
-                            setForm((f) => ({ ...f, uploadType: e.target.value }))
-                          }
-                          className="hidden"
-                        />
-                        {/* Custom Circle Visual */}
-                          <div
-                            className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
+                  <label className="flex gap-2 flex-col  items-start  xs:flex-row xs:items-center lg:flex-col lg:items-start lg:ml-0 lg:mt-2 xl:flex-row xl:items-center">
+                    <span className="flex items-center gap-4">
+                      <input
+                        type="radio"
+                        name="uploadType"
+                        value="redirect"
+                        checked={form.uploadType === "redirect"}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, uploadType: e.target.value }))
+                        }
+                        className="hidden"
+                      />
+                      {/* Custom Circle Visual */}
+                      <div
+                        className={`relative w-[20px] h-[20px] shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.25)] rounded-full flex items-center justify-center border border-[#000000] p-3
                             ${
                               form.uploadType === "redirect"
                                 ? "bg-[#CEFFDC]"
                                 : "bg-[#CDCDCD]"
                             }
                               `}
-                          >
-                            {form.uploadType === "redirect" && (
-                              <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]" />
-                            )}
-                          </div>
-                        <span>Redirect to URL</span>
-                      </span>
+                      >
+                        {form.uploadType === "redirect" && (
+                          <div className="absolute top-1 left-1 w-4 h-4 bg-[#6AFF97] rounded-full flex items-center justify-center border border-[#000000]" />
+                        )}
+                      </div>
+                      <span>Redirect to URL</span>
+                    </span>
                     <input
                       type="text"
                       className="border border-[#7d7d7d] p-1 bg-white"
@@ -1817,17 +1820,17 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           </article>
 
           {/* cta btn  */}
-          <article className="cta-btn">
+          <article className="cta-btn ">
             <label className="font-semibold block">CTA Button*</label>
             <div className="py-4 px-6 rounded-lg border border-[#7d7d7d] w-full">
-              <div className="relative flex">
+              <div className="relative flex z-[100]">
                 <button
                   onClick={() => setIsOpen(!isOpen)}
                   className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
                 >
-                  {form.cta || "Buy Now"}
+                  {form.ctaButton || "Buy Now"}
                 </button>
-                <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
+                <div onClick={() => setIsOpen(!isOpen)} className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
                   <ChevronDown
                     size={20}
                     className={`text-[#000000] stroke-[3px] transition-transform ${
@@ -1837,16 +1840,16 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                 </div>
 
                 {isOpen && (
-                  <div className="z-[111111] absolute top-full left-0 mt-1 w-60 max-h-48 overflow-auto bg-white border border-[#7D7D7D] shadow-md rounded-sm ">
+                  <div className="absolute z-20 top-full left-0 mt-1 w-60 max-h-48 overflow-auto bg-white border border-[#7D7D7D] shadow-md rounded-sm">
                     {ctaButtons.map((label) => (
                       <button
                         key={label}
                         onClick={() => {
-                          setForm((f) => ({ ...f, cta: label }));
+                          setForm((f) => ({ ...f, ctaButton: label }));
                           setIsOpen(false);
                         }}
                         className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
-                          form.cta === label ? "bg-[#AEB8FF]" : ""
+                          form.ctaButton === label ? "bg-[#AEB8FF]" : ""
                         }`}
                       >
                         {label}

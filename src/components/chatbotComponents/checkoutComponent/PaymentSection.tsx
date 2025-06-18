@@ -10,9 +10,13 @@ import { useBotConfig } from "../../../store/useBotConfig";
 import { useUserStore } from "../../../store/useUserStore";
 import toast from "react-hot-toast";
 import { CreditCard, Wallet } from "lucide-react";
-import { backendApiUrl } from "../../../utils/constants";
+import { backendApiUrl, USDT_CONVERSION_RATES } from "../../../utils/constants";
 import { useCryptoPayment } from "../../../hooks/useCryptoHook";
 import { useAdminStore } from "../../../store/useAdminStore";
+import {
+  createPaymentIntent,
+  createFreeProductOrder,
+} from "../../../lib/serverActions";
 
 interface PaymentSectionProps {
   theme: {
@@ -205,6 +209,17 @@ function CryptoPaymentForm({
 
   const walletAddress = activeBotData?.paymentMethods.crypto.walletAddress;
   const supportedChains = activeBotData?.paymentMethods.crypto.chains;
+  const storeCurrency = activeBotData?.currency || "USD";
+
+  // Calculate USDT amount based on store currency
+  const usdtAmount = useMemo(() => {
+    const baseAmount = product.price * product.quantity;
+    const conversionRate =
+      USDT_CONVERSION_RATES[
+        storeCurrency as keyof typeof USDT_CONVERSION_RATES
+      ] || 1;
+    return (baseAmount / conversionRate).toFixed(2);
+  }, [product.price, product.quantity, storeCurrency]);
 
   // Chain ID to display name mapping
   const chainIdToName: Record<string, string> = {
@@ -238,6 +253,7 @@ function CryptoPaymentForm({
     userEmail: userEmail,
     shipping,
     clientId: adminId,
+    currency: storeCurrency,
   });
 
   // Loader and status UI for polling
@@ -391,6 +407,41 @@ function CryptoPaymentForm({
 
               {selectedChain && (
                 <div>
+                  <div className="mb-4">
+                    <p
+                      className="mb-2"
+                      style={{
+                        color: activeBotData?.themeColors.isDark
+                          ? "#fff"
+                          : "#000",
+                      }}
+                    >
+                      Amount to Pay:
+                    </p>
+                    <div className="bg-gray-100 p-3 rounded">
+                      <p
+                        className="text-lg font-semibold"
+                        style={{
+                          color: activeBotData?.themeColors.isDark
+                            ? "#fff"
+                            : "#000",
+                        }}
+                      >
+                        {usdtAmount} USDT
+                      </p>
+                      <p
+                        className="text-sm"
+                        style={{
+                          color: activeBotData?.themeColors.isDark
+                            ? "#ccc"
+                            : "#666",
+                        }}
+                      >
+                        ≈ {product.price * product.quantity} {storeCurrency}
+                      </p>
+                    </div>
+                  </div>
+
                   <p
                     className="mb-2"
                     style={{
@@ -399,7 +450,7 @@ function CryptoPaymentForm({
                         : "#000",
                     }}
                   >
-                    Send {product.price * product.quantity} USDT to:
+                    Send USDT to:
                   </p>
                   <p
                     className="font-mono text-sm break-all p-2 bg-gray-100 rounded"
@@ -493,43 +544,30 @@ export function PaymentSection({
     setFreeOrderLoading(true);
     setFreeOrderError(null);
     try {
-      const response = await fetch(
-        `${backendApiUrl}/product/createFreeProductOrder`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            lineItems: [],
-            agentId: activeBotId,
-            clientId: activeBotData?.clientId,
-            userId: userId,
-            userEmail: userEmail,
-            amount: 0,
-            currency: activeBotData?.currency || "USD",
-            cart: [product],
-            shipping: shipping,
-            checkType: product.checkType,
-            checkQuantity: product.quantity,
-            stripeAccountId:
-              activeBotData?.paymentMethods?.stripe?.accountId || "",
-          }),
-        }
-      );
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "Failed to create free order");
+      if (!activeBotId || !activeBotData?.clientId || !userId || !userEmail) {
+        throw new Error("Missing required fields for order creation");
       }
+
+      const { orderId } = await createFreeProductOrder({
+        agentId: activeBotId,
+        clientId: activeBotData.clientId,
+        userId: userId,
+        userEmail: userEmail,
+        cart: [product],
+        shipping: shipping,
+        checkType: product.checkType,
+        checkQuantity: product.quantity,
+        stripeAccountId: activeBotData?.paymentMethods?.stripe?.accountId || "",
+      });
+
       if (userId) {
         fetchUserDetails(userId);
       }
-      const data = await response.json();
-      // Callbacks as with paid orders
+
       onOrderDetails({
         product: product,
         total: 0,
-        orderId: data.orderId || data._id || undefined,
+        orderId: orderId,
         paymentMethod: "Free",
         paymentDate: new Date().toLocaleDateString(),
       });
@@ -553,7 +591,7 @@ export function PaymentSection({
   }, [activeBotData?.paymentMethods.stripe?.accountId]);
 
   useEffect(() => {
-    const createPaymentIntent = async () => {
+    const initializePayment = async () => {
       if (!product || !product.price || product.price <= 0) {
         setError("Invalid product price");
         return;
@@ -563,7 +601,12 @@ export function PaymentSection({
         clientSecret ||
         !activeBotData ||
         selectedMethod !== "stripe" ||
-        !stripePromise
+        !stripePromise ||
+        !activeBotId ||
+        !activeBotData.clientId ||
+        !userId ||
+        !userEmail ||
+        !activeBotData.paymentMethods.stripe.accountId
       ) {
         return;
       }
@@ -573,37 +616,20 @@ export function PaymentSection({
 
       try {
         console.log("Creating payment intent for product:", product);
-        const response = await fetch(
-          `${backendApiUrl}/product/create-payment-intent`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              cart: [product],
-              agentId: activeBotId,
-              clientId: activeBotData?.clientId,
-              userId: userId,
-              userEmail: userEmail,
-              stripeAccountId: activeBotData.paymentMethods.stripe.accountId,
-              amount: Math.round(product.price * 100) * product.quantity,
-              currency: activeBotData.currency || "USD",
-              shipping: shipping,
-              checkType: product.checkType,
-              checkQuantity: product.quantity,
-            }),
-          }
-        );
+        const data = await createPaymentIntent({
+          cart: [product],
+          agentId: activeBotId,
+          clientId: activeBotData.clientId,
+          userId: userId,
+          userEmail: userEmail,
+          stripeAccountId: activeBotData.paymentMethods.stripe.accountId,
+          amount: Math.round(product.price * 100) * product.quantity,
+          currency: activeBotData.currency || "USD",
+          shipping: shipping,
+          checkType: product.checkType,
+          checkQuantity: product.quantity,
+        });
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(
-            errorData.message || "Failed to create payment intent"
-          );
-        }
-
-        const data = await response.json();
         console.log("Payment intent created successfully:", data);
         if (userId) {
           fetchUserDetails(userId);
@@ -611,14 +637,14 @@ export function PaymentSection({
         setClientSecret(data.clientSecret);
       } catch (error: any) {
         console.error("Payment intent creation error:", error);
-        setError(error.message || "Failed to initialize payment");
-        toast.error(error.message || "Failed to initialize payment");
+        setError("Failed to initialize payment");
+        toast.error("Failed to initialize payment");
       } finally {
         setIsLoading(false);
       }
     };
 
-    createPaymentIntent();
+    initializePayment();
   }, [
     product,
     activeBotData,
