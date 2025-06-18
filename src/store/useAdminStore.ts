@@ -93,6 +93,7 @@ interface AdminState {
   agents: AdminAgent[];
   totalAgents: number;
   emailTemplates: EmailTemplatesResponse | null;
+  isEmailTemplatesLoading: boolean;
   clientUsage: ClientUsageData | null;
   setError: (error: string | null) => void;
   setActiveTeamId: (teamId: string | null) => void;
@@ -248,6 +249,7 @@ export const useAdminStore = create<AdminState>()((set, get) => {
     error: null,
     totalAgents: 0,
     emailTemplates: null,
+    isEmailTemplatesLoading: false,
     clientData: null,
     clientInfo: null,
     clientUsage: null,
@@ -392,6 +394,7 @@ export const useAdminStore = create<AdminState>()((set, get) => {
         error: null,
         totalAgents: 0,
         emailTemplates: null,
+        isEmailTemplatesLoading: false,
         clientData: null,
       });
 
@@ -404,18 +407,22 @@ export const useAdminStore = create<AdminState>()((set, get) => {
     // Email template actions
     fetchEmailTemplates: async (agentId: string) => {
       try {
+        set({ isEmailTemplatesLoading: true });
         const response = await getEmailTemplates(agentId);
         if (response) {
           set({
             emailTemplates: response,
+            isEmailTemplatesLoading: false,
           });
         } else {
           set({
             emailTemplates: null,
+            isEmailTemplatesLoading: false,
           });
         }
       } catch (err: any) {
         console.error("Error fetching email templates:", err);
+        set({ isEmailTemplatesLoading: false });
       }
     },
 

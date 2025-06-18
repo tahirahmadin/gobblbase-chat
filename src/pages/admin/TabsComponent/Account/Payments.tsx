@@ -42,13 +42,13 @@ const Button = styled.button`
     min-width: 100px;
   }
   &:disabled {
-    background: #CDCDCD;
+    background: #cdcdcd;
     border: 1px solid #7d7d7d;
-    color: #7D7D7D;
+    color: #7d7d7d;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #CDCDCD;
+    background: #cdcdcd;
     border: 1px solid #7d7d7d;
   }
 `;
@@ -115,26 +115,26 @@ const Payments = () => {
   const currencyDropdownRef = useRef(null);
   const methodDropdownRef = useRef(null);
   useEffect(() => {
-  const handleClickOutside = (event: MouseEvent) => {
-    if (
-      currencyDropdownRef.current &&
-      !currencyDropdownRef.current.contains(event.target as Node)
-    ) {
-      setIsCurrencyOpen(false);
-    }
-    if (
-      methodDropdownRef.current &&
-      !methodDropdownRef.current.contains(event.target as Node)
-    ) {
-      setIsMethodOpen(false);
-    }
-  };
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        currencyDropdownRef.current &&
+        !currencyDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsCurrencyOpen(false);
+      }
+      if (
+        methodDropdownRef.current &&
+        !methodDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsMethodOpen(false);
+      }
+    };
 
-  document.addEventListener("mousedown", handleClickOutside);
-  return () => {
-    document.removeEventListener("mousedown", handleClickOutside);
-  };
-}, []);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   useEffect(() => {
     if (clientData) {
       //Stripe States
@@ -202,7 +202,7 @@ const Payments = () => {
     setHasCryptoChanges(true);
   };
 
-  const handleEnableCrypto = async () => {
+  const handleEnableCrypto = async (enableFlag: boolean) => {
     if (!adminId) {
       toast.error("No client selected");
       return;
@@ -231,14 +231,14 @@ const Payments = () => {
 
       const result = await enableCryptoPayment(
         adminId,
-        cryptoEnabled,
+        enableFlag,
         cryptoAddress,
         validChainIds
       );
       toast.success(result.message);
       refetchClientData(); // Refresh client data to update UI
     } catch (error: any) {
-      toast.error(error.message || "Failed to enable crypto payment");
+      toast.error("Failed to enable crypto payment");
     }
   };
 
@@ -300,14 +300,20 @@ const Payments = () => {
               <label className="para-font block text-[1rem] text-black whitespace-nowrap">
                 Currency
               </label>
-              <div  ref={currencyDropdownRef} className="relative w-40 lg:w-48  flex items-center" >
+              <div
+                ref={currencyDropdownRef}
+                className="relative w-40 lg:w-48  flex items-center"
+              >
                 <button
                   onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
                   className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
                 >
                   {currency}
                 </button>
-                <div onClick={() => setIsCurrencyOpen(!isCurrencyOpen)} className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
+                <div
+                  onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
+                  className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0"
+                >
                   <ChevronDown
                     size={20}
                     className={`text-[#000000] stroke-[3px] transition-transform  ${
@@ -339,7 +345,10 @@ const Payments = () => {
               <label className="para-font block text-[1rem] text-black whitespace-nowrap">
                 Preferred Method
               </label>
-              <div ref={methodDropdownRef} className="relative w-40 lg:w-48 flex items-center">
+              <div
+                ref={methodDropdownRef}
+                className="relative w-40 lg:w-48 flex items-center"
+              >
                 <button
                   onClick={() => setIsMethodOpen(!isMethodOpen)}
                   className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
@@ -347,7 +356,10 @@ const Payments = () => {
                   {preferredMethod.charAt(0).toUpperCase() +
                     preferredMethod.slice(1)}
                 </button>
-                <div  onClick={() => setIsMethodOpen(!isMethodOpen)} className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
+                <div
+                  onClick={() => setIsMethodOpen(!isMethodOpen)}
+                  className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0"
+                >
                   <ChevronDown
                     size={20}
                     className={`text-[#000000] stroke-[3px] transition-transform  ${
@@ -397,10 +409,7 @@ const Payments = () => {
               </div>
             </div>
             <div className="w-fit flex justify-start items-center relative z-10 ml-6 lg:ml-0 lg:mt-4">
-              <Button
-                onClick={handleSave}
-                className=""
-              >
+              <Button onClick={handleSave} className="">
                 Save
               </Button>
             </div>
@@ -449,9 +458,7 @@ const Payments = () => {
                   </span>
                   {/* disconnect button is active  */}
                   <div className="w-fit flex justify-start items-center relative z-10">
-                    <Button className="">
-                      Disconnect
-                    </Button>
+                    <Button className="">Disconnect</Button>
                   </div>
                 </div>
               </div>
@@ -625,7 +632,9 @@ const Payments = () => {
                   type="checkbox"
                   className="sr-only peer"
                   checked={cryptoEnabled}
-                  onChange={(e) => setCryptoEnabled(e.target.checked)}
+                  onChange={(e) => {
+                    handleEnableCrypto(e.target.checked);
+                  }}
                 />
                 <div className="w-11 h-6 bg-[#CDCDCD] peer-focus:outline-none peer-focus:ring-none peer-focus:ring-none rounded-full border border-black peer peer-checked:after:translate-x-full peer-checked:after:border-black after:content-[''] after:absolute after:top-[0px] after:left-[0px] after:bg-white after:border-black after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[#6AFF97]"></div>
               </label>
@@ -685,7 +694,7 @@ const Payments = () => {
 
                         <div className="relative w-fit z-10">
                           <Button
-                            onClick={handleEnableCrypto}
+                            onClick={() => handleEnableCrypto(true)}
                             disabled={!hasCryptoChanges || isSaving}
                             className={` ${
                               !hasCryptoChanges || isSaving

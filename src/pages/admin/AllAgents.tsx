@@ -64,8 +64,8 @@ const AllAgents: React.FC = () => {
     fetchAllAgents,
     isLoading,
     clientData,
-    // activeTeamId, // not needed for dropdown logic now
-    // setActiveTeamId,
+    activeTeamId,
+    adminId,
     setActiveTeamId,
     refetchClientData,
   } = useAdminStore();
@@ -80,13 +80,68 @@ const AllAgents: React.FC = () => {
   } | null>(null);
   // Team dropdown state
   const [selectedTeam, setSelectedTeam] = useState<string>("my-team");
+  const [isUpdatingUrl, setIsUpdatingUrl] = useState(false);
 
-  // On mount, set selectedTeam from query param if present
+  // Sync selectedTeam with activeTeamId from store and URL params
   useEffect(() => {
+    if (isUpdatingUrl) return; // Skip if we're updating URL programmatically
+
     const params = new URLSearchParams(location.search);
     const teamParam = params.get("team");
-    if (teamParam) setSelectedTeam(teamParam);
-  }, [location.search]);
+
+    // Priority 1: URL parameter
+    if (teamParam) {
+      setSelectedTeam(teamParam);
+      return;
+    }
+
+    // Priority 2: activeTeamId from store
+    if (activeTeamId) {
+      // If activeTeamId is the adminId, it means "my-team"
+      if (activeTeamId === adminId) {
+        setSelectedTeam("my-team");
+      } else {
+        // Check if activeTeamId matches any other team
+        const team = clientData?.otherTeams?.find(
+          (t) => t.teamId === activeTeamId
+        );
+        if (team) {
+          setSelectedTeam(activeTeamId);
+        } else {
+          setSelectedTeam("my-team");
+        }
+      }
+      return;
+    }
+
+    // Priority 3: Default to "my-team"
+    setSelectedTeam("my-team");
+  }, [location.search, activeTeamId, adminId, clientData, isUpdatingUrl]);
+
+  // Update URL when selectedTeam changes (but not from URL params)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const currentTeamParam = params.get("team");
+
+    // Only update URL if it's different from current URL param
+    if (currentTeamParam !== selectedTeam) {
+      setIsUpdatingUrl(true);
+      const newParams = new URLSearchParams(location.search);
+      if (selectedTeam === "my-team") {
+        newParams.delete("team");
+      } else {
+        newParams.set("team", selectedTeam);
+      }
+
+      const newUrl = `${location.pathname}${
+        newParams.toString() ? `?${newParams.toString()}` : ""
+      }`;
+      navigate(newUrl, { replace: true });
+
+      // Reset the flag after a short delay
+      setTimeout(() => setIsUpdatingUrl(false), 100);
+    }
+  }, [selectedTeam, location.search, location.pathname, navigate]);
 
   // Build dropdown options
   const teamOptions = React.useMemo(() => {

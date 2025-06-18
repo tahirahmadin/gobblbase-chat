@@ -287,7 +287,7 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
 const Team = () => {
   // IMPORTS & HOOKS
   const { activeTeamId, adminId, refetchClientData } = useAdminStore();
-  const { clientData, clientUsage } = useAdminStore();
+  const { clientData } = useAdminStore();
 
   // Function to check if remove button should be disabled
   const isRemoveButtonDisabled = () => {
@@ -429,6 +429,7 @@ const Team = () => {
         <p className="text-gray-600">
           Manage your team members, assign roles and invite new collaborators
         </p>
+
         {/* Invites Table */}
         {invites.length > 0 && (
           <div className="bg-[#CEFFDC] p-4 rounded-xl mt-8 ">
@@ -472,7 +473,7 @@ const Team = () => {
         <TeamHeader
           teamName={teamName}
           setTeamName={setTeamName}
-          currentPlan={clientUsage?.usage?.planId || "-"}
+          currentPlan={clientData?.planId || "-"}
           membersCount={clientData?.teamMembers?.length ?? 0}
           membersLimit={25}
           onInvite={handleInviteSubmit}

@@ -152,6 +152,10 @@ function Dashboard() {
         {/* Modified Calendar Routes */}
         <Route path="calendar/manage" element={<Calendar />} />
         <Route path="calendar/email" element={<Calendar />} />
+        <Route 
+          path="commerce/calendar" 
+          element={<BookingDashboardWrapper />} 
+        />
         <Route
           path="commerce/calendar/edit"
           element={<BookingDashboardWrapper isEditMode={true} />}
