@@ -12,13 +12,13 @@ const Icon = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #AEB8FF;
+  background: #aeb8ff;
   border: 2px solid black;
   cursor: pointer;
   transition: background 0.3s;
   font-size: clamp(8px, 4vw, 16px);
   &:hover {
-    background: #AEB8FF;
+    background: #aeb8ff;
   }
 
   &::before {
@@ -30,7 +30,7 @@ const Icon = styled.button`
     height: 100%;
     border: 2px solid #000000;
     z-index: -1; // place it behind the button
-    background: #AEB8FF;
+    background: #aeb8ff;
   }
 `;
 type NewOfferingFormProps = {
@@ -71,7 +71,7 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
       descriptionEnabled: true,
       price: "0",
       priceType: "free",
-      cta: "Buy Now",
+      ctaButton: "Buy Now",
       thumbnail: null,
       thumbnailUrl: "",
       images: [],
@@ -138,6 +138,7 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
       case 1:
         return (
           <CheckoutStep
+            type={type}
             form={form}
             setForm={setForm}
             onNext={handleNext}
@@ -174,7 +175,7 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
           onClick={handleBack}
           className="text-gray-600 hover:text-gray-800 text-md lg:text-lg font-medium bg-[#EAEFFF] border border-black rounded-full p-1"
         >
-          <ChevronLeft style={{strokeWidth: "2px"}} size={18}/>
+          <ChevronLeft style={{ strokeWidth: "2px" }} size={18} />
         </button>
         <h1 className="text-lg lg:text-xl font-bold text-gray-900">
           <h1 className="text-lg lg:text-xl font-bold text-gray-900">
@@ -219,29 +220,31 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
         </div>
       </div> */}
 
-      
-        {/* Vertical Stepper Sidebar - Hidden on Mobile */}
-        <div className="flex w-full flex-shrink-0 flex-col items-start md:pt-8 px-0 md:px-2 overflow-hidden">
-          {steps.map((s, i) => {
-            // Show only active step and next 2 steps
-            if (i > step + 2) return null;
+      {/* Vertical Stepper Sidebar - Hidden on Mobile */}
+      <div className="flex w-full flex-shrink-0 flex-col items-start md:pt-8 px-0 md:px-2 overflow-hidden">
+        {steps.map((s, i) => {
+          // Show only active step and next 2 steps
+          if (i > step + 2) return null;
 
-            const isCompleted = i < step;
-            const isActive = i === step;
+          const isCompleted = i < step;
+          const isActive = i === step;
 
-            return (
-              <div key={s} className="mb-4 flex flex-col md:flex-row items-start w-full relative z-10">
+          return (
+            <div
+              key={s}
+              className="mb-4 flex flex-col md:flex-row items-start w-full relative"
+            >
+              <div
+                className={`flex items-center mx-auto h-12 z-[20] ${
+                  isActive
+                    ? "bg-[#4D65FF] border-[#4f46e5] w-[80%] md:w-[fit-content] text-white rounded-full translate-y-8"
+                    : isCompleted
+                    ? "bg-[#CEFFDC] border-green-400 text-gray-500 w-[80%] md:w-[100%] rounded-full relative"
+                    : "bg-[#EAEFFF] border-gray-300 text-gray-500 w-[80%] md:w-[100%] rounded-full z-[0] relative"
+                }`}
+              >
                 <div
-                  className={`flex items-center mx-auto h-12 z-30 ${
-                    isActive
-                      ? "bg-[#4D65FF] border-[#4f46e5] w-[80%] md:w-[fit-content] text-white rounded-full translate-y-8"
-                      : isCompleted
-                      ? "bg-[#CEFFDC] border-green-400 text-gray-500 w-[80%] md:w-[100%] rounded-full relative"
-                      : "bg-[#EAEFFF] border-gray-300 text-gray-500 w-[80%] md:w-[100%] rounded-full z-[0] relative"
-                  }`}
-                >
-                  <div
-                    className={`w-12 h-12 flex items-center justify-center rounded-full text-md font-[600] transition-all duration-200
+                  className={`w-12 h-12 flex items-center justify-center rounded-full text-md font-[600] transition-all duration-200
                     ${
                       isActive
                         ? "bg-[#000] border-[#4f46e5] text-white"
@@ -249,57 +252,60 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
                         ? "bg-white border-4 border-[#6AFF97] text-white"
                         : "bg-[#D4DEFF] border-gray-300 text-gray-500"
                     }`}
-                  >   
+                >
                   {isCompleted ? (
                     <span className="bg-black rounded-full p-[2px]">
-                      <Check size={20} style={{color: "#6AFF97", strokeWidth: "4px"}}></Check>
+                      <Check
+                        size={20}
+                        style={{ color: "#6AFF97", strokeWidth: "4px" }}
+                      ></Check>
                     </span>
                   ) : (
                     `${i + 1}`
                   )}
-                    
-                  </div>
-                  <span
-                    className={`para-font font-[500] text-[1rem] px-4 whitespace-nowrap ${
-                      isActive
-                        ? "text-[#fff]"
-                        : isCompleted
-                        ? "text-grey-600"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    {isCompleted ? (
-                      <div className="flex justify-between items-center w-full">
-                          <span>{s}</span>
-                          <span onClick={handleBack} className="absolute right-[3%] z-10">
-                            <Icon>
-                                <img src="/assets/icons/edit-icon.png" alt="" />
-                            </Icon>
-                          </span>
-                      </div>
+                </div>
+                <span
+                  className={`para-font font-[500] text-[1rem] px-4 whitespace-nowrap ${
+                    isActive
+                      ? "text-[#fff]"
+                      : isCompleted
+                      ? "text-grey-600"
+                      : "text-gray-500"
+                  }`}
+                >
+                  {isCompleted ? (
+                    <div className="flex justify-between items-center w-full">
+                      <span>{s}</span>
+                      <span
+                        onClick={handleBack}
+                        className="absolute right-[3%] z-10"
+                      >
+                        <Icon>
+                          <img src="/assets/icons/edit-icon.png" alt="" />
+                        </Icon>
+                      </span>
+                    </div>
                   ) : (
-                    
                     `${s}`
                   )}
-                   
-                  </span>
-                </div>
-
-                {/* Only show content for active step */}
-                {isActive && (
-                  <div className="z-10 bg-[#D4DEFF] md:rounded-xl py-20 px-4 md:py-6 md:px-8 mx-auto w-full md:translate-x-[-20px]">
-                    {renderStepContent()}
-                  </div>
-                )}
+                </span>
               </div>
-            );
-          })}
-        </div>
-        {/* Card-like Step Content */}
-        {/* <div className="flex-1 bg-[#e7eafe] rounded-xl p-4 md:p-6 max-w-[1200px] mx-auto w-full h-full overflow-y-auto">
+
+              {/* Only show content for active step */}
+              {isActive && (
+                <div className="z-10 bg-[#D4DEFF] md:rounded-xl py-20 px-4 md:py-6 md:px-8 mx-auto w-full md:translate-x-[-20px]">
+                  {renderStepContent()}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {/* Card-like Step Content */}
+      {/* <div className="flex-1 bg-[#e7eafe] rounded-xl p-4 md:p-6 max-w-[1200px] mx-auto w-full h-full overflow-y-auto">
           {renderStepContent()}
         </div> */}
-      </div>
+    </div>
   );
 };
 

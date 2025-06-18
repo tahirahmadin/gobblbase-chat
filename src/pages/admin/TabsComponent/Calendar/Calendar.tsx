@@ -2,16 +2,16 @@ import { useLocation } from "react-router-dom";
 import EmailTemplates from "../Commerce/EmailTemplates";
 import BookingDashboardWrapper from "../../BookingComponent/BookingDashboardWrapper";
 
-const Calender = () => {
+const Calendar = () => {
   const location = useLocation();
   const currentPath = location.pathname;
 
   const renderContent = () => {
-    if (currentPath.includes("/calender/manage")) {
+    if (currentPath.includes("/calendar/manage")) {
       return <BookingDashboardWrapper />;
     }
 
-    if (currentPath.includes("/calender/email")) {
+    if (currentPath.includes("/calendar/email")) {
       return <EmailTemplates isCommerce={false} />;
     }
   };
@@ -23,4 +23,4 @@ const Calender = () => {
   );
 };
 
-export default Calender;
+export default Calendar;

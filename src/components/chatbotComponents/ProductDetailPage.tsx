@@ -390,7 +390,7 @@ export default function ProductDetailPage({
               {quantity}
             </span>
             <button
-              onClick={() => setQuantity((q) => q + 1)}
+              onClick={() => setQuantity((q) => Math.min(maxQuantity, q + 1))}
               className="px-2 py-1 rounded-full  text-lg font-bold"
               style={{
                 backgroundColor: theme.highlightColor,
@@ -508,7 +508,9 @@ export default function ProductDetailPage({
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    onClick={() =>
+                      setQuantity((q) => Math.min(maxQuantity, q + 1))
+                    }
                     className="px-2 py-1 rounded-full text-lg font-bold"
                     style={{
                       backgroundColor: theme.highlightColor,

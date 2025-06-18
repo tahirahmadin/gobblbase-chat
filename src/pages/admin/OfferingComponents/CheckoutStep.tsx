@@ -48,6 +48,7 @@ interface EmailTemplate {
 }
 
 type CheckoutStepProps = {
+  type: string;
   form: any;
   setForm: React.Dispatch<any>;
   onNext: () => void;
@@ -55,6 +56,7 @@ type CheckoutStepProps = {
 };
 
 const CheckoutStep: React.FC<CheckoutStepProps> = ({
+  type,
   form,
   setForm,
   onNext,
@@ -79,7 +81,8 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
   };
   // Get the product type from the form (default to physical if missing)
 
-  const productType = form.type || "physicalProduct";
+  const productType = type || "physicalProduct";
+
   const templateKey =
     templateKeyMap[productType] || templateKeyMap["physicalProduct"];
   const template = emailTemplates?.[templateKey] as EmailTemplate | undefined;
@@ -202,11 +205,7 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
                 </div>
               </div>
               <div className="flex items-center justify-center gap-4 mt-2 z-10 relative">
-                <Button
-                  className=""
-                  onClick={handleSave}
-                  disabled={saving}
-                >
+                <Button className="" onClick={handleSave} disabled={saving}>
                   {saving ? "Saving..." : "Save Email"}
                 </Button>
               </div>
@@ -215,10 +214,7 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
         </div>
       </div>
       <div className="flex justify-end mt-8 relative z-10">
-        <Button
-          className=""
-          onClick={onNext}
-        >
+        <Button className="" onClick={onNext}>
           NEXT
         </Button>
       </div>

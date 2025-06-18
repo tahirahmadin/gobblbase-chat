@@ -134,7 +134,7 @@ const Header = () => {
 
   return (
     <header
-      className="bg-white relative border-b border-gray-200 shadow-lg z-[20]"
+      className="bg-white relative border-b border-gray-200 shadow-lg z-[30]"
       style={{ backgroundColor: "#eaefff" }}
     >
       <div className="flex justify-between items-center px-6 py-2">

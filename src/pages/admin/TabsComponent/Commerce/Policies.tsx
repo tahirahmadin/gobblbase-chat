@@ -32,13 +32,13 @@ const Button = styled.button`
   }
 
   &:disabled {
-    background: #CDCDCD;
+    background: #cdcdcd;
     border: 1px solid #7d7d7d;
-    color: #7D7D7D;
+    color: #7d7d7d;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #CDCDCD;
+    background: #cdcdcd;
     border: 1px solid #7d7d7d;
   }
 `;
@@ -138,10 +138,7 @@ const Policies = () => {
   };
 
   const handleSelectPolicy = (id: string) => {
-    const index = policies.findIndex((p) => p.id === id);
-    if (index <= activeIndex + 2) {
-      setActivePolicy(id);
-    }
+    setActivePolicy(id);
   };
 
   const handleUpdate = async () => {
@@ -200,72 +197,72 @@ const Policies = () => {
                 onClick={() => handleSelectPolicy(policy.id)}
               >
                 <div
-                  className={`flex justify-between items-center px-4 border h-12 z-30 mx-6 md:mx-2 ${isActive && policy.enabled
-                    ? "bg-[#CEFFDC] border-[#000000] w-[80%] md:w-[30%] text-white rounded-[12px]"
-                    : isActive
+                  className={`flex justify-between items-center px-4 border h-12 z-30 mx-6 md:mx-2 ${
+                    isActive && policy.enabled
+                      ? "bg-[#CEFFDC] border-[#000000] w-[80%] md:w-[30%] text-white rounded-[12px]"
+                      : isActive
                       ? "bg-[#EAEFFF] border-[#000000] w-[80%] md:w-[30%] text-white rounded-[12px]"
                       : "bg-[transparent] border-[#000000] w-[80%] md:w-[30%] text-white rounded-[12px]"
-                    }`}
+                  }`}
                 >
-           
-
-                    <div>
-                      <span className="para-font text-[1rem] text-black font-[500]">{policy.name}</span>
+                  <div>
+                    <span className="para-font text-[1rem] text-black font-[500]">
+                      {policy.name}
+                    </span>
+                  </div>
+                  <label className="flex items-center cursor-pointer ml-2">
+                    <input
+                      type="checkbox"
+                      checked={policy.enabled}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        handleToggleEnable(policy.id);
+                      }}
+                      className="sr-only peer"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <div className="w-11 h-6 bg-[#CDCDCD] border border-black rounded-full relative transition-colors duration-200 peer-checked:bg-green-400">
+                      <div
+                        className={`absolute border border-black  -top-[1px] -left-[2px] w-[24px] h-[24px] bg-white rounded-full shadow transition-transform duration-200 ${
+                          policy.enabled ? "translate-x-[24px]" : ""
+                        }`}
+                      ></div>
                     </div>
-                    <label className="flex items-center cursor-pointer ml-2">
-                      <input
-                        type="checkbox"
-                        checked={policy.enabled}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          handleToggleEnable(policy.id);
-                        }}
-                        className="sr-only peer"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                      <div className="w-11 h-6 bg-[#CDCDCD] border border-black rounded-full relative transition-colors duration-200 peer-checked:bg-green-400">
-                        <div
-                          className={`absolute border border-black  -top-[1px] -left-[2px] w-[24px] h-[24px] bg-white rounded-full shadow transition-transform duration-200 ${policy.enabled ? "translate-x-[24px]" : ""
-                            }`}
-                        ></div>
-                      </div>
-                    </label>
+                  </label>
                 </div>
-                {
-                  isActive && (
-                    <div className="z-10 bg-[#EAEFFF] md:rounded-lg p-3 mx-auto w-full md:w-[70%]">
-                      <div className="rounded-lg px-3 py-6 flex flex-col xs:flex-row items-start gap-4 whitespace-nowrap">
-                        {/* Text Input */}
-                        <div className="para-font text-[0.9rem] text-black">
-                          Enter {policy.name}:
-                        </div>
-                        <div className="space-y-2 w-full">
-                          <textarea
-                            value={currentPolicyText}
-                            onChange={handlePolicyTextChange}
-                            placeholder="Type your message..."
-                            className="w-full h-40 px-4 py-2 text-sm border border-[#7D7D7D] resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          />
-                          <div className="flex justify-end relative z-10">
-                            <Button
-                              onClick={handleUpdate}
-                              className=""
-                              disabled={isUpdating}
-                            >
-                              {isUpdating ? "UPDATING..." : "UPDATE"}
-                            </Button>
-                          </div>
+                {isActive && (
+                  <div className="z-10 bg-[#EAEFFF] md:rounded-lg p-3 mx-auto w-full md:w-[70%]">
+                    <div className="rounded-lg px-3 py-6 flex flex-col xs:flex-row items-start gap-4 whitespace-nowrap">
+                      {/* Text Input */}
+                      <div className="para-font text-[0.9rem] text-black">
+                        Enter {policy.name}:
+                      </div>
+                      <div className="space-y-2 w-full">
+                        <textarea
+                          value={currentPolicyText}
+                          onChange={handlePolicyTextChange}
+                          placeholder="Type your message..."
+                          className="w-full h-40 px-4 py-2 text-sm border border-[#7D7D7D] resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                        <div className="flex justify-end relative z-10">
+                          <Button
+                            onClick={handleUpdate}
+                            className=""
+                            disabled={isUpdating}
+                          >
+                            {isUpdating ? "UPDATING..." : "UPDATE"}
+                          </Button>
                         </div>
                       </div>
                     </div>
-                  )
-                }
+                  </div>
+                )}
               </div>
             );
           })
         )}
+      </div>
     </div>
-    </div >
   );
 };
 
