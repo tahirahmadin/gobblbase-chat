@@ -70,6 +70,22 @@ const Header = () => {
   const isAllAgentsPage = location.pathname === "/admin/all-agents";
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
 
+  //closing dropdowns when click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   //Handeling agentDetails refresh when change trigger
   const hook1 = useServerHook({ initHook: true });
 
@@ -209,7 +225,7 @@ const Header = () => {
           <div className="" ref={dropdownRef}>
             <div className="flex items-center">
               {/* Team Dropdown */}
-              <div className="relative mr-4 z-[100]">
+              <div className="relative mr-4 z-[100] ">
                 <button
                   onClick={() =>
                     setIsDropdownOpen(

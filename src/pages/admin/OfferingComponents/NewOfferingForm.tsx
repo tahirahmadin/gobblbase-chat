@@ -235,9 +235,9 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
               className="mb-4 flex flex-col md:flex-row items-start w-full relative"
             >
               <div
-                className={`flex items-center mx-auto h-12 z-[20] ${
+                className={`flex items-center mx-auto h-12  ${
                   isActive
-                    ? "bg-[#4D65FF] border-[#4f46e5] w-[80%] md:w-[fit-content] text-white rounded-full translate-y-8"
+                    ? "bg-[#4D65FF] border-[#4f46e5] z-[10] w-[80%] md:w-[fit-content] text-white rounded-full translate-y-8"
                     : isCompleted
                     ? "bg-[#CEFFDC] border-green-400 text-gray-500 w-[80%] md:w-[100%] rounded-full relative"
                     : "bg-[#EAEFFF] border-gray-300 text-gray-500 w-[80%] md:w-[100%] rounded-full z-[0] relative"
@@ -293,7 +293,7 @@ const NewOfferingForm: React.FC<NewOfferingFormProps> = ({
 
               {/* Only show content for active step */}
               {isActive && (
-                <div className="z-10 bg-[#D4DEFF] md:rounded-xl py-20 px-4 md:py-6 md:px-8 mx-auto w-full md:translate-x-[-20px]">
+                <div className="z-[9] bg-[#D4DEFF] md:rounded-xl py-20 px-4 md:py-6 md:px-8 mx-auto w-full md:translate-x-[-20px]">
                   {renderStepContent()}
                 </div>
               )}

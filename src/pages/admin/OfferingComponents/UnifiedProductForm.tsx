@@ -1820,17 +1820,17 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
           </article>
 
           {/* cta btn  */}
-          <article className="cta-btn">
+          <article className="cta-btn ">
             <label className="font-semibold block">CTA Button*</label>
             <div className="py-4 px-6 rounded-lg border border-[#7d7d7d] w-full">
-              <div className="relative flex">
+              <div className="relative flex z-[100]">
                 <button
                   onClick={() => setIsOpen(!isOpen)}
                   className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
                 >
                   {form.ctaButton || "Buy Now"}
                 </button>
-                <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
+                <div onClick={() => setIsOpen(!isOpen)} className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
                   <ChevronDown
                     size={20}
                     className={`text-[#000000] stroke-[3px] transition-transform ${
@@ -1840,7 +1840,7 @@ const UnifiedProductForm: React.FC<UnifiedProductFormProps> = ({
                 </div>
 
                 {isOpen && (
-                  <div className="z-[111111] absolute top-full left-0 mt-1 w-60 max-h-48 overflow-auto bg-white border border-[#7D7D7D] shadow-md rounded-sm ">
+                  <div className="absolute z-20 top-full left-0 mt-1 w-60 max-h-48 overflow-auto bg-white border border-[#7D7D7D] shadow-md rounded-sm">
                     {ctaButtons.map((label) => (
                       <button
                         key={label}

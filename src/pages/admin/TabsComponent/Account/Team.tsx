@@ -11,7 +11,76 @@ import { useAdminStore } from "../../../../store/useAdminStore";
 import { Plus, X, Pencil } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
+const Button = styled.button`
+  position: relative;
+  background: #6aff97;
+  padding: 0.6vh 1vw;
+  border: 1px solid black;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: clamp(8px, 4vw, 15px);
+  font-family: "DM Sans", sans-serif;
+  font-weight: 400;
 
+  &::before {
+    content: "";
+    position: absolute;
+    top: 4px;
+    right: -4px;
+    width: 100%;
+    height: 100%;
+    border: 1px solid #000000;
+    z-index: -1; // place it behind the button
+    background: #6aff97;
+  }
+  @media (max-width: 600px) {
+    min-width: 100px;
+  }
+  &:disabled {
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+    color: #7D7D7D;
+    cursor: not-allowed;
+  }
+  &:disabled::before {
+    background: #CDCDCD;
+    border: 1px solid #7d7d7d;
+  }
+`;
+const Icon = styled.button`
+  position: relative;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #aeb8ff;
+  border: 1px solid black;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: clamp(8px, 4vw, 16px);
+  &:hover {
+    background: #aeb8ff;
+  }
+
+  @media (max-width: 600px) {
+    width: 30px;
+    height: 30px;
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 4px;
+    right: -4px;
+    width: 100%;
+    height: 100%;
+    border: 1px solid #000000;
+    z-index: -1; // place it behind the button
+    background: #aeb8ff;
+  }
+`;
 type TeamHeaderProps = {
   teamName: string;
   setTeamName: (name: string) => void;
@@ -95,18 +164,20 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
                     autoFocus
                   />
                   <div className="flex items-center gap-2">
-                    <button
+                    <Button
                       onClick={handleTeamNameUpdate}
-                      className="bg-[#6AFF97] border border-black px-3 py-1 rounded text-sm font-medium hover:bg-[#4DFF88] transition-colors"
+                      className=""
                     >
                       Save
-                    </button>
-                    <button
+                    </Button>
+                    <Button style={{
+                      background: "#FFBDBD"
+                    }}
                       onClick={cancelEditing}
-                      className="bg-[#FFBDBD] border border-black px-3 py-1 rounded text-sm font-medium hover:bg-[#FF9797] transition-colors"
+                      className=""
                     >
                       Cancel
-                    </button>
+                    </Button>
                   </div>
                 </>
               ) : (
@@ -114,12 +185,14 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
                   <span className="flex-1 text-sm bg-white py-2 px-2 border border-[#7d7d7d]">
                     {teamName}
                   </span>
-                  <button
-                    onClick={startEditing}
-                    className="p-1 hover:bg-[#D4DDFF] rounded transition-colors"
-                  >
-                    <Pencil className="w-4 h-4 text-gray-500" />
-                  </button>
+                  <div className="relative z-10">
+                    <Icon
+                      onClick={startEditing}
+                      className=""
+                    >
+                      <Pencil className="w-4 h-4 text-black" />
+                    </Icon>
+                  </div>
                 </>
               )}
             </div>
@@ -141,15 +214,14 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
                 {currentPlan}
               </span>
               <div className="relative z-10 w-fit">
-                <div className="absolute left-[3px] top-[3.5px] h-full w-full -z-10 bg-[#6AFF97] border border-black"></div>
-                <button
+                <Button
                   className="min-w-[100px] bg-[#6AFF97] border border-black px-4 py-2 font-semibold text-sm"
                   onClick={() => {
                     navigate("/admin/account/plans");
                   }}
                 >
                   VIEW
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -195,9 +267,8 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
             </p>
           )}
         <div className="relative z-10 w-fit">
-          <div className="absolute left-[3px] top-[3.5px] h-full w-full -z-10 bg-[#6AFF97] border border-black"></div>
-          <button
-            className="min-w-[100px] bg-[#6AFF97] border border-black px-4 py-2 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          <Button
+            className="min-w-[100px] bg-[#6AFF97] border border-black px-4 py-2 font-semibold text-sm disabled: disabled:cursor-not-allowed"
             onClick={onInvite}
             disabled={
               inviteLoading ||
@@ -206,7 +277,7 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
             }
           >
             {inviteLoading ? "Inviting..." : "INVITE"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -417,13 +488,15 @@ const Team = () => {
           <div className="new-member-section w-full">
             {/* New Member Invite */}
             <div className="relative new-member-invite w-full md:w-1/2 mt-4 mb-6 flex items-center gap-4 w-1/2 border border-[#000] py-10 px-6 rounded-lg">
-              <button
-                onClick={() => setShowAddMemberPanel(false)}
-                className="absolute top-2 right-2 text-red-500 hover:text-red-700 transition-colors"
-                title="Close"
-              >
-                <X className="h-5 w-5" />
-              </button>
+              <div className="relative z-10">
+                <Icon
+                  onClick={() => setShowAddMemberPanel(false)}
+                  className="absolute top-2 right-2 text-red-500 hover:text-red-700 transition-colors"
+                  title="Close"
+                >
+                  <X className="h-5 w-5" />
+                </Icon>
+              </div>
               <div className="view-email flex flex-col gap-2 w-full">
                 <h3 className="text-[1.2rem] font-semibold text-gray-800">
                   Invite people via email
@@ -444,14 +517,13 @@ const Team = () => {
                   }}
                 />
                 <div className="relative mt-4 z-10 w-fit flex justify-center mx-auto">
-                  <div className="absolute top-[4px] left-[4px] -z-10 bg-[#6AFF97] w-full h-full border border-black"></div>
-                  <button
-                    className="bg-[#6AFF97] min-w-[100px] relative z-10 text-black px-4 py-2 border border-black"
+                  <Button
+                    className=""
                     disabled={newMembers[0]?.loading}
                     onClick={handleInviteSubmit}
                   >
                     {newMembers[0]?.loading ? "Inviting..." : "Invite"}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>

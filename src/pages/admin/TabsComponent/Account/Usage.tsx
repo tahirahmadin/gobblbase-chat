@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAdminStore } from "../../../../store/useAdminStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -76,10 +76,33 @@ const Usage = () => {
   const [allDailyUsage, setAllDailyUsage] = useState<DailyUsage[]>([]);
   const [dataInitialized, setDataInitialized] = useState(false);
 
+  const agentDropdownRef = useRef(null);
+  const timeDropdownRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isAgentDropdownOpen, setIsAgentDropdownOpen] = useState(false);
   const [billingLoading, setBillingLoading] = useState(false);
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        agentDropdownRef.current &&
+        !agentDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsAgentDropdownOpen(false);
+      }
 
+      if (
+        timeDropdownRef.current &&
+        !timeDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    }
+
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
   useEffect(() => {
     const currentYear = new Date().getFullYear();
 
@@ -483,14 +506,14 @@ const Usage = () => {
         {/* Filters */}
         <div className="flex flex-row justify-center gap-2 w-full sm:w-auto">
           {/* agent drop down  */}
-          <div className="relative w-30 xs:w-48 flex items-center z-[10]">
+          <div className="relative w-30 xs:w-48 flex items-center z-[10]"  ref={agentDropdownRef}>
             <button
               onClick={() => setIsAgentDropdownOpen(!isAgentDropdownOpen)}
               className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
             >
               {selectedAgent || "All Agents"}
             </button>
-            <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
+            <div onClick={() => setIsAgentDropdownOpen(!isAgentDropdownOpen)} className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
               <ChevronDown
                 size={20}
                 className={`text-[#000000] stroke-[3px] transition-transform ${
@@ -529,7 +552,7 @@ const Usage = () => {
             )}
           </div>
           {/* all time drop down  */}
-          <div className="relative w-30 xs:w-48 flex items-center z-[10]">
+          <div className="relative w-30 xs:w-48 flex items-center z-[10]"  ref={timeDropdownRef}>
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="w-full px-3 py-2 border border-[#7D7D7D] text-sm focus:outline-none rounded-sm flex justify-between items-center bg-white"
@@ -538,6 +561,7 @@ const Usage = () => {
             </button>
             <div className="icon bg-[#AEB8FF] px-2 py-2 border border-[#7D7D7D] border-l-0">
               <ChevronDown
+              onClick={() => setIsOpen(!isOpen)}
                 size={20}
                 className={`text-[#000000] stroke-[3px] transition-transform  ${
                   isOpen ? "rotate-180" : ""

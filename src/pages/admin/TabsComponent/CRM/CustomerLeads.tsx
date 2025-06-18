@@ -205,9 +205,22 @@ const CustomerLeads = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
               </div>
             ) : leads.length === 0 ? (
-              <div className="flex justify-center items-center h-64 text-gray-500">
-                No leads collected yet
-              </div>
+              <div className="w-full overflow-x-auto">
+                  <table className="w-full rounded-lg border-separate border-spacing-y-2">
+                    <thead>
+                      <tr className="bg-black text-white text-[15px] lg:text-base">
+                        <th className="text-center py-2 px-2 lg:py-3 lg:px-6 text-left font-medium rounded-xl">
+                          No leads collected yet
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="py-3 bg-[#D4DEFF] border border-black rounded-xl text-[14px] lg:text-base">
+                        <td className="py-2 px-2 lg:py-3 lg:px-6 rounded-xl w-ful text-center">No leads collected yet</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
             ) : (
               <>
                 <div className="w-full overflow-x-auto">
