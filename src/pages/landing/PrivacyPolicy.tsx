@@ -80,14 +80,14 @@ const LoginButton = styled.button`
   @media (max-width: 600px) {
     min-width: 100px;
   }
-   &:disabled {
-    background: #CDCDCD;
+  &:disabled {
+    background: #cdcdcd;
     border: 1px solid #7d7d7d;
-    color: #7D7D7D;
+    color: #7d7d7d;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #CDCDCD;
+    background: #cdcdcd;
     border: 1px solid #7d7d7d;
   }
 `;
@@ -186,14 +186,14 @@ const CTAButton = styled.button`
   @media (max-width: 600px) {
     min-width: 100px;
   }
-   &:disabled {
-    background: #CDCDCD;
+  &:disabled {
+    background: #cdcdcd;
     border: 1px solid #7d7d7d;
-    color: #7D7D7D;
+    color: #7d7d7d;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #CDCDCD;
+    background: #cdcdcd;
     border: 1px solid #7d7d7d;
   }
 `;
@@ -275,7 +275,7 @@ const FooterLeft = styled.div`
   width: 70%;
   @media (max-width: 800px) {
     width: 100%;
-    padding: 3vh 3vw;
+    padding: 3vh 10vw;
     text-align: center;
   }
 `;
@@ -306,9 +306,10 @@ const FooterRight = styled.div`
   @media (max-width: 800px) {
     width: 100%;
     flex-direction: row;
+    align-items: center;
     background: #0a0a0a;
     justify-content: space-between;
-    padding: 1vh 3vw;
+    padding: 6vh 3vw 0 3vw;
   }
 `;
 
@@ -323,7 +324,7 @@ const FooterSocial = styled.div`
   padding: 4vh 3vw;
   @media (max-width: 800px) {
     width: fit-content;
-    gap: 0;
+    padding: 0;
     background: #0a0a0a;
   }
 `;
@@ -338,7 +339,6 @@ const SocialIcon = styled.a`
   color: #23244a;
   border-radius: 8px;
   font-size: 1.3rem;
-  margin-left: 6px;
 `;
 const FooterLogo = styled.div`
   display: flex;
@@ -354,7 +354,7 @@ const FooterLogo = styled.div`
   height: 100%;
   @media (max-width: 800px) {
     width: fit-content;
-    padding: 3vh 3vw;
+    padding: 0;
   }
 `;
 const FooterBelow = styled.div`
@@ -493,7 +493,7 @@ const PrivacyPolicy = () => {
                 <WhiteBackground>
                   <span>
                     <h2 className="main-font relative z-10 font-[800] text-[1.2rem]">
-                     Privacy Policy
+                      Privacy Policy
                     </h2>
                   </span>
                 </WhiteBackground>
@@ -1087,7 +1087,7 @@ const PrivacyPolicy = () => {
                           Billing-related metadata
                         </td>
                       </tr>
-                      <tr className="para-font text-[15px]"> 
+                      <tr className="para-font text-[15px]">
                         <td className="px-4 py-1 font-[500]">OpenAI</td>
                         <td className="px-4 py-1 font-[500]">
                           GPT model API (LLM)
@@ -1223,26 +1223,33 @@ const PrivacyPolicy = () => {
                     <li>Inputs (prompts) are routed securely to models</li>
                     <li>Outputs are optionally logged for QA/debugging</li>
                     <li>OpenAI may retain transient logs (per their policy)</li>
-                    <li>Meta models run isolated and do not share data externally</li>
+                    <li>
+                      Meta models run isolated and do not share data externally
+                    </li>
                   </ul>
                 </div>
                 <div className="">
                   <h2>What We Don’t Do:</h2>
                   <ul className="list-[inherit] ml-6">
-                    <li>No prompts are used to train any model unless you explicitly opt in</li>
+                    <li>
+                      No prompts are used to train any model unless you
+                      explicitly opt in
+                    </li>
                     <li>We do not sell or monetize your inputs or outputs</li>
                   </ul>
                 </div>
-                 <div className="">
+                <div className="">
                   <h2>LLaMA inferences stay 100% within Sayy’s environment</h2>
                 </div>
               </div>
             </article>
 
-
             {/* orange small footer  */}
             <div className="bg-[#FFD2BA] text-black w-full border border-black px-2 py-8 text-center">
-              <h1 className="para-font font-[500] text-[16px]">Thank you for trusting Sayy.ai. We are committed to protecting your data and providing a secure, transparent AI experience.</h1>
+              <h1 className="para-font font-[500] text-[16px]">
+                Thank you for trusting Sayy.ai. We are committed to protecting
+                your data and providing a secure, transparent AI experience.
+              </h1>
             </div>
           </div>
         </HeroSection>
@@ -1272,7 +1279,7 @@ const PrivacyPolicy = () => {
               <FooterSocial>
                 <h1 className="[@media(max-width:800px)]:hidden">Follow us</h1>
                 <SocialIcon href="" title="X">
-                  <img src="/assets/icons/prime_twitter.png" alt="" />
+                  <img src="/assets/icons/prime_twitter.svg" alt="" />
                 </SocialIcon>
                 <SocialIcon title="LinkedIn">
                   <Linkedin strokeWidth="2px" />
@@ -1290,7 +1297,7 @@ const PrivacyPolicy = () => {
                   </p>
                 </div>
 
-                <div className="privacy-links flex gap-12">
+                <div className="hidden [@media(min-width:800px)]:flex privacy-links whitespace-nowrap flex flex-col sm:flex-row sm:gap-6 lg:gap-12">
                   <button
                     onClick={() => navigate("/privacy")}
                     className="para-font text-[15px]"
@@ -1306,58 +1313,77 @@ const PrivacyPolicy = () => {
                 </div>
               </FooterLogo>
             </FooterRight>
+            <div
+              style={{
+                padding: "2vh 3vw 4vh 3vw",
+              }}
+              className="[@media(max-width:800px)]:flex hidden flex flex-row justify-between whitespace-nowrap bg-[#0A0A0A] w-full "
+            >
+              <button
+                onClick={() => navigate("/privacy")}
+                className="para-font text-[15px]"
+              >
+                Privacy Policy
+              </button>
+              <button
+                onClick={() => navigate("/terms-condition")}
+                className="para-font text-[15xpx]"
+              >
+                Terms of Use
+              </button>
+            </div>
           </FooterUpper>
           <FooterBelow>
             <img
-              src="/assets/landing-asset/assemble/footer-card-1.png"
+              src="/assets/landing-asset/assemble/footer-card-1.jpg"
               alt="Kifor Mascot"
               width={"100%"}
             />
             <span className="footer-card-2">
               <img
-                src="/assets/landing-asset/assemble/footer-card-2.png"
+                src="/assets/landing-asset/assemble/footer-card-2.jpg"
                 alt="Kifor Mascot"
                 className="mascot-img"
               />
             </span>
             <span className="footer-card-3">
               <img
-                src="/assets/landing-asset/assemble/footer-card-3.png"
+                src="/assets/landing-asset/assemble/footer-card-3.jpg"
                 alt="Kifor Mascot"
                 className="mascot-img"
               />
             </span>
             <span className="footer-card-4">
               <img
-                src="/assets/landing-asset/assemble/footer-card-4.png"
+                src="/assets/landing-asset/assemble/footer-card-4.jpg"
                 alt="Kifor Mascot"
                 className="mascot-img"
               />
             </span>
             <span className="footer-card-5">
               <img
-                src="/assets/landing-asset/assemble/footer-card-5.png"
+                src="/assets/landing-asset/assemble/footer-card-5.jpg"
                 alt="Kifor Mascot"
                 className="mascot-img"
               />
             </span>
             <span className="footer-card-6">
               <img
-                src="/assets/landing-asset/assemble/footer-card-6.png"
+                src="/assets/landing-asset/assemble/footer-card-6.jpg"
                 alt="Kifor Mascot"
                 className="mascot-img"
               />
             </span>
             <span className="footer-card-7">
               <img
-                src="/assets/landing-asset/assemble/footer-card-7.png"
+                src="/assets/landing-asset/assemble/footer-card-7.jpg"
                 alt="Kifor Mascot"
                 className="mascot-img"
               />
             </span>
             <span className="footer-card-8">
               <img
-                src="/assets/landing-asset/assemble/footer-card-8.png"
+                src="/assets/landing-asset/assemble/footer-card-8.jpg"
                 alt="Kifor Mascot"
                 className="mascot-img"
               />

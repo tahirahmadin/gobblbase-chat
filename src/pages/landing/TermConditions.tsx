@@ -80,14 +80,14 @@ const LoginButton = styled.button`
   @media (max-width: 600px) {
     min-width: 100px;
   }
-    &:disabled {
-    background: #CDCDCD;
+  &:disabled {
+    background: #cdcdcd;
     border: 1px solid #7d7d7d;
-    color: #7D7D7D;
+    color: #7d7d7d;
     cursor: not-allowed;
   }
   &:disabled::before {
-    background: #CDCDCD;
+    background: #cdcdcd;
     border: 1px solid #7d7d7d;
   }
 `;
@@ -272,7 +272,7 @@ const FooterLeft = styled.div`
   width: 70%;
   @media (max-width: 800px) {
     width: 100%;
-    padding: 3vh 3vw;
+    padding: 3vh 10vw;
     text-align: center;
   }
 `;
@@ -303,9 +303,10 @@ const FooterRight = styled.div`
   @media (max-width: 800px) {
     width: 100%;
     flex-direction: row;
+    align-items: center;
     background: #0a0a0a;
     justify-content: space-between;
-    padding: 1vh 3vw;
+    padding: 6vh 3vw 0 3vw;
   }
 `;
 
@@ -320,7 +321,7 @@ const FooterSocial = styled.div`
   padding: 4vh 3vw;
   @media (max-width: 800px) {
     width: fit-content;
-    gap: 0;
+    padding: 0;
     background: #0a0a0a;
   }
 `;
@@ -335,7 +336,7 @@ const SocialIcon = styled.a`
   color: #23244a;
   border-radius: 8px;
   font-size: 1.3rem;
-  margin-left: 6px;
+  
 `;
 const FooterLogo = styled.div`
   display: flex;
@@ -351,7 +352,7 @@ const FooterLogo = styled.div`
   height: 100%;
   @media (max-width: 800px) {
     width: fit-content;
-    padding: 3vh 3vw;
+    padding: 0;
   }
 `;
 const FooterBelow = styled.div`
@@ -389,6 +390,7 @@ const FooterBelow = styled.div`
     }
   }
 `;
+
 const TermConditions = () => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -654,7 +656,9 @@ const TermConditions = () => {
               <PurpleContent>
                 <div className="">
                   <h2>
-                    To the fullest extent permitted by law, Gobbl, Inc. shall not be liable for indirect, incidental, or consequential damages from your use of Sayy.
+                    To the fullest extent permitted by law, Gobbl, Inc. shall
+                    not be liable for indirect, incidental, or consequential
+                    damages from your use of Sayy.
                   </h2>
                 </div>
               </PurpleContent>
@@ -665,7 +669,8 @@ const TermConditions = () => {
               <PurpleContent>
                 <div className="">
                   <h2>
-                   These Terms are governed by the laws of the State of Delaware, USA. Disputes must be resolved in Delaware courts.
+                    These Terms are governed by the laws of the State of
+                    Delaware, USA. Disputes must be resolved in Delaware courts.
                   </h2>
                 </div>
               </PurpleContent>
@@ -676,7 +681,8 @@ const TermConditions = () => {
               <PurpleContent>
                 <div className="">
                   <h2>
-                    We may update these Terms from time to time. Continued use of Sayy after updates means you accept the revised Terms.
+                    We may update these Terms from time to time. Continued use
+                    of Sayy after updates means you accept the revised Terms.
                   </h2>
                 </div>
               </PurpleContent>
@@ -687,9 +693,12 @@ const TermConditions = () => {
               <PurpleContent>
                 <div className="">
                   <h2>
-                    Questions? Reach us at: <a href="https://sayy.ai/terms">https://sayy.ai/terms</a> 
+                    Questions? Reach us at:{" "}
+                    <a href="https://sayy.ai/terms">https://sayy.ai/terms</a>
                   </h2>
-                  <h2>Phone: <a href="">+1 (619) 404-4599</a></h2>
+                  <h2>
+                    Phone: <a href="">+1 (619) 404-4599</a>
+                  </h2>
                 </div>
               </PurpleContent>
             </PurpleSection>
@@ -728,7 +737,7 @@ const TermConditions = () => {
               <FooterSocial>
                 <h1 className="[@media(max-width:800px)]:hidden">Follow us</h1>
                 <SocialIcon href="" title="X">
-                  <img src="/assets/icons/prime_twitter.png" alt="" />
+                  <img src="/assets/icons/prime_twitter.svg" alt="" />
                 </SocialIcon>
                 <SocialIcon title="LinkedIn">
                   <Linkedin strokeWidth="2px" />
@@ -746,7 +755,7 @@ const TermConditions = () => {
                   </p>
                 </div>
 
-                <div className="privacy-links flex gap-12">
+                <div className="hidden [@media(min-width:800px)]:flex privacy-links whitespace-nowrap flex flex-col sm:flex-row sm:gap-6 lg:gap-12">
                   <button
                     onClick={() => navigate("/privacy")}
                     className="para-font text-[15px]"
@@ -762,58 +771,77 @@ const TermConditions = () => {
                 </div>
               </FooterLogo>
             </FooterRight>
+            <div
+              style={{
+                padding: "2vh 3vw 4vh 3vw",
+              }}
+              className="[@media(max-width:800px)]:flex hidden flex flex-row justify-between whitespace-nowrap bg-[#0A0A0A] w-full "
+            >
+              <button
+                onClick={() => navigate("/privacy")}
+                className="para-font text-[15px]"
+              >
+                Privacy Policy
+              </button>
+              <button
+                onClick={() => navigate("/terms-condition")}
+                className="para-font text-[15xpx]"
+              >
+                Terms of Use
+              </button>
+            </div>
           </FooterUpper>
           <FooterBelow>
             <img
-              src="/assets/landing-asset/assemble/footer-card-1.png"
+              src="/assets/landing-asset/assemble/footer-card-1.jpg"
               alt="Kifor Mascot"
               width={"100%"}
             />
             <span className="footer-card-2">
               <img
-                src="/assets/landing-asset/assemble/footer-card-2.png"
+                src="/assets/landing-asset/assemble/footer-card-2.jpg"
                 alt="Kifor Mascot"
                 className="mascot-img"
               />
             </span>
             <span className="footer-card-3">
               <img
-                src="/assets/landing-asset/assemble/footer-card-3.png"
+                src="/assets/landing-asset/assemble/footer-card-3.jpg"
                 alt="Kifor Mascot"
                 className="mascot-img"
               />
             </span>
             <span className="footer-card-4">
               <img
-                src="/assets/landing-asset/assemble/footer-card-4.png"
+                src="/assets/landing-asset/assemble/footer-card-4.jpg"
                 alt="Kifor Mascot"
                 className="mascot-img"
               />
             </span>
             <span className="footer-card-5">
               <img
-                src="/assets/landing-asset/assemble/footer-card-5.png"
+                src="/assets/landing-asset/assemble/footer-card-5.jpg"
                 alt="Kifor Mascot"
                 className="mascot-img"
               />
             </span>
             <span className="footer-card-6">
               <img
-                src="/assets/landing-asset/assemble/footer-card-6.png"
+                src="/assets/landing-asset/assemble/footer-card-6.jpg"
                 alt="Kifor Mascot"
                 className="mascot-img"
               />
             </span>
             <span className="footer-card-7">
               <img
-                src="/assets/landing-asset/assemble/footer-card-7.png"
+                src="/assets/landing-asset/assemble/footer-card-7.jpg"
                 alt="Kifor Mascot"
                 className="mascot-img"
               />
             </span>
             <span className="footer-card-8">
               <img
-                src="/assets/landing-asset/assemble/footer-card-8.png"
+                src="/assets/landing-asset/assemble/footer-card-8.jpg"
                 alt="Kifor Mascot"
                 className="mascot-img"
               />

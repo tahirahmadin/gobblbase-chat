@@ -190,7 +190,7 @@ const FooterLeft = styled.div`
   width: 70%;
   @media (max-width: 800px) {
     width: 100%;
-    padding: 3vh 3vw;
+    padding: 3vh 10vw;
     text-align: center;
   }
 `;
@@ -221,9 +221,10 @@ const FooterRight = styled.div`
   @media (max-width: 800px) {
     width: 100%;
     flex-direction: row;
+    align-items: center;
     background: #0a0a0a;
     justify-content: space-between;
-    padding: 1vh 3vw;
+    padding: 6vh 3vw 0 3vw;
   }
 `;
 
@@ -238,7 +239,7 @@ const FooterSocial = styled.div`
   padding: 4vh 3vw;
   @media (max-width: 800px) {
     width: fit-content;
-    gap: 0;
+    padding: 0;
     background: #0a0a0a;
   }
 `;
@@ -253,7 +254,7 @@ const SocialIcon = styled.a`
   color: #23244a;
   border-radius: 8px;
   font-size: 1.3rem;
-  margin-left: 6px;
+  
 `;
 const FooterLogo = styled.div`
   display: flex;
@@ -269,7 +270,7 @@ const FooterLogo = styled.div`
   height: 100%;
   @media (max-width: 800px) {
     width: fit-content;
-    padding: 3vh 3vw;
+    padding: 0;
   }
 `;
 const FooterBelow = styled.div`
@@ -431,123 +432,121 @@ export default function BotNotFound({ theme }: BotNotFoundProps) {
       </section>
 
       <footer className="practial-section w-full bg-[#ECECEC] border border-[#000000] [@media(max-width:800px)]:px-0 px-1 [@media(max-width:800px)]:py-0 py-1">
-        <FooterSection>
-          <FooterUpper>
-            <FooterLeft>
-              <div>
-                <FooterHeadline>
-                  Your new AI-ployee is here (& free) !
-                </FooterHeadline>
-                <FooterSub>
-                  Experience the future of sales: an AI-powered agent that
-                  adapts to your business needs, engages customers, and drives
-                  growth continuously.
-                </FooterSub>
-              </div>
-              <div className="relative z-10 mt-2 pr-4 [@media(max-width:800px)]:mx-auto">
-                <CTAButton onClick={() => navigate("/admin")}>
-                  LAUNCH YOUR FREE AGENT
-                  <ChevronRight size={20} className="ml-2" />
-                </CTAButton>
-              </div>
-            </FooterLeft>
-            <FooterRight>
-              <FooterSocial>
-                <h1 className="[@media(max-width:800px)]:hidden">Follow us</h1>
-                <SocialIcon href="" title="X">
-                  <img src="/assets/icons/prime_twitter.png" alt="" />
-                </SocialIcon>
-                <SocialIcon title="LinkedIn">
-                  <Linkedin strokeWidth="2px" />
-                </SocialIcon>
-              </FooterSocial>
-              <FooterLogo className="logo">
-                <div className="">
-                  <img
-                    src="/assets/landing-asset/assemble/footer-logo.svg"
-                    alt="footer logo"
-                    className="[@media(max-width:800px)]:hidden"
-                  />
-                  <p className="hidden [@media(max-width:800px)]:block">
-                    © 2025 Sayy AI
-                  </p>
-                </div>
-
-                <div className="privacy-links flex gap-12">
-                  <button
-                    onClick={() => navigate("/privacy")}
-                    className="para-font text-[15px]"
-                  >
-                    Privacy Policy
-                  </button>
-                  <button
-                    onClick={() => navigate("/terms-condition")}
-                    className="para-font text-[15xpx]"
-                  >
-                    Terms of Use
-                  </button>
-                </div>
-              </FooterLogo>
-            </FooterRight>
-          </FooterUpper>
-          <FooterBelow>
-            <img
-              src="/assets/landing-asset/assemble/footer-card-1.png"
-              alt="Kifor Mascot"
-              width={"100%"}
-            />
-            <span className="footer-card-2">
-              <img
-                src="/assets/landing-asset/assemble/footer-card-2.png"
-                alt="Kifor Mascot"
-                className="mascot-img"
-              />
-            </span>
-            <span className="footer-card-3">
-              <img
-                src="/assets/landing-asset/assemble/footer-card-3.png"
-                alt="Kifor Mascot"
-                className="mascot-img"
-              />
-            </span>
-            <span className="footer-card-4">
-              <img
-                src="/assets/landing-asset/assemble/footer-card-4.png"
-                alt="Kifor Mascot"
-                className="mascot-img"
-              />
-            </span>
-            <span className="footer-card-5">
-              <img
-                src="/assets/landing-asset/assemble/footer-card-5.png"
-                alt="Kifor Mascot"
-                className="mascot-img"
-              />
-            </span>
-            <span className="footer-card-6">
-              <img
-                src="/assets/landing-asset/assemble/footer-card-6.png"
-                alt="Kifor Mascot"
-                className="mascot-img"
-              />
-            </span>
-            <span className="footer-card-7">
-              <img
-                src="/assets/landing-asset/assemble/footer-card-7.png"
-                alt="Kifor Mascot"
-                className="mascot-img"
-              />
-            </span>
-            <span className="footer-card-8">
-              <img
-                src="/assets/landing-asset/assemble/footer-card-8.png"
-                alt="Kifor Mascot"
-                className="mascot-img"
-              />
-            </span>
-          </FooterBelow>
-        </FooterSection>
-      </footer>
+                <FooterSection>
+                  <FooterUpper>
+                    <FooterLeft>
+                      <div>
+                        <FooterHeadline>
+                          Your new AI-ployee is here (& free) !
+                        </FooterHeadline>
+                        <FooterSub>
+                          Experience the future of sales: an AI-powered agent that
+                          adapts to your business needs, engages customers, and drives
+                          growth continuously.
+                        </FooterSub>
+                      </div>
+                      <div className="relative z-10 mt-2 pr-4 [@media(max-width:800px)]:mx-auto">
+                        <CTAButton onClick={() => navigate("/admin")}>
+                          LAUNCH YOUR FREE AGENT
+                          <ChevronRight size={20} className="ml-2" />
+                        </CTAButton>
+                      </div>
+                    </FooterLeft>
+                    <FooterRight>
+                      <FooterSocial>
+                        <h1 className="[@media(max-width:800px)]:hidden">
+                          Follow us
+                        </h1>
+                        <SocialIcon href="" title="X">
+                          <img src="/assets/icons/prime_twitter.svg" alt="" />
+                        </SocialIcon>
+                        <SocialIcon title="LinkedIn">
+                          <Linkedin strokeWidth="2px" />
+                        </SocialIcon>
+                      </FooterSocial>
+                      <FooterLogo className="logo">
+                        <div className="">
+                            <img
+                              src="/assets/landing-asset/assemble/footer-logo.svg"
+                              alt="footer logo"
+                              className="[@media(max-width:800px)]:hidden"
+                            />
+                            <p className="hidden [@media(max-width:800px)]:block">
+                              © 2025 Sayy AI
+                            </p>
+                        </div>
+                        
+                        <div className="hidden [@media(min-width:800px)]:flex privacy-links whitespace-nowrap flex flex-col sm:flex-row sm:gap-6 lg:gap-12">
+                          <button onClick={() => navigate("/privacy")} className="para-font text-[15px]">Privacy Policy</button>
+                          <button onClick={() => navigate("/terms-condition")} className="para-font text-[15xpx]">Terms of Use</button>
+                        </div>
+                      </FooterLogo>
+                    </FooterRight>
+                    <div style={{
+                      padding: "2vh 3vw 4vh 3vw",
+                    }} className="[@media(max-width:800px)]:flex hidden flex flex-row justify-between whitespace-nowrap bg-[#0A0A0A] w-full ">
+                          <button onClick={() => navigate("/privacy")} className="para-font text-[15px]">Privacy Policy</button>
+                          <button onClick={() => navigate("/terms-condition")} className="para-font text-[15xpx]">Terms of Use</button>
+                    </div>
+                  </FooterUpper>
+                  <FooterBelow>
+                    <img
+                      src="/assets/landing-asset/assemble/footer-card-1.jpg"
+                      alt="Kifor Mascot"
+                      width={"100%"}
+                    />
+                    <span className="footer-card-2">
+                      <img
+                        src="/assets/landing-asset/assemble/footer-card-2.jpg"
+                        alt="Kifor Mascot"
+                        className="mascot-img"
+                      />
+                    </span>
+                    <span className="footer-card-3">
+                      <img
+                        src="/assets/landing-asset/assemble/footer-card-3.jpg"
+                        alt="Kifor Mascot"
+                        className="mascot-img"
+                      />
+                    </span>
+                    <span className="footer-card-4">
+                      <img
+                        src="/assets/landing-asset/assemble/footer-card-4.jpg"
+                        alt="Kifor Mascot"
+                        className="mascot-img"
+                      />
+                    </span>
+                    <span className="footer-card-5">
+                      <img
+                        src="/assets/landing-asset/assemble/footer-card-5.jpg"
+                        alt="Kifor Mascot"
+                        className="mascot-img"
+                      />
+                    </span>
+                    <span className="footer-card-6">
+                      <img
+                        src="/assets/landing-asset/assemble/footer-card-6.jpg"
+                        alt="Kifor Mascot"
+                        className="mascot-img"
+                      />
+                    </span>
+                    <span className="footer-card-7">
+                      <img
+                        src="/assets/landing-asset/assemble/footer-card-7.jpg"
+                        alt="Kifor Mascot"
+                        className="mascot-img"
+                      />
+                    </span>
+                    <span className="footer-card-8">
+                      <img
+                        src="/assets/landing-asset/assemble/footer-card-8.jpg"
+                        alt="Kifor Mascot"
+                        className="mascot-img"
+                      />
+                    </span>
+                  </FooterBelow>
+                </FooterSection>
+              </footer>
       {/* <div
           className="w-full h-full flex flex-col items-center justify-center p-6 text-center"
           style={{

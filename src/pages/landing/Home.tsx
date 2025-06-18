@@ -315,7 +315,7 @@ const CTAButton = styled.button`
   justify-content: space-between;
   background: #6aff97;
   padding: 1.43vh 1.2vw;
-  border: 2px solid black;
+  border: 1px solid black;
   cursor: pointer;
   transition: background 0.3s;
   font-size: clamp(8px, 4vw, 16px);
@@ -330,7 +330,7 @@ const CTAButton = styled.button`
     right: -5px;
     width: 100%;
     height: 100%;
-    border: 2px solid #000000;
+    border: 1px solid #000000;
     z-index: -1; // place it behind the button
     background: #6aff97;
   }
@@ -1321,7 +1321,7 @@ const FooterLeft = styled.div`
   width: 70%;
   @media (max-width: 800px) {
     width: 100%;
-    padding: 3vh 3vw;
+    padding: 3vh 10vw;
     text-align: center;
   }
 `;
@@ -1352,9 +1352,10 @@ const FooterRight = styled.div`
   @media (max-width: 800px) {
     width: 100%;
     flex-direction: row;
+    align-items: center;
     background: #0a0a0a;
     justify-content: space-between;
-    padding: 1vh 3vw;
+    padding: 6vh 3vw 0 3vw;
   }
 `;
 
@@ -1369,7 +1370,7 @@ const FooterSocial = styled.div`
   padding: 4vh 3vw;
   @media (max-width: 800px) {
     width: fit-content;
-    gap: 0;
+    padding: 0;
     background: #0a0a0a;
   }
 `;
@@ -1384,7 +1385,7 @@ const SocialIcon = styled.a`
   color: #23244a;
   border-radius: 8px;
   font-size: 1.3rem;
-  margin-left: 6px;
+  
 `;
 const FooterLogo = styled.div`
   display: flex;
@@ -1400,7 +1401,7 @@ const FooterLogo = styled.div`
   height: 100%;
   @media (max-width: 800px) {
     width: fit-content;
-    padding: 3vh 3vw;
+    padding: 0;
   }
 `;
 const FooterBelow = styled.div`
@@ -2618,7 +2619,7 @@ const Home = () => {
                     Follow us
                   </h1>
                   <SocialIcon href="" title="X">
-                    <img src="/assets/icons/prime_twitter.png" alt="" />
+                    <img src="/assets/icons/prime_twitter.svg" alt="" />
                   </SocialIcon>
                   <SocialIcon title="LinkedIn">
                     <Linkedin strokeWidth="2px" />
@@ -2636,12 +2637,18 @@ const Home = () => {
                       </p>
                   </div>
                   
-                  <div className="privacy-links flex gap-12">
+                  <div className="hidden [@media(min-width:800px)]:flex privacy-links whitespace-nowrap flex flex-col sm:flex-row sm:gap-6 lg:gap-12">
                     <button onClick={() => navigate("/privacy")} className="para-font text-[15px]">Privacy Policy</button>
                     <button onClick={() => navigate("/terms-condition")} className="para-font text-[15xpx]">Terms of Use</button>
                   </div>
                 </FooterLogo>
               </FooterRight>
+              <div style={{
+                padding: "2vh 3vw 4vh 3vw",
+              }} className="[@media(max-width:800px)]:flex hidden flex flex-row justify-between whitespace-nowrap bg-[#0A0A0A] w-full ">
+                    <button onClick={() => navigate("/privacy")} className="para-font text-[15px]">Privacy Policy</button>
+                    <button onClick={() => navigate("/terms-condition")} className="para-font text-[15xpx]">Terms of Use</button>
+              </div>
             </FooterUpper>
             <FooterBelow>
               <img
