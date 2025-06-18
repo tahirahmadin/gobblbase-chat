@@ -13,7 +13,7 @@ export const backendSocketUrl = "wss://kifortestapi.gobbl.ai";
 
 export const mainDomainUrl = "https://test.sayy.ai";
 // export const backendSocketUrl = "wss://kiforapi.gobbl.ai";
-export const IS_MAINTENANCE_MODE = false;
+export const IS_MAINTENANCE_MODE = true;
 
 // USDT conversion rates (as of March 2024)
 export const USDT_CONVERSION_RATES = {
