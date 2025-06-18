@@ -2019,7 +2019,7 @@ const Home = () => {
           </section>
 
          {/* What can Sayy do? */}
-        {/* <section className="practial-section flex flex-col gap-4 relative w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw]">
+        <section className="practial-section flex flex-col gap-4 relative w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw]">
           <FeaturesSection className="hidden [@media(max-width:900px)]:block">
             <BlackBackground>
               <span className="card-1 relative z-10 w-full h-fit">
@@ -2106,7 +2106,8 @@ const Home = () => {
                                    : "bg-white"
                                } 
                                 before:content-[''] before:absolute before:w-0 before:h-0
-                                before:border-l-[20px] before:border-r-[20px] before:border-b-[20px]
+                                before:border-l-[30px] before:border-r-[30px] before:border-b-[30px]
+                                xs:before:border-l-[20px] xs:before:border-r-[20px] xs:before:border-b-[20px]
                                 before:border-l-transparent before:border-r-transparent before:z-[0]
                                 ${
                                   feature.key === selectedFeature
@@ -2119,14 +2120,14 @@ const Home = () => {
                                 after:border-l-transparent after:border-r-transparent after:border-b-black after:z-[-1]
                           `}
                         >
-                          <FeatureListH1>{feature.label}</FeatureListH1>
+                          <FeatureListH1 className="z-20">{feature.label}</FeatureListH1>
 
-                          <div className="block max-[900px]:block min-[901px]:hidden pl-5">
+                          <div className="block relative z-20 max-[900px]:block min-[901px]:hidden pl-5">
                             <FeatureListDesc>{feature?.desc}</FeatureListDesc>
                           </div>
 
                           {feature.key === selectedFeature && (
-                            <div className="hidden max-[900px]:hidden min-[901px]:block">
+                            <div className="hidden relative z-20 max-[900px]:hidden min-[901px]:block">
                               <FeatureListDesc>
                                 {selected?.desc}
                               </FeatureListDesc>
@@ -2180,7 +2181,7 @@ const Home = () => {
               </FeaturesLeft>
             </FeaturesRow>
           </FeaturesSection>
-        </section> */}
+        </section>
 
           <section
             className="practial-section relative w-full bg-[#ECECEC] px-[2vw] md:lg:px-[4vw] lg:px-[6vw] py-[6vh] max-[900px]:pb-0"
@@ -2196,7 +2197,7 @@ const Home = () => {
                 <PlatformCardsRow className="">
                   <PlatformCard className="">
                     <span className="">
-                      <PlatformIcon className="w-[20%]">
+                      <PlatformIcon className="w-[20%] z-20">
                         <img
                           src="assets/landing-asset/platform/social.png"
                           alt="Social Media Integration Icon"
@@ -2214,11 +2215,11 @@ const Home = () => {
                   </PlatformCard>
                   <PlatformCard className="">
                     <span>
-                      <PlatformIcon className="w-[20%]">
+                      <PlatformIcon className="w-[20%] z-20">
                         <img
                           src="assets/landing-asset/platform/website.png"
                           alt="Website Integration Icon"
-                          className="object-contain w-20 sm:w-22"
+                          className="object-contain w-20 sm:w-22 "
                         />
                       </PlatformIcon>
                       <div className="flex flex-col w-[80%] px-4">
@@ -2232,7 +2233,7 @@ const Home = () => {
                   </PlatformCard>
                   <PlatformCard className="">
                     <span>
-                      <PlatformIcon className="w-[20%]">
+                      <PlatformIcon className="w-[20%] z-20">
                         <img
                           src="assets/landing-asset/platform/chatgpt.png"
                           alt="ChatGPT Integration Icon"
