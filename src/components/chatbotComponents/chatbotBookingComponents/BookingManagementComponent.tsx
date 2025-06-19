@@ -25,6 +25,8 @@ interface Booking {
   date: string;
   startTime: string;
   endTime: string;
+  displayStartTime: string;  
+  displayEndTime: string;    
   location: string;
   status: string;
   statusLabel: string;
@@ -33,6 +35,7 @@ interface Booking {
   notes?: string;
   canJoin: boolean;
   userTimezone: string;
+  businessTimezone: string;  
   isRescheduled?: boolean;
   rescheduledFrom?: {
     date: string;
@@ -217,21 +220,41 @@ const BookingManagementComponent: React.FC<BookingManagementComponentProps> = ({
     }
   };
 
-  const formatBookingTime = (date: string, time: string, timezone: string) => {
+  // Updated function to use displayStartTime and displayEndTime with timezone
+  const formatDisplayTime = (time: string, timezone: string) => {
     try {
       const [hours, minutes] = time.split(':').map(Number);
-      const dateObj = new Date(date);
-      dateObj.setHours(hours, minutes, 0, 0);
+      const today = new Date();
+      today.setHours(hours, minutes, 0, 0);
       
-      return dateObj.toLocaleTimeString('en-US', { 
+      const timeString = today.toLocaleTimeString('en-US', { 
         hour: '2-digit', 
         minute: '2-digit',
-        hour12: true,
-        timeZone: timezone 
+        hour12: true
       });
+
+      // Get timezone abbreviation
+      const timezoneAbbr = getTimezoneAbbreviation(timezone);
+      
+      return `${timeString} ${timezoneAbbr}`;
     } catch (error) {
-      return time;
+      return `${time} ${getTimezoneAbbreviation(timezone)}`;
     }
+  };
+
+  // Helper function to get timezone abbreviation
+  const getTimezoneAbbreviation = (timezone: string) => {
+    const timezoneMap: { [key: string]: string } = {
+      'Asia/Kolkata': 'IST',
+      'Asia/Dubai': 'GST',
+      'Asia/Calcutta': 'IST',
+      'America/New_York': 'EST/EDT',
+      'America/Los_Angeles': 'PST/PDT',
+      'Europe/London': 'GMT/BST',
+      // Add more as needed
+    };
+    
+    return timezoneMap[timezone] || timezone.split('/')[1]?.replace('_', ' ') || 'Local';
   };
 
   const formatBookingDate = (date: string) => {
@@ -367,14 +390,18 @@ const BookingManagementComponent: React.FC<BookingManagementComponentProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex items-center text-xs mb-2" style={{ color: theme.isDark ? '#e0e0e0' : '#333' }}>
-                    <Calendar className="h-3 w-3 mr-1" />
-                    <span>{formatBookingDate(booking.date)}</span>
-                    <Clock className="h-3 w-3 ml-3 mr-1" />
-                    <span>
-                      {formatBookingTime(booking.date, booking.startTime, booking.userTimezone)} - {" "}
-                      {formatBookingTime(booking.date, booking.endTime, booking.userTimezone)}
-                    </span>
+                  <div className="mb-2">
+                    <div className="flex items-center text-xs mb-1" style={{ color: theme.isDark ? '#e0e0e0' : '#333' }}>
+                      <Calendar className="h-3 w-3 mr-1" />
+                      <span>{formatBookingDate(booking.date)}</span>
+                    </div>
+                    <div className="flex items-center text-xs" style={{ color: theme.isDark ? '#e0e0e0' : '#333' }}>
+                      <Clock className="h-3 w-3 mr-1" />
+                      <span>
+                        {formatDisplayTime(booking.displayStartTime, booking.userTimezone)} - {" "}
+                        {formatDisplayTime(booking.displayEndTime, booking.userTimezone)}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="text-xs mb-3" style={{ color: theme.isDark ? '#999' : '#666' }}>
